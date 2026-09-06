@@ -11523,8 +11523,8 @@ function armarPosesion(){
     } else if(vC==='abre'){    /* corre al ala de tres y frena ahí */
       corredor={x: a.x+ladoC*R3()*rnd(0.35,0.55), y: lerp(a.y, piso, 0.62), big:false};
       meta={x:a.x+ladoC*R3()*0.92, y:a.y+R3()*0.38}; extra={abre:true};
-    } else if(vC==='tresdos'){ /* uno ya llegó al ala opuesta; el otro corre al aro */
-      corredor={x: a.x+ladoC*R3()*rnd(0.30,0.55), y: lerp(a.y, piso, 0.60), big:false};
+    } else if(vC==='tresdos'){ /* uno ya llegó al ala opuesta; el otro corre al aro (§2z78: arranca más atrás) */
+      corredor={x: a.x+ladoC*R3()*rnd(0.30,0.55), y: lerp(a.y, piso, 0.78), big:false};
       meta={x:a.x+ladoC*R3()*0.18, y:a.y+R3()*0.35};
     } else {                   /* adelante: vos sos el que corre; el big viene de trailer a la línea de libres */
       corredor={x: a.x-ladoC*R3()*0.30, y: lerp(a.y, piso, 0.92), big:true};
@@ -11533,6 +11533,12 @@ function armarPosesion(){
     G.comps = vC==='tresdos' ? [{x:a.x-ladoC*R3()*0.85, y:a.y+R3()*0.45, big:false}, corredor]
             : vC==='adelante' ? [corredor]
             : [{x: a.x-ladoC*R3()*0.40, y: lerp(a.y, piso, 0.80), big:true}, corredor];   // el grandote, atrás
+    /* §2z78 (su caza 2026-09-06: "el que pica corre demasiado rápido: cuando frenás y tirás el lob ya está en el aro
+       con el rival encima; el pase largo no te da tiempo"). Medido: la clásica llegaba en 1,45 s y el tres contra dos
+       en 1,1 s, y el gesto cuesta frenar (0,4) + arrastrar (0,7) + el vuelo del pase largo (~0,9) ≈ 2 s. Los que
+       corren AL ARO llegan en T_CONTRA = 2,3 s: v = distancia / 2,3, entre 110 y 190. El que se abre y el trailer
+       de "adelante" no cambian (el pase ahí es corto o él frena). El perseguidor sigue al 0,88×: el que corre gana. */
+    if(vC==='clasica'||vC==='trailer'||vC==='tresdos') vCor=clamp(dist(corredor,meta)/2.3, 110, 190);
     G.corrida={j:corredor, meta, arranca, v:vCor, ...extra};
     /* §2z57: si la recta del que corre pasa a <40·ESC de vos, rodea — un punto de paso perpendicular a 60·ESC, del lado
        con más cancha (el más lejos de la raya). El frame ya sabe caminar tramos (cor.camino, §2z39). */

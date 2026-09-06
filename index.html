@@ -643,6 +643,13 @@
   /* §7.1 EL CHIP DE LA BETA: arriba a la derecha, del porte de SALIR — el mismo peso visual que
      un volver, que es exactamente la entidad que se ganó (su caza: la tira de tres botones
      ocupaba un renglón entero del vestuario) */
+  /* §2z59 el coach de la energía: foco recortado con sombra a la pantalla entera, carta abajo con la X */
+  #coachEnergia{position:fixed;inset:0;z-index:60}
+  #coachEnergia .foco{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,11,19,.8);border:1.5px solid var(--naranja)}
+  #coachEnergia .carta{position:absolute;left:16px;right:16px;background:#141b2c;border:1px solid rgba(255,150,51,.5);border-radius:12px;padding:14px 44px 14px 14px}
+  #coachEnergia .carta b{font-size:13px;letter-spacing:2px;color:var(--naranja);font-weight:700}
+  #coachEnergia .carta p{margin:6px 0 0;font-size:17px;line-height:1.35;color:var(--tinta)}
+  #coachEnergia .x{position:absolute;right:6px;top:6px;background:transparent;border:0;color:var(--tinta2);font-size:20px;padding:8px 10px;font-family:inherit}
   #lobby .hudBeta{position:absolute;top:0;right:0;font-size:11px;letter-spacing:1.6px;font-weight:700;
        color:var(--naranja);border:1px solid rgba(255,150,51,.55);border-radius:7px;padding:3px 7px;
        cursor:pointer;user-select:none;z-index:3}
@@ -5678,8 +5685,27 @@ const CARTAS_PRENSA=[
      {tipo:'apuesta',label:L('Me quedo a dar vuelta esto','I am staying to turn this around','Fico para virar isso'),desenlaces:[
        {p:60,remate:L('Te creen','They believe you','Acreditam em você'),texto:L('La frase abre el noticiero. En el club la repiten como propia.','The line opens the news. At the club they repeat it as their own.','A frase abre o noticiário. No clube repetem como se fosse deles.'),ef:{rel:{hinchada:6,dt:3}}},
        {p:40,remate:L('Palabras','Just words','Palavras'),texto:L('Nadie te cree. Lo peor es que vos tampoco.','Nobody believes you. Worst part: neither do you.','Ninguém acredita. O pior é que você também não.'),ef:{rel:{hinchada:-4}}}]}]},
+ /* §2z61 EL DEBUT (su caza 2026-09-05: en el debut le salió "en el partido del año no te dio para cumplir la misión" —
+    el debut es clave y la carta lo tomaba por el partido del año). El debut tiene su prensa: una si te fue bien, otra
+    si no; la del partido del año lo saltea. */
+ { id:'prensa_debut_bien', repite:true, evento:true,
+   cuando:(c)=>c.u.debut&&(c.u.gano||c.u.nota>=6.5),
+   gancho:L('Tu debut. Zona mixta llena de gente que ayer no te conocía. Te preguntan cómo te sentiste.','Your debut. A mixed zone full of people who did not know you yesterday. They ask how it felt.','Sua estreia. Zona mista cheia de gente que ontem não te conhecia. Perguntam como você se sentiu.'),
+   opciones:[
+     {tipo:'segura',label:L('"Como en el club de barrio"','"Like back at the neighborhood club"','"Como no clube do bairro"'),desenlaces:[{p:100,remate:null,texto:L('La frase sale en todos los portales. En el vestuario se ríen: te la van a cobrar.','The line runs on every site. The locker room laughs: they will make you pay for it.','A frase sai em todos os portais. No vestiário riem: vão te cobrar.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Esto recién empieza"','"This is just the beginning"','"Isso está só começando"'),desenlaces:[
+       {p:60,remate:L('Con hambre','Hungry','Com fome'),texto:L('El DT lo escucha desde atrás y asiente. Al día siguiente te habla distinto.','The coach hears it from the back and nods. The next day he talks to you differently.','O técnico escuta lá de trás e assente. No dia seguinte fala diferente com você.'),ef:{rel:{dt:3,hinchada:4}}},
+       {p:40,remate:L('Agrandado','Cocky','Metido'),texto:L('Un veterano te pasa el diario abierto: «recién empieza, sí». Nadie se ríe.','A veteran hands you the paper open: "just the beginning, sure". Nobody laughs.','Um veterano te passa o jornal aberto: «só começando, sim». Ninguém ri.'),ef:{rel:{plantel:-2}}}]}]},
+ { id:'prensa_debut_mal', repite:true, evento:true,
+   cuando:(c)=>!!c.u.debut,
+   gancho:L('Tu debut, y no salió. Te preguntan si te pesó la camiseta.','Your debut, and it did not go well. They ask if the jersey weighed on you.','Sua estreia, e não saiu. Perguntam se a camisa pesou.'),
+   opciones:[
+     {tipo:'segura',label:L('"Me pesó, sí"','"It did, yes"','"Pesou, sim"'),desenlaces:[{p:100,remate:null,texto:L('La honestidad paga: el DT la usa en la charla del lunes como ejemplo bueno.','Honesty pays: the coach uses it in Monday\'s talk as a good example.','A honestidade paga: o técnico usa na conversa de segunda como bom exemplo.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('"Fue un partido más"','"It was just another game"','"Foi só mais um jogo"'),desenlaces:[
+       {p:55,remate:L('Piel dura','Thick skin','Casca grossa'),texto:L('Al periodista le gusta el temple. La nota sale con tu foto.','The reporter likes the nerve. The piece runs with your photo.','O jornalista gosta da postura. A matéria sai com a sua foto.'),ef:{rel:{hinchada:5}}},
+       {p:45,remate:L('Soberbio','Arrogant','Arrogante'),texto:L('«Un partido más», dice el titular, con comillas. El DT te lo marca.','"Just another game", says the headline, in quotes. The coach points it out.','«Só mais um jogo», diz a manchete, entre aspas. O técnico te marca.'),ef:{rel:{dt:-1}}}]}]},
  { id:'prensa_mision_clave_ok', repite:true,
-   cuando:(c)=>c.u.clave&&c.u.mision&&c.u.mision.ok,
+   cuando:(c)=>c.u.clave&&c.u.mision&&c.u.mision.ok&&!c.u.debut,
    gancho:L('Cumpliste lo que te pidió el DT en el partido del año. La prensa lo sabe.','You delivered what the coach asked in the game of the year. The press knows.','Você cumpriu o que o técnico pediu no jogo do ano. A imprensa sabe.'),
    opciones:[
      {tipo:'segura',label:L('Es mi laburo','Just doing my job','É meu trabalho'),desenlaces:[{p:100,remate:null,texto:L('El DT lee la nota y asiente.','The coach reads the piece and nods.','O técnico lê a matéria e assente.'),ef:{rel:{dt:2}}}]},
@@ -5687,7 +5713,7 @@ const CARTAS_PRENSA=[
        {p:60,remate:L('Te lo dan','Granted','Te dão'),texto:L('La semana siguiente la pizarra tiene tu nombre en más jugadas.','Next week the whiteboard has your name on more plays.','Na semana seguinte a prancheta tem seu nome em mais jogadas.'),ef:{minutos:4,rel:{dt:2}}},
        {p:40,remate:L('Por los diarios no','Not through the papers','Pelos jornais não'),texto:L('"Lo que quieras pedir, pedímelo a mí." El vestuario también lo leyó.','"Whatever you want, ask me." The locker room read it too.','"O que quiser pedir, me pede." O vestiário também leu.'),ef:{rel:{dt:-4,plantel:-2}}}]}]},
  { id:'prensa_mision_clave_fallo', repite:true,
-   cuando:(c)=>c.u.clave&&c.u.mision&&!c.u.mision.ok,
+   cuando:(c)=>c.u.clave&&c.u.mision&&!c.u.mision.ok&&!c.u.debut,   // §2z61: el debut es clave, pero no es "el partido del año"
    gancho:L('El DT te había pedido algo puntual en el partido del año y no llegaste. Te preguntan por qué.','The coach asked one specific thing of you in the game of the year and you fell short. They ask why.','O técnico pediu algo pontual no jogo do ano e você não chegou. Perguntam por quê.'),
    opciones:[
      {tipo:'segura',label:L('Asumirlo','Own it','Assumir'),desenlaces:[{p:100,remate:null,texto:L('"Me faltó a mí." Corto. El DT lo agradece en silencio.','"That one is on me." Short. The coach is quietly grateful.','"Faltou de mim." Curto. O técnico agradece em silêncio.'),ef:{rel:{dt:2}}}]},
@@ -12516,6 +12542,18 @@ function apuntar(dx,dy,largo){
      preguntándome por qué no me sale"): el espejo — en el drill de tiro el pase no existe */
   if(mejor.tipo!=='tiro' && G.esDrill && window.drillEsTiro && window.drillEsTiro()){
     G.fase='espera'; G.drag=null; chip(t(L('Acá no se pasa: tirá al aro','No passing here: shoot','Aqui não se passa: arremessa'))); return; }
+  /* §2z60 (su pedido 2026-09-05: "si es una de PASÁ O TIRÁ y hacés el movimiento de dribble, que te diga que en ésa no
+     se dribblea, para que no la tires a cualquier lado sin querer"): el arrastre del bote va HACIA el aro; la gomera se
+     arrastra hacia atrás. Acá se llega sólo cuando no hay bote (o lo levantaste), así que un lanzamiento que sale
+     hacia ATRÁS (a más de 108° del aro) y no cae cerca de ningún compañero no es una gomera: es el gesto del bote.
+     La pelota se queda y el chip lo dice. El pase atrás al que viene de trailer sigue vivo: ahí hay alguien. */
+  if(mejor.tipo!=='tiro' && !G.esDrill){
+    const a0=aro(), vA=Math.atan2(a0.y-G.vos.y,a0.x-G.vos.x), vT=Math.atan2(dy,dx);
+    let dif0=Math.abs(vT-vA); if(dif0>Math.PI) dif0=2*Math.PI-dif0;
+    const nadie=!(G.comps||[]).some(c=>dist(c,mejor.p)<60*ESC());
+    if(dif0>Math.PI*0.6 && nadie){ G.fase='espera'; G.drag=null;
+      chip(t(L('Acá no hay bote: tirá o pasá. La gomera se arrastra hacia atrás.','No dribble here: shoot or pass. The slingshot is pulled backwards.','Aqui não tem drible: arremessa ou passa. O estilingue se puxa pra trás.'))); return; }
+  }
   /* EL APUNTADO LATERAL CUENTA (su regla 2026-08-28: "no es lo mismo apuntar BIEN que
      que quede una parte adentro — sino apuntás rápido total no paga apuntar de verdad"):
      el círculo del aro decide QUÉ es tiro, pero el desvío angular contra el centro viaja
@@ -15830,7 +15868,7 @@ function frame(now){
             G.vos.y+=(G.bola.y-G.vos.y)/db*Math.min(vC,db); }
           /* el toque largo es pelota REGALADA: si un defensor la alcanza lejos tuyo, se la
              pincha — el riesgo de botear fuerte es ese, no un dado */
-          if(db>34*ESC()) for(const df of G.defs){ if(esPerseguidor(df)) continue;   // §2z54
+          if(db>34*ESC()&&!G.tutQuieto) for(const df of G.defs){ if(esPerseguidor(df)) continue;   // §2z54 · §2z58: en el tutorial no hay pinchada
             if(dist(df,G.bola)<22*ESC()){
             flash(df); veredicto(t(L('¡TE LA PINCHARON!','POKED AWAY!','ROUBARAM A BOLA!')),'mal');
             perderPelota(t(L('La llevaste muy larga y te la pincharon.','You pushed your dribble long and it got poked away.','Você bateu a bola longe demais e ela foi roubada.')),null,true); break; } }
@@ -15884,6 +15922,7 @@ function frame(now){
       for(const df of G.defs){
         if(df===G.custodio) continue;   // el custodio tiene su propio cerebro (el 2-contra-1)
         if(esPerseguidor(df)) continue;   // §2z54: el que persigue al que corre pasa de largo
+        if(G.tutQuieto) continue;   // §2z58: en los tutoriales nadie te cierra conduciendo (su corte: "no necesitamos que te corran a lo loco mientras aprendés")
         /* en el BLOQUEO cada defensor juega SU papel (su video 2026-08-26: los tres te
            cazaban y el pick&roll no se podía ni armar): te contiene tu marca — y el que
            blitzea, ya leída la jugada; el del abierto se queda con su hombre y el del
@@ -18921,8 +18960,27 @@ function revisarCarrera(e){
   if(antes!==ahora){ e.mvpPos=ahora; guardar(); }
   return car;
 }
+/* §2z59 EL COACH DE LA ENERGÍA (su pedido 2026-09-05: "cuando te creás la partida algo te debería indicar qué significa
+   la energía y que tenés que tomar latita para llenarla: un pop-up informativo que cerrás con una X, que se grise el
+   fondo y resalte la energía"). Una vez por carrera, la primera vez que el vestuario se ve: el foco recorta la caja de
+   la energía, la carta dice el contrato —cada partido la gasta, la lata la llena— y la X cierra. */
+function coachEnergia(){
+  if(!C||!C.jugador||yaVisto('coach_energia')) return;
+  if($l('lobby').classList.contains('oculto')||document.getElementById('coachEnergia')) return;
+  const el=document.querySelector('#lobby .rec.nrg'); if(!el) return;
+  const r=el.getBoundingClientRect(); if(!r.width||!r.height) return;
+  marcarVisto('coach_energia'); guardar();
+  const v=document.createElement('div'); v.id='coachEnergia';
+  v.innerHTML='<div class="foco" style="left:'+(r.left-6)+'px;top:'+(r.top-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px"></div>'
+    +'<div class="carta" style="top:'+(r.bottom+14)+'px"><button class="x" aria-label="cerrar">✕</button>'
+    +'<b>'+t(L('ENERGÍA','ENERGY','ENERGIA'))+'</b><p>'+t(L('Cada partido la gasta. Con una lata la llenás: tocá la latita.','Every game drains it. A can refills it: tap the little can.','Cada jogo gasta. Uma latinha enche: toque na latinha.'))+'</p></div>';
+  document.body.appendChild(v);
+  const cerrar=()=>v.remove();
+  v.querySelector('.x').onclick=cerrar; v.addEventListener('click',(e)=>{ if(e.target===v||e.target.classList.contains('foco')) cerrar(); });
+}
 function pintaLobby(){
-  try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }   // §2z45: el corte y los avisos, antes de que cualquier panel los lea
+  try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }
+  setTimeout(()=>{ try{ coachEnergia(); }catch(err){} },0);   // §2z59: después de pintar, con la caja ya medida   // §2z45: el corte y los avisos, antes de que cualquier panel los lea
   cerrarSinVos();
   setTimeout(apoyarPaneles,0);   // después de pintar, el cajón vuelve a apoyarse abajo
   const e=est(), J=C.jugador;
@@ -19884,6 +19942,7 @@ function ultimoPartido(cierre,e){
   return {gano:G.nos>G.riv,nota:cierre.rating,mision:cierre.mision||null,clave:!!cierre.clave,
     pts:G.pts,ast:G.ast,rob:G.robos,esc:ESC_RITMO(),serie:cierre.serie||null,   // §2z43.1
     aviso:(e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada)?e.avisoMVP.tipo:null, mvpPos:e.mvpPos||null,   // §2z46
+    debut:!((C.historial||[]).length) && (e.misPartidos||[]).filter(p=>p.jugado&&!p.sel&&!p.am).length===1,   // §2z61: tu primer partido de la carrera
     clasico:!!(mi&&mi.rival&&enPartido&&mi.rival===enPartido.rival),local:!!(enPartido&&enPartido.local),
     /* ⚠️ EL PARTIDO DE PLAYOFFS NO TIENE FECHA (miProximo devuelve {tipo:'serie'} sin `fecha`), y
        el rótulo de la prensa caía en "FECHA undefined" en todo partido de serie que NO la cerraba
@@ -21655,8 +21714,12 @@ const MECANICAS=[
    /* su corte: el compañero está SOLO abajo del aro (asistencia, no devolución — "sino lo
       obligás a dribblear") y los rivales quietos */
    dif:(J)=>drillDe('vision',0,J.skills.vision), quieto:true},
+  /* §2z58 (su corte: "dribblear puede tener dos pasos: dribble SOLO y dribble en el partido"): primero la cancha
+     vacía —el gesto y nada más—, después el carril con la marca adelante */
   {k:'dribblear', tipo:'carril',   nom:L('DRIBBLEAR','DRIBBLE','DRIBLAR'),
-   dif:(J)=>({dist:40, def:12, clkOff:true, gat:'toque', drive:'toques', man:Math.round(J.skills.manejo/10)})},
+   dif:(J)=>({dist:40, def:12, clkOff:true, gat:'toque', drive:'toques', man:Math.round(J.skills.manejo/10)}), quieto:true},
+  {k:'conducir',  tipo:'carril',   nom:L('DRIBBLEAR CON MARCA','DRIBBLE VS DEFENSE','DRIBLAR COM MARCAÇÃO'),
+   dif:(J)=>({dist:40, def:12, clkOff:true, gat:'toque', drive:'toques', man:Math.round(J.skills.manejo/10)}), quieto:true},
   {k:'defender',  tipo:'defensa',  nom:L('DEFENDER','DEFEND','DEFENDER'),
    dif:(J)=>drillDe('defensa',0,J.skills.defensa)},
 ];
@@ -21691,6 +21754,9 @@ $t('tutVolver').onclick=cerrarLista;
 function jugar(i){
   const k=K();
   const m=MECANICAS[i]; T.i=i; T.m=m; T.difSnap={...dif}; T.corte=0;
+  /* §2z58 (su caza: "si lo completaste desde el onboarding, al volver a entrar AL TUTORIAL no te tira más las
+     instrucciones"): entrar a un tutorial es pedir la lección — la línea y el dedito salen de nuevo, siempre */
+  { const v=vistos(); if(v[m.tipo]) v[m.tipo]=0; }
   Object.assign(dif, m.dif(jugadorDe()));
   casacasPractica();
   $t('tutVelo').classList.add('oculto');
@@ -21717,28 +21783,83 @@ function intento(){
   G.beat={tipo:T.m.tipo, drill:true};
   armarPosesion();
   const a=aro(), e=ESC(), k=T.m.k;
+  /* §2z58 (su novia, 2026-09-05: "cada vez que abrís un tutorial es una situación completamente diferente, de
+     distintos lugares de la cancha; y en algunas hay jugadores desmarcándose, que saca foco"): la posesión que arma
+     `armarPosesion` es la del partido —lugar al azar, cortes tipados, pantalla, vida—, y un tutorial es UNA situación,
+     siempre la misma. Se apagan los cortes y la pantalla (salvo en DEFENDER, donde la corrida ES la lección), y cada
+     mecánica tiene su lugar fijo. */
+  if(k!=='defender'){ G.corrida=null; G.pantalla=null; G.corres=null; }
   if(k==='tirar'){
+    G.vos.x=a.x; G.vos.y=a.y+R3()*0.55;   // de frente, siempre el mismo tiro
     /* UN TIRO EN VERDE, medido (2026-09-03): a 0,93·R3 con la marca lejos daba Q 0,48
        (amarilla) — el semáforo es cst·distF·skillF y a esa distancia distF vale 0,68. A
        0,55·R3 distF es 0,85 y con tiro 4 (skillF 0,75) Q=0,64: BUENA. Vos te acercás al
        aro por tu mismo ángulo; la marca a más de 150·ESC (cst=1), del lado contrario al
        aro, adentro de la cancha. */
-    { const vx=G.vos.x-a.x, vy=G.vos.y-a.y, vl=Math.hypot(vx,vy)||1, r=R3()*0.55;
-      G.vos.x=clamp(a.x+vx/vl*r, MARG()+16, W-MARG()-16); G.vos.y=Math.max(a.y+H*0.045, a.y+Math.abs(vy)/vl*r); }
-    const dx=G.vos.x-a.x, dy=G.vos.y-a.y, l=Math.hypot(dx,dy)||1;
-    G.marca.x=clamp(G.vos.x+dx/l*170*e, MARG()+16, W-MARG()-16);
-    G.marca.y=clamp(G.vos.y+dy/l*170*e, a.y+20*e, pisoVos());
-    if(dist(G.marca,G.vos)<155*e){ G.marca.x=clamp(G.vos.x-(dx>0?1:-1)*170*e, MARG()+16, W-MARG()-16); }
+    G.marca.x=a.x; G.marca.y=a.y+R3()*0.55+170*e;   // tu marca lejos, atrás tuyo (fija respecto del aro, no de la cámara)
+    /* el resto, a los rincones y quietos: nadie se desmarca en un tutorial de tiro */
+    const rin=[[-0.95,0.15],[0.95,0.15],[-0.7,0.95],[0.7,0.95]]; let ri=0;
+    for(const o of [...G.comps, ...G.defs.filter(d=>d!==G.marca)]){ const [fx,fy]=rin[ri++%rin.length]; o.x=clamp(a.x+fx*R3(), MARG()+16, W-MARG()-16); o.y=a.y+fy*R3(); o.vida=null; }
   }
   if(k==='pasar'){
     /* el compañero chico queda SOLO abajo del aro, del lado contrario a tu marca, y su
        defensor se va lejos: recibe y bandejea (la rama del "quedó solo" de 14) */
+    G.vos.x=clamp(a.x+R3()*0.45, MARG()+16, W-MARG()-16); G.vos.y=a.y+R3()*0.55;   // siempre desde el ala derecha
+    G.marca.x=G.vos.x+30*e; G.marca.y=G.vos.y+40*e;
     const comp=G.comps.find(c=>!c.big)||G.comps[0];
-    const lado=G.marca.x>=a.x?-1:1;
+    const lado=-1;   // el compañero solo, siempre abajo del aro del lado izquierdo
     comp.x=clamp(a.x+lado*R3()*0.30, MARG()+16, W-MARG()-16); comp.y=a.y+R3()*0.32;
     for(const d of G.defs){ if(d!==G.marca && (dist(d,comp)<110*e || distSeg(d,comp,a)<50*e)){ d.x=clamp(a.x-lado*R3()*0.75, MARG()+16, W-MARG()-16); d.y=a.y+R3()*0.9; } }
+    /* §2z58: el resto también fijo — el grandote al codo derecho con su defensor al lado, los demás lejos y quietos */
+    { let n=0; for(const c of G.comps){ if(c===comp) continue; c.x=clamp(a.x+R3()*0.35, MARG()+16, W-MARG()-16); c.y=a.y+R3()*0.75+n*40*e; c.vida=null; n++; }
+      let m=0; for(const d of G.defs){ if(d===G.marca) continue; d.x=clamp(a.x+R3()*(m===0?0.5:-0.75), MARG()+16, W-MARG()-16); d.y=a.y+R3()*(m===0?0.8:0.9); m++; } }
+  }
+  if(k==='dribblear'){
+    /* §2z58 (su corte: "el drill de DRIBBLEAR debería ser vos solo aprendiendo a dribblear; con lo que se ve en la
+       pantalla mi novia no entendía, y encima le saltó un defensor y le hizo falta"): la cancha VACÍA — sin marca,
+       sin compañeros, sin defensores. Como el slalom: nadie te marca (06). */
+    G.vos.x=a.x; G.vos.y=pisoVos();
+    G.comps=[]; G.defs=[]; G.marca={x:-9999,y:-9999}; G.asig=null; G.custodio=null;
+  }
+  if(k==='conducir'){
+    /* el segundo paso: la misma salida, con tu marca adelante a la distancia de la perilla y el resto en los rincones */
+    G.vos.x=a.x; G.vos.y=pisoVos();
+    const dM=Math.max(60*e, dist(G.marca,G.vos)); G.marca.x=a.x; G.marca.y=G.vos.y-dM;
+    const rin=[[-0.95,0.15],[0.95,0.15],[-0.7,0.95],[0.7,0.95]]; let ri=0;
+    for(const o of [...G.comps, ...G.defs.filter(d=>d!==G.marca)]){ const [fx,fy]=rin[ri++%rin.length]; o.x=clamp(a.x+fx*R3(), MARG()+16, W-MARG()-16); o.y=a.y+fy*R3(); o.vida=null; }
+  }
+  /* §2z58 LOS DOS PASOS DEL BOTE (su corte: "primero practicás el movimiento, después lo practicás en partido y con el
+     detalle claro de tocar para frenar: llegás hasta un punto y el juego se frena y te indica que tenés que TOCAR").
+     DRIBBLEAR: cancha vacía, avanzaste medio radio → listo. DRIBBLEAR CON MARCA: cuando entrás al radio del aro el
+     juego se PAUSA (el mismo mecanismo del botón de pausa) y el dedito pide el toque; tocaste → frenaste → listo. */
+  if(T.poll){ clearInterval(T.poll); T.poll=null; }
+  if(k==='dribblear'||k==='conducir'){
+    const y0=G.vos.y, mOK=T.m; T.frenoPedido=false; G.tutFrenoPide=false;
+    T.poll=setInterval(()=>{
+      if(!T||T.m!==mOK||G.fase==='entre'){ clearInterval(T.poll); T.poll=null; return; }
+      if(k==='dribblear'){
+        if(G.fase==='conduzco' && (y0-G.vos.y)>R3()*0.5){ clearInterval(T.poll); T.poll=null; G.levanto=true; G.fase='espera';
+          finTut(true, t(L('Eso es el bote: la pelota va adonde arrastrás.','That is the dribble: the ball goes where you drag.','Isso é o drible: a bola vai pra onde você arrasta.'))); }
+        return; }
+      if(!T.frenoPedido){
+        if(G.fase==='conduzco' && dist(G.vos,aro())<R3()*1.0){ T.frenoPedido=true; G.pausa=true; G.pausaT0=performance.now(); G.tutFrenoPide=true;
+          relato(t(L('TOCÁ para frenar','TAP to stop','TOQUE para parar')),true); }
+        return; }
+      if(G.levanto||(G.frenoEn||0)>G.pausaT0){
+        const delta=performance.now()-G.pausaT0; G.pausa=false;
+        if(G.formaHasta) G.formaHasta+=delta; if(G.medidor&&G.medidor.t0) G.medidor.t0+=delta; if(G.barraFx) G.barraFx.hasta+=delta;
+        G.tutFrenoPide=false; clearInterval(T.poll); T.poll=null;
+        setTimeout(()=>{ if(T&&T.m===mOK) finTut(true, t(L('Frenaste con un toque: eso es el bote en el partido.','You stopped with a tap: that is dribbling in a game.','Você parou com um toque: isso é o drible no jogo.'))); },700); }
+    },80);
   }
   if(k==='defender'){
+    /* §2z58: siempre la misma bajada — el portador de frente, el corredor por la derecha, tu compañero detrás de él,
+       vos entre el portador y el aro (la geometría de la escena, con los azares fijados) */
+    { const portador=G.defs[0], corredor=G.defs[1];
+      if(portador){ portador.x=a.x; portador.y=pisoVos()*0.98; }
+      if(corredor){ corredor.x=clamp(a.x+R3()*0.58, MARG()+16, W-MARG()-16); corredor.y=lerp(a.y,pisoVos(),0.55);
+        if(G.comps[0]){ G.comps[0].x=corredor.x+30; G.comps[0].y=corredor.y+110; } }
+      if(portador){ G.vos.x=lerp(portador.x,a.x,0.45); G.vos.y=lerp(portador.y,a.y,0.42); } }
     /* su corte: una PAUSA antes de que arranquen — la corrida espera tu primer toque; y la
        aclaración en blanco no va (tapa el aro): el dedito ya dice el gesto. El partido
        conserva su línea: el visto de 'defensa' no se gasta acá. */
@@ -21762,6 +21883,8 @@ function finTut(anoto,resumen){
   setTimeout(()=>{ if(T&&T.m===m) intento(); }, 1700);
 }
 function limpiarEscena(){
+  if(T&&T.poll){ clearInterval(T.poll); T.poll=null; }
+  G.tutFrenoPide=false; if(G.pausa) G.pausa=false;   // §2z58: la pausa del tutorial del bote no sobrevive a la escena
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null; G.bola=null; G.boteo=null;
   G.joy=null; G.levanto=false; G.medidor=null; G.defensa=null; G.tutQuieto=false;
   $t('sit').textContent='';
@@ -21797,6 +21920,8 @@ function dibujar(now){
   /* la pausa de DEFENDER se suelta con tu primer toque (el joystick): el reloj de su
      decisión arranca recién ahí */
   if(k==='defender'&&G.defensa&&G.defensa.espera&&G.joy){ G.defensa.espera=false; G.defensa.tDec=now+(G.defensa.tDecRel||2500); }
+  if(G.tutFrenoPide){ const sv0=aPantalla(G.vos);
+    fantasmaToque(sv0.x, Math.min(sv0.y+64,H-40), performance.now(), t(L('TOCÁ para frenar','TAP to stop','TOQUE para parar'))); return; }   // §2z58: con el juego en pausa, el dedito late con el reloj real
   if(yaVisto(clave)||T.gestoHecho) return;
   const hecho=()=>{ T.gestoHecho=true; };
   const sv=aPantalla(G.vos), ar=aPantalla(aro());
@@ -21816,7 +21941,7 @@ function dibujar(now){
     }
     else if(G.fase!=='entre') hecho();
   }
-  else if(k==='dribblear'){
+  else if(k==='dribblear'||k==='conducir'){
     if(G.fase==='espera'&&!T.boteo){
       /* su corte: la guía va PARA DONDE QUEDÁS LIBRE, no encima del defensor — hacia el aro,
          doblando al lado contrario de tu marca */
@@ -21825,8 +21950,7 @@ function dibujar(now){
       const s=cruz>=0?-1:1, gx=ux*0.55+(-uy)*s*0.85, gy=uy*0.55+ux*s*0.85, gl=Math.hypot(gx,gy)||1;
       fantasmaArrastre(sv.x, sv.y, sv.x+gx/gl*90, sv.y+gy/gl*90, now, t(L('arrastrá: la pelota va para donde arrastrás','drag: the ball goes where you drag','arrasta: a bola vai pra onde você arrasta')));
     }
-    else if(G.fase==='conduzco'){ T.boteo=true;
-      if((G.tDrive||0)>0.6) fantasmaToque(sv.x, Math.min(sv.y+64,H-40), now, t(L('toque seco: frenás y tirás','quick tap: stop and shoot','toque seco: para e arremessa'))); }
+    else if(G.fase==='conduzco'){ T.boteo=true; }   // §2z58: el toque lo pide el paso dos, con el juego frenado
     else if(G.levanto||G.fase==='apunto'||G.fase==='forma'||G.fase==='vuelo') hecho();
   }
   else if(k==='defender'){

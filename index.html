@@ -9596,14 +9596,29 @@ function jugarJornadaSel(e, j, miJuego) {
   }
 }
 
+/* §2z73 (su caza 2026-09-06 en la beta: *"me fue tan bien y NO ME CONVOCAN a la segunda? ¿Y por qué me lo dicen ni
+   bien termina la otra ventana? Te deberían avisar antes de la próxima"*): la ventana se decidía al CERRAR la
+   anterior, o sea semanas antes, y el aviso caía encima del parte de la que acababas de jugar. Ahora se decide
+   cuando LLEGA: la semana previa (con la fecha f−1 jugada; la ventana vive entre la f y la f+1). El motor la deja
+   en `undefined` hasta entonces, que la UI ya lee como "nada todavía" (§12.22). */
+function decidirVentanasQueLlegan(e, hastaF) {
+  const el = e.seleccion; if (!el || el.fin) return;
+  for (let k = el.idx; k < el.ventanas.length; k++) {
+    const v = el.ventanas[k];
+    if (v.conv !== undefined) continue;
+    if (v.f - 1 <= hastaF) decidirVentanaSel(e, k); else break;
+  }
+}
 /** Avanza las ventanas que ya pasaron (las que dejaste pasar las juega el relato). */
 function avanzarSeleccion(e, hastaF, miJuego) {
   const el = e.seleccion;
   if (!el || el.fin) return;
+  decidirVentanasQueLlegan(e, hastaF);
   while (el.idx < el.ventanas.length && el.ventanas[el.idx].f <= hastaF && !el.fin) {
     for (const j of jornadasDeVentana(el.ventanas[el.idx].n)) { jugarJornadaSel(e, j, miJuego); miJuego = null; }
-    el.idx++; decidirVentanaSel(e, el.idx);   // §12.21
+    el.idx++;
   }
+  decidirVentanasQueLlegan(e, hastaF);   // §2z73: la que viene, si ya está a una semana
 }
 
 /** Tu partido de eliminatorias jugado con los dedos: resuelve SÓLO esa jornada. */
@@ -9616,7 +9631,7 @@ function jugarJuegoSeleccion(e, miJuego) {
   const j = js.find((x) => el.juegos.some((g) => g.j === x && !g.jugado));
   if (j === undefined) return;
   jugarJornadaSel(e, j, miJuego);
-  if (!js.some((x) => el.juegos.some((g) => g.j === x && !g.jugado))) { el.idx++; decidirVentanaSel(e, el.idx); }   // §12.21
+  if (!js.some((x) => el.juegos.some((g) => g.j === x && !g.jugado))) { el.idx++; decidirVentanasQueLlegan(e, e.fechaJugada || 0); }   // §12.21 · §2z73
 }
 
 /** ¿Qué fechas del club te saltea la selección?
@@ -17912,6 +17927,13 @@ function cargarCarrera(n){
     if(!c.padron) c.padron=padronInicial();   // §2z7: carreras pre-escalera arrancan con el mapa de hoy
     if(c.jugador.nivel===undefined){ c.jugador.exp=0; c.jugador.nivel=1; }  // carreras pre-grifo
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
+    /* §2z73: EN LA BETA TE CONVOCAN SIEMPRE, también en las partidas que ya venían (su caza: una beta con 8,8 contra
+       Estados Unidos y "esta vez no te llamaron" a la segunda ventana — la selección de esa partida no llevaba el
+       flag `beta` y el motor sorteó la ventana con media 43). Las ventanas que faltan pasan a convocado y el aviso
+       de "te caíste" se borra. */
+    if(c.beta&&c.temporada&&c.temporada.seleccion){ const el=c.temporada.seleccion;
+      if(!el.beta||el.ventanas.some((v,k)=>k>=el.idx&&v.conv!==true)){ el.beta=true; el.convocado=true; el.motivo=null; el.avisoVentana=null;
+        el.ventanas.forEach((v,k)=>{ if(k>=el.idx){ v.conv=true; v.motivo=null; } }); } }
     if(!c.jugador.entreno){ c.jugador.entreno=entrenoNuevo(); c.jugador.rol='titular'; }  // pre-fase 4
     if(c.jugador.minutos===undefined) c.jugador.minutos=semillaMinutos(c.ligaId,c.jugador.rol||'titular');   // pre-§2z12
     if(!c.contrato){ const cl=clubPorId(c.temporada.clubes,c.temporada.miClubId)||LIGAS[c.ligaId].clubes[0]; c.contrato=ofertaDe(c.jugador,c.ligaId,cl,null); }   // pre-§2z15
@@ -18134,7 +18156,7 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
      lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
   e.relSel=relSelDe(J); e.selLibera=liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
   e.seleccion=el;
-  decidirVentanaSel(e,0);
+  decidirVentanasQueLlegan(e,e.fechaJugada||0);   // §2z73: la primera también se decide cuando llega
 }
 
 /** El renglón de la semana cuando la ventana se jugó sin vos (su línea 4). */
@@ -18370,7 +18392,7 @@ function abrirParteVentana(p){
     : t(L('DOS DERROTAS','TWO LOSSES','DUAS DERROTAS'));
   tit.className=p.fin?(p.pase?'oro':'mal'):(g===2?'oro':g===1?'':'mal');
   $l('parteJuegos').innerHTML=p.juegos.map(x=>
-    '<div class="fila-item"><span class="desc">'+(x.local?'vs ':'en ')+nombreSel(x.rival).toUpperCase()+'</span>'
+    '<div class="fila-item"><span class="desc">'+banderaDe(x.rival,15)+' '+(x.local?'vs ':'en ')+nombreSel(x.rival).toUpperCase()+'</span>'   // §2z73: la banderita del rival (su caza)
     +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
   /* tu parte: la línea si jugaste, y si no, POR QUÉ no (su "tipo un «no fuiste convocado»") */
   const tuyo=$l('parteTuyo');

@@ -3598,10 +3598,15 @@ function elegirCalientes(estado) {
     } else if (
       // El rival directo pide TABLA HECHA: con una fecha jugada todos están a ≤2 y el
       // candado ancho regala calientes espurios — recién habla con un tercio jugado.
-      estado.fechaJugada * 3 >= estado.fechasTotales &&
+      // §2z81 (su caza 2026-09-06: "voy 6-0 primero, Gimnasia está 6-0 también, jugamos en la fecha 12: ¿no
+      // debería ser clave?"): la segunda puerta — los DOS de arriba, con 5 jugados y a una victoria, se juegan el
+      // primer puesto aunque no haya pasado el tercio. Sigue siendo estrecha: 1.º contra 2.º y nada más.
       rec[estado.miClubId] && rec[rivalId] &&
-      Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 2 &&
-      Math.abs(pos[estado.miClubId] - pos[rivalId]) <= 2
+      ((estado.fechaJugada * 3 >= estado.fechasTotales &&
+        Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 2 &&
+        Math.abs(pos[estado.miClubId] - pos[rivalId]) <= 2)
+       || (pos[estado.miClubId] <= 2 && pos[rivalId] <= 2 && rec[estado.miClubId].pj >= 5 && rec[rivalId].pj >= 5 &&
+           Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 1))
     ) {
       const puesto = Math.min(pos[estado.miClubId], pos[rivalId]);
       porque = `Se juega el ${puesto === 1 ? 'primer' : puesto + '.º'} puesto`;

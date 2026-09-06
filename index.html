@@ -13811,7 +13811,7 @@ function tiraRival(j){
     relato(t(L('Te vio encima y salió al aro.','He saw you on him and went to the rim.','Te viu em cima e foi pro aro.')),false);
     return;
   }
-  if(j===D.portador && !D.amague && dist(G.vos,j)<60*ESC() && dist(j,a)<R3()*1.05
+  if(j===D.portador && !D.amague && dist(G.vos,j)<(D.escena?45:60)*ESC() && dist(j,a)<R3()*1.05   // §2z87 j: en las escenas nuevas sólo si ya estás en rango de molestarlo
      && (encima || dado<pAmague)){
     D.amague=true;
     const dv0=dist(G.vos,j), v0={x:G.vos.x,y:G.vos.y};
@@ -13834,9 +13834,13 @@ function tiraRival(j){
         const lunge=clampMundoJugable(G.vos.x+(j.x-G.vos.x)/dl*26*ESC()*0.9,
                                       G.vos.y+(j.y-G.vos.y)/dl*26*ESC()*0.9);
         G.vos.x=lunge.x; G.vos.y=lunge.y;
-        G.joyLock=performance.now()+600;
+        /* §2z87 j (su caza: "hay momentos donde te quedás parado sin ningún tipo de reacción, y ni siquiera entiendo
+           qué hice mal"): en las escenas nuevas el congelamiento es de 300 ms (era 600) — el costo que se VE es el
+           cuerpo de largo y su ventaja, y podés seguir la jugada — y el feed nombra el error. */
+        G.joyLock=performance.now()+(D.escena?300:600);
         G.joy=null; G.joyMoviendo=false; G.vosQuietoDesde=performance.now();   // el cuerpo vendido no está plantado
         veredicto(t(L('¡TE VENDIÓ!','YOU BIT!','CAIU NA FINTA!')),'mal');
+        if(D.escena) relato(t(L('Mordiste el amague en movimiento: plantate antes de que reciba.','You bit the fake on the move: get set before he catches it.','Você caiu na finta em movimento: se planta antes de ele receber.')),true);
         D.mordido=true; D.drive=true;
         /* el drive: la meta se mete al aro y el loop de siempre hace el resto (rodea tu
            cuerpo congelado, tu vuelta rota, y a <0,42·R3 decide — encerrado descarga,

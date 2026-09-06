@@ -11245,6 +11245,11 @@ function armarPosesion(){
   G.esDrill = !!(G.beat && G.beat.drill);
   if(G.beat && G.beat.tipo) G.tipo=G.beat.tipo;
   else G.tipo=sortearTipo(esPedida);
+  /* §2z87: las escenas defensivas nuevas son la MISMA posesión 'defensa' con otra geometría (cierre · cortina · 1v1) */
+  G.defEscena=null;
+  if(G.tipo==='defCierre'){ G.tipo='defensa'; G.defEscena='cierre'; }
+  else if(G.tipo==='defCortina'){ G.tipo='defensa'; G.defEscena='cortina'; }
+  else if(G.tipo==='def1v1'){ G.tipo='defensa'; G.defEscena='1v1'; }
   /* EL BLOQUEO (co-diseñado 2026-08-25 — su corte: SIN mecánica nueva): una parte de las
      'decision' llega con el big subiendo a poner una PANTALLA. El verbo es el bote de
      siempre; lo nuevo es física (la pantalla es un cuerpo que tu marca no atraviesa) y
@@ -11661,6 +11666,52 @@ function armarPosesion(){
        flick queda para lo off-ball de las demás), tu cuerpo EXISTE (no te atraviesa;
        plantado adelante, la carga es tuya) y el portador te RODEA. Arrancás plantado. */
     G.defensaHubo=true; G.defensas=(G.defensas||0)+1;   // la deuda de la noche queda saldada
+    /* §2z87: LAS TRES ESCENAS NUEVAS (las cuatro líneas de cada una en DISEÑO.md). El nivel del rival (dif.def,
+       12→50) mueve la velocidad del drive y la calidad del tirador; los cuerpos, la tapa, el robo, el amague y la
+       carga son los de siempre. */
+    if(G.defEscena){
+      const D=G.defensa, nv=clamp(((dif.def||12)-12)/38,0,1);   // 0 = nivel 1 · 1 = nivel 20
+      D.escena=G.defEscena; D.nivel=nv; D.vel=105+nv*40; D.pBonus=nv*0.12;
+      const lado=Math.random()<0.5?-1:1;
+      if(G.defEscena==='cierre'){
+        /* A: el pasador en la pintura, tu marca ABIERTA en el perímetro, vos ayudando cerca del pasador; el pase
+           sale a los 0,6-0,9 s y desde ahí tenés ~0,9 s (vuelo + 120 + 460) para cerrar: d0 sube con el nivel */
+        const ang=lado*rnd(0.55,0.95);   // radianes desde el eje del aro, a un costado
+        const tirador={x:clamp(a.x+Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97};
+        const pasador={x:a.x-lado*R3()*0.12, y:a.y+R3()*0.38};
+        G.defs=[pasador, tirador]; G.comps=[]; G.marca=tirador;
+        D.portador=pasador; D.corredor=tirador; D.vuelta=null; D.ladoD=lado;
+        const d0=(90+nv*80)*ESC(), dpt=Math.max(1,dist(pasador,tirador));
+        /* vos a d0 del tirador sobre la línea al pasador, corrido 30·ESC hacia el aro: la línea del pase no está pisada de arranque */
+        const ux=(pasador.x-tirador.x)/dpt, uy=(pasador.y-tirador.y)/dpt;
+        const v0=clampMundoJugable(tirador.x+ux*Math.min(d0,dpt-20*ESC())-uy*30*ESC()*lado, tirador.y+uy*Math.min(d0,dpt-20*ESC())+ux*30*ESC()*lado);
+        G.vos={x:v0.x,y:v0.y};
+        D.tDec=performance.now()+rnd(600,900); D.meta={x:pasador.x,y:pasador.y};   // el pasador no se mueve
+      } else if(G.defEscena==='cortina'){
+        /* B: tu marca con la pelota en el perímetro, el pívot rival plantado a su lado (26·ESC, del lado por el que
+           sale), vos adelante a 38·ESC hacia el aro. A los 0,6 s arranca: pasa la cortina y va al aro. */
+        const marca={x:a.x-lado*R3()*0.25, y:a.y+R3()*1.0};
+        const angA=Math.atan2(a.y-marca.y, a.x-marca.x);
+        const px=-Math.sin(angA)*lado, py=Math.cos(angA)*lado;   // perpendicular, hacia el lado de salida
+        const pantalla={x:marca.x+px*26*ESC(), y:marca.y+py*26*ESC(), big:true, quieto:true};
+        G.defs=[marca, pantalla]; G.comps=[]; G.marca=marca;
+        D.portador=marca; D.corredor=null; D.vuelta=null; D.pantalla=pantalla; D.ladoD=lado;
+        G.vos={x:marca.x+Math.cos(angA)*38*ESC(), y:marca.y+Math.sin(angA)*38*ESC()};
+        /* la ruta: cruza detrás de la cortina y de ahí al aro */
+        D.ruta=[{x:clamp(marca.x+px*72*ESC()+Math.cos(angA)*24*ESC(), MARG()+16, W-MARG()-16), y:marca.y+py*72*ESC()+Math.sin(angA)*24*ESC()},
+                {x:a.x+rnd(-20,20), y:a.y+R3()*0.18}];
+        D.meta=D.ruta[0]; D.arranca=performance.now()+600; D.tDec=performance.now()+6000;
+      } else if(G.defEscena==='1v1'){
+        /* C: de frente, con la pelota, a 1,1·R3; vos entre él y el aro. Sin compañero ni pasador. */
+        const marca={x:a.x+lado*R3()*rnd(0.05,0.30), y:a.y+R3()*1.1};
+        G.defs=[marca]; G.comps=[]; G.marca=marca;
+        D.portador=marca; D.corredor=null; D.vuelta=null; D.ladoD=lado;
+        { const dma=Math.max(1,dist(marca,a)), f=Math.min(0.6, 85*ESC()/dma);   // a 85·ESC: adentro de los 100 del pull-up, él tiene que ganarte la separación
+          G.vos={x:lerp(marca.x,a.x,f), y:lerp(marca.y,a.y,f)}; }
+        D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; D.arranca=performance.now()+500; D.tDec=performance.now()+6000;
+      }
+      G.pelotaEn=D.portador;
+    }
     G.joy=null; G.joyLock=0; G.vosQuietoDesde=performance.now()-1000;
     G.fase='defiendo';
   }
@@ -11891,7 +11942,10 @@ function armarPosesion(){
     veredicto(t(L('¡DEFENDÉ!','DEFEND!','DEFENDE!')),'mal',1500);
     sit.textContent=t(L('DEFENSA','DEFENSE','DEFESA')); sit.className='cierre';
     /* §2z65: nombrar el HOLD, no el apoyo — el bote es arrastrá-y-soltá y acá soltar es plantarse (su caza) */
-    explicar('defensa',t(L('Vienen ellos: mantené apretado y deslizá.',"They're coming: hold down and slide.",'Eles vêm: segura apertado e desliza.')), true);   // un renglón (su caza 2026-09-03: tapaba el aro)
+    explicar('defensa', G.defEscena==='cierre' ? t(L('Le va el pase: cerrale.','The pass is coming: close out.','O passe vai sair: fecha nele.'))
+      : G.defEscena==='cortina' ? t(L('Te ponen una cortina: por arriba o por abajo.','They set a screen: over or under.','Vão te pôr uma cortina: por cima ou por baixo.'))
+      : G.defEscena==='1v1' ? t(L('Viene de frente: plantate.','He is coming at you: get set.','Ele vem de frente: se planta.'))
+      : t(L('Vienen ellos: mantené apretado y deslizá.',"They're coming: hold down and slide.",'Eles vêm: segura apertado e desliza.')), true);   // un renglón (su caza 2026-09-03: tapaba el aro)
     G.fase='defiendo'; G.pelotaEn=G.defensa.portador;
     G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0; }
   else if(G.tipo==='bloqueo'){
@@ -13639,6 +13693,7 @@ function calidadRival(p){
 }
 function decideDefensa(){
   const D=G.defensa, a=aro();
+  if(!D.corredor){ tiraRival(D.portador); return; }   // §2z87: 1v1 y cortina no tienen a quién pasar
   /* EL PORTADOR TE LEE A VOS (su caza 2026-08-27: "no la pasa nunca" — el candado viejo
      comparaba la Q del corredor, que SIEMPRE da mal porque tu compi lo persigue por
      diseño): sos la última línea — si lo tomaste (<70·ESC) o le pisás el camino al aro
@@ -13652,9 +13707,10 @@ function decideDefensa(){
   const dM=Math.max(1,dist(D.corredor,metaC));
   const durEst=Math.max(0.25,dist(D.portador,D.corredor)/700);
   const avance=Math.min(dM, 130*durEst+40);
-  const cae={x:D.corredor.x+(metaC.x-D.corredor.x)/dM*avance,
-             y:D.corredor.y+(metaC.y-D.corredor.y)/dM*avance};
-  const loTomaste = dist(G.vos,D.portador)<70*ESC()
+  const cae=D.escena==='cierre' ? {x:D.corredor.x, y:D.corredor.y}   // §2z87: el tirador abierto no corre, recibe donde está
+           : {x:D.corredor.x+(metaC.x-D.corredor.x)/dM*avance,
+              y:D.corredor.y+(metaC.y-D.corredor.y)/dM*avance};
+  const loTomaste = D.escena==='cierre' || dist(G.vos,D.portador)<70*ESC()
                  || distSeg(G.vos,D.portador,a)<30*ESC();
   /* Y LA TAPA EXISTE PORQUE EL PASE NO ES GRATIS (su pregunta 2026-08-27: "¿cuándo
      llegamos a tapar si lo pasa siempre que lo defendemos?"): pasa sólo si el corredor
@@ -13703,12 +13759,15 @@ function decideDefensa(){
       D.paseVuelo=false;
       if(D.resuelto) return;
       G.pelotaEn=D.corredor;
+      /* §2z87 cierre: el que recibió pasa a ser EL PORTADOR (amague, drive y carga corren sobre él); el pasador queda */
+      const rec=D.corredor;
+      if(D.escena==='cierre'){ D.portador=rec; D.corredor=null; D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; }
       /* CATCH-AND-SHOOT (su caza 2026-08-28: "si se la pasan al big te da tiempo de ir
          y ponerte adelante a él también" — 480ms de espera + 460 de armado te regalaban
          ~140px de recuperación y defendías a los DOS): el que recibe abierto tira YA.
          La ventana de la tapa sigue siendo el armado (460ms); recuperás sólo lo que tu
          posición previa te haya dejado cerca. 120ms opinables. */
-      setTimeout(()=>{ if(!D.resuelto) tiraRival(D.corredor); }, 120);
+      setTimeout(()=>{ if(!D.resuelto) tiraRival(rec); }, 120);
     });
   } else tiraRival(D.portador);
 }
@@ -13796,27 +13855,28 @@ function tiraRival(j){
        yo no tuve nada que ver"): «molestado» miraba a vos O a cualquier compañero, y la prosa te lo atribuía siempre.
        Ahora dice quién fue: si el que llegó fue tu compañero, la frase es de él. */
     const vosMolestas = dist(G.vos,j)<45*ESC(), compiMolesta = molestado && !vosMolestas;
-    const p=clamp(0.35+calidadRival(j)*0.55, 0.30, 0.9);   // el espejo de pMeteNPC
+    const p=clamp(0.35+calidadRival(j)*0.55+(D.pBonus||0), 0.30, 0.92);   // el espejo de pMeteNPC (§2z87: +nivel en las escenas nuevas)
+    const esc=D.escena;
     vuelo({x:j.x,y:j.y},{...a},0.5,Math.max(0.3,dist(j,a)/520),()=>{
     D.resuelto=true;
     if(Math.random()<p){ G.redFx={t0:performance.now()}; sfx('red',0.7); G.riv+=2; marcador(); veredicto(t(L('LA METIERON','THEY SCORED','ELES MARCARAM')),'mal');
       /* sólo el splash de red (visual Y sonoro — la red es del mundo): la ovación y los
          flashes son de NUESTRAS canastas */
       relato(D.mordido?t(L('Te la mordió y la terminó adentro.','You bit the fake and he finished it.','Você caiu na finta e ele terminou dentro.')):compiMolesta?t(L('Tu compañero llegó, pero la clavó igual.','Your teammate got there, but he drilled it anyway.','Seu companheiro chegou, mas ele cravou mesmo assim.')):molestado?t(L('Hiciste todo bien: se la clavó igual.','You did everything right: he drilled it anyway.','Você fez tudo certo: ele cravou mesmo assim.')):t(L('La tiró cómodo y la metió.','He got a clean look and hit it.','Ele arremessou tranquilo e acertou.')), molestado);
-      finPosesion(false, D.mordido?t(L('Te vendió el amague y anotó.','He sold you the fake and scored.','Ele te vendeu a finta e marcou.')):compiMolesta?t(L('Se la pasó al libre y la metió con tu compañero encima.','He found the open man, who scored over your teammate.','Ele passou pro livre, que marcou com seu companheiro em cima.')):molestado?t(L('La metió igual, con tu mano encima.','He made it anyway, with your hand in his face.','Ele acertou mesmo assim, com sua mão em cima.')):t(L('Bajaron de contra y la metieron.','They ran the break and scored.','Desceram no contra-ataque e marcaram.'))); }
+      finPosesion(false, D.mordido?t(L('Te vendió el amague y anotó.','He sold you the fake and scored.','Ele te vendeu a finta e marcou.')):compiMolesta?t(L('Se la pasó al libre y la metió con tu compañero encima.','He found the open man, who scored over your teammate.','Ele passou pro livre, que marcou com seu companheiro em cima.')):molestado?t(L('La metió igual, con tu mano encima.','He made it anyway, with your hand in his face.','Ele acertou mesmo assim, com sua mão em cima.')):esc==='cortina'&&D.pullUp?t(L('Lo dejaste solo detrás de la cortina y la metió.','You left him alone behind the screen and he hit it.','Você deixou ele sozinho atrás da cortina e ele acertou.')):esc?t(L('La tiró cómodo y la metió.','He got a clean look and hit it.','Ele arremessou tranquilo e acertou.')):t(L('Bajaron de contra y la metieron.','They ran the break and scored.','Desceram no contra-ataque e marcaram.'))); }
     else {
       if(compiMolesta){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
         relato(t(L('Tu compañero lo molestó: afuera.','Your teammate bothered him: off the mark.','Seu companheiro incomodou: pra fora.')),false);
         finPosesion(true,t(L('Se la pasó al libre y tu compañero lo hizo errar.','He found the open man and your teammate forced the miss.','Ele passou pro livre e seu companheiro forçou o erro.'))); }
       else if(molestado){ D.merito=true; veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'ok');   // §2z86: el mérito del drill es TUYO (tapa · robo · lo sacaste del tiro cómodo)
         relato(t(L('Lo sacaste del tiro cómodo: afuera.','You took away the clean look: off the mark.','Você tirou o arremesso fácil: pra fora.')),true);
-        finPosesion(true,t(L('Los paraste: erraron la contra.','You stopped them: the break came up empty.','Você segurou: erraram o contra-ataque.'))); }
+        finPosesion(true,esc?t(L('Lo sacaste del tiro cómodo: afuera.','You took away the clean look: off the mark.','Você tirou o arremesso fácil: pra fora.')):t(L('Los paraste: erraron la contra.','You stopped them: the break came up empty.','Você segurou: erraram o contra-ataque.'))); }
       else if(D.mordido){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
         relato(t(L('Te vendió el amague pero la erró: perdonado.','He sold you the fake but missed: off the hook.','Ele te vendeu a finta mas errou: perdoado.')),false);
         finPosesion(true,t(L('Te mordiste el amague y zafaste.','You bit the fake and got away with it.','Você caiu na finta e escapou.'))); }
       else { veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
         relato(t(L('La tiró cómodo y la erró.','He got a clean look and missed.','Ele arremessou tranquilo e errou.')),false);
-        finPosesion(true,t(L('Erraron la contra igual.','They missed the break anyway.','Erraram o contra-ataque mesmo assim.'))); } }
+        finPosesion(true,esc?t(L('La tiró cómodo y la erró.','He got a clean look and missed.','Ele arremessou tranquilo e errou.')):t(L('Erraron la contra igual.','They missed the break anyway.','Erraram o contra-ataque mesmo assim.'))); } }
     });
   }, 460);
 }
@@ -16169,8 +16229,8 @@ function frame(now){
              seguir atravesando — lo mismo a tu compañero o al resto"): la colisión sólo
              corría del lado de ellos. Tu deslizamiento no entra al cuerpo de NADIE:
              resbalás por el anillo de 24·ESC, como un cuerpo contra otro. */
-          for(const jj of [D.portador, D.corredor, D.vuelta]){
-            if(dist(nv,jj)<24*ESC()){
+          for(const jj of [D.portador, D.corredor, D.vuelta, D.pantalla]){
+            if(jj && dist(nv,jj)<24*ESC()){   // §2z87: hay escenas sin corredor ni vuelta, y una con cortina
               const an=Math.atan2(nv.y-jj.y,nv.x-jj.x)||0;
               nv=clampMundoJugable(jj.x+Math.cos(an)*24*ESC(), jj.y+Math.sin(an)*24*ESC());
             }
@@ -16223,8 +16283,12 @@ function frame(now){
                    hasta:now+700};
         }
         if(D.rodeo && (now>D.rodeo.hasta || dist(D.portador,D.rodeo)<10)) D.rodeo=null;
-        mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:105);
-        mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
+        /* §2z87: en las escenas nuevas el portador ESPERA su arranque (la cortina se planta, el 1v1 te mira) y sigue una
+           ruta (cortina: cruzar detrás del pívot, después el aro); su velocidad viene del nivel (D.vel) */
+        const arranco=!D.arranca || now>=D.arranca;
+        if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
+        if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.vel||105));
+        if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
         /* LA VUELTA DEFIENDE DE VERDAD (su caza 2026-08-28: "está completamente pintado,
            siempre va de atrás y nunca ayuda"): perseguía el CUERPO del corredor — de
            atrás por construcción. Ahora juega la regla 1 de la base endógena: su puesto
@@ -16232,7 +16296,7 @@ function frame(now){
            portador te superó (más cerca del aro que vos, adentro de 1,1·R3), rota —
            suelta a su hombre y sale al aro a sprint; el pase al corredor pasa a ser el
            castigo correcto de tu derrota, como en el básquet. Plante con latch. */
-        { const sup = dist(D.portador,a2) < dist(G.vos,a2)-10 && dist(D.portador,a2) < R3()*1.1;
+        if(D.vuelta){ const sup = dist(D.portador,a2) < dist(G.vos,a2)-10 && dist(D.portador,a2) < R3()*1.1;
           const man = sup ? D.portador : D.corredor;
           const dMA=Math.max(1,dist(man,a2));
           const metaV={x:man.x+(a2.x-man.x)/dMA*38*ESC(), y:man.y+(a2.y-man.y)/dMA*38*ESC()};
@@ -16245,7 +16309,7 @@ function frame(now){
           const hacia=((metaP.x-D.portador.x)*(G.vos.x-D.portador.x)
                       +(metaP.y-D.portador.y)*(G.vos.y-D.portador.y))/(dm2*dCh);
           if(plantado && adelanteDe(D.portador) && hacia>0.8){
-            D.decidio=true; D.resuelto=true; flash(D.portador);
+            D.decidio=true; D.resuelto=true; D.merito=true; flash(D.portador);   // §2z87: la carga es tuya, paga el drill
             veredicto(t(L('¡CARGA!','CHARGE!','FALTA DE ATAQUE!')),'ok');
             /* LA CARGA TAMBIÉN PAGA (su caza 2026-09-02: "salió «posesión nuestra»… pero no me
                sumó posesión del otro lado"): la tapa y el robo ya agendaban el contra como
@@ -16261,8 +16325,8 @@ function frame(now){
         }
         /* con el drive del amague en curso, el pull-up no aplica: te vendió PARA irse
            al aro — la resolución es la decisión de cerca (decideDefensa) */
-        if(!D.decidio && !D.drive && dist(G.vos,D.portador)>100*ESC() && dist(D.portador,a2)<R3()*1.05){
-          D.decidio=true; tiraRival(D.portador); }
+        if(!D.decidio && !D.drive && arranco && dist(G.vos,D.portador)>100*ESC() && dist(D.portador,a2)<R3()*1.05){
+          D.decidio=true; D.pullUp=true; tiraRival(D.portador); }   // §2z87: en la cortina es "lo dejaste solo detrás"
         else if(!D.decidio && (now>=D.tDec || dist(D.portador,a2)<R3()*0.42)){
           D.decidio=true; decideDefensa(); }
       }

@@ -11702,19 +11702,29 @@ function armarPosesion(){
         G.vos={x:v0.x,y:v0.y};
         D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
-        /* B: tu marca con la pelota en el perímetro, el pívot rival plantado a su lado (26·ESC, del lado por el que
-           sale), vos adelante a 38·ESC hacia el aro. A los 0,6 s arranca: pasa la cortina y va al aro. */
+        /* B v2 (sus cazas: "arranca rápido; después es estar adelante del que lleva la pelota 5 segundos hasta que
+           tira, no la pasa, no intenta otra cosa; el que hace la cortina queda planchado, debería cortar al aro"):
+           tu marca con la pelota en el perímetro; el pívot VIENE a plantar la cortina a su lado (se lo ve llegar: ése
+           es el tiempo de lectura); vos adelante a 38·ESC; tu compañero (el defensor del pívot) en DROP, hundido.
+           Al plantarse, tu marca sale por la cortina y decide a 2,2 s (1,4 s en el 20): pull-up si lo dejaste solo,
+           drive si te pasó, o el pase de bolsillo al pívot que CORTA (desde el nivel 8) si estás encima y el corte
+           está libre — ese pase te pasa por al lado y se corta con la mano (el robo de siempre). */
         const marca={x:a.x-lado*R3()*0.25, y:a.y+R3()*1.0};
         const angA=Math.atan2(a.y-marca.y, a.x-marca.x);
         const px=-Math.sin(angA)*lado, py=Math.cos(angA)*lado;   // perpendicular, hacia el lado de salida
-        const pantalla={x:marca.x+px*26*ESC(), y:marca.y+py*26*ESC(), big:true, quieto:true};
+        const spot={x:marca.x+px*26*ESC(), y:marca.y+py*26*ESC()};
+        const pantalla={x:a.x+lado*R3()*0.32, y:a.y+R3()*0.62, big:true, quieto:true};   // arranca en el codo y sube a plantarla (~1,2 s)
         G.defs=[marca, pantalla]; G.comps=[]; G.marca=marca;
-        D.portador=marca; D.corredor=null; D.vuelta=null; D.pantalla=pantalla; D.ladoD=lado;
+        D.portador=marca; D.corredor=null; D.pantalla=pantalla; D.spotPantalla=spot; D.ladoD=lado;
+        D.corta = nv>=0.35;   // el pívot corta al aro desde el nivel 8
+        /* tu compañero: el defensor del pívot, en drop — se para del lado del aro de su hombre (la vuelta de la contra) */
+        G.comps=[{x:pantalla.x-lado*10*ESC(), y:pantalla.y-40*ESC(), big:true}];
+        D.vuelta=G.comps[0];
         G.vos={x:marca.x+Math.cos(angA)*38*ESC(), y:marca.y+Math.sin(angA)*38*ESC()};
-        /* la ruta: cruza detrás de la cortina y de ahí al aro */
         D.ruta=[{x:clamp(marca.x+px*72*ESC()+Math.cos(angA)*24*ESC(), MARG()+16, W-MARG()-16), y:marca.y+py*72*ESC()+Math.sin(angA)*24*ESC()},
                 {x:a.x+rnd(-20,20), y:a.y+R3()*0.18}];
-        D.meta=D.ruta[0]; D.arranca=performance.now()+600; D.tDec=performance.now()+6000;
+        D.meta=D.ruta[0]; D.arranca=performance.now()+1e9; D.tDec=performance.now()+1e9;   // 18-frame los fija cuando la cortina se planta
+        D.aguante=500-nv*300; D.decideEn=1800-nv*600; D.velPantalla=(D.vel||105)*1.5;
       } else if(G.defEscena==='1v1'){
         /* C: de frente, con la pelota, a 1,1·R3; vos entre él y el aro. Sin compañero ni pasador. */
         const marca={x:a.x+lado*R3()*rnd(0.05,0.30), y:a.y+R3()*1.1};
@@ -16303,8 +16313,9 @@ function frame(now){
       if(!D.decidio && !D.espera){   // §7.1: el tutorial de defender espera tu primer toque
         const mv2=(j,meta,v)=>{ const d1=dist(j,meta); if(d1>3){ j.x+=(meta.x-j.x)/d1*v*dt; j.y+=(meta.y-j.y)/d1*v*dt; } };
         const adelanteDe=(j)=>((a2.x-j.x)*(G.vos.x-j.x)+(a2.y-j.y)*(G.vos.y-j.y))>0;
-        const pisado = distSeg(G.vos, D.portador, a2)<34*ESC()
-                    && dist(G.vos,D.portador)<150*ESC() && adelanteDe(D.portador)
+        const haciaDonde = (D.escena && D.meta) ? D.meta : a2;   // §2z87 k: en la cortina su camino es la ruta, no el aro
+        const pisado = distSeg(G.vos, D.portador, haciaDonde)<34*ESC()
+                    && dist(G.vos,D.portador)<150*ESC() && (D.escena ? dist(D.portador,haciaDonde)>dist(G.vos,haciaDonde) : adelanteDe(D.portador))
                     && !(D.escena==='cierre' && !D.recibio);   // §2z87 d: el base que aguanta no rodea (su caza: "se mueve de lado a lado en un lugar quieto")
         /* EL RODEO TIENE REACCIÓN, Y LA CARGA ES UN TIMING (su caza 2026-08-28: "me salió
            varias veces, no debería ser tan común"): antes cualquier roce con vos plantado
@@ -16328,6 +16339,10 @@ function frame(now){
            ruta (cortina: cruzar detrás del pívot, después el aro); su velocidad viene del nivel (D.vel) */
         const arranco=!D.arranca || now>=D.arranca;
         /* §2z87 cierre: al tell el pasador ELIGE (el ala que tengas más lejos; empate al azar) y se gira hacia él */
+        if(D.escena==='cortina' && D.spotPantalla && !D.plantada){
+          mv2(D.pantalla, D.spotPantalla, D.velPantalla||140);
+          if(dist(D.pantalla,D.spotPantalla)<6*ESC()){ D.plantada=now; D.arranca=now+D.aguante; D.tDec=D.arranca+D.decideEn; } }
+        if(D.escena==='cortina' && D.plantada && D.corta && !D.corredor && now>=D.arranca+300){ D.corredor=D.pantalla; D.pantalla.quieto=false; }   // 300 ms después del contacto, el pívot corta
         if(D.escena==='cierre' && !D.recibio && !D.llego && D.metaBase && dist(D.portador,D.metaBase)<8*ESC()){
           D.llego=now; D.tell=now+D.aguante; D.tDec=D.tell+D.tellDur; }
         if(D.tell && !D.corredor && D.tiradores && !D.recibio && now>=D.tell){   // (su caza: tras el amague volvía a elegir un ala y el drive terminaba en pase)
@@ -16346,7 +16361,7 @@ function frame(now){
            suelta a su hombre y sale al aro a sprint; el pase al corredor pasa a ser el
            castigo correcto de tu derrota, como en el básquet. Plante con latch. */
         if(D.vuelta){ const sup = dist(D.portador,a2) < dist(G.vos,a2)-10 && dist(D.portador,a2) < R3()*1.1;
-          const man = sup ? D.portador : D.corredor;
+          const man = sup ? D.portador : (D.corredor||D.pantalla||D.portador);   // §2z87 k: en la cortina cubre al pívot
           const dMA=Math.max(1,dist(man,a2));
           const metaV={x:man.x+(a2.x-man.x)/dMA*38*ESC(), y:man.y+(a2.y-man.y)/dMA*38*ESC()};
           const dvm=dist(D.vuelta,metaV);
@@ -16915,6 +16930,7 @@ function frame(now){
            patinaban sin trote cuando una carrera los movía) */
         corre: (df===G.marca && G.fase==='conduzco') || !!(G.tipo==='avance'&&G.transicion&&di>=3)
             || !!(G.defensa&&G.defensa.escena&&df===G.defensa.portador&&!G.defensa.resuelto&&G.defensa.meta&&dist(df,G.defensa.meta)>8*ESC())   // §2z87 f
+            || !!(G.defensa&&G.defensa.escena==='cortina'&&df===G.defensa.pantalla&&!G.defensa.resuelto&&(!G.defensa.plantada||G.defensa.corredor===df))   // §2z87 k: sube a plantar, y corta
             || (df===G.custodio && !!G.comprometido)
             || !!(G.corre&&G.corre.j===df)
             || !!(G.corres&&G.corres.some(cr=>cr.j===df&&cr.t<1))

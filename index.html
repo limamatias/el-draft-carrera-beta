@@ -11691,13 +11691,16 @@ function armarPosesion(){
         const t1=tir(-1), t2=tir(1);
         D.tirMeta=[{x:t1.x,y:t1.y},{x:t2.x,y:t2.y}];   // las alas SE ABREN a recibir durante el aguante (su caza: "parados en el mismo lugar")
         t1.x+=22*ESC(); t2.x-=22*ESC(); t1.y-=8*ESC(); t2.y-=8*ESC();
-        const pasador={x:a.x, y:a.y+R3()*1.02};   // el base, arriba, de frente al aro y a vos
+        /* v4 (su caza: "debería venir dribbleando desde mitad de cancha"): arranca abajo y sube a la punta de la llave;
+           el aguante y el tell se cuentan desde que LLEGA (18-frame) */
+        const pasador={x:a.x+lado*24*ESC(), y:Math.min(pisoVos()*0.98, a.y+R3()*1.9)};   // "mitad de cancha": 0,9·R3 de trote hasta la llave (~2,5 s)
+        D.metaBase={x:a.x, y:a.y+R3()*1.02};   // la punta de la llave, de frente al aro y a vos
         G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
         D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
         const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;
         const v0=clampMundoJugable(mx, my-Math.sqrt(Math.max(0,d0*d0-half*half)));   // hacia el aro (y menor)
         G.vos={x:v0.x,y:v0.y};
-        D.tDec=performance.now()+2200-nv*1000; D.tell=D.tDec-400; D.meta={x:pasador.x,y:pasador.y};   // el pasador no se mueve
+        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=700; D.aguante=1000-nv*600;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
         /* B: tu marca con la pelota en el perímetro, el pívot rival plantado a su lado (26·ESC, del lado por el que
            sale), vos adelante a 38·ESC hacia el aro. A los 0,6 s arranca: pasa la cortina y va al aro. */
@@ -16299,10 +16302,12 @@ function frame(now){
            ruta (cortina: cruzar detrás del pívot, después el aro); su velocidad viene del nivel (D.vel) */
         const arranco=!D.arranca || now>=D.arranca;
         /* §2z87 cierre: al tell el pasador ELIGE (el ala que tengas más lejos; empate al azar) y se gira hacia él */
+        if(D.escena==='cierre' && !D.recibio && !D.llego && D.metaBase && dist(D.portador,D.metaBase)<8*ESC()){
+          D.llego=now; D.tell=now+D.aguante; D.tDec=D.tell+D.tellDur; }
         if(D.tell && !D.corredor && D.tiradores && !D.recibio && now>=D.tell){   // (su caza: tras el amague volvía a elegir un ala y el drive terminaba en pase)
           const [t1,t2]=D.tiradores, d1=dist(G.vos,t1), d2=dist(G.vos,t2);
           D.corredor = Math.abs(d1-d2)<8*ESC() ? (Math.random()<0.5?t1:t2) : (d1>d2?t1:t2);
-          posar(D.portador,'pasa',D.corredor,400); }
+          posar(D.portador,'pasa',D.corredor,D.tellDur||400); posar(D.corredor,'pide',D.portador,D.tellDur||400); }   // el tell se ve en los dos: el brazo del base y las manos del ala
         if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
         if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.vel||105));
         if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
@@ -16867,15 +16872,23 @@ function frame(now){
     $('#posClock i').style.background = G.posClock<2600 ? 'var(--mal)' : 'var(--naranja)';
 
     // los jugadores (dibujados DERECHOS en la posición que la cámara diga)
-    G.defs.forEach((df,di)=>
+    G.defs.forEach((df,di)=>{
+      /* §2z87 f: LOS RIVALES TAMBIÉN TIENEN POSE (su caza: "no veo ninguna señal de «se la voy a pasar a este»" — el
+         motor posaba al rival con 'pasa' y 'tira' desde siempre y el dibujo lo ignoraba: tiraban y pasaban sin brazos).
+         'pide' = las manos arriba pidiéndola: el tell del que va a recibir. */
+      let apD, pasaD=false, pideD=false;
+      if(df.pose && now<df.pose.hasta){
+        if(df.pose.t==='pide') pideD=true;
+        else { const v=vecPantalla({x:df.pose.hacia.x-df.x, y:df.pose.hacia.y-df.y}); apD=Math.atan2(v.y,v.x); pasaD=df.pose.t==='pasa'; } }
       /* las manos se levantan al que marca a CUALQUIERA (su video: el defensor pegado a
          su compañero se dibujaba pasivo y el 'te la devuelve' parecía mentira — el umbral
          viejo era sólo contra vos, y en px crudos) */
-      jugador(aPantalla(df),CASACAS.riv,{big:df.big, i:di+2,
+      jugador(aPantalla(df),CASACAS.riv,{big:df.big, i:di+2, apunta:apD, pasa:pasaD,
         /* los rivales también corren CON POSE mientras les quede camino, y se quedan
            quietos al llegar (su reporte 2026-08-24, el espejo del corredor nuestro:
            patinaban sin trote cuando una carrera los movía) */
         corre: (df===G.marca && G.fase==='conduzco') || !!(G.tipo==='avance'&&G.transicion&&di>=3)
+            || !!(G.defensa&&G.defensa.escena&&df===G.defensa.portador&&!G.defensa.resuelto&&G.defensa.meta&&dist(df,G.defensa.meta)>8*ESC())   // §2z87 f
             || (df===G.custodio && !!G.comprometido)
             || !!(G.corre&&G.corre.j===df)
             || !!(G.corres&&G.corres.some(cr=>cr.j===df&&cr.t<1))
@@ -16888,7 +16901,7 @@ function frame(now){
                   &&(!G.pantalla.leyo
                      || (G.pantalla.defensa==='drop'&&G.pantalla.dMeta&&dist(df,G.pantalla.dMeta)>8)
                      || (G.pantalla.defensa==='blitz'&&dist(df,G.vos)>30*ESC()))),
-        manosArriba: dist(df,G.vos)<55*ESC() || G.comps.some(c=>dist(df,c)<48*ESC())}));
+        manosArriba: pideD || dist(df,G.vos)<55*ESC() || G.comps.some(c=>dist(df,c)<48*ESC())}); });
     G.comps.forEach((co,ci)=>{
       let ap2, pasa2=false, band2=false, vol2=false;
       if(co.pose && now<co.pose.hasta){

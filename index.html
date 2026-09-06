@@ -1929,7 +1929,7 @@
     <div class="veloX" id="betaMenuX" tabindex="0" aria-label="cerrar">✕</div>
     <h2 data-l-en="BETA" data-l-pt="BETA">BETA</h2>
     <div class="nota2" id="betaMenuTxt"></div>
-    <button class="jugar ancho" id="betaMenuLista" data-l-en="TELL ME WHEN IT'S OUT" data-l-pt="ME AVISA QUANDO SAIR">AVISAME CUANDO SALGA</button>
+    <button class="jugar ancho" id="betaMenuLista" data-l-en="TELL ME ABOUT THE FULL GAME" data-l-pt="ME AVISA DO JOGO COMPLETO">AVISAME DEL JUEGO COMPLETO</button>
     <button class="jugar secundario ancho" id="betaMenuFeed" data-l-en="REPORT SOMETHING" data-l-pt="REPORTAR ALGO">REPORTAR ALGO</button>
   </div>
 </div>
@@ -19054,9 +19054,9 @@ const COACHES=[
      vista (su caza 2026-09-05)— y vive acá: el foco recorta el chip BETA de verdad, con el primer partido jugado */
   { clave:'coach_beta', sel:'#lobBetaChip', cuando:()=>esBeta()&&(est().fechaJugada||0)>0,
     tit:()=>'BETA',
-    txt:()=>t(L('Es una versión en desarrollo: faltan cosas y algunas se van a romper. Si ves algo roto, o querés que te avisemos cuando salga, tocá acá.',
-                'This is a work in progress: things are missing and some will break. If something breaks, or you want to hear when it launches, tap here.',
-                'É uma versão em desenvolvimento: faltam coisas e algumas vão quebrar. Se algo quebrar, ou quiser saber quando lançar, toque aqui.')) },
+    txt:()=>t(L('Es una versión en desarrollo: faltan cosas y algunas se van a romper. Si ves algo roto, o querés que te avisemos cuando salga el juego completo, tocá acá.',
+                'This is a work in progress: things are missing and some will break. If something breaks, or you want to hear when the full game is out, tap here.',
+                'É uma versão em desenvolvimento: faltam coisas e algumas vão quebrar. Se algo quebrar, ou quiser saber quando sair o jogo completo, toque aqui.')) },
 ];
 let coachPend=false;
 function coachear(){
@@ -20861,10 +20861,18 @@ function abrirCreacion(n){
   pintaNacionalidades();
   pintaCreacion();
 }
+/* la bandera EMOJI de un código de dos letras (regional indicators), copiada de `banderaDe` de El Draft.
+   Es la excepción a "sin emojis" (§2z28): adentro de la rueda del sistema el <option> no dibuja nada,
+   y sin ella son 13 nombres pelados (su caza, 2026-09-06: "en El Draft tiene la banderita, en el nuestro no") */
+function emojiBandera(id){
+  const a=id.toUpperCase().charCodeAt(0)-65, b=id.toUpperCase().charCodeAt(1)-65;
+  if(id.length!==2||a<0||a>25||b<0||b>25) return '';
+  return String.fromCodePoint(0x1f1e6+a,0x1f1e6+b);
+}
 function pintaNacionalidades(){
   const sel=$l('creaPais');
   sel.innerHTML=NACIONALIDADES.map(([id,nom])=>
-    '<option value="'+id+'">'+t(nom)+'</option>').join('');   // el <option> nativo no dibuja: sólo el nombre
+    '<option value="'+id+'">'+emojiBandera(id)+' '+t(nom)+'</option>').join('');   // como El Draft: la bandera emoji adentro de la rueda
   sel.value=creaSel.nacionalidad;
   pintaNacVal();
 }

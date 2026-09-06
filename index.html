@@ -13799,8 +13799,20 @@ function tiraRival(j){
      camino te cobra a favor; correrle encima al armado te cobra en contra.
      Sólo el portador, con vos encima (<60·ESC) y en zona (<1,05·R3), dado del 40%, uno
      por posesión. Constantes opinables: 250ms · 55·ESC de mordida · 600ms · 40%. */
+  /* §2z87 i (su caza en el cierre: "llego a taparlo en todas, incluso en nivel 20"): un tirador que te ve YA ENCIMA
+     al recibir (<30·ESC, adelante) no tira contra tu mano — amaga (55 % en el nivel 1 → 90 % en el 20) o penetra. La
+     tapa queda para cuando llegás DURANTE el armado. Sólo en las escenas nuevas; la contra sigue con su 40 %. */
+  const encima = D.escena && dist(G.vos,j)<30*ESC() && (((a.x-j.x)*(G.vos.x-j.x)+(a.y-j.y)*(G.vos.y-j.y))>0);
+  const pAmague = encima ? 0.55+(D.nivel||0)*0.35 : 0.4, dado=Math.random();   // UN dado: encima nunca tira contra tu mano
+  if(encima && !D.amague && dado>=pAmague){
+    /* no amaga: te ataca el cuerpo — el drive de siempre, sin mordida ni lunge */
+    D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+4000; D.rodeoYa=true;
+    D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18}; G.pelotaEn=j;
+    relato(t(L('Te vio encima y salió al aro.','He saw you on him and went to the rim.','Te viu em cima e foi pro aro.')),false);
+    return;
+  }
   if(j===D.portador && !D.amague && dist(G.vos,j)<60*ESC() && dist(j,a)<R3()*1.05
-     && Math.random()<0.4){
+     && (encima || dado<pAmague)){
     D.amague=true;
     const dv0=dist(G.vos,j), v0={x:G.vos.x,y:G.vos.y};
     G.pelotaEn=j; posar(j,'tira',a,260);
@@ -13832,6 +13844,11 @@ function tiraRival(j){
         D.decidio=false; D.resuelto=false;
         D.tDec=performance.now()+4000;
         D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18};
+      } else if(D.escena && dv<30*ESC() && (((a.x-j.x)*(G.vos.x-j.x)+(a.y-j.y)*(G.vos.y-j.y))>0)){
+        /* §2z87 i: aguantaste Y seguís encima — no tira contra tu mano: te ataca el cuerpo, rodeándote */
+        D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+4000; D.rodeoYa=true;
+        D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18}; G.pelotaEn=j;
+        relato(t(L('No te comiste el amague: salió al aro.','You did not bite: he drove to the rim.','Você não caiu na finta: ele foi pro aro.')),true);
       } else {
         tiraRival(j);   // aguantaste: el tiro real, ya, con vos encima
       }
@@ -13847,6 +13864,7 @@ function tiraRival(j){
      'aparece' en tus manos y después sale" — pelotaEn=null acá hacía que el dibujo por
      defecto te la diera a vos los 460ms) */
   G.pelotaEn=j; posar(j,'tira',a,900);
+  const armado = D.escena ? Math.round(460-(D.nivel||0)*140) : 460;   // §2z87 i: 460 → 320 ms en el nivel 20
   setTimeout(()=>{
     if(D.resuelto || G.fase==='fin' || G.fase==='feed') return;
     G.pelotaEn=null;
@@ -13896,7 +13914,7 @@ function tiraRival(j){
         relato(t(L('La tiró cómodo y la erró.','He got a clean look and missed.','Ele arremessou tranquilo e errou.')),false);
         finPosesion(true,esc?t(L('La tiró cómodo y la erró.','He got a clean look and missed.','Ele arremessou tranquilo e errou.')):t(L('Erraron la contra igual.','They missed the break anyway.','Erraram o contra-ataque mesmo assim.'))); } }
     });
-  }, 460);
+  }, armado);
 }
 /* EL ALCANCE DEL MANOTEO DEPENDE DEL LADO (su caza 2026-08-28: "un defensor que está
    medio atrás o de costado no debería manotear siempre el lob" — se medía distancia
@@ -16292,8 +16310,8 @@ function frame(now){
            cuerpo — el roce lateral resbala, no cobra). 220ms y 0,8 opinables. */
         if(pisado){ if(!D.rodeo && !D.rodeoEn) D.rodeoEn=now+220; }
         else D.rodeoEn=null;
-        if(D.rodeoEn && now>=D.rodeoEn && !D.rodeo){
-          D.rodeoEn=null;
+        if(((D.rodeoEn && now>=D.rodeoEn) || D.rodeoYa) && !D.rodeo){
+          D.rodeoEn=null; D.rodeoYa=false;   // §2z87 i: el que te vio encima rodea de entrada
           const px=-(a2.y-D.portador.y), py=(a2.x-D.portador.x), nL=Math.hypot(px,py)||1;
           const ladoVos=Math.sign((G.vos.x-D.portador.x)*px/nL+(G.vos.y-D.portador.y)*py/nL)||1;
           const s=-ladoVos;

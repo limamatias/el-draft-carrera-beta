@@ -18201,6 +18201,14 @@ function cargarCarrera(n){
     c.temporada.skills=c.jugador.skills;   // una sola fuente tras el JSON
     if(!c.padron) c.padron=padronInicial();   // §2z7: carreras pre-escalera arrancan con el mapa de hoy
     if(c.jugador.nivel===undefined){ c.jugador.exp=0; c.jugador.nivel=1; }  // carreras pre-grifo
+    /* §2z87 p (su caza al cerrar: "Formosa sigue siendo Fsa y no FOR, creí que ya estaba"): la partida COPIA los clubes al
+       crearse y clubDe lee primero de ahí, así que una corrección de nombre en 01d no llega a las partidas que ya venían
+       (y el arreglo de la mañana, 0ba6cd1, se hizo sobre el HTML armado y el siguiente armar lo pisó). Al cargar, los
+       TEXTOS de cada club guardado (nombre · corto · sigla · ciudad · apodo · colores) se refrescan desde la tabla
+       maestra; lo dinámico (fuerza, forma, zona) no se toca. */
+    if(c.temporada&&Array.isArray(c.temporada.clubes)) for(const cl of c.temporada.clubes){
+      const m=maestroClub(cl.id); if(!m) continue;
+      for(const k of ['nombre','corto','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
     /* §2z73: EN LA BETA TE CONVOCAN SIEMPRE, también en las partidas que ya venían (su caza: una beta con 8,8 contra

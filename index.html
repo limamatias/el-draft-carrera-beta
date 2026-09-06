@@ -18964,9 +18964,14 @@ function revisarCarrera(e){
    la energía y que tenés que tomar latita para llenarla: un pop-up informativo que cerrás con una X, que se grise el
    fondo y resalte la energía"). Una vez por carrera, la primera vez que el vestuario se ve: el foco recorta la caja de
    la energía, la carta dice el contrato —cada partido la gasta, la lata la llena— y la X cierra. */
+let coachPend=false;
 function coachEnergia(){
   if(!C||!C.jugador||yaVisto('coach_energia')) return;
   if($l('lobby').classList.contains('oculto')||document.getElementById('coachEnergia')) return;
+  /* su caza (2026-09-05, en la beta): salió ENCIMA del velo de bienvenida de la beta. El coach espera a que el
+     vestuario sea la capa de arriba: con cualquier velo abierto (LA BETA, ¿cómo se juega?, una carta, el mercado)
+     vuelve a mirar en un rato, y recién se muestra —y se marca visto— cuando no hay nada tapando. */
+  if(document.querySelector('.velo:not(.oculto), .veloB:not(.oculto)')){ if(!coachPend){ coachPend=true; setTimeout(()=>{ coachPend=false; coachEnergia(); },700); } return; }
   const el=document.querySelector('#lobby .rec.nrg'); if(!el) return;
   const r=el.getBoundingClientRect(); if(!r.width||!r.height) return;
   marcarVisto('coach_energia'); guardar();

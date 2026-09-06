@@ -5044,8 +5044,10 @@ function deltasRelaciones(r) {
   if (astN >= 4) dP = 2; else if (astN >= 2) dP = 1;
   if (r.rating < 4) dP -= 2;
   /* DT: tu nota y la misión */
-  let dD = r.rating >= 7 ? 2 : r.rating < 4 ? -2 : 0;
-  if (r.mision) dD += r.mision.ok ? 4 : -2;
+  /* §2z79 (su caza: "DT subiendo siempre 6 es un montón: win + misión + una mínima cosa ya lo inclina a que vuele"):
+     la nota buena de verdad (≥8) da +2, la correcta (≥7) +1, y la misión +3. Un partido flojo con misión da +3, no +6. */
+  let dD = r.rating >= 8 ? 2 : r.rating >= 7 ? 1 : r.rating < 4 ? -2 : 0;
+  if (r.mision) dD += r.mision.ok ? 3 : -2;
   return { dH, dP, dD };
 }
 function aplicarDeltas(J, d, R) {
@@ -11518,8 +11520,12 @@ function armarPosesion(){
       corredor={x: a.x+ladoC*R3()*rnd(0.30,0.60), y: lerp(a.y, piso, 0.70), big:false};
       meta={x:a.x+ladoC*R3()*0.18, y:a.y+R3()*0.35}; arranca=Infinity;
     } else if(vC==='trailer'){ /* a tu altura por el otro lado, a sprint */
-      corredor={x: a.x-ladoC*R3()*0.60, y: piso-30*ESC(), big:false};
-      meta={x:a.x-ladoC*R3()*0.18, y:a.y+R3()*0.35};   // sigue y define como la clásica
+      /* §2z79 (su caza 2026-09-06: "corre MUY cerca tuyo; tiene toda la cancha y corre justo por donde vas vos"): el
+         lado es el OPUESTO al tuyo (no un sorteo) y el carril queda ancho — nace a 0,85·R3 y termina a 0,42·R3 del eje
+         del aro, en vez de converger a 0,18 sobre tu camino. */
+      const ladoT = G.vos.x>=a.x ? -1 : 1;
+      corredor={x: a.x+ladoT*R3()*0.85, y: piso-30*ESC(), big:false};
+      meta={x:a.x+ladoT*R3()*0.42, y:a.y+R3()*0.35};   // sigue y define por su carril
     } else if(vC==='abre'){    /* corre al ala de tres y frena ahí */
       corredor={x: a.x+ladoC*R3()*rnd(0.35,0.55), y: lerp(a.y, piso, 0.62), big:false};
       meta={x:a.x+ladoC*R3()*0.92, y:a.y+R3()*0.38}; extra={abre:true};
@@ -20009,7 +20015,9 @@ $l('lobSalir').addEventListener('click',()=>{
   const jugadorGrifo=enSel?{...C.jugador,relaciones:relSelDe(C.jugador)}:C.jugador;
   const rivalBase=clubDe(preAbierto.rival), rivalGrifo=efS.fuerzaRival?{...rivalBase,fuerza:rivalBase.fuerza+efS.fuerzaRival}:rivalBase;   // §2z40: esa noche el rival sale a matar o afloja
   const gInfo=armarGrifo(dif,jugadorGrifo,C.ligaId,rivalGrifo,miClubEn(preAbierto),preAbierto.local);   // §12.23
-  enPartido.contexto=esBeta()?gInfo.D:gInfo.D-5*((C.jugador.nivel||1)-1);  // la parte del score que no es tu nivel (en la beta, todo)
+  /* §2z79: en la beta el score es tu propia Dbeta más el rival y la visita; el bono de contexto de la nota (±1) no
+     puede pagar tu propia rampa —a Dbeta 20 regalaba +0,96 en cada nota—: se le resta y se centra en el 8 neutro. */
+  enPartido.contexto=esBeta()?gInfo.D-(C.jugador.dbeta||0)+8:gInfo.D-5*((C.jugador.nivel||1)-1);  // la parte del score que no es tu nivel
   /* EL GRIFO SON TUS MINUTOS (el guion del 29: nInt=min/3; dif.pos quedó de perilla de
      testeo): el ROL pone la base y la relación con el PLANTEL la mueve ±3 — asistir te
      compra cancha (§5). La línea registra los minutos REALMENTE jugados. */

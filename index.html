@@ -2784,6 +2784,7 @@ const CLUBES_INVITADOS_AMERICAS = [
  *   con el contrato profesional (§2r). */
 const LIGAS = {
   federal: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [3, 7], regularHasta: [5, 31], playoffsHasta: [7, 31], mismoAnio: true, diasPO: 5, recesos: [] },
     /* §2z5 — el formato REAL de la CAB, migrado de El Draft (rama noche, 2026-08-31):
      * cada zona juega las fechas de SU tamaño (2·(n−1); la de seis, el vecindario);
      * `fechas` acá es la zona más grande (litoral_a, 10 clubes → 18), para lo que lo lea
@@ -2810,6 +2811,7 @@ const LIGAS = {
     },
   },
   argentina: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 31], regularHasta: [3, 28], playoffsHasta: [6, 15], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Argentina', allstar: true, clubes: CLUBES_ARGENTINA, fechas: 34, // ida y vuelta por zona (17 clubes, con libre)
     esc: 8, palancas: {}, ptsRef: 78, reloj: 600,
     zonas: ['norte', 'sur'],
@@ -2825,6 +2827,7 @@ const LIGAS = {
     },
   },
   nacional: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [9, 24], regularHasta: [4, 19], playoffsHasta: [6, 20], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Nacional', allstar: true, clubes: CLUBES_NACIONAL, fechas: 38,
     esc: 18, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     playoffs: {
@@ -2841,6 +2844,7 @@ const LIGAS = {
     },
   },
   hs: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [12, 1], regularHasta: [2, 27], playoffsHasta: [3, 15], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'Secundaria EE.UU.', clubes: CLUBES_HS, fechas: 22,
     esc: 0, palancas: {}, ptsRef: 62, reloj: 600, amateur: true,
     // el torneo del cierre: cuatro clasifican, a partido único — la final de la secundaria
@@ -2849,6 +2853,7 @@ const LIGAS = {
     ] },
   },
   ncaa: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [11, 3], regularHasta: [3, 15], playoffsHasta: [4, 6], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'NCAA', clubes: CLUBES_NCAA, fechas: 31, zonas: ['este', 'oeste'],
     esc: 14, palancas: {}, ptsRef: 72, reloj: 600, amateur: true,
     // EL TORNEO (March Madness a nuestra escala): 8 por región, TODO a partido único
@@ -2858,6 +2863,7 @@ const LIGAS = {
     ] },
   },
   lub: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 9], regularHasta: [3, 15], playoffsHasta: [5, 22], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     // el formato REAL de la LUB, verificado contra El Draft (FORMATO_DEL_SUR.liga_uruguay):
     // 8 clasifican, cuartos y semis bo5, la final al mejor de SIETE.
     // `fechas: 32` re-copiado de allá (2026-09-01): 22 de todos contra todos + los 10 del
@@ -2869,6 +2875,7 @@ const LIGAS = {
     ] },
   },
   nbb: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 18], regularHasta: [4, 15], playoffsHasta: [6, 7], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     // el formato REAL del NBB, copiado de El Draft (FORMATO_DEL_SUR.liga_brasil):
     // clasifican 16, cuatro rondas TODAS al mejor de 5 — como La Liga Argentina
     nombre: 'NBB', allstar: true, clubes: CLUBES_NBB, fechas: 38,
@@ -2879,6 +2886,7 @@ const LIGAS = {
     ] },
   },
   euroliga: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 1], regularHasta: [4, 15], playoffsHasta: [5, 30], diasPO: 5, recesos: [[[12, 24], [12, 26]]], fiba: true },
     nombre: 'Euroliga', clubes: CLUBES_EUROLIGA, fechas: 34,
     esc: 26, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     // la Final Four es A PARTIDO ÚNICO — es el formato real, no un redondeo
@@ -2887,6 +2895,7 @@ const LIGAS = {
     ] },
   },
   nba: {
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 21], regularHasta: [4, 12], playoffsHasta: [6, 20], diasPO: 4, recesos: [] },
     nombre: 'NBA', allstar: true, clubes: CLUBES_NBA, fechas: 82, zonas: ['este', 'oeste'],
     esc: 34, palancas: {}, ptsRef: 114, reloj: 720, ritmo: 'nba',
     // primera ronda/semis/finales de conferencia POR ZONA, la final es el único cruce
@@ -4376,8 +4385,42 @@ const PATRONES_DIAS = {
   b3: [[2, 3, 6], [1, 4, 5], [3, 4, 7]],          // 3 con b2b adentro (el apretado alto)
   4: [[1, 2, 4, 6], [2, 3, 5, 7], [1, 3, 4, 6]],  // la semana NBA: 4 fechas, siempre un b2b
 };
+/* §2z83 EL CALENDARIO REAL (2026-09-06, research/CALENDARIOS.md; su corte: "con cada liga nueva hay que hacer ese
+ * mismo research"): `ritmo` puede ser el ID de una liga con `calendario` (arranque · regularHasta · playoffsHasta ·
+ * recesos · diasPO). De ahí salen las semanas de la regular y la CADENCIA (fechas / semanas jugables): la LNB da
+ * ≈1,4 por semana de fines de septiembre a abril, la NBA ≈3,3. Cada semana sortea base o base+1 partidos con la
+ * probabilidad que deja el promedio en la cadencia; las semanas de receso (Navidad, y las dos ventanas FIBA en
+ * temporada para las ligas FIBA) no tienen fechas. Sin calendario, todo sigue byte a byte como antes. */
+const VENTANAS_FIBA_EN_TEMPORADA = [[[11, 24], [12, 2]], [[2, 23], [3, 3]]];
+function calendarioDe(ritmo) { return (typeof LIGAS !== 'undefined' && LIGAS[ritmo] && LIGAS[ritmo].calendario) || null; }
+/* día de temporada (1 = el arranque) de un [mes, día]; si cae antes del arranque, es del año siguiente */
+function diaDeTemporada(cal, md) {
+  const a = Date.UTC(2001, cal.arranque[0] - 1, cal.arranque[1]);
+  let d = Date.UTC(2001, md[0] - 1, md[1]);
+  if (d < a) d = Date.UTC(2002, md[0] - 1, md[1]);
+  return Math.round((d - a) / 86400000) + 1;
+}
+const _cadencia = {};
+function cadenciaDe(ritmo) {
+  if (_cadencia[ritmo]) return _cadencia[ritmo];
+  const cal = calendarioDe(ritmo), liga = LIGAS[ritmo];
+  const recesos = (cal.recesos || []).concat(cal.fiba ? VENTANAS_FIBA_EN_TEMPORADA : []).map((r) => [diaDeTemporada(cal, r[0]), diaDeTemporada(cal, r[1])]);
+  const semanas = Math.ceil(diaDeTemporada(cal, cal.regularHasta) / 7);
+  const esReceso = (w) => recesos.some(([d0, d1]) => Math.min(d1, w * 7) - Math.max(d0, (w - 1) * 7 + 1) + 1 >= 5);   // ≥5 días de la semana adentro (medido: con 4, una ventana FIBA a caballo se comía DOS semanas)
+  let jugables = 0; for (let w = 1; w <= semanas; w++) if (!esReceso(w)) jugables++;
+  return (_cadencia[ritmo] = { cal, recesos, semanas, jugables, cad: liga.fechas / Math.max(1, jugables), esReceso });
+}
 function patronDeSemana(semilla, w, ritmo) {
   const rK = rngFor(semilla, 'semanas', w), rP = rngFor(semilla, 'dias', w);
+  if (calendarioDe(ritmo)) {
+    const k = cadenciaDe(ritmo);
+    if (k.esReceso(w)) return [];
+    const base = Math.floor(k.cad), extra = rK.int(1, 100) <= Math.round((k.cad - base) * 100) ? 1 : 0;
+    const n = Math.max(1, Math.min(4, base + extra));
+    if (n === 4) return rP.pick(PATRONES_DIAS[4]);
+    if (n === 3) return rP.pick(k.cad >= 3 ? PATRONES_DIAS.b3 : PATRONES_DIAS[3]);
+    return rP.pick(PATRONES_DIAS[n]);
+  }
   if (ritmo === 'nba') return rP.pick(rK.int(3, 4) === 3 ? PATRONES_DIAS.b3 : PATRONES_DIAS[4]);
   if (ritmo === 'apretado') return rP.pick(rK.int(2, 4) >= 3 ? PATRONES_DIAS[3] : PATRONES_DIAS[2]);
   /* 'espaciado' (§2z5, la Federal): ~1 partido por semana con alguna de 2 — el dato de la
@@ -4395,6 +4438,7 @@ function diaDeFecha(semilla, fecha, ritmo) {
   const arr = _diasPorSemilla[clave] || (_diasPorSemilla[clave] = Object.assign([], { w: 0 }));
   while (arr.length < fecha) {
     arr.w++;
+    if (arr.w > 400) throw new Error('calendario sin salida para ' + ritmo);   // una liga de puros recesos no puede colgar el juego
     const patron = patronDeSemana(semilla, arr.w, ritmo);
     for (let i = 0; i < patron.length; i++) arr.push((arr.w - 1) * 7 + patron[i]);
   }
@@ -17704,7 +17748,8 @@ const costoJugar=(min,ligaId)=>{ const dur=LIGAS[ligaId].reloj*4/60;
    sesión (−20) la lata es una decisión cada 2 semanas en la LNB. Y el vehículo/la casa (regen extra) se sienten. */
 const REGEN_DIA=3;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
                            // descanso típico (2-3 días) rinde como antes; el corto se siente
-const DIAS_PO=2;           // los playoffs corren cada 2 días (v0)
+const DIAS_PO=2;           // los playoffs corren cada 2 días (v0); §2z83: cada liga trae el suyo en `calendario.diasPO`
+const diasPO=()=>{ const cal=C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario; return (cal&&cal.diasPO)||DIAS_PO; };
 const ENERGIA_MINIMA=15;   // fundido: abajo de esto no salís
 /* La economía muerde desde la fase 4 (§2q): ahorrar COMPITE con entrenar. La lata sube,
    el pago afloja, y aparece el ENTRENADOR (entrenar cuesta menos energía). */
@@ -17820,7 +17865,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
     dorsal:dorsal===undefined?7:dorsal};   // el 0 es dorsal legal
   const temporada=crearTemporada(semilla+'-t2026',liga.clubes,{
       miClubId:club,skills:jugador.skills,fechas:liga.fechas,
-      playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,
+      playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.calendario?ligaId:liga.ritmo,   // §2z83: con calendario, el ritmo ES la liga
       fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(temporada,ligaId||'federal',ANIO_INICIO,null);   // §2z27
   instalarSeleccion(temporada,jugador,ligaId||'federal',ANIO_INICIO,semilla,null);   // §12
@@ -17965,6 +18010,7 @@ function cargarCarrera(n){
     if(!c.padron) c.padron=padronInicial();   // §2z7: carreras pre-escalera arrancan con el mapa de hoy
     if(c.jugador.nivel===undefined){ c.jugador.exp=0; c.jugador.nivel=1; }  // carreras pre-grifo
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
+    if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
     /* §2z73: EN LA BETA TE CONVOCAN SIEMPRE, también en las partidas que ya venían (su caza: una beta con 8,8 contra
        Estados Unidos y "esta vez no te llamaron" a la segunda ventana — la selección de esa partida no llevaba el
        flag `beta` y el motor sorteó la ventana con media 43). Las ventanas que faltan pasan a convocado y el aviso
@@ -18794,7 +18840,9 @@ const MESES=[L('ENE','JAN','JAN'),L('FEB','FEB','FEV'),L('MAR','MAR','MAR'),L('A
   L('SEP','SEP','SET'),L('OCT','OCT','OUT'),L('NOV','NOV','NOV'),L('DIC','DEC','DEZ')];
 function diaTxt(dia){
   if(!dia) return '';
-  const d=new Date(Date.UTC(C.anio,9,1));           // 1 de octubre
+  /* §2z83: el día 1 es el ARRANQUE real de la liga (research/CALENDARIOS.md); sin calendario, el 1 de octubre de antes */
+  const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario;
+  const d=cal?new Date(Date.UTC(C.anio,cal.arranque[0]-1,cal.arranque[1])):new Date(Date.UTC(C.anio,9,1));
   d.setUTCDate(d.getUTCDate()+(dia-1));
   const dd=d.getUTCDate(), mes=t(MESES[d.getUTCMonth()]);
   return idioma()==='en' ? mes+' '+dd : dd+' '+mes;
@@ -18810,7 +18858,8 @@ function comoLesFueTxt(f){
   const p=idioma()==='en'?f.puesto+ordEn(f.puesto):f.puesto+'°';
   return p+' '+t(L('de ','of ','de '))+f.de+' · '+f.pg+'–'+f.pp;
 }
-function anioTxt(){ return anioDe(C.anio); }
+/* §2z83: la Federal se juega de marzo a julio del MISMO año: "2026", no "2026/27" */
+function anioTxt(){ const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario; return cal&&cal.mismoAnio?String(C.anio):anioDe(C.anio); }
 
 let toastTimer=null;
 /* EL NÚMERO QUE SUBE — copiado de El Draft (ui/anim.ts useNumeroQueSube + .hud-media.is-up;
@@ -19150,7 +19199,7 @@ function cerrarSinVos(){
     dias+=Math.max(0,diaDeFecha(e.semilla,e.fechasTotales,e.ritmo)-(antes>0?diaDeFecha(e.semilla,antes,e.ritmo):0));
   }
   let n=0;
-  while(e.fase==='playoffs'&&!miSerie(e)&&++n<80){ semanaDePlayoffs(e); dias+=DIAS_PO; }
+  while(e.fase==='playoffs'&&!miSerie(e)&&++n<80){ semanaDePlayoffs(e); dias+=diasPO(); }
   if(dias>0) C.jugador.energia=Math.min(100,C.jugador.energia+regenDe()*dias);
   guardar();
 }
@@ -20306,7 +20355,7 @@ function registrarResultado(){
     : enPartido.tipo==='americas' ? 1
     : faseAntes==='regular'&&antes<e.fechaJugada
     ? Math.max(1,diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)-Math.max(antes>0?diaDeFecha(e.semilla,antes,est().ritmo):0,diaUltAM))
-    : DIAS_PO;
+    : diasPO();
   /* ⚠️ EL DESCANSO VA ANTES DEL PARTIDO, NO DESPUÉS (su caza 2026-09-02: "jugar un
      partido aunque sea desde el banco te debería dejar abajo del 100% para el próximo"):
      los días son los que pasaron ENTRE el partido anterior y éste, o sea que ya los

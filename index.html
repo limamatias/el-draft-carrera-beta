@@ -4711,6 +4711,8 @@ const BEAT_DRILL = { tiro: 'decision', vision: 'decision', manejo: 'slalom', def
    en carril tenés que alejarte de tu defensor a toques mientras el otro se desmarca, frenar y pasar. */
 function beatDrillDe(skillKey, skill) {
   if (skillKey === 'vision') return skill >= 50 ? 'carril' : 'decision';
+  /* §2z87: el banco de defensa elige la escena (contra · cierre · cortina · 1v1); sin banco, la de siempre */
+  if (skillKey === 'defensa' && typeof window !== 'undefined' && window.escenaDefensaBanco) return window.escenaDefensaBanco;
   return BEAT_DRILL[skillKey] || 'decision';
 }
 

@@ -4717,6 +4717,10 @@ function beatDrillDe(skillKey, skill) {
   if (skillKey === 'vision') return skill >= 50 ? 'carril' : 'decision';
   /* §2z87: el banco de defensa elige la escena (contra · cierre · cortina · 1v1); sin banco, la de siempre */
   if (skillKey === 'defensa' && typeof window !== 'undefined' && window.escenaDefensaBanco) return window.escenaDefensaBanco;
+  /* §2z87 n (su corte: "los 3 intentos son sobre UN MISMO JUEGO: con ganar 1 ya te da las estrellas que te queden —
+     ¿por qué evaluaríamos cosas diferentes?"): la escena se sortea UNA vez al arrancar la sesión (18b, entrenar) y los
+     tres intentos son esa misma escena; entre sesiones cambia */
+  if (skillKey === 'defensa' && typeof window !== 'undefined' && window.__defEscenaSesion) return window.__defEscenaSesion;
   return BEAT_DRILL[skillKey] || 'decision';
 }
 
@@ -11254,6 +11258,10 @@ function armarPosesion(){
   if(G.tipo==='defCierre'){ G.tipo='defensa'; G.defEscena='cierre'; }
   else if(G.tipo==='defCortina'){ G.tipo='defensa'; G.defEscena='cortina'; }
   else if(G.tipo==='def1v1'){ G.tipo='defensa'; G.defEscena='1v1'; }
+  /* §2z87 n: EN EL PARTIDO la defensiva sortea su escena — contra 35 % (la única que viene de un robo o un rebote),
+     cierre 25 %, cortina 20 %, 1v1 20 %. El tutorial de defender sigue siendo la contra (su geometría es fija, 18c). */
+  else if(G.tipo==='defensa' && !G.tut && !(G.beat&&G.beat.drill)){
+    const r=Math.random(); G.defEscena = r<0.35 ? null : r<0.60 ? 'cierre' : r<0.80 ? 'cortina' : '1v1'; }
   /* EL BLOQUEO (co-diseñado 2026-08-25 — su corte: SIN mecánica nueva): una parte de las
      'decision' llega con el big subiendo a poner una PANTALLA. El verbo es el bote de
      siempre; lo nuevo es física (la pantalla es un cuerpo que tu marca no atraviesa) y
@@ -11673,9 +11681,12 @@ function armarPosesion(){
     /* §2z87: LAS TRES ESCENAS NUEVAS (las cuatro líneas de cada una en DISEÑO.md). El nivel del rival (dif.def,
        12→50) mueve la velocidad del drive y la calidad del tirador; los cuerpos, la tapa, el robo, el amague y la
        carga son los de siempre. */
+    /* §2z87 n: LA CONTRA TAMBIÉN LEE EL NIVEL (su pedido: "que suba de dificultad con las palancas de siempre"): la
+       velocidad del que baja y la calidad del tiro; el amague de la contra queda en su 40 % y su rodeo en 220 ms */
+    { const nv0=clamp(((dif.def||12)-12)/38,0,1); G.defensa.nivel=nv0; G.defensa.vel=105+nv0*40; G.defensa.pBonus=nv0*0.12; }
     if(G.defEscena){
-      const D=G.defensa, nv=clamp(((dif.def||12)-12)/38,0,1);   // 0 = nivel 1 · 1 = nivel 20
-      D.escena=G.defEscena; D.nivel=nv; D.vel=105+nv*40; D.pBonus=nv*0.12; D.reaccion=Math.round(300-nv*180);   // ms hasta que te rodea
+      const D=G.defensa, nv=D.nivel;   // 0 = nivel 1 · 1 = nivel 20
+      D.escena=G.defEscena; D.reaccion=Math.round(300-nv*180);   // ms hasta que te rodea
       const lado=Math.random()<0.5?-1:1;
       if(G.defEscena==='cierre'){
         /* A (v2, su lectura antes de jugarlo: "si siempre se la pasan al que estás más cerca, empezás a correr antes"):
@@ -19995,6 +20006,7 @@ function entrenar(k,nivelPedido){
      escala del nivel; tu avatar se mueve con lo que sos (el 3er parámetro). */
   const nivel=Math.max(1,Math.min(nivelPedido||nivelSugerido(en,k),nivelesAbiertos(en,k)));
   drillT={k,nivel,estrellas:0,intentos:0,difSnap:{...dif}};
+  if(k==='defensa') window.__defEscenaSesion=['defensa','defCierre','defCortina','def1v1'][Math.floor(Math.random()*4)];   // §2z87 n: una escena por sesión
   Object.assign(dif,drillDe(k,skillEqDeNivel(nivel),J.skills[k]));
   casacasPractica();   // en el drill se entrena con la ropa de práctica
   guardar();
@@ -20104,7 +20116,7 @@ function finDrill(anoto){
 function cerrarDrill(){
   const J=C.jugador, k=drillT.k, nivel=drillT.nivel, ganadas=drillT.estrellas;
   window.finPosesion=finPosesionReal; window.siguienteBeat=siguienteBeatReal;
-  window.finSlalom=window.conoTirado=window.compuertaLista=null;
+  window.finSlalom=window.conoTirado=window.compuertaLista=null; window.__defEscenaSesion=null;
   Object.assign(dif,drillT.difSnap); pintarAjustes();
   drillT=null;
   marcarEntrenado(J,k,est().fechaJugada);

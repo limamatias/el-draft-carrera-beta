@@ -82,6 +82,10 @@
      siempre — completas si la completaste, vacía adentro si no"): el premio no cambia de
      color según cuánto sacaste; lo que cambia es si la estrella está llena o hueca. */
   #veredicto.oro{color:#f2c94c}
+  /* §2z87 m (su caza: "el cartel de DEFENDÉ tapa donde te tenés que mover"): en las escenas defensivas nuevas la
+     acción vive a mitad de cancha (medido: vos al 31 %, tu marca al 37 % del alto), así que el cartel de entrada baja
+     a la franja libre entre la cancha jugada y el pulgar */
+  #veredicto.bajo{top:auto;bottom:22%;transform:translateX(-50%)}
   #veredicto.oro.ver{animation:barrida .5s cubic-bezier(.16,1,.3,1) forwards, destelloOro .6s .3s}
   @keyframes destelloOro{0%,100%{text-shadow:0 3px 20px rgba(0,0,0,.8)}
     35%{text-shadow:0 0 26px rgba(242,201,76,.9),0 3px 20px rgba(0,0,0,.8)}}
@@ -11966,7 +11970,7 @@ function armarPosesion(){
     sit.textContent=t(L('CONTRAGOLPE','FAST BREAK','CONTRA-ATAQUE')); sit.className='carril';
     explicar('contra',t(L('La robaron: llevala vos — o buscá al que corre.',"It's a steal: take it yourself — or find the runner.",'Roubaram: leva você — ou procura quem corre.')), false); }
   else if(G.tipo==='defensa'){
-    veredicto(t(L('¡DEFENDÉ!','DEFEND!','DEFENDE!')),'mal',1500);
+    veredicto(t(L('¡DEFENDÉ!','DEFEND!','DEFENDE!')),G.defEscena?'mal bajo':'mal',G.defEscena?900:1500);   // §2z87 m
     sit.textContent=t(L('DEFENSA','DEFENSE','DEFESA')); sit.className='cierre';
     /* §2z65: nombrar el HOLD, no el apoyo — el bote es arrastrá-y-soltá y acá soltar es plantarse (su caza) */
     explicar('defensa', G.defEscena==='cierre' ? t(L('Le va el pase: cerrale.','The pass is coming: close out.','O passe vai sair: fecha nele.'))

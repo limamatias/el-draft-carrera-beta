@@ -18046,8 +18046,17 @@ const AM_TXT={
 };
 const amEtapaTxt=(etapa,grupo)=>etapa==='grupo'?t(AM_TXT.grupo)+' '+grupo:t(AM_TXT[etapa]||L(etapa));
 /* la segunda línea del continental: el partido del grupo, o la serie */
+/* §2z82 (su regla 2026-09-06: "el partido contra el mejor rival del grupo de la continental también debería ser clave"):
+   en el grupo, el cruce con el más fuerte de tu grupo (por fuerza, que es lo único común entre ligas) es clave —
+   en el botón, en el porqué y en las relaciones. La llave ya era clave (§2z27). */
+function esClaveAmericas(e,p){
+  if(!p||p.tipo!=='americas'||p.etapa!=='grupo'||!e||!e.americas) return false;
+  const am=e.americas, otros=(am.grupos[am.miGrupo]||[]).filter(id=>id!==e.miClubId); if(!otros.length) return false;
+  const top=otros.reduce((a,b)=>((am.fuerzas[b]||0)>(am.fuerzas[a]||0)?b:a));
+  return p.rival===top;
+}
 function amPorqueTxt(o){
-  if(o.etapa==='grupo') return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4';
+  if(o.etapa==='grupo') return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(esClaveAmericas(est(),o)?' · '+t(L('EL MEJOR DEL GRUPO','THE BEST IN THE GROUP','O MELHOR DO GRUPO')):'');   // §2z82
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
@@ -19480,7 +19489,7 @@ function pintaLobby(){
       return idxC>=0&&idxC-idxP<=5;
     })||null;
   }
-  const proxEsClave=prox&&prox.tipo==='fecha'&&!!calPorFecha[prox.fecha];
+  const proxEsClave=(prox&&prox.tipo==='fecha'&&!!calPorFecha[prox.fecha])||esClaveAmericas(e,prox);   // §2z82: el mejor del grupo también
   const sub=(o)=>o.tipo==='fecha'
     ? t(L('FECHA','ROUND','RODADA'))+' '+o.fecha+' · '+vsTxt(o.local)+clubDe(o.rival).nombre.toUpperCase()
     : t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+' · '+vsTxt(o.local)+clubDe(o.rival).nombre.toUpperCase();
@@ -20073,7 +20082,7 @@ terminar=function(){
   const mision=enPartido.mision?{...enPartido.mision,valor:misionValor(enPartido.mision,G),ok:misionCumplida(enPartido.mision,G)}:null;
   /* §2z39.61: la misión ya no suma a la nota (su corte: "le pega al DT, no al puntaje de cómo jugaste"); el DT la lee en deltasRelaciones */
   const expAntes=J.exp||0, nivelAntes=J.nivel||1, expDespues=expAntes+rating, nivelDespues=nivelDeExp(expDespues);
-  const esClave=enPartido.tipo==='serie'||(enPartido.tipo==='americas'&&enPartido.etapa!=='grupo')
+  const esClave=enPartido.tipo==='serie'||(enPartido.tipo==='americas'&&enPartido.etapa!=='grupo')||esClaveAmericas(est(),enPartido)
     ||(enPartido.tipo==='seleccion'&&enPartido.etapa!=='grupo'&&enPartido.etapa!=='eliminatorias')
     ||!!(enPartido.porqueCal||elegirCalientes(est()).find(c=>c.fecha===enPartido.fecha));
   const deltas=deltasRelaciones({gano,clave:esClave,local:!!enPartido.local,ast:G.ast/ESC_RITMO(),rating,mision});   // §2z43.1: el plantel cuenta asistencias por partido normal
@@ -20252,7 +20261,7 @@ function registrarResultado(){
   const relDestino=enPartido.tipo==='seleccion'?relSelDe(J):undefined;   // §12.20: el partido de selección mueve SUS relaciones, no las del club
   if(enPartido.tipo==='seleccion'){ if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]}; C.seleccion.jugados=(C.seleccion.jugados||0)+1; }   // §2z40: el debut fue
   if(cierre.deltas) aplicarDeltas(J,cierre.deltas,relDestino);
-  else { const esClave=enPartido.tipo==='serie'||(enPartido.tipo==='americas'&&enPartido.etapa!=='grupo')
+  else { const esClave=enPartido.tipo==='serie'||(enPartido.tipo==='americas'&&enPartido.etapa!=='grupo')||esClaveAmericas(e,enPartido)
            ||(enPartido.tipo==='seleccion'&&enPartido.etapa!=='grupo'&&enPartido.etapa!=='eliminatorias')
            ||!!(enPartido.porqueCal||elegirCalientes(e).find(c=>c.fecha===enPartido.fecha));
          moverRelaciones(J,{gano:G.nos>G.riv,clave:esClave,local:!!enPartido.local,ast:miJuego.linea.ast,rating,mision:cierre.mision},relDestino); }

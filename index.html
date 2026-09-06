@@ -11682,11 +11682,14 @@ function armarPosesion(){
         /* la geometría sale de d0 (la desigualdad de las cuatro líneas: d0 − 150·(0,4 tell + 0,3 vuelo + 0,58 armado)
            ≤ 45·ESC): las alas a 0,8·d0 del eje sobre el perímetro, vos a 0,6·d0 hacia el aro → a d0 de las dos. Nada
            depende de la pantalla: todo es ESC y R3. */
+        /* v3 (su caza: "el que la pasa está ATRÁS tuyo, de frente al aro — en el partido es una jugada sin sentido, y
+           así es muy fácil cortar"): la pelota AFUERA, en la punta de la llave, vos ADENTRO en la ayuda, y el pase va
+           hacia afuera, alejándose de vos. Es la única forma en que un cierre existe en un partido. */
         const d0=(90+nv*80)*ESC();
-        const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.25, 0.85));   // radianes desde el eje del aro
+        const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.30, 0.90));   // las alas se abren con el nivel (radianes desde el eje)
         const tir=(l)=>({x:clamp(a.x+l*Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97});
         const t1=tir(-1), t2=tir(1);
-        const pasador={x:a.x, y:a.y+R3()*0.38};
+        const pasador={x:a.x, y:a.y+R3()*1.02};   // el base, arriba, de frente al aro y a vos
         G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
         D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
         const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;

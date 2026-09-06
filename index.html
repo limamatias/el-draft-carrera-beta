@@ -11689,6 +11689,8 @@ function armarPosesion(){
         const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.30, 0.90));   // las alas se abren con el nivel (radianes desde el eje)
         const tir=(l)=>({x:clamp(a.x+l*Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97});
         const t1=tir(-1), t2=tir(1);
+        D.tirMeta=[{x:t1.x,y:t1.y},{x:t2.x,y:t2.y}];   // las alas SE ABREN a recibir durante el aguante (su caza: "parados en el mismo lugar")
+        t1.x+=22*ESC(); t2.x-=22*ESC(); t1.y-=8*ESC(); t2.y-=8*ESC();
         const pasador={x:a.x, y:a.y+R3()*1.02};   // el base, arriba, de frente al aro y a vos
         G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
         D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
@@ -13770,7 +13772,7 @@ function decideDefensa(){
       G.pelotaEn=D.corredor;
       /* §2z87 cierre: el que recibió pasa a ser EL PORTADOR (amague, drive y carga corren sobre él); el pasador queda */
       const rec=D.corredor;
-      if(D.escena==='cierre'){ D.portador=rec; D.corredor=null; D.recibio=true; D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; }
+      if(D.escena==='cierre'){ D.portador=rec; D.corredor=null; D.tiradores=null; D.recibio=true; D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; }
       /* CATCH-AND-SHOOT (su caza 2026-08-28: "si se la pasan al big te da tiempo de ir
          y ponerte adelante a él también" — 480ms de espera + 460 de armado te regalaban
          ~140px de recuperación y defendías a los DOS): el que recibe abierto tira YA.
@@ -16273,7 +16275,8 @@ function frame(now){
         const mv2=(j,meta,v)=>{ const d1=dist(j,meta); if(d1>3){ j.x+=(meta.x-j.x)/d1*v*dt; j.y+=(meta.y-j.y)/d1*v*dt; } };
         const adelanteDe=(j)=>((a2.x-j.x)*(G.vos.x-j.x)+(a2.y-j.y)*(G.vos.y-j.y))>0;
         const pisado = distSeg(G.vos, D.portador, a2)<34*ESC()
-                    && dist(G.vos,D.portador)<150*ESC() && adelanteDe(D.portador);
+                    && dist(G.vos,D.portador)<150*ESC() && adelanteDe(D.portador)
+                    && !(D.escena==='cierre' && !D.recibio);   // §2z87 d: el base que aguanta no rodea (su caza: "se mueve de lado a lado en un lugar quieto")
         /* EL RODEO TIENE REACCIÓN, Y LA CARGA ES UN TIMING (su caza 2026-08-28: "me salió
            varias veces, no debería ser tan común"): antes cualquier roce con vos plantado
            cobraba. Ahora el portador REACCIONA — ve tu cuerpo en su línea y a los 220ms
@@ -16296,13 +16299,14 @@ function frame(now){
            ruta (cortina: cruzar detrás del pívot, después el aro); su velocidad viene del nivel (D.vel) */
         const arranco=!D.arranca || now>=D.arranca;
         /* §2z87 cierre: al tell el pasador ELIGE (el ala que tengas más lejos; empate al azar) y se gira hacia él */
-        if(D.tell && !D.corredor && D.tiradores && now>=D.tell){
+        if(D.tell && !D.corredor && D.tiradores && !D.recibio && now>=D.tell){   // (su caza: tras el amague volvía a elegir un ala y el drive terminaba en pase)
           const [t1,t2]=D.tiradores, d1=dist(G.vos,t1), d2=dist(G.vos,t2);
           D.corredor = Math.abs(d1-d2)<8*ESC() ? (Math.random()<0.5?t1:t2) : (d1>d2?t1:t2);
           posar(D.portador,'pasa',D.corredor,400); }
         if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
         if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.vel||105));
         if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
+        if(D.tiradores && D.tirMeta && !D.recibio){ mv2(D.tiradores[0], D.tirMeta[0], 28); mv2(D.tiradores[1], D.tirMeta[1], 28); }
         /* LA VUELTA DEFIENDE DE VERDAD (su caza 2026-08-28: "está completamente pintado,
            siempre va de atrás y nunca ayuda"): perseguía el CUERPO del corredor — de
            atrás por construcción. Ahora juega la regla 1 de la base endógena: su puesto

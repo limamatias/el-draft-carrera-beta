@@ -643,13 +643,13 @@
   /* §7.1 EL CHIP DE LA BETA: arriba a la derecha, del porte de SALIR — el mismo peso visual que
      un volver, que es exactamente la entidad que se ganó (su caza: la tira de tres botones
      ocupaba un renglón entero del vestuario) */
-  /* §2z59 el coach de la energía: foco recortado con sombra a la pantalla entera, carta abajo con la X */
-  #coachEnergia{position:fixed;inset:0;z-index:60;pointer-events:none}   /* no tapa: los toques pasan (la latita se toma) */
-  #coachEnergia .foco{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,11,19,.8);border:1.5px solid var(--naranja)}
-  #coachEnergia .carta{pointer-events:auto;position:absolute;left:16px;right:16px;background:#141b2c;border:1px solid rgba(255,150,51,.5);border-radius:12px;padding:14px 44px 14px 14px}
-  #coachEnergia .carta b{font-size:13px;letter-spacing:2px;color:var(--naranja);font-weight:700}
-  #coachEnergia .carta p{margin:6px 0 0;font-size:17px;line-height:1.35;color:var(--tinta)}
-  #coachEnergia .x{position:absolute;right:6px;top:6px;background:transparent;border:0;color:var(--tinta2);font-size:20px;padding:8px 10px;font-family:inherit}
+  /* §2z59 los coaches de foco (energía · beta): foco recortado con sombra a la pantalla entera, carta abajo con la X */
+  .coach{position:fixed;inset:0;z-index:60;pointer-events:none}   /* no tapa: los toques pasan (la latita se toma) */
+  .coach .foco{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,11,19,.8);border:1.5px solid var(--naranja)}
+  .coach .carta{pointer-events:auto;position:absolute;left:16px;right:16px;background:#141b2c;border:1px solid rgba(255,150,51,.5);border-radius:12px;padding:14px 44px 14px 14px}
+  .coach .carta b{font-size:13px;letter-spacing:2px;color:var(--naranja);font-weight:700}
+  .coach .carta p{margin:6px 0 0;font-size:17px;line-height:1.35;color:var(--tinta)}
+  .coach .x{position:absolute;right:6px;top:6px;background:transparent;border:0;color:var(--tinta2);font-size:20px;padding:8px 10px;font-family:inherit}
   #lobby .hudBeta{position:absolute;top:0;right:0;font-size:11px;letter-spacing:1.6px;font-weight:700;
        color:var(--naranja);border:1px solid rgba(255,150,51,.55);border-radius:7px;padding:3px 7px;
        cursor:pointer;user-select:none;z-index:3}
@@ -18960,25 +18960,40 @@ function revisarCarrera(e){
   if(antes!==ahora){ e.mvpPos=ahora; guardar(); }
   return car;
 }
-/* §2z59 EL COACH DE LA ENERGÍA (su pedido 2026-09-05: "cuando te creás la partida algo te debería indicar qué significa
+/* §2z59 LOS COACHES DE FOCO (su pedido 2026-09-05: "cuando te creás la partida algo te debería indicar qué significa
    la energía y que tenés que tomar latita para llenarla: un pop-up informativo que cerrás con una X, que se grise el
-   fondo y resalte la energía"). Una vez por carrera, la primera vez que el vestuario se ve: el foco recorta la caja de
-   la energía, la carta dice el contrato —cada partido la gasta, la lata la llena— y la X cierra. */
+   fondo y resalte la energía"). El foco recorta una caja REAL del vestuario, la carta dice el contrato y cualquier
+   toque cierra; cada uno se muestra una sola vez.
+   ⚠️ NO SE JUNTAN TODOS AL PRINCIPIO (su corte 2026-09-05): la ENERGÍA entra al crear la partida y LA BETA recién
+   DESPUÉS DEL PRIMER PARTIDO. `cuando` es lo que decide el turno de cada uno; se muestra de a uno por pintada. */
+const COACHES=[
+  { clave:'coach_energia', sel:'#lobby .rec.nrg', cuando:()=>true,
+    tit:()=>t(L('ENERGÍA','ENERGY','ENERGIA')),
+    txt:()=>t(L('Cada partido la gasta. Con una lata la llenás: tocá la latita.','Every game drains it. A can refills it: tap the little can.','Cada jogo gasta. Uma latinha enche: toque na latinha.')) },
+  /* §7.1 el contrato de la beta se fue del velo de bienvenida —ahí nombraba un botón que todavía no estaba a la
+     vista (su caza 2026-09-05)— y vive acá: el foco recorta el chip BETA de verdad, con el primer partido jugado */
+  { clave:'coach_beta', sel:'#lobBetaChip', cuando:()=>esBeta()&&(est().fechaJugada||0)>0,
+    tit:()=>'BETA',
+    txt:()=>t(L('Es una versión en desarrollo: faltan cosas y algunas se van a romper. Si ves algo roto, o querés que te avisemos cuando salga, tocá acá.',
+                'This is a work in progress: things are missing and some will break. If something breaks, or you want to hear when it launches, tap here.',
+                'É uma versão em desenvolvimento: faltam coisas e algumas vão quebrar. Se algo quebrar, ou quiser saber quando lançar, toque aqui.')) },
+];
 let coachPend=false;
-function coachEnergia(){
-  if(!C||!C.jugador||yaVisto('coach_energia')) return;
-  if($l('lobby').classList.contains('oculto')||document.getElementById('coachEnergia')) return;
+function coachear(){
+  if(!C||!C.jugador) return;
+  if($l('lobby').classList.contains('oculto')||document.querySelector('.coach')) return;
+  const c=COACHES.find(x=>!yaVisto(x.clave)&&x.cuando()); if(!c) return;
   /* su caza (2026-09-05, en la beta): salió ENCIMA del velo de bienvenida de la beta. El coach espera a que el
      vestuario sea la capa de arriba: con cualquier velo abierto (LA BETA, ¿cómo se juega?, una carta, el mercado)
      vuelve a mirar en un rato, y recién se muestra —y se marca visto— cuando no hay nada tapando. */
-  if(document.querySelector('.velo:not(.oculto), .veloB:not(.oculto)')){ if(!coachPend){ coachPend=true; setTimeout(()=>{ coachPend=false; coachEnergia(); },700); } return; }
-  const el=document.querySelector('#lobby .rec.nrg'); if(!el) return;
+  if(document.querySelector('.velo:not(.oculto), .veloB:not(.oculto)')){ if(!coachPend){ coachPend=true; setTimeout(()=>{ coachPend=false; coachear(); },700); } return; }
+  const el=document.querySelector(c.sel); if(!el||el.classList.contains('oculto')) return;
   const r=el.getBoundingClientRect(); if(!r.width||!r.height) return;
-  marcarVisto('coach_energia'); guardar();
-  const v=document.createElement('div'); v.id='coachEnergia';
+  marcarVisto(c.clave); guardar();
+  const v=document.createElement('div'); v.className='coach';
   v.innerHTML='<div class="foco"></div>'
     +'<div class="carta"><button class="x" aria-label="cerrar">✕</button>'
-    +'<b>'+t(L('ENERGÍA','ENERGY','ENERGIA'))+'</b><p>'+t(L('Cada partido la gasta. Con una lata la llenás: tocá la latita.','Every game drains it. A can refills it: tap the little can.','Cada jogo gasta. Uma latinha enche: toque na latinha.'))+'</p></div>';
+    +'<b>'+c.tit()+'</b><p>'+c.txt()+'</p></div>';
   document.body.appendChild(v);
   /* su caza (2026-09-05): en su teléfono el foco quedó corrido —lo midió antes de que el vestuario terminara de
      acomodarse—: el foco SIGUE a la caja en vivo mientras el coach está. Y su otra caza: "mi primer impulso fue
@@ -18995,7 +19010,7 @@ function coachEnergia(){
 }
 function pintaLobby(){
   try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }
-  setTimeout(()=>{ try{ coachEnergia(); }catch(err){} },0);   // §2z59: después de pintar, con la caja ya medida   // §2z45: el corte y los avisos, antes de que cualquier panel los lea
+  setTimeout(()=>{ try{ coachear(); }catch(err){} },0);   // §2z59: después de pintar, con la caja ya medida   // §2z45: el corte y los avisos, antes de que cualquier panel los lea
   cerrarSinVos();
   setTimeout(apoyarPaneles,0);   // después de pintar, el cajón vuelve a apoyarse abajo
   const e=est(), J=C.jugador;
@@ -21624,16 +21639,14 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden&&esBeta())
 /* el contrato de la beta, una vez (§2y: lo que le cambia a alguien lo que cree que puede hacer) */
 function abrirBetaHola(){
   const club=clubDe(est().miClubId);
+  /* §2y + su corte 2026-09-05: acá queda SOLO lo que no se aprende jugando —qué te toca—. Lo que la
+     pantalla ya muestra (que los otros partidos los simula el relato) y lo que el juego te va a explicar
+     solo (cada jugada nueva) se fueron; el contrato de la beta se fue al coach del chip BETA, que entra
+     después del primer partido, cuando el botón que nombra por fin está a la vista. */
   $l('betaHolaTxt').innerHTML=
-    t(L('Una temporada entera en <b>'+club.nombre.toUpperCase()+'</b>. Jugás los partidos que quieras: los otros los simula el relato.',
-        'A full season at <b>'+club.nombre.toUpperCase()+'</b>. Play the games you want: the rest are simulated.',
-        'Uma temporada inteira no <b>'+club.nombre.toUpperCase()+'</b>. Jogue os jogos que quiser: os outros o relato simula.'))+'<br><br>'+
-    t(L('Cada jugada nueva te la explica la primera vez.','Every new play is explained the first time it shows up.','Cada jogada nova é explicada na primeira vez.'))+'<br><br>'+
-    /* §2y: esto NO es una aclaración, es el contrato — le cambia a alguien lo que espera del
-       juego (que falten cosas) y le dice dónde está el único botón que necesita saber */
-    t(L('Es una versión <b>en desarrollo</b>. Si ves algo roto, o querés que te avisemos cuando salga, tocá <b>BETA</b> acá arriba.',
-        'This is a <b>work in progress</b>. If something breaks, or you want to hear when it launches, tap <b>BETA</b> up top.',
-        'É uma versão <b>em desenvolvimento</b>. Se algo quebrar, ou quiser saber quando lançar, toque em <b>BETA</b> aqui em cima.'));
+    t(L('Una temporada entera en <b>'+club.nombre.toUpperCase()+'</b>.',
+        'A full season at <b>'+club.nombre.toUpperCase()+'</b>.',
+        'Uma temporada inteira no <b>'+club.nombre.toUpperCase()+'</b>.'));
   $l('betaHola').classList.remove('oculto');
   verQueSeVe('betaHola','LA BETA');
 }

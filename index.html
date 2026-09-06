@@ -1300,6 +1300,7 @@
   /* la bandera: chica y delante del apellido, en la tarjeta y en el HUD del lobby */
   .ranura .apel .ban{margin-right:6px;display:inline-flex;align-items:center}
   #lobby .nombre .ban{margin-right:8px;display:inline-flex;align-items:center;vertical-align:2px}
+  .ranura .sub.donde{font-size:11px;letter-spacing:1.5px;font-weight:600;color:var(--tinta2);opacity:.85}   /* §2z85: el rótulo de dónde va la partida */
   .ranura .sub{font-size:13px;color:var(--tinta2);letter-spacing:.4px;margin-top:3px;
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* la ✕ es lo ÚNICO irreversible del juego: va apagada, chica y lejos del centro del toque */
@@ -20852,6 +20853,14 @@ function pintaPartidas(){
           '<span class="dorsal">#'+J.dorsal+'</span></div>'+
         /* §2z11: UNA línea secundaria — lo que hace falta para reconocer la partida */
         '<div class="sub">'+club.nombre+' · '+liga.nombre+' · ★'+(J.nivel||1)+'</div>'+
+        /* §2z85 (su pedido 2026-09-06: "cuando cargás la partida debería decirte en qué fecha vas y el año de la temporada;
+           con dos partidas parecidas no las distinguís"): la segunda línea es DÓNDE está la partida — el año como lo
+           muestra el lobby (la Federal "2026", el resto "2026/27") y la fecha que viene, o playoffs, o terminada. */
+        '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
+          const donde=e.fase==='playoffs'?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
+            :e.fase==='terminada'?t(L('TEMPORADA TERMINADA','SEASON OVER','TEMPORADA ENCERRADA'))
+            :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
+          return anioL+' · '+donde; })()+'</div>'+
       '</div>'+
       '<button class="borrar" data-borrar="'+n+'" aria-label="'+t(L('Borrar','Delete','Apagar'))+'">✕</button>'+
       '</div>';

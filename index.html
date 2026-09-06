@@ -11683,7 +11683,14 @@ function armarPosesion(){
        carga son los de siempre. */
     /* §2z87 n: LA CONTRA TAMBIÉN LEE EL NIVEL (su pedido: "que suba de dificultad con las palancas de siempre"): la
        velocidad del que baja y la calidad del tiro; el amague de la contra queda en su 40 % y su rodeo en 220 ms */
-    { const nv0=clamp(((dif.def||12)-12)/38,0,1); G.defensa.nivel=nv0; G.defensa.vel=105+nv0*40; G.defensa.pBonus=nv0*0.12; }
+    { const nv0=clamp(((dif.def||12)-12)/38,0,1); G.defensa.nivel=nv0; G.defensa.vel=105+nv0*40; G.defensa.pBonus=nv0*0.12;
+      /* §2z87 o (su corte: "en el partido tu skill de defensa SÍ tiene que ayudar; en el drill no"): regla 1 — el atributo
+         prende una guía. En el PARTIDO, tu skill de defensa alarga el tell del pase (480 ms con 2 → 760 con 9) y te da
+         pierna (deslizás 141 → 162 px/s; 150 en el medio). En el drill y el tutorial no entra. */
+      const kC=(window.__carrera&&window.__carrera.C)||null;
+      const sk=(!G.esDrill && !G.tut && kC && kC.jugador) ? (kC.jugador.skills.defensa||50) : null;
+      G.defensa.velVos = sk==null ? 150 : Math.round(135+sk*0.3);
+      G.defensa.tellSkill = sk==null ? null : Math.round(400+sk*4); }
     if(G.defEscena){
       const D=G.defensa, nv=D.nivel;   // 0 = nivel 1 · 1 = nivel 20
       D.escena=G.defEscena; D.reaccion=Math.round(300-nv*180);   // ms hasta que te rodea
@@ -11715,7 +11722,7 @@ function armarPosesion(){
         const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;
         const v0=clampMundoJugable(mx, my-Math.sqrt(Math.max(0,d0*d0-half*half)));   // hacia el aro (y menor)
         G.vos={x:v0.x,y:v0.y};
-        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
+        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=D.tellSkill||600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
         /* B v2 (sus cazas: "arranca rápido; después es estar adelante del que lleva la pelota 5 segundos hasta que
            tira, no la pasa, no intenta otra cosa; el que hace la cortina queda planchado, debería cortar al aro"):
@@ -16300,7 +16307,7 @@ function frame(now){
         let jx=G.joy.x-G.joy.x0, jy=G.joy.y-G.joy.y0; const L=Math.hypot(jx,jy);
         if(L>60){ G.joy.x0=G.joy.x-jx/L*60; G.joy.y0=G.joy.y-jy/L*60; }
         if(L>=12){ moviendo=true;
-          const v=150*dt;
+          const v=(D.velVos||150)*dt;   // §2z87 o: en el partido, tu skill de defensa te da pierna
           let nv=clampMundoJugable(G.vos.x+jx/L*v, G.vos.y+jy/L*v);
           /* LOS CUERPOS TE FRENAN A VOS TAMBIÉN (su caza 2026-08-28: "igual lo podés
              seguir atravesando — lo mismo a tu compañero o al resto"): la colisión sólo
@@ -16374,8 +16381,15 @@ function frame(now){
           D.llego=now; D.tell=now+D.aguante; D.tDec=D.tell+D.tellDur; }
         if(D.tell && !D.corredor && D.tiradores && !D.recibio && now>=D.tell){   // (su caza: tras el amague volvía a elegir un ala y el drive terminaba en pase)
           const [t1,t2]=D.tiradores, d1=dist(G.vos,t1), d2=dist(G.vos,t2);
+          /* §2z87 o (su ok a la segunda vuelta): si al tell YA estás jugado a un ala (más de 60·ESC de diferencia), desde
+             el nivel 8 el base no pasa — te ataca el hueco que dejaste. Abajo del 8, se la da al otro ala. */
+          if(Math.abs(d1-d2)>60*ESC() && (D.nivel||0)>=0.35){
+            D.tiradores=null; D.recibio=true; D.tell=null; D.drive=true; D.rodeoYa=true;
+            D.decidio=false; D.tDec=now+1500; D.meta={x:a2.x+rnd(-20,20), y:a2.y+R3()*0.18};
+            relato(t(L('Te fuiste antes: el base te atacó el hueco.','You left early: the guard attacked the gap.','Você saiu antes: o armador atacou o buraco.')),true);
+          } else {
           D.corredor = Math.abs(d1-d2)<8*ESC() ? (Math.random()<0.5?t1:t2) : (d1>d2?t1:t2);
-          posar(D.portador,'pasa',D.corredor,D.tellDur||400); posar(D.corredor,'pide',D.portador,D.tellDur||400); }   // el tell se ve en los dos: el brazo del base y las manos del ala
+          posar(D.portador,'pasa',D.corredor,D.tellDur||400); posar(D.corredor,'pide',D.portador,D.tellDur||400); } }   // el tell se ve en los dos: el brazo del base y las manos del ala
         if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
         if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.velSube&&!D.llego&&!D.recibio?D.velSube:(D.vel||105)));
         if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);

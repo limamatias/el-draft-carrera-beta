@@ -686,7 +686,7 @@
   #lobby #lv-pre{flex:1}
   #lobby .preTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:auto}
   #lobby #lv-tabla-full,#lobby #lv-fixture-full{flex:1;min-height:0}
-  #lobby #lv-tabla-full .preTop,#lobby #lv-fixture-full .preTop{flex:none}
+  #lobby #lv-tabla-full .preTop,#lobby #lv-fixture-full .preTop,#lobby #lv-carrera-full .preTop{flex:none}
   #lobby #lv-tabla-full .cajon,#lobby #lv-fixture-full .cajon{flex:1 1 auto;min-height:0;overflow-y:auto;
        -webkit-overflow-scrolling:touch}
   #lobby .fecha-pre{font-size:13px;letter-spacing:2px;color:var(--tinta);font-weight:600;
@@ -889,6 +889,7 @@
   #lobby .vista:not(.oculto){animation:veloEntra .2s ease-out both}
   #lobby .panel.act{animation:veloEntra .2s ease-out both}
   #lobby .fondoCar.cambia{animation:fundido .4s ease-out both}
+  #lobby #lp-vos-resumen{display:flex;flex-direction:column}
   /* §2z70 (su caza 2026-09-06: "en EQUIPO no hay transición cuando pasás entre tu equipo y tu país"): el switch
      club ⇄ selección repinta el cajón en seco; ahora el cajón entra con la misma corta de los paneles (200 ms) */
   #lobby .cajon.cambia{animation:veloEntra .2s ease-out both}
@@ -1575,6 +1576,15 @@
         <div class="cajon fix" id="lobFixFull"></div>
       </div>
 
+      <!-- §2z71 TU CARRERA (vista plena): todas las temporadas, desde VER COMPLETO de VOS -->
+      <div class="vista oculto" id="lv-carrera-full">
+        <div class="preTop">
+          <div class="volver" data-lir="vos" tabindex="0" data-l-en="◂ BACK" data-l-pt="◂ VOLTAR">◂ VOLVER</div>
+          <div class="fecha-pre" id="lobCarreraTit"></div>
+        </div>
+        <div class="cajon tablita" id="lobCarrera"></div>
+      </div>
+
       <!-- PRE-PARTIDO -->
       <div class="vista oculto" id="lv-pre">
         <div class="preTop">
@@ -1662,12 +1672,16 @@
         <div class="verMas" id="lobCompartir" data-l-en="SHARE" data-l-pt="COMPARTILHAR">COMPARTIR</div>
         <div class="tabs">
           <div class="tab act" data-lp="vos-resumen" tabindex="0" data-l-en="SUMMARY" data-l-pt="RESUMO">RESUMEN</div>
-          <div class="tab" data-lp="vos-carrera" tabindex="0" data-l-en="CAREER" data-l-pt="CARREIRA">CARRERA</div>
           <div class="tab" data-lp="vos-palmares" tabindex="0" data-l-en="TROPHIES" data-l-pt="TÍTULOS">PALMARÉS</div>
         </div>
         <div class="paneles">
-        <div class="panel act" id="lp-vos-resumen"><div class="cajon" id="lobResumen"></div></div>
-        <div class="panel" id="lp-vos-carrera"><div class="cajon tablita" id="lobCarrera"></div></div>
+        <!-- §2z71: el resumen es la temporada de UN lado (switch club ⇄ selección, §12.20) con su rótulo de alcance;
+             la carrera entera vive en la plena carrera-full, que abre desde VER COMPLETO -->
+        <div class="panel act" id="lp-vos-resumen">
+          <div class="tabs selSwitch oculto" id="lobVosSwitch"></div>
+          <div class="cajon" id="lobResumen"></div>
+          <div class="verMas" id="lobVerCarrera" data-lir="carrera-full" tabindex="0" data-l-en="FULL CAREER ▸" data-l-pt="VER COMPLETA ▸">VER COMPLETO ▸</div>
+        </div>
         <!-- §2z28 la vitrina: la grilla de trofeos (tocar nombra) y VER TODO para la lista; la pinta pintaPalmares() -->
         <div class="panel" id="lp-vos-palmares"><div class="cajon" id="lobPal"><div class="fila-item vacia">—</div></div></div>
         </div>
@@ -12531,11 +12545,17 @@ function intencion(dx,dy,largo){
      que ya existe. El centro (0,14·R3, el mismo círculo chico del lob) sigue siendo TIRO
      SIEMPRE: apuntar al aro es tirar, haya quien haya abajo — la memoria del tiro no se
      toca. El camp-lob sigue muerto: esto no es un globo, es un pase al cuerpo. 28 opinable. */
-  if(G.tipo!=='sacada' && dAroCae < R3()*(rollAlAro?0.14:0.30)){  // afuera no se tira
+  /* §2z72 a (su dedo 2026-09-06: "quise tirar un lob a uno muy cerca del aro, pensé que solté en el pase y fue un
+     tiro"): con un compañero PLANTADO adentro de 0,30·R3 el aro se recorta al centro (0,14, como con la corrida) y el
+     anillo es pase a su cuerpo — el dump-off, que juzga el sello del poste. Sin nadie abajo, el anillo sigue siendo
+     tiro: la memoria del tiro no se toca. */
+  const plantado = G.tipo!=='sacada' && !rollAlAro && G.comps.some(c=>dist(c,aro())<R3()*0.30);
+  if(G.tipo!=='sacada' && dAroCae < R3()*((rollAlAro||plantado)?0.14:0.30)){  // afuera no se tira
     if(dAroCae >= R3()*0.14 && G.comps.some(c=>dist(cae,c)<28*ESC()))
       return {tipo:'pase', p:cae};
     return {tipo:'tiro', p:aro()};
   }
+  if(plantado && dAroCae < R3()*0.30) return {tipo:'pase', p:cae};
   if(rollAlAro && dAroCae < R3()*0.35)
     return {tipo:'lob', p:cae};
   return {tipo:'pase', p:cae};
@@ -16345,13 +16365,24 @@ function frame(now){
       const a7=aro();
       let prot=null; for(const [df,co] of G.asig) if(co&&co.big&&df.big) prot=df;
       const portador = G.pelotaEn && G.comps.includes(G.pelotaEn) ? G.pelotaEn : (G.fase==='conduzco'||G.fase==='espera'||G.fase==='apunto') ? G.vos : null;
-      const adentro = portador && dist(portador,a7)<R3()*0.62;
+      /* §2z72 b (su regla 2026-09-06: "el protector no tiene que SALIR a cortar, tiene que moverse alrededor del aro
+         para cubrirlo; si salen a cortarte se rompe todo"): ya no sprinta hacia el portador. Cuando la pelota se
+         acerca (<0,95·R3; suelta a >1,10, histéresis) lee tarde y TROTA a un punto de cobertura entre la pelota y
+         el aro, a 0,30·R3 del aro. El contacto es cuando VOS llegás a él (<26·ESC): el dado de §2z39.19. El hueco
+         que abre es su hombre, y el anillo del aro (10-gesto) paga el pase al cuerpo. */
+      const dPA = portador ? dist(portador,a7) : 1e9;
+      const adentro = portador && dPA < R3()*(G.rot?1.30:1.15);
       if(prot && adentro){
-        if(!G.rot) G.rot={t0:now, leido:now+Math.max(250,700-6*(dif.def||16)+25*(dif.man||0))};   // §2z39.19: tu MANEJO le vende la entrada — lee más tarde
+        /* la cobertura es un paso de SOMBRA, no una lectura del drive (medido: con la lectura del sprint, 0,9 s con
+           def 16, la bandeja arrancaba sola a 0,35·R3 antes de que se moviera). Lee corto; tu MANEJO igual le vende
+           algo (§2z39.19). */
+        if(!G.rot) G.rot={t0:now, leido:now+Math.max(150,400-4*(dif.def||16)+15*(dif.man||0))};
         if(now>=G.rot.leido){
-          const vP=Math.max(55,(dif.def||16)*2)*dt, dP=dist(prot,portador);
-          if(dP>26*ESC()){ prot.x+=(portador.x-prot.x)/dP*Math.min(vP,dP); prot.y=Math.max(prot.y+(portador.y-prot.y)/dP*Math.min(vP,dP), a7.y+18*ESC()); }
-          else if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro){ G.rot.cobro=true;
+          const rC=R3()*0.30, ux=(portador.x-a7.x)/Math.max(1,dPA), uy=(portador.y-a7.y)/Math.max(1,dPA);
+          const meta={x:a7.x+ux*rC, y:Math.max(a7.y+uy*rC, a7.y+18*ESC())};
+          const vP=Math.min(150,Math.max(90,(dif.def||16)*2))*dt, dM=dist(prot,meta);
+          if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
+          if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;
             /* §2z39.19 (su regla: "no sólo el nivel del rival, sino el tuyo — a favor"): el FÍSICO decide el
                contacto. Con fis 3 aguantás 1 de 6 y seguís; con 10, más de la mitad. Y si no, la falta pesa
                más que el manotazo cuanto más físico tenés. */
@@ -17394,7 +17425,22 @@ function instalarCard(dep) {
     const alto = 84;
     const logros = d.vitrina.slice(0, LOGROS_CORTA);
     if (!logros.length) {
-      texto(ctx, T('Todavía sin títulos. Se viene.', 'No titles yet. Coming.', 'Ainda sem títulos. Vem aí.'), X0, y + 40, { size: 28, peso: 600, color: MUTED });
+      /* §2z71 (su caza: "la card chiquita sin títulos queda MUY vacía, y el «no hay títulos» sale chiquito"): sin
+         títulos el bloque es ESTA TEMPORADA —récord del equipo y puesto, tu línea, la nota— con las mismas filas de
+         los logros. La frase de "sin títulos" se fue: con datos reales la aclaración sobra. */
+      const tm = d.temporadas[d.temporadas.length - 1], mt = dep.miTabla(d.e);
+      const lin = { pj: 0, pts: 0, ast: 0 };
+      for (const l of [tm.liga, tm.po]) { if (!l) continue; lin.pj += l.pj || 0; lin.pts += l.pts || 0; lin.ast += l.ast || 0; }
+      const filas = [];
+      if (mt && mt.fila) filas.push([T('RÉCORD DEL EQUIPO', 'TEAM RECORD', 'CAMPANHA DO TIME'), mt.fila.pg + '–' + mt.fila.pp + (mt.puesto ? ' · ' + mt.puesto + 'º' : '')]);
+      filas.push([T('ESTA TEMPORADA', 'THIS SEASON', 'ESTA TEMPORADA'), lin.pj + ' PJ · ' + (lin.pj ? dec(lin.pts / lin.pj) : '—') + ' PTS · ' + (lin.pj ? dec(lin.ast / lin.pj) : '—') + ' AST']);
+      if (tm.nota) filas.push([T('NOTA', 'RATING', 'NOTA'), dec(tm.nota)]);
+      filas.forEach(([k, v], i) => {
+        const yy = y + alto * i;
+        if (i) { ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fillRect(X0, yy, X1 - X0, 1); }
+        texto(ctx, k, X0, yy + 54, { size: 34, peso: 700, max: X1 - X0 - 380 });
+        texto(ctx, v, X1, yy + 54, { size: 30, peso: 700, color: TEXTO, align: 'right' });
+      });
     }
     logros.forEach((g, i) => {
       const yy = y + alto * i;
@@ -18729,10 +18775,10 @@ function avisar(msg,tono){
 }
 
 /* ── la navegación del lobby (las reglas de vistas plenas del boceto) ── */
-const PLENAS=['tabla-full','fixture-full','pre'];
-const VISTAS=['hoy','tabla-full','fixture-full','pre','entrenar','equipo','vida','vos'];
+const PLENAS=['tabla-full','fixture-full','carrera-full','pre'];   // §2z71: la carrera entera es una plena
+const VISTAS=['hoy','tabla-full','fixture-full','carrera-full','pre','entrenar','equipo','vida','vos'];
 const FONDO_DE={hoy:()=>FONDO_VESTUARIO,vida:()=>FONDO_VESTUARIO,'tabla-full':()=>FONDO_VESTUARIO,
-  'fixture-full':()=>FONDO_VESTUARIO,pre:()=>FONDO_TUNEL,vos:()=>FONDO_TUNEL,
+  'fixture-full':()=>FONDO_VESTUARIO,'carrera-full':()=>FONDO_TUNEL,pre:()=>FONDO_TUNEL,vos:()=>FONDO_TUNEL,
   entrenar:()=>FONDO_PLAYGROUND,equipo:()=>FONDO_DESPACHO};
 /* el contenido se apoya abajo aunque el cajón scrollee: en una cancha corta lo que se pierde
    es lo de ARRIBA (filas viejas del fixture), nunca el próximo partido ni el botón */
@@ -20334,7 +20380,8 @@ function pintaTienda(){
 }
 /* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
    hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */
-let ladoRel='club', ladoRel_auto=true;   // auto: sigue al próximo partido hasta que tocás el switch
+let ladoRel='club', ladoRel_auto=true;
+let ladoVos='club';   // §2z71: el lado del resumen de VOS   // auto: sigue al próximo partido hasta que tocás el switch
 function pintaRelaciones(){
   const J=C.jugador, e=est(), sw=$l('lobRelSwitch');
   /* §12.20.1 (su caza: "juego contra Panamá y en EQUIPO me siguen figurando las de Boca"): en una partida de antes
@@ -20362,7 +20409,9 @@ function pintaSecciones(){
   const e=est(), J=C.jugador, sk=J.skills;
   /* §7.1: en la beta, la pestaña CARRERA (historial multi-temporada) no existe; la tira de la
      beta (anotarse · feedback) sí — un lugar fijo, no al final (su corte: "no todos van a llegar") */
-  const tabCar=document.querySelector('#lobby .tab[data-lp=vos-carrera]'); if(tabCar) tabCar.classList.toggle('oculto',esBeta());
+  /* §2z71: en la beta hay una sola temporada — VER COMPLETO sería una puerta a lo que ya ves */
+  const bVC=$l('lobVerCarrera'); if(bVC) bVC.classList.toggle('oculto',esBeta());
+  $l('lobCarreraTit').textContent=t(L('TU CARRERA','YOUR CAREER','SUA CARREIRA'));
   const chip=$l('lobBetaChip'); if(chip) chip.classList.toggle('oculto',!esBeta());   // §7.1
   pintaEntrenar();
   pintaRelaciones();
@@ -20416,25 +20465,44 @@ function pintaSecciones(){
   document.querySelector('#lobby .acc[data-lir=vida]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
   document.querySelector('#lobby .tab[data-lp=vida-contrato]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
   const ml=e.miLinea, po=e.miLineaPO;
-  const stat=(v)=>ml.pj?fdec(v/ml.pj):'—';
+  /* §2z71: LA LÍNEA DE UN LADO. `miLinea` suma club + selección + continental (es el total, y así lo usan la card y el
+     historial); el resumen muestra UN lado, calculado de la lista de partidos: el club sin `sel`·`am`·`po`·`conSeleccion`
+     (los que te perdiste por la selección no son partidos tuyos), la selección con sus `sel` más los torneos del año. */
+  const sumar=(ps)=>ps.reduce((a,p)=>({pj:a.pj+1,min:a.min+(p.minutos||0),pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),rob:a.rob+(p.rob||0),tap:a.tap+(p.tap||0)}),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0});
+  const mp=e.misPartidos||[];
+  const lClub=sumar(mp.filter(p=>!p.sel&&!p.am&&!p.po&&!p.conSeleccion));
+  const torAnio=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.anio===C.anio&&x.linea);
+  const lSel=sumar(mp.filter(p=>p.sel)); for(const x of torAnio){ const l=x.linea; lSel.pj+=l.pj||0; lSel.min+=l.min||0; lSel.pts+=l.pts||0; lSel.ast+=l.ast||0; lSel.rob+=l.rob||0; lSel.tap+=l.tap||0; }
+  const haySelVos=lSel.pj>0;
+  if(!haySelVos) ladoVos='club';
+  const swV=$l('lobVosSwitch'); swV.classList.toggle('oculto',!haySelVos);
+  if(haySelVos){ const clubV=clubDe(e.miClubId), paisV=J.nacionalidad||'ar';
+    const tabV=(lado,html)=>'<div class="tab'+(ladoVos===lado?' act':'')+'" data-ladovos="'+lado+'" tabindex="0">'+html+'</div>';
+    swV.innerHTML=tabV('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>')+tabV('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>');
+    swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
+  const enSel=ladoVos==='sel'&&haySelVos, lv=enSel?lSel:lClub;
+  const stat=(v)=>lv.pj?fdec(v/lv.pj):'—';
+  /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el
+     encabezado y PJ en la grilla: no se repiten. */
+  const rotulo=enSel
+    ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
+    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+' · '+anioTxt();
   $l('lobResumen').innerHTML=
-    /* acá vivía "Identidad: EN FORMACIÓN — el juego todavía te está leyendo": prosa que
-       no decía nada y que el chip del HUD ya dice en dos palabras (su caza) */
-
+    '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
-      '<div class="s"><b>'+stat(ml.pts)+'</b><span>PTS</span></div>'+
-      '<div class="s"><b>'+stat(ml.ast)+'</b><span>AST</span></div>'+
+      '<div class="s"><b>'+stat(lv.pts)+'</b><span>PTS</span></div>'+
+      '<div class="s"><b>'+stat(lv.ast)+'</b><span>AST</span></div>'+
       /* §2z39.67 (su pedido 2026-09-05: "el RESUMEN debería incluir el que tengas más, de tapas o robos"): la
          casilla defensiva es la que más hiciste — ROB si empatan */
-      ((ml.tap||0)>(ml.rob||0)
-        ? '<div class="s"><b>'+stat(ml.tap)+'</b><span>'+t(L('TAP','BLK','TOC'))+'</span></div>'
-        : '<div class="s"><b>'+stat(ml.rob)+'</b><span>'+t(L('ROB','STL','ROU'))+'</span></div>')+
-      '<div class="s"><b>'+(ml.pj?Math.round(ml.min/ml.pj):'—')+'</b><span>MIN</span></div>'+
-      '<div class="s"><b>'+ml.pj+'</b><span>PJ</span></div>'+
+      ((lv.tap||0)>(lv.rob||0)
+        ? '<div class="s"><b>'+stat(lv.tap)+'</b><span>'+t(L('TAP','BLK','TOC'))+'</span></div>'
+        : '<div class="s"><b>'+stat(lv.rob)+'</b><span>'+t(L('ROB','STL','ROU'))+'</span></div>')+
+      '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
+      '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
     /* §2z43: el ritmo se cambia acá, entre partidos — nunca en el pre (ahí sería una perilla de dificultad) */
     '<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>'+
-    (po.pj?'<div class="fila-item" style="padding-bottom:2px"><span class="desc">Playoffs: <b>'+fdec(po.pts/po.pj)+' PTS · '+fdec(po.ast/po.pj)+' AST</b> '+t(L('en','in','em'))+' '+po.pj+' PJ</span></div>':'');
+    (!enSel&&po.pj?'<div class="fila-item" style="padding-bottom:2px"><span class="desc">Playoffs: <b>'+fdec(po.pts/po.pj)+' PTS · '+fdec(po.ast/po.pj)+' AST</b> '+t(L('en','in','em'))+' '+po.pj+' PJ</span></div>':'');
   $l('lobResumen').querySelectorAll('[data-ritmo]').forEach(b=>b.addEventListener('click',()=>{ const v=b.dataset.ritmo==='intenso'; if(v!==!!C.intenso){ C.intenso=v; guardar(); pintaSecciones(); } }));
   pintaPalmares();   // §2z28: la vitrina
   const bComp=$l('lobCompartir'); if(bComp) bComp.onclick=()=>CARD.abrirCard('corta');   // §2z30
@@ -21770,7 +21838,7 @@ $l('betaMenuFeed').onclick=()=>{ cerrarBetaMenu(); abrirBetaVelo('feedback'); };
 
 /* §2z30 la card compartible (18a) — la pieza vive afuera y recibe lo que necesita */
 const CARD=instalarCard({
-  get C(){ return C; }, est, clubDe, ligaDe, LIGAS, escudoSVG, t, L, fdec, avisar, verQueSeVe, notaPromedio,
+  get C(){ return C; }, est, clubDe, ligaDe, LIGAS, escudoSVG, t, L, fdec, avisar, verQueSeVe, notaPromedio, miTabla,
   ICONO_PATH, IDENTIDAD_TXT,
   clubEn:(id,ligaId)=>{ const liga=LIGAS[ligaId]; return (liga?clubPorId(liga.clubes,id):null)||maestroClub(id)||null; },
   /* §12: los textos de la selección, para la banda de la card de carrera */

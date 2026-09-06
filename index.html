@@ -11671,7 +11671,7 @@ function armarPosesion(){
        carga son los de siempre. */
     if(G.defEscena){
       const D=G.defensa, nv=clamp(((dif.def||12)-12)/38,0,1);   // 0 = nivel 1 · 1 = nivel 20
-      D.escena=G.defEscena; D.nivel=nv; D.vel=105+nv*40; D.pBonus=nv*0.12;
+      D.escena=G.defEscena; D.nivel=nv; D.vel=105+nv*40; D.pBonus=nv*0.12; D.reaccion=Math.round(300-nv*180);   // ms hasta que te rodea
       const lado=Math.random()<0.5?-1:1;
       if(G.defEscena==='cierre'){
         /* A (v2, su lectura antes de jugarlo: "si siempre se la pasan al que estás más cerca, empezás a correr antes"):
@@ -11732,7 +11732,10 @@ function armarPosesion(){
         D.portador=marca; D.corredor=null; D.vuelta=null; D.ladoD=lado;
         { const dma=Math.max(1,dist(marca,a)), f=Math.min(0.6, 85*ESC()/dma);   // a 85·ESC: adentro de los 100 del pull-up, él tiene que ganarte la separación
           G.vos={x:lerp(marca.x,a.x,f), y:lerp(marca.y,a.y,f)}; }
-        D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; D.arranca=performance.now()+500; D.tDec=performance.now()+6000;
+        /* v2 (su caza: "igual en nivel 1 que en 20, y en todas terminó con carga: siguió dribbleando indefinidamente"):
+           decide a 2,4 s (1,4 s en el 20) — va al aro si no estás adelante, amaga o te ataca si estás encima, y si ya
+           amagó y seguís encima hace un STEP-BACK y tira (13, tiraRival). Su reacción para rodearte va con el nivel. */
+        D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; D.arranca=performance.now()+500; D.tDec=D.arranca+2400-nv*1000;
       }
       G.pelotaEn=D.portador;
     }
@@ -13813,10 +13816,19 @@ function tiraRival(j){
      al recibir (<30·ESC, adelante) no tira contra tu mano — amaga (55 % en el nivel 1 → 90 % en el 20) o penetra. La
      tapa queda para cuando llegás DURANTE el armado. Sólo en las escenas nuevas; la contra sigue con su 40 %. */
   const encima = D.escena && dist(G.vos,j)<30*ESC() && (((a.x-j.x)*(G.vos.x-j.x)+(a.y-j.y)*(G.vos.y-j.y))>0);
+  /* §2z87 l: ya amagó (o ya te atacó) y seguís encima — STEP-BACK: se aleja de vos 45·ESC en ~0,35 s y tira. Vos lo seguís
+     para molestar ese tiro; si te quedaste, es cómodo. Una vez por posesión. */
+  if(encima && D.amague && !D.stepBack){
+    D.stepBack=true; const dv=Math.max(1,dist(G.vos,j));
+    D.meta=clampMundoJugable(j.x+(j.x-G.vos.x)/dv*45*ESC(), j.y+(j.y-G.vos.y)/dv*45*ESC());
+    D.decidio=false; D.resuelto=false; D.drive=false; D.rodeo=null; D.tDec=performance.now()+380; G.pelotaEn=j;
+    relato(t(L('Step-back: se abre y arma el tiro.','Step-back: he creates space and rises.','Step-back: ele abre espaço e arma o arremesso.')),false);
+    return;
+  }
   const pAmague = encima ? 0.55+(D.nivel||0)*0.35 : 0.4, dado=Math.random();   // UN dado: encima nunca tira contra tu mano
   if(encima && !D.amague && dado>=pAmague){
     /* no amaga: te ataca el cuerpo — el drive de siempre, sin mordida ni lunge */
-    D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+4000; D.rodeoYa=true;
+    D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+(D.escena?1500:4000); D.rodeoYa=true;
     D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18}; G.pelotaEn=j;
     relato(t(L('Te vio encima y salió al aro.','He saw you on him and went to the rim.','Te viu em cima e foi pro aro.')),false);
     return;
@@ -13856,11 +13868,11 @@ function tiraRival(j){
            cuerpo congelado, tu vuelta rota, y a <0,42·R3 decide — encerrado descarga,
            libre la termina él) */
         D.decidio=false; D.resuelto=false;
-        D.tDec=performance.now()+4000;
+        D.tDec=performance.now()+(D.escena?1500:4000);
         D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18};
       } else if(D.escena && dv<30*ESC() && (((a.x-j.x)*(G.vos.x-j.x)+(a.y-j.y)*(G.vos.y-j.y))>0)){
         /* §2z87 i: aguantaste Y seguís encima — no tira contra tu mano: te ataca el cuerpo, rodeándote */
-        D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+4000; D.rodeoYa=true;
+        D.drive=true; D.decidio=false; D.resuelto=false; D.tDec=performance.now()+(D.escena?1500:4000); D.rodeoYa=true;
         D.meta={x:a.x+rnd(-20,20), y:a.y+R3()*0.18}; G.pelotaEn=j;
         relato(t(L('No te comiste el amague: salió al aro.','You did not bite: he drove to the rim.','Você não caiu na finta: ele foi pro aro.')),true);
       } else {
@@ -16323,7 +16335,7 @@ function frame(now){
            dobla. La carga queda sólo para el plante TARDÍO: te pusiste en su camino tan
            cerca que la reacción no llega, y venía derecho A vos (coseno >0,8 hacia tu
            cuerpo — el roce lateral resbala, no cobra). 220ms y 0,8 opinables. */
-        if(pisado){ if(!D.rodeo && !D.rodeoEn) D.rodeoEn=now+220; }
+        if(pisado){ if(!D.rodeo && !D.rodeoEn) D.rodeoEn=now+(D.reaccion||220); }   // §2z87 l: la reacción va con el nivel
         else D.rodeoEn=null;
         if(((D.rodeoEn && now>=D.rodeoEn) || D.rodeoYa) && !D.rodeo){
           D.rodeoEn=null; D.rodeoYa=false;   // §2z87 i: el que te vio encima rodea de entrada

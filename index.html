@@ -670,6 +670,10 @@
   #lobby .selSwitch .escudito{width:20px;height:20px;border-width:1px}
   #lobby .selSwitch .escudito.ban{width:20px}
   #lobby .fix .r.am .f{letter-spacing:0}
+  /* §2z88: la banderita del país en las filas del continental (la misma que la tabla, un punto más chica:
+     la columna del nombre es la que paga y §2z31 la dejó justa) */
+  #lobby .fix .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-left:-2px}
+  #lobby .fix .banMini>*{width:100%;height:100%}
   /* §12: la fila de selección — la bandera a la izquierda y el renglón de la fecha que te
      perdiste por estar afuera, apagado (no es un resultado tuyo: es una ausencia) */
   #lobby .fix .r.sel .f{letter-spacing:0;display:flex;align-items:center}
@@ -4006,6 +4010,32 @@ function miProximo(estado) {
  *  salteás N fechas: se simulan" del pre-partido, y las fechas libres del camino). */
 function avanzarHastaFecha(estado, fechaNro) {
   while (estado.fase === 'regular' && estado.fechaJugada < fechaNro - 1) jugarFecha(estado);
+}
+
+/**
+ * §2z88 LAS FECHAS QUE LA VENTANA FIBA SE LLEVÓ SE JUEGAN CUANDO LA VENTANA TERMINA (su caza
+ * 2026-09-06 con el fixture en la mano: *"estuve con la selección en F6 y F7… ¿por qué uno dice el
+ * resultado y el otro no?"*). La jornada k de la ventana f cae EL MISMO DÍA que la fecha f+k del club
+ * (§12.25), así que al cerrar la ventana esas dos fechas YA PASARON: el club las jugó sin vos y el
+ * fixture tiene que decir cómo salieron (§2z84), no quedarse en CON LA SELECCIÓN esperando a que
+ * juegues la fecha siguiente. Antes se simulaban recién en el `avanzarHastaFecha` del próximo partido
+ * tuyo, y según por dónde hubieras pasado (PASAR LA SEMANA, el continental) una quedaba simulada y la
+ * otra no — dos situaciones idénticas, dos pantallas distintas.
+ * ⚠️ NO SE PASA POR ENCIMA DE UNA VENTANA DEL CONTINENTAL QUE TODAVÍA ES TUYA: si el relato juega la
+ * fecha, `avanzarAmericas` se lleva puesta la ventana pendiente. Se frena antes y se vuelve a llamar
+ * cuando ese partido se jugó.
+ */
+function alDiaTrasSeleccion(estado) {
+  const el = estado.seleccion;
+  if (!el || estado.fase !== 'regular') return;
+  let hasta = 0;
+  for (let k = 0; k < el.idx && k < el.ventanas.length; k++) {
+    if (el.ventanas[k].conv) hasta = Math.max(hasta, el.ventanas[k].f + 2);
+  }
+  if (!hasta) return;
+  const am = estado.americas && estado.americas.ventanas[estado.americas.idx];
+  if (am && am.f < hasta) hasta = am.f;
+  avanzarHastaFecha(estado, hasta + 1);
 }
 
 /* §2z7: LA TEMPORADA DE UNA LIGA DONDE NO ESTÁS, entera y en seco — la escalera de
@@ -9706,7 +9736,7 @@ function jugarJuegoSeleccion(e, miJuego) {
   const j = js.find((x) => el.juegos.some((g) => g.j === x && !g.jugado));
   if (j === undefined) return;
   jugarJornadaSel(e, j, miJuego);
-  if (!js.some((x) => el.juegos.some((g) => g.j === x && !g.jugado))) { el.idx++; decidirVentanasQueLlegan(e, e.fechaJugada || 0); }   // §12.21 · §2z73
+  if (!js.some((x) => el.juegos.some((g) => g.j === x && !g.jugado))) { el.idx++; decidirVentanasQueLlegan(e, e.fechaJugada || 0); alDiaTrasSeleccion(e); }   // §12.21 · §2z73 · §2z88: la ventana cerrada deja las dos fechas del club jugadas
 }
 
 /** ¿Qué fechas del club te saltea la selección?
@@ -19222,8 +19252,12 @@ function filaFix(f,calPorFecha,proxFecha){
   /* §12: la fecha del club que jugaste con la selección lo dice en vez de mostrar un
      resultado ajeno sin tu nota */
   /* §2z84 (su caza: "los partidos que se jugaron sin vos deberían decir cómo salió"): jugada, la fila muestra el
-     resultado del club (atenuado: no fue tuyo); por jugar, dice CON LA SELECCIÓN */
-  if(f.conSel){ resCls='res selAus'; if(!f.res) resTxt=t(L('CON LA SELECCIÓN','ON NT DUTY','COM A SELEÇÃO')); }
+     resultado del club; por jugar, dice CON LA SELECCIÓN */
+  /* §2z88 (su caza 2026-09-06: "¿por qué el resultado no se ve como en el resto? debería tener mismo formato"): el
+     resultado del club sin vos se pintaba con la clase del TEXTO (10 px, gris) — la misma cifra en dos tamaños en
+     renglones vecinos. El renglón entero ya está atenuado (.r.conSel, opacity .5): eso es lo que dice "no fue tuyo",
+     y el marcador se lee igual que todos. `selAus` queda sólo para la frase. */
+  if(f.conSel&&!f.res){ resCls='res selAus'; resTxt=t(L('CON LA SELECCIÓN','ON NT DUTY','COM A SELEÇÃO')); }
   /* ⚠️ y el fuego NO sale en la fecha que jugás con la selección: (1) el partido caliente es un
      partido que vas a jugar VOS, y ése lo juega el club sin vos; (2) medido, "🔥 CON LA SELECCIÓN"
      pide 101 px y `.res` tiene 78 — la columna crecería (min-content) y le volvería a robar el
@@ -19243,8 +19277,11 @@ function filaFix(f,calPorFecha,proxFecha){
   /* §12: la marca de la izquierda es la BANDERA de tu país, como el 🌎 es la del continental */
   const marca=f.sel?banderaDe(C.jugador.nacionalidad||'ar',14)
     :f.am?icono('globo',14):fPrefijo()+f.fecha;
+  /* §2z88 (su caza 2026-09-06: "en el fixture de AMÉRICAS no está el país del equipo, que sí está en la tabla"):
+     en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
+     del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></span>'+
+    '<span class="q">'+escudito(f.rival)+(f.am?banderita(f.rival):'')+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></span>'+
     '<span class="dia">'+(f.dia?diaTxt(f.dia):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */
@@ -20532,7 +20569,7 @@ function registrarResultado(){
     if(av&&C.selAviso&&C.selAviso.clave==='jugado') amAviso=av.txt;
   } else if(enPartido&&enPartido.tipo==='seleccion'&&enPartido.etapa==='eliminatorias'){
     /* §12: la eliminatoria resuelve SU jornada (la tuya con tu resultado, las otras dos simuladas) */
-    jugarJuegoSeleccion(e,miJuego);
+    jugarJuegoSeleccion(e,miJuego);   // §2z88: al cerrar la ventana el motor pone al día las dos fechas del club
     if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]};
     C.seleccion.yaEstuvo=true;   // el que entró al grupo, se queda mientras el nivel le dé
     /* §12: el resultado de las eliminatorias VIAJA al receso siguiente — el Mundial es el del
@@ -20545,7 +20582,8 @@ function registrarResultado(){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
     const faseAM=e.americas.fase;
     jugarJuegoAmericas(e,miJuego);
-    e.americas.ultimoDia=diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)+1;
+    e.americas.ultimoDia=diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)+1;   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
+    alDiaTrasSeleccion(e);   // §2z88: la ventana del continental era la que frenaba el ponerse al día
     if(faseAM==='grupo'&&e.americas.fase==='llave') amAviso=e.americas.eliminado
       ? t(L('Liga de las Américas: afuera en la fase de grupos.','Americas League: out in the group stage.','Liga das Américas: fora na fase de grupos.'))
       : t(L('¡Pasamos a cuartos de la Liga de las Américas!','On to the Americas League quarterfinals!','Passamos às quartas da Liga das Américas!'));

@@ -13776,7 +13776,7 @@ function tiraRival(j){
     if(dv<30*ESC() && adelante){
       const palm={x:lerp(j.x,G.vos.x,0.6), y:lerp(j.y,G.vos.y,0.6)};
       vuelo({x:j.x,y:j.y},palm,0.2,0.16,()=>{
-        D.resuelto=true; G.tapas++; desfile(t(L('¡TAPA TUYA!','YOUR BLOCK!','TOCO SEU!')),'corrida');
+        D.resuelto=true; D.merito=true; G.tapas++; desfile(t(L('¡TAPA TUYA!','YOUR BLOCK!','TOCO SEU!')),'corrida');
         G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'tapa'});
         finPosesion(true,t(L('Lo tapaste: la pelota es nuestra.','You blocked it: our ball.','Deu o toco: bola nossa.')));
       });
@@ -13806,7 +13806,7 @@ function tiraRival(j){
       if(compiMolesta){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
         relato(t(L('Tu compañero lo molestó: afuera.','Your teammate bothered him: off the mark.','Seu companheiro incomodou: pra fora.')),false);
         finPosesion(true,t(L('Se la pasó al libre y tu compañero lo hizo errar.','He found the open man and your teammate forced the miss.','Ele passou pro livre e seu companheiro forçou o erro.'))); }
-      else if(molestado){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'ok');
+      else if(molestado){ D.merito=true; veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'ok');   // §2z86: el mérito del drill es TUYO (tapa · robo · lo sacaste del tiro cómodo)
         relato(t(L('Lo sacaste del tiro cómodo: afuera.','You took away the clean look: off the mark.','Você tirou o arremesso fácil: pra fora.')),true);
         finPosesion(true,t(L('Los paraste: erraron la contra.','You stopped them: the break came up empty.','Você segurou: erraram o contra-ataque.'))); }
       else if(D.mordido){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
@@ -16191,7 +16191,7 @@ function frame(now){
              destellás y la tenés un instante antes del desfile — el mismo respiro que la tapa (el palmeo a 0,16 s). */
           G.pelota=null; G.pelotaEn=null; flash(G.vos); sfx('manotazo',0.8);
           vuelo(bp,{x:G.vos.x,y:G.vos.y},0.08,0.14,()=>{
-            G.pelotaEn=G.vos; G.robos++; desfile(t(L('¡LA CORTASTE!','PICKED OFF!','INTERCEPTOU!')),'corrida');
+            G.pelotaEn=G.vos; G.robos++; D.merito=true; desfile(t(L('¡LA CORTASTE!','PICKED OFF!','INTERCEPTOU!')),'corrida');
             /* con transición, como el robo de siempre: el premio entra como otra jugada */
             G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'robo'});
             setTimeout(()=>finPosesion(true,t(L('Pisaste la línea: la robaste.','You jumped the passing lane: steal.','Você fechou a linha de passe: roubou a bola.'))),650);
@@ -19933,7 +19933,7 @@ function finDrill(anoto){
   if(drillT&&drillT.k==='manejo'){ cerrarSlalom(false); return; }
   if(drillT&&drillT.k==='fisico'){ cerrarGym(false); return; }
   const gano = drillT.k==='vision' ? ((G.paseBueno||0)>drillT.base.pb || (G.ast||0)>drillT.base.ast)   // §2z39.9: pase bueno, o la asistencia que no pasó por recibe() (el lob)
-             : drillT.k==='defensa' ? anoto
+             : drillT.k==='defensa' ? (anoto && !!(G.defensa&&G.defensa.merito))   // §2z86 (su caza 2026-09-06: "mi jugador la pasó a un jugador libre que erró por azar y me dieron las 3 estrellas"): sólo tapa · robo · lo sacaste del tiro cómodo
              : (G.aciertos||0)>drillT.base.ac;
   /* metés y listo: las estrellas son las que quedaban en juego; fallás y se apaga una */
   if(gano){ drillT.estrellas=3-drillT.intentos; }

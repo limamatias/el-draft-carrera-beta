@@ -13802,7 +13802,7 @@ function tiraRival(j){
   if(j===D.portador && !D.amague && dist(G.vos,j)<60*ESC() && dist(j,a)<R3()*1.05
      && Math.random()<0.4){
     D.amague=true;
-    const dv0=dist(G.vos,j);
+    const dv0=dist(G.vos,j), v0={x:G.vos.x,y:G.vos.y};
     G.pelotaEn=j; posar(j,'tira',a,260);
     setTimeout(()=>{
       if(D.resuelto || G.fase==='fin' || G.fase==='feed') return;
@@ -13810,7 +13810,11 @@ function tiraRival(j){
       let hacia=0;
       if(G.joy){ const jx=G.joy.x-G.joy.x0, jy=G.joy.y-G.joy.y0, L=Math.hypot(jx,jy);
         if(L>=12) hacia=(jx*(j.x-G.vos.x)+jy*(j.y-G.vos.y))/(L*Math.max(1,dv)); }
-      const mordiste = dv<55*ESC() && (hacia>0.4 || dv0-dv>10);
+      /* §2z87 h (su caza: "TE VENDIÓ me sale SIEMPRE que quedo parado adelante de él"): con el dedo apoyado contra su
+         cuerpo el anillo de colisión no te deja avanzar, pero el joystick decía "hacia él" y eso contaba como mordida.
+         Morder es un DESPLAZAMIENTO real (>6·ESC en los 250 ms), no una intención: apretarte contra él es plantarte. */
+      const seMovio = dist(v0,G.vos)>6*ESC();
+      const mordiste = dv<55*ESC() && seMovio && (hacia>0.4 || dv0-dv>10);
       if(mordiste){
         /* el cuerpo vendido se VE: un paso de largo hacia donde ibas, y el joystick
            muerto — volver a apoyar recién cuando pasa el lockout */

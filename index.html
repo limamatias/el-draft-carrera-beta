@@ -11237,8 +11237,12 @@ function armarPosesion(){
        que es el trabajo de la válvula, no un tiro regalado. */
     const corta={x: a.x + ladoS*R3()*rnd(0.42,0.58),
                  y: clamp(G.vos.y + R3()*rnd(0.22,0.4), a.y+R3()*0.9, H*0.88), big:false};
+    /* §2z77 (su caza 2026-09-06: "en los saques del costado casi siempre hay un jugador cerca tuyo que está solo para
+       tirar de 3; si SIEMPRE está, se pierde el incentivo a pasársela a cualquier otro"): §2z49 subió el rango del
+       compañero a 1,20·R3 y "el que está solo tira" — la válvula, sin defensor, quedaba entre 1,12 y 1,20 y era el
+       triple gratis que esta misma nota prohibía. Va a >1,28·R3: fuera del rango, resetea adentro. */
     const dCorta=dist(corta,a);
-    if(dCorta<R3()*1.12){ const k=R3()*1.12/Math.max(1,dCorta);
+    if(dCorta<R3()*1.28){ const k=R3()*1.28/Math.max(1,dCorta);
       corta.x=clamp(a.x+(corta.x-a.x)*k, MARG()+16, W-MARG()-16);
       corta.y=clamp(a.y+(corta.y-a.y)*k, a.y+40, H*0.9); }
     G.comps.push(corta);

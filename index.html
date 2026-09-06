@@ -5038,8 +5038,10 @@ function deltasRelaciones(r) {
   /* HINCHADA: los resultados del equipo — más en los clave, y de local pesa un poco más */
   const dH = (r.gano ? 2 : -2) * (r.clave ? 2 : 1) + (r.local ? (r.gano ? 1 : -1) : 0);
   /* PLANTEL: tus asistencias (como estaba), y el partido flojo la gasta */
-  let dP = 0;
-  if (r.ast >= 4) dP = 2; else if (r.ast >= 2) dP = 1;
+  /* §2z75 (su caza 2026-09-06: "di 7 asistencias y sumé sólo 1 en plantel"): en INTENSO las asistencias llegan
+     divididas por el ritmo (7 → 3,5) y el umbral de 4 las dejaba en el escalón de abajo. Se redondean antes. */
+  let dP = 0; const astN = Math.round(r.ast || 0);
+  if (astN >= 4) dP = 2; else if (astN >= 2) dP = 1;
   if (r.rating < 4) dP -= 2;
   /* DT: tu nota y la misión */
   let dD = r.rating >= 7 ? 2 : r.rating < 4 ? -2 : 0;

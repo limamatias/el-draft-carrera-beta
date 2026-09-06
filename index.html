@@ -17693,7 +17693,11 @@ const ANIO_INICIO=2026;
 const COSTO_JUGAR_BASE=3, COSTO_JUGAR_MIN=9;   // banco (12/40) ≈ 6 · titular (26/40) ≈ 9 · referencia (34/40) ≈ 11
 const costoJugar=(min,ligaId)=>{ const dur=LIGAS[ligaId].reloj*4/60;
   return Math.max(2,Math.round(COSTO_JUGAR_BASE+COSTO_JUGAR_MIN*Math.min(1,(min||0)/dur))-descuentoPartido()); };
-const REGEN_DIA=6;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
+/* §2z80 (su caza 2026-09-06: "la energía se gasta muy poco: terminar en 90 % después de cada partido no te lleva a
+   comprar latita salvo que entrenes"): a 6 por día la semana devolvía 42 contra 12-32 de gasto según la liga, y a
+   90 % la frescura no muerde (piso 85). A 3 por día: Federal +9/semana sólo jugando, LNB −2, NBA −11; con una
+   sesión (−20) la lata es una decisión cada 2 semanas en la LNB. Y el vehículo/la casa (regen extra) se sienten. */
+const REGEN_DIA=3;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
                            // descanso típico (2-3 días) rinde como antes; el corto se siente
 const DIAS_PO=2;           // los playoffs corren cada 2 días (v0)
 const ENERGIA_MINIMA=15;   // fundido: abajo de esto no salís

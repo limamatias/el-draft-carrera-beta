@@ -11674,19 +11674,25 @@ function armarPosesion(){
       D.escena=G.defEscena; D.nivel=nv; D.vel=105+nv*40; D.pBonus=nv*0.12;
       const lado=Math.random()<0.5?-1:1;
       if(G.defEscena==='cierre'){
-        /* A: el pasador en la pintura, tu marca ABIERTA en el perímetro, vos ayudando cerca del pasador; el pase
-           sale a los 0,6-0,9 s y desde ahí tenés ~0,9 s (vuelo + 120 + 460) para cerrar: d0 sube con el nivel */
-        const ang=lado*rnd(0.55,0.95);   // radianes desde el eje del aro, a un costado
-        const tirador={x:clamp(a.x+Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97};
-        const pasador={x:a.x-lado*R3()*0.12, y:a.y+R3()*0.38};
-        G.defs=[pasador, tirador]; G.comps=[]; G.marca=tirador;
-        D.portador=pasador; D.corredor=tirador; D.vuelta=null; D.ladoD=lado;
-        const d0=(90+nv*80)*ESC(), dpt=Math.max(1,dist(pasador,tirador));
-        /* vos a d0 del tirador sobre la línea al pasador, corrido 30·ESC hacia el aro: la línea del pase no está pisada de arranque */
-        const ux=(pasador.x-tirador.x)/dpt, uy=(pasador.y-tirador.y)/dpt;
-        const v0=clampMundoJugable(tirador.x+ux*Math.min(d0,dpt-20*ESC())-uy*30*ESC()*lado, tirador.y+uy*Math.min(d0,dpt-20*ESC())+ux*30*ESC()*lado);
+        /* A (v2, su lectura antes de jugarlo: "si siempre se la pasan al que estás más cerca, empezás a correr antes"):
+           DOS tiradores abiertos, uno en cada ala, y vos NEUTRAL en el eje, a la misma distancia de los dos. El pasador
+           (en la pintura) aguanta la pelota —2,2 s en el nivel 1, 1,2 s en el 20— y se la da al que tengas MÁS LEJOS,
+           girándose hacia él 400 ms antes de soltar: el tell. Irte antes para un lado es regalarle el otro. Lo examinado:
+           quedarte neutral hasta el tell y salir en el momento. */
+        /* la geometría sale de d0 (la desigualdad de las cuatro líneas: d0 − 150·(0,4 tell + 0,3 vuelo + 0,58 armado)
+           ≤ 45·ESC): las alas a 0,8·d0 del eje sobre el perímetro, vos a 0,6·d0 hacia el aro → a d0 de las dos. Nada
+           depende de la pantalla: todo es ESC y R3. */
+        const d0=(90+nv*80)*ESC();
+        const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.25, 0.85));   // radianes desde el eje del aro
+        const tir=(l)=>({x:clamp(a.x+l*Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97});
+        const t1=tir(-1), t2=tir(1);
+        const pasador={x:a.x, y:a.y+R3()*0.38};
+        G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
+        D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
+        const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;
+        const v0=clampMundoJugable(mx, my-Math.sqrt(Math.max(0,d0*d0-half*half)));   // hacia el aro (y menor)
         G.vos={x:v0.x,y:v0.y};
-        D.tDec=performance.now()+rnd(600,900); D.meta={x:pasador.x,y:pasador.y};   // el pasador no se mueve
+        D.tDec=performance.now()+2200-nv*1000; D.tell=D.tDec-400; D.meta={x:pasador.x,y:pasador.y};   // el pasador no se mueve
       } else if(G.defEscena==='cortina'){
         /* B: tu marca con la pelota en el perímetro, el pívot rival plantado a su lado (26·ESC, del lado por el que
            sale), vos adelante a 38·ESC hacia el aro. A los 0,6 s arranca: pasa la cortina y va al aro. */
@@ -13761,7 +13767,7 @@ function decideDefensa(){
       G.pelotaEn=D.corredor;
       /* §2z87 cierre: el que recibió pasa a ser EL PORTADOR (amague, drive y carga corren sobre él); el pasador queda */
       const rec=D.corredor;
-      if(D.escena==='cierre'){ D.portador=rec; D.corredor=null; D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; }
+      if(D.escena==='cierre'){ D.portador=rec; D.corredor=null; D.recibio=true; D.meta={x:a.x+rnd(-24,24), y:a.y+R3()*0.18}; }
       /* CATCH-AND-SHOOT (su caza 2026-08-28: "si se la pasan al big te da tiempo de ir
          y ponerte adelante a él también" — 480ms de espera + 460 de armado te regalaban
          ~140px de recuperación y defendías a los DOS): el que recibe abierto tira YA.
@@ -16286,6 +16292,11 @@ function frame(now){
         /* §2z87: en las escenas nuevas el portador ESPERA su arranque (la cortina se planta, el 1v1 te mira) y sigue una
            ruta (cortina: cruzar detrás del pívot, después el aro); su velocidad viene del nivel (D.vel) */
         const arranco=!D.arranca || now>=D.arranca;
+        /* §2z87 cierre: al tell el pasador ELIGE (el ala que tengas más lejos; empate al azar) y se gira hacia él */
+        if(D.tell && !D.corredor && D.tiradores && now>=D.tell){
+          const [t1,t2]=D.tiradores, d1=dist(G.vos,t1), d2=dist(G.vos,t2);
+          D.corredor = Math.abs(d1-d2)<8*ESC() ? (Math.random()<0.5?t1:t2) : (d1>d2?t1:t2);
+          posar(D.portador,'pasa',D.corredor,400); }
         if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
         if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.vel||105));
         if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
@@ -16325,9 +16336,11 @@ function frame(now){
         }
         /* con el drive del amague en curso, el pull-up no aplica: te vendió PARA irse
            al aro — la resolución es la decisión de cerca (decideDefensa) */
-        if(!D.decidio && !D.drive && arranco && dist(G.vos,D.portador)>100*ESC() && dist(D.portador,a2)<R3()*1.05){
+        /* §2z87: en el cierre el PASADOR no tira (su caza: la escena duraba 0,8 s — el pasador, en la pintura y con vos
+           lejos, entraba por acá al primer frame y tiraba él); el pull-up es del que recibe, después del swap */
+        if(!D.decidio && !D.drive && arranco && !(D.escena==='cierre' && !D.recibio) && dist(G.vos,D.portador)>100*ESC() && dist(D.portador,a2)<R3()*1.05){
           D.decidio=true; D.pullUp=true; tiraRival(D.portador); }   // §2z87: en la cortina es "lo dejaste solo detrás"
-        else if(!D.decidio && (now>=D.tDec || dist(D.portador,a2)<R3()*0.42)){
+        else if(!D.decidio && (now>=D.tDec || (dist(D.portador,a2)<R3()*0.42 && !(D.escena==='cierre' && !D.recibio)))){   // §2z87: el pasador del cierre vive en la pintura y espera su tDec
           D.decidio=true; decideDefensa(); }
       }
     }

@@ -644,9 +644,9 @@
      un volver, que es exactamente la entidad que se ganó (su caza: la tira de tres botones
      ocupaba un renglón entero del vestuario) */
   /* §2z59 el coach de la energía: foco recortado con sombra a la pantalla entera, carta abajo con la X */
-  #coachEnergia{position:fixed;inset:0;z-index:60}
+  #coachEnergia{position:fixed;inset:0;z-index:60;pointer-events:none}   /* no tapa: los toques pasan (la latita se toma) */
   #coachEnergia .foco{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(8,11,19,.8);border:1.5px solid var(--naranja)}
-  #coachEnergia .carta{position:absolute;left:16px;right:16px;background:#141b2c;border:1px solid rgba(255,150,51,.5);border-radius:12px;padding:14px 44px 14px 14px}
+  #coachEnergia .carta{pointer-events:auto;position:absolute;left:16px;right:16px;background:#141b2c;border:1px solid rgba(255,150,51,.5);border-radius:12px;padding:14px 44px 14px 14px}
   #coachEnergia .carta b{font-size:13px;letter-spacing:2px;color:var(--naranja);font-weight:700}
   #coachEnergia .carta p{margin:6px 0 0;font-size:17px;line-height:1.35;color:var(--tinta)}
   #coachEnergia .x{position:absolute;right:6px;top:6px;background:transparent;border:0;color:var(--tinta2);font-size:20px;padding:8px 10px;font-family:inherit}
@@ -18976,12 +18976,22 @@ function coachEnergia(){
   const r=el.getBoundingClientRect(); if(!r.width||!r.height) return;
   marcarVisto('coach_energia'); guardar();
   const v=document.createElement('div'); v.id='coachEnergia';
-  v.innerHTML='<div class="foco" style="left:'+(r.left-6)+'px;top:'+(r.top-6)+'px;width:'+(r.width+12)+'px;height:'+(r.height+12)+'px"></div>'
-    +'<div class="carta" style="top:'+(r.bottom+14)+'px"><button class="x" aria-label="cerrar">✕</button>'
+  v.innerHTML='<div class="foco"></div>'
+    +'<div class="carta"><button class="x" aria-label="cerrar">✕</button>'
     +'<b>'+t(L('ENERGÍA','ENERGY','ENERGIA'))+'</b><p>'+t(L('Cada partido la gasta. Con una lata la llenás: tocá la latita.','Every game drains it. A can refills it: tap the little can.','Cada jogo gasta. Uma latinha enche: toque na latinha.'))+'</p></div>';
   document.body.appendChild(v);
-  const cerrar=()=>v.remove();
-  v.querySelector('.x').onclick=cerrar; v.addEventListener('click',(e)=>{ if(e.target===v||e.target.classList.contains('foco')) cerrar(); });
+  /* su caza (2026-09-05): en su teléfono el foco quedó corrido —lo midió antes de que el vestuario terminara de
+     acomodarse—: el foco SIGUE a la caja en vivo mientras el coach está. Y su otra caza: "mi primer impulso fue
+     TOCAR LA LATITA": el coach no tapa nada — los toques pasan a la pantalla de abajo (la latita se toma) y
+     cualquier toque lo cierra; la X queda para el que la busca. */
+  const foco=v.querySelector('.foco'), carta=v.querySelector('.carta');
+  const ubicar=()=>{ if(!v.isConnected) return; const q=el.getBoundingClientRect();
+    foco.style.left=(q.left-6)+'px'; foco.style.top=(q.top-6)+'px'; foco.style.width=(q.width+12)+'px'; foco.style.height=(q.height+12)+'px';
+    carta.style.top=(q.bottom+14)+'px'; requestAnimationFrame(ubicar); };
+  ubicar();
+  const cerrar=()=>{ v.remove(); document.removeEventListener('pointerdown',cerrar,true); };
+  v.querySelector('.x').onclick=cerrar;
+  setTimeout(()=>document.addEventListener('pointerdown',cerrar,true),300);   // el toque que lo cierra sigue su camino: si fue la latita, se toma
 }
 function pintaLobby(){
   try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }

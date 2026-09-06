@@ -17746,7 +17746,10 @@ const costoJugar=(min,ligaId)=>{ const dur=LIGAS[ligaId].reloj*4/60;
    comprar latita salvo que entrenes"): a 6 por día la semana devolvía 42 contra 12-32 de gasto según la liga, y a
    90 % la frescura no muerde (piso 85). A 3 por día: Federal +9/semana sólo jugando, LNB −2, NBA −11; con una
    sesión (−20) la lata es una decisión cada 2 semanas en la LNB. Y el vehículo/la casa (regen extra) se sienten. */
-const REGEN_DIA=3;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
+/* §2z83 (su ok 2026-09-06, después del calendario real): con la LNB a 1,4 por semana, 3 por día la dejaba en +9/semana sólo
+   jugando y la lata volvía a no ser decisión. A 2: LNB +2 sólo jugando y −18 con una sesión (una lata cada 2-3
+   semanas), Federal +1, NBA −16 sólo jugando (la lata es rutina, y ahí la plata sobra). */
+const REGEN_DIA=2;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
                            // descanso típico (2-3 días) rinde como antes; el corto se siente
 const DIAS_PO=2;           // los playoffs corren cada 2 días (v0); §2z83: cada liga trae el suyo en `calendario.diasPO`
 const diasPO=()=>{ const cal=C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario; return (cal&&cal.diasPO)||DIAS_PO; };

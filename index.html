@@ -3511,7 +3511,7 @@ function anotarMiLinea(estado, fecha) {
   /* §12 (su línea 3: "vas a jugar eso y no jugás el partido de tu equipo"): si esta fecha cae
      adentro de una ventana FIBA y te convocaron, el club la juega SIN VOS. El renglón queda
      en el fixture con `conSeleccion` para que la pantalla lo diga, y no suma a tu línea. */
-  if (estado.seleccion && estado.seleccion.convocado && fechasSalteadas(estado.seleccion).has(fecha.nro)) {
+  if (estado.seleccion && fechasSalteadas(estado.seleccion).has(fecha.nro)) {   // §2z84: el set ya es por ventana convocada; `convocado` es el de la ventana ACTUAL y mentía después de la decisión siguiente
     estado.misPartidos.push({ fecha: fecha.nro, rival: mio.local === estado.miClubId ? mio.visita : mio.local,
       conSeleccion: true, minutos: 0, pts: 0, ast: 0, rob: 0, jugado: false });
     return;
@@ -3961,12 +3961,18 @@ function miProximo(estado) {
     if (am && !(estado.seleccion && estado.seleccion.convocado
                 && fechasSalteadas(estado.seleccion).has(am.ventana.f))) return am;
     const calientes = elegirCalientes(estado);
+    /* §2z84 (su caza 2026-09-06 con capturas: "fecha 7 contra Platense, 23/10, ese mismo día jugué contra EEUU en la
+       selección… y el juego me da que el próximo partido es contra Platense: me hace jugar los dos"): las fechas que la
+       ventana FIBA se lleva (f+1 y f+2, `fechasSalteadas`) NO se ofrecen — las juega el club sin vos al avanzar, igual
+       que una fecha libre. Antes se marcaban CON LA SELECCIÓN en el fixture y se ofrecían igual. */
+    const salteadas = estado.seleccion ? fechasSalteadas(estado.seleccion) : null;
     for (let i = estado.fechaJugada; i < estado.fechasTotales; i++) {
       const fecha = estado.fixture[i];
       const mio = fecha.partidos.find(
         (p) => p.local === estado.miClubId || p.visita === estado.miClubId,
       );
       if (!mio) continue; // fecha libre: se simula sola al avanzar
+      if (salteadas && salteadas.has(fecha.nro)) continue;   // §2z84: con la selección, el club la juega sin vos
       const c = calientes.find((x) => x.fecha === fecha.nro);
       return {
         tipo: 'fecha', fecha: fecha.nro,
@@ -19024,7 +19030,9 @@ function filaFix(f,calPorFecha,proxFecha){
   }
   /* §12: la fecha del club que jugaste con la selección lo dice en vez de mostrar un
      resultado ajeno sin tu nota */
-  if(f.conSel){ resCls='res selAus'; resTxt=t(L('CON LA SELECCIÓN','ON NT DUTY','COM A SELEÇÃO')); }
+  /* §2z84 (su caza: "los partidos que se jugaron sin vos deberían decir cómo salió"): jugada, la fila muestra el
+     resultado del club (atenuado: no fue tuyo); por jugar, dice CON LA SELECCIÓN */
+  if(f.conSel){ resCls='res selAus'; if(!f.res) resTxt=t(L('CON LA SELECCIÓN','ON NT DUTY','COM A SELEÇÃO')); }
   /* ⚠️ y el fuego NO sale en la fecha que jugás con la selección: (1) el partido caliente es un
      partido que vas a jugar VOS, y ése lo juega el club sin vos; (2) medido, "🔥 CON LA SELECCIÓN"
      pide 101 px y `.res` tiene 78 — la columna crecería (min-content) y le volvería a robar el

@@ -21944,6 +21944,7 @@ function intento(){
   if(T.poll){ clearInterval(T.poll); T.poll=null; }
   if(k==='dribblear'||k==='conducir'){
     const y0=G.vos.y, mOK=T.m; T.frenoPedido=false; G.tutFrenoPide=false;
+    T.frenoOk=false; if(T.salida){ clearTimeout(T.salida); T.salida=null; }   // §2z66
     /* §2z64 (su corte 2026-09-06: "hoy hacés dos dribbles y se corta solo… debería ser que pases una línea verde,
        y que te diga que tenés que arrastrar y soltar, arrastrar y soltar; si no pensás en SOLO arrastrar una vez").
        LA LECCIÓN ES QUE EL GESTO SE REPITE, y un examen de dos toques no la puede enseñar.
@@ -21970,7 +21971,18 @@ function intento(){
         const delta=performance.now()-G.pausaT0; G.pausa=false;
         if(G.formaHasta) G.formaHasta+=delta; if(G.medidor&&G.medidor.t0) G.medidor.t0+=delta; if(G.barraFx) G.barraFx.hasta+=delta;
         G.tutFrenoPide=false; clearInterval(T.poll); T.poll=null;
-        setTimeout(()=>{ if(T&&T.m===mOK) finTut(true, t(L('Frenaste con un toque: eso es el bote en el partido.','You stopped with a tap: that is dribbling in a game.','Você parou com um toque: isso é o drible no jogo.'))); },700); }
+        /* §2z66 (su pedido 2026-09-06: "en el APRETÁ Y FRENÁ del dribble con marca podríamos dejarlo tirar también,
+           para que se entienda cómo es toda la cadena — y ahí aclararía que podrías haber seguido hasta el aro; que
+           te diga «frenaste… ahora elegís si la pasás o tirás»"). La lección terminaba EN el freno, que es el medio
+           de la frase: boteás, frenás, y ahí recién decidís. Ahora el freno no cierra nada — ya te ganaste la ✓
+           (`T.frenoOk`) — y la escena sigue hasta que tires o la pases, con el veredicto del juego de remate.
+           Y el renglón dice lo único que no se aprende haciéndolo: que frenar era una OPCIÓN, no el final del
+           camino (§2y, del lado que pasa: te cambia lo que creés que podés hacer). */
+        T.frenoOk=true;
+        relato(t(L('Frenaste. Podías seguir hasta el aro: ahora tirás o la pasás.','You stopped. You could have gone to the rim: now shoot or pass.','Você parou. Podia seguir até o aro: agora arremessa ou passa.')),false);
+        /* sin reloj de posesión (clkOff) nadie te apura: si te quedás mirando, la lección se cierra sola a los 12s
+           en vez de dejarte en una pantalla sin salida — la clase que él acaba de cazar en el pase (§2z64 c) */
+        T.salida=setTimeout(()=>{ if(T&&T.m===mOK&&T.frenoOk) finTut(true, t(L('Boteás, frenás, y ahí elegís: ésa es la cadena.','Dribble, stop, then choose: that is the chain.','Quica, para, e aí escolhe: essa é a cadeia.'))); },12000); }
     },80);
   }
   if(k==='defender'){
@@ -21993,6 +22005,9 @@ function finTut(anoto,resumen){
   if(!T||!T.m) return;
   if(G.fase==='fin'||G.fase==='feed') return;
   if(T.corte && performance.now()-T.corte<2500) return;   // un timer de la escena que cortaste con SIGUIENTE
+  /* §2z66: en DRIBBLEAR CON MARCA la ✓ se gana FRENANDO — lo que viene después es la cadena mostrándose, no un
+     segundo examen. Errar el tiro que va de remate no puede mandarte a rehacer el bote entero. */
+  if(T.frenoOk) anoto=true;
   limpiarEscena();
   if(resumen&&typeof resumen==='string') relato(resumen,false);
   const m=T.m;
@@ -22005,6 +22020,7 @@ function finTut(anoto,resumen){
 }
 function limpiarEscena(){
   if(T&&T.poll){ clearInterval(T.poll); T.poll=null; }
+  if(T&&T.salida){ clearTimeout(T.salida); T.salida=null; }   // §2z66
   G.tutFrenoPide=false; G.tutMeta=null; if(G.pausa) G.pausa=false;   // §2z58/§2z64: ni la pausa ni la línea del bote sobreviven a la escena
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null; G.bola=null; G.boteo=null;
   G.joy=null; G.levanto=false; G.medidor=null; G.defensa=null; G.tutQuieto=false;

@@ -16386,6 +16386,12 @@ function frame(now){
     if(!G.tutQuieto && G.asig && !G.custodio && !(G.tipo==='bloqueo'&&G.pantalla) && G.tipo!=='sacada' && G.tipo!=='contra'){
       const a7=aro();
       let prot=null; for(const [df,co] of G.asig) if(co&&co.big&&df.big) prot=df;
+      /* §2z76 (su regla 2026-09-06: "si hay otro jugador en el aro que no sea el big, también debería intentar cubrir,
+         pero más lento y con menos influencia en tu tiro"): sin grandote rival, el defensor más cercano al aro (que no
+         sea tu marca ni el custodio) es el protector SUAVE — trota a 0,7 de la velocidad, lee 150 ms más tarde y su
+         contacto pesa menos (aguantás más, manotea menos). */
+      let suave=false;
+      if(!prot){ let dMin=R3()*0.80; for(const df of G.defs){ if(df===G.marca||df===G.custodio) continue; const dd=dist(df,a7); if(dd<dMin){ dMin=dd; prot=df; } } suave=!!prot; }
       const portador = G.pelotaEn && G.comps.includes(G.pelotaEn) ? G.pelotaEn : (G.fase==='conduzco'||G.fase==='espera'||G.fase==='apunto') ? G.vos : null;
       /* §2z72 b (su regla 2026-09-06: "el protector no tiene que SALIR a cortar, tiene que moverse alrededor del aro
          para cubrirlo; si salen a cortarte se rompe todo"): ya no sprinta hacia el portador. Cuando la pelota se
@@ -16398,22 +16404,22 @@ function frame(now){
         /* la cobertura es un paso de SOMBRA, no una lectura del drive (medido: con la lectura del sprint, 0,9 s con
            def 16, la bandeja arrancaba sola a 0,35·R3 antes de que se moviera). Lee corto; tu MANEJO igual le vende
            algo (§2z39.19). */
-        if(!G.rot) G.rot={t0:now, leido:now+Math.max(150,400-4*(dif.def||16)+15*(dif.man||0))};
+        if(!G.rot) G.rot={t0:now, df:prot, suave, leido:now+Math.max(150,400-4*(dif.def||16)+15*(dif.man||0)+(suave?150:0))};
         if(now>=G.rot.leido){
           const rC=R3()*0.30, ux=(portador.x-a7.x)/Math.max(1,dPA), uy=(portador.y-a7.y)/Math.max(1,dPA);
           const meta={x:a7.x+ux*rC, y:Math.max(a7.y+uy*rC, a7.y+18*ESC())};
-          const vP=Math.min(150,Math.max(90,(dif.def||16)*2))*dt, dM=dist(prot,meta);
+          const vP=Math.min(150,Math.max(90,(dif.def||16)*2))*(G.rot.suave?0.7:1)*dt, dM=dist(prot,meta);
           if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
           if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;
             /* §2z39.19 (su regla: "no sólo el nivel del rival, sino el tuyo — a favor"): el FÍSICO decide el
                contacto. Con fis 3 aguantás 1 de 6 y seguís; con 10, más de la mitad. Y si no, la falta pesa
                más que el manotazo cuanto más físico tenés. */
-            const fis=dif.fis||3;
-            if(Math.random()<0.06*fis){ flash(prot); veredicto(t(L('¡AGUANTASTE!','POWERED THROUGH!','AGUENTOU!')),'ok',900); }
-            else if(Math.random()<0.40+0.02*fis){ flash(prot);
+            const fis=dif.fis||3, sv=G.rot.suave;   // §2z76: el suave pesa menos
+            if(Math.random()<(sv?0.10:0.06)*fis){ flash(prot); veredicto(t(L('¡AGUANTASTE!','POWERED THROUGH!','AGUENTOU!')),'ok',900); }
+            else if(Math.random()<(sv?0.55:0.40)+0.02*fis){ flash(prot);
               irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
             else { flash(prot); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
-              perderPelota(t(L('El grandote rotó y te esperó abajo.','The big rotated and was waiting under the rim.','O pivô rotacionou e te esperou embaixo.')),null,true); } }
+              perderPelota(sv?t(L('Un defensor bajó a cubrir y te la sacó.','A defender dropped to cover and stripped you.','Um defensor desceu pra cobrir e tirou a bola.')):t(L('El grandote rotó y te esperó abajo.','The big rotated and was waiting under the rim.','O pivô rotacionou e te esperou embaixo.')),null,true); } }
         }
       } else if(G.rot && !adentro) G.rot=null;
     }
@@ -16534,7 +16540,7 @@ function frame(now){
            con el corte armado desde el arranque, la marca del abierto quedaba clavada en su spawn, en
            el medio de la cancha, sin ir nunca a su puesto) */
         if(G.corrida && (df===G.defs[0] || (df===G.corrida.ch && now>=G.corrida.arranca))) continue;
-        if(G.rot && df.big && now>=G.rot.leido) continue;   // §2z39.1: el protector está rotando
+        if(G.rot && (G.rot.df?df===G.rot.df:df.big) && now>=G.rot.leido) continue;   // §2z39.1: el protector está rotando (§2z76: el suave también)
         const man=G.asig.get(df); if(!man) continue;
         const meta=puestoBase(df,man);   // §2z39: la misma fórmula que usa el sorteo del corte para prever dónde va a estar
         /* el viaje al puesto es un TROTE (110, como la transición) — la velocidad de

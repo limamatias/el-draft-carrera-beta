@@ -889,6 +889,9 @@
   #lobby .vista:not(.oculto){animation:veloEntra .2s ease-out both}
   #lobby .panel.act{animation:veloEntra .2s ease-out both}
   #lobby .fondoCar.cambia{animation:fundido .4s ease-out both}
+  /* §2z70 (su caza 2026-09-06: "en EQUIPO no hay transición cuando pasás entre tu equipo y tu país"): el switch
+     club ⇄ selección repinta el cajón en seco; ahora el cajón entra con la misma corta de los paneles (200 ms) */
+  #lobby .cajon.cambia{animation:veloEntra .2s ease-out both}
   #marcador.cae{animation:marcadorCae .4s ease-out both}
   #feed:not(.oculto){animation:fundido .2s ease-out both}
   /* el veredicto: la cancha se apaga y la palabra entra con destello */
@@ -899,7 +902,7 @@
   #finVeredicto.figura b{color:#f2c94c;text-shadow:0 0 24px rgba(242,201,76,.55)}
   #finVeredicto.malo b{color:var(--mal);text-shadow:0 0 24px rgba(224,108,90,.45)}
   @media (prefers-reduced-motion:reduce){
-    #lobby,#partidas,#creacion,#mercado,#draft,#fin,#pausa,#feed,#lobby .vista,#lobby .panel,#lobby .fondoCar,#marcador,
+    #lobby,#partidas,#creacion,#mercado,#draft,#fin,#pausa,#feed,#lobby .vista,#lobby .panel,#lobby .fondoCar,#lobby .cajon,#marcador,
     #finVeredicto,#finVeredicto b,#finNota *,#draftTuyo *,#draft .pick{animation-duration:.01ms!important;animation-delay:0s!important}
     #finNota #finBarraAhora{transition-duration:.01ms!important}
   }
@@ -18456,6 +18459,13 @@ let ultimoFix=null;   // los argumentos del último fixture pintado, para poder 
 function repintarPlenasSel(){
   pintaTablaFull();
   if(ultimoFix) pintaFixFull(ultimoFix[0],ultimoFix[1],ultimoFix[2]);
+  animaCambio('lobTablaFull'); animaCambio('lobFixFull');
+}
+/* §2z70: el cajón que el switch acaba de repintar entra con la corta (.cambia, 200 ms). Sacar y volver a poner
+   la clase con un reflow en el medio es lo que hace que la animación arranque de nuevo. */
+function animaCambio(id){
+  const el=$l(id); if(!el) return;
+  el.classList.remove('cambia'); void el.offsetWidth; el.classList.add('cambia');
 }
 /** ¿Hay algo de selección para mirar en esta temporada? (eliminatorias o torneo del receso) */
 function haySeleccionQueVer(){
@@ -20340,7 +20350,7 @@ function pintaRelaciones(){
     if(haySel){ const club=clubDe(e.miClubId), pais=J.nacionalidad||'ar';
       const tab=(lado,html)=>'<div class="tab'+(ladoRel===lado?' act':'')+'" data-ladorel="'+lado+'" tabindex="0">'+html+'</div>';
       sw.innerHTML=tab('club',escuditoDe(club)+'<span>'+club.sigla+'</span>')+tab('sel',escuditoDe(clubDeSeleccion(pais))+'<span>'+SEL_FICHA[pais].sigla+'</span>');
-      sw.querySelectorAll('[data-ladorel]').forEach(b=>b.addEventListener('click',()=>{ ladoRel_auto=false; if(ladoRel!==b.dataset.ladorel){ ladoRel=b.dataset.ladorel; pintaRelaciones(); } })); }
+      sw.querySelectorAll('[data-ladorel]').forEach(b=>b.addEventListener('click',()=>{ ladoRel_auto=false; if(ladoRel!==b.dataset.ladorel){ ladoRel=b.dataset.ladorel; pintaRelaciones(); animaCambio('lobRelaciones'); } })); }
   }
   const R=ladoRel==='sel'&&haySel?J.relSel:J.relaciones;
   $l('lobRelaciones').innerHTML=

@@ -839,6 +839,11 @@
   #lobby .statGrande .s b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
   #lobby .statGrande .s span{font-size:10.5px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600}
   #lobby .cajTag{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  /* §2z74 (su caza: "cambian de altura entre BOCA y ARG, el escudo es muy grande al lado de LIGA NACIONAL"): el
+     rótulo de VOS mide lo mismo de los dos lados — escudo y bandera en la misma caja de 16 px, centrados */
+  #lobby .rotuloVos{display:flex;align-items:center;gap:6px;height:20px}
+  #lobby .rotuloVos .escudito{width:16px;height:16px;border-width:1px;font-size:7px}
+  #lobby .rotuloVos .flag{width:16px!important;height:11px!important}
   /* el vacío se dice con un guion, como los stats sin jugar del resumen — no con una frase */
   #lobby .fila-item.vacia{justify-content:center;color:var(--tinta2)}
   /* §2z28 LA VITRINA. Resumida: la grilla de El Draft (casillero 46×40, ícono 28, ×N); el elegido se
@@ -18519,6 +18524,17 @@ function htmlResumenSeleccion(e,fila){
    ver cómo va la selección y cuándo juega, pero claramente no jugás"*). */
 let ladoSel='club';   // 'club' | 'am' | 'sel' — compartido por las dos plenas, para que no se contradigan (§2z35: el continental es un lado)
 let ladoSel_auto=true;   // §12.22: sigue al próximo partido (selección → del lado de la bandera) hasta que tocás el switch
+/* §2z74 (su regla 2026-09-06: "debería siempre volver a lo que estás jugando en ese momento: si estás con la selección
+   te abre ARG, si tu próximo es la liga de las Américas te abre ese torneo — tanto al abrir el completo como en el
+   lobby común"): el lado por defecto es LA COMPETENCIA DEL PRÓXIMO PARTIDO. El switch que tocás vale mientras estás
+   adentro de la plena; al volver a abrirla, el default otra vez. */
+function ladoDelProximo(){
+  const e=est(); if(!e) return 'club';
+  const prox=miProximo(e), lados=ladosQueVer();
+  if(prox&&prox.tipo==='seleccion'&&lados.includes('sel')) return 'sel';
+  if(prox&&prox.tipo==='americas'&&lados.includes('am')) return 'am';
+  return 'club';
+}
 let ultimoFix=null;   // los argumentos del último fixture pintado, para poder repintarlo solo
 /* ⚠️ UN SOLO LADO PARA LAS DOS PLENAS, Y LAS DOS SE REPINTAN JUNTAS. Cambiar en el fixture y
    entrar después a la tabla dejaba la tabla como estaba: `irLob` no repinta, así que la vista
@@ -18808,6 +18824,8 @@ function apoyarPaneles(){ document.querySelectorAll('#lobby .paneles').forEach(p
 window.addEventListener('resize',apoyarPaneles);
 let fondoLob=null;
 function irLob(v){
+  /* §2z74: la plena abre SIEMPRE del lado de la competencia del próximo partido */
+  if(v==='tabla-full'||v==='fixture-full'){ ladoSel_auto=true; const l=ladoDelProximo(); if(l!==ladoSel){ ladoSel=l; repintarPlenasSel(); } }
   VISTAS.forEach(x=>$l('lv-'+x).classList.toggle('oculto',x!==v));
   apoyarPaneles();
   const fondo=$l('lobFondo'), nuevoFondo='url('+(FONDO_DE[v]||FONDO_DE.hoy)()+')';
@@ -19388,6 +19406,14 @@ function pintaLobby(){
     const d=Math.max(0,Math.min(fs.idxProx-2,fs.filas.length-5));
     $l('lobFix5').innerHTML=fs.filas.slice(d,d+5).join('');
     $l('lobTabla5').innerHTML=htmlTabla5Seleccion(e,prox);
+  } else if(prox&&prox.tipo==='americas'&&e.americas){
+    /* §2z74: con el próximo en el continental, el panel corto es el del torneo — sus fechas alrededor del próximo y la
+       tabla de tu grupo (la misma que abre VER COMPLETA del lado del globo) */
+    const fam=fechas.filter(f=>f.am), idxA=fam.findIndex(f=>f.key===proxKey);
+    const dA=Math.max(0,Math.min(idxA-2,fam.length-5));
+    $l('lobFix5').innerHTML=fam.slice(dA,dA+5).map(f=>filaFix(f,calPorFecha,proxKey)).join('');
+    let tA=''; tablaGrupoAM(e.americas,e.americas.miGrupo).slice(0,5).forEach((f,i)=>{ tA+=filaGrupoAM(f,i+1,e.miClubId); });
+    $l('lobTabla5').innerHTML=tA;
   } else {
     const idxProx=prox&&(prox.tipo==='fecha'||prox.tipo==='americas')?fechas.findIndex(f=>f.key===proxKey):fechas.length-1;
     const desde=Math.max(0,Math.min(idxProx-2,fechas.length-5));
@@ -19399,7 +19425,7 @@ function pintaLobby(){
     else if(mt.puesto>6&&mt.fila.pj>0) t5+='<div class="r"><span class="pos">…</span></div>'+filaTabla(mt.fila,mt.puesto,k5,n5);
     $l('lobTabla5').innerHTML=t5;
   }
-  if(ladoSel_auto) ladoSel=enSel&&ladosQueVer().includes('sel')?'sel':'club';
+  if(ladoSel_auto) ladoSel=ladoDelProximo();   // §2z74
 
   // Las vistas plenas
   pintaTablaFull();   // las zonas como pestañas, una a la vista (y el switch de §12)
@@ -20032,6 +20058,10 @@ terminar=function(){
   /* RACHA se fue de la planilla (su caza 2026-09-02: "no se entiende qué es y no aporta") */
   if(G.sub) filas.push([t(L('TE SACARON','BENCHED','TE TIRARAM')),'<span class="mal">'+G.sub+'</span>']);
   if(mision) filas.push([t(L('MISIÓN','MISSION','MISSÃO'))+' · '+misionMeta(mision),'<span class="'+(mision.ok?'ok':'mal')+'">'+(mision.ok?'✓':'✗')+'</span>']);
+  /* §2z74 (su pedido: "al final del partido no te dice cuánto cobraste"): la misma cuenta que paga el cierre
+     (partido + ganar + misión, §2z15), como una fila más de la planilla. El amateur no cobra: sin fila. */
+  { const pago=pagoDe(C.ligaId,G.nos>G.riv,C.jugador,!!(mision&&mision.ok));
+    if(pago>0) filas.push([t(L('COBRASTE','YOU EARNED','VOCÊ RECEBEU')),'<span class="ok">'+fplata(pago)+'</span>']); }
   /* §2z14: EL VEREDICTO — sólo cuando la nota opina (≥8 figura, <5 no estuviste); 1,5 s y
      recién después la planilla. NO se acumula en ningún lado (su corte). */
   const ver=document.getElementById('finVeredicto');

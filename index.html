@@ -21784,7 +21784,7 @@ function jugar(i){
   const m=MECANICAS[i]; T.i=i; T.m=m; T.difSnap={...dif}; T.corte=0;
   /* §2z58 (su caza: "si lo completaste desde el onboarding, al volver a entrar AL TUTORIAL no te tira más las
      instrucciones"): entrar a un tutorial es pedir la lección — la línea y el dedito salen de nuevo, siempre */
-  { const v=vistos(); if(v[m.tipo]) v[m.tipo]=0; }
+  { const v=vistos(); if(m.k!=='tirar' && v[m.tipo]) v[m.tipo]=0; }   /* §2z63: TIRAR no, su lección no es la del cierre */
   Object.assign(dif, m.dif(jugadorDe()));
   casacasPractica();
   $t('tutVelo').classList.add('oculto');
@@ -21807,7 +21807,7 @@ function intento(){
      dedito y la línea— "si te fue mal al principio es posiblemente porque no entendiste, ya
      que son fáciles". La línea vive en vistos (explicar): en la revancha se desgasta. */
   if(T.fallos){ const v=vistos(); if(v[T.m.tipo]) v[T.m.tipo]=0; }
-  const antesDef=vistos().defensa||0;
+  const antesDef=vistos().defensa||0, antesTipo=vistos()[T.m.tipo]||0;
   G.beat={tipo:T.m.tipo, drill:true};
   armarPosesion();
   const a=aro(), e=ESC(), k=T.m.k;
@@ -21828,6 +21828,20 @@ function intento(){
     /* el resto, a los rincones y quietos: nadie se desmarca en un tutorial de tiro */
     const rin=[[-0.95,0.15],[0.95,0.15],[-0.7,0.95],[0.7,0.95]]; let ri=0;
     for(const o of [...G.comps, ...G.defs.filter(d=>d!==G.marca)]){ const [fx,fy]=rin[ri++%rin.length]; o.x=clamp(a.x+fx*R3(), MARG()+16, W-MARG()-16); o.y=a.y+fy*R3(); o.vida=null; }
+    /* §2z63 (su caza 2026-09-05: "hay algo que sobra, y creo que es lo referido a CIERRE… ¡es un tutorial de tiro!"):
+       'cierre' es el VEHÍCULO de esta lección —la posesión donde no se dribblea y el único verbo es tirar—, no la
+       lección. La entrada del partido venía con ella: el ¡CIERRE! rojo barriendo, la píldora roja y "Reloj corto:
+       tirá.", tres cosas contando la historia del reloj arriba del semáforo del tiro (el BUENA verde se dibuja a
+       32 px sobre vos, y el renglón vive a 97-121: por eso se chocaban). Se van las tres.
+       Y el visto de 'cierre' queda INTACTO: la primera vez que el reloj se te acabe DE VERDAD en un partido, el
+       juego te lo explica — el tutorial de tiro no se puede comer una lección que nunca dio. */
+    { const s=$t('sit'); s.textContent=''; s.className=''; }
+    { const v=$t('veredicto'); clearTimeout(v._t); v.classList.remove('ver'); }
+    vistos()[T.m.tipo]=antesTipo;
+    /* la línea sale sólo cuando el dedito ya no sale (lo apagó tu acierto): si no, dirían lo mismo dos veces (§2y) */
+    relato(yaVisto('tutg_tirar')
+      ? t(L('Arrastrá para atrás y soltá: así se tira.','Pull back and release: that is the shot.','Puxa pra trás e solta: assim se arremessa.'))
+      : '', false);
   }
   if(k==='pasar'){
     /* el compañero chico queda SOLO abajo del aro, del lado contrario a tu marca, y su

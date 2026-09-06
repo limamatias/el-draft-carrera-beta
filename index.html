@@ -11685,7 +11685,7 @@ function armarPosesion(){
         /* v3 (su caza: "el que la pasa está ATRÁS tuyo, de frente al aro — en el partido es una jugada sin sentido, y
            así es muy fácil cortar"): la pelota AFUERA, en la punta de la llave, vos ADENTRO en la ayuda, y el pase va
            hacia afuera, alejándose de vos. Es la única forma en que un cierre existe en un partido. */
-        const d0=(90+nv*80)*ESC();
+        const d0=(90+nv*160)*ESC();   // v5: 90 → 250·ESC (con 1,4 s desde el tell recorrés ~210 px: en el 20 hay que salir perfecto)
         const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.30, 0.90));   // las alas se abren con el nivel (radianes desde el eje)
         const tir=(l)=>({x:clamp(a.x+l*Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97});
         const t1=tir(-1), t2=tir(1);
@@ -11693,14 +11693,14 @@ function armarPosesion(){
         t1.x+=22*ESC(); t2.x-=22*ESC(); t1.y-=8*ESC(); t2.y-=8*ESC();
         /* v4 (su caza: "debería venir dribbleando desde mitad de cancha"): arranca abajo y sube a la punta de la llave;
            el aguante y el tell se cuentan desde que LLEGA (18-frame) */
-        const pasador={x:a.x+lado*24*ESC(), y:Math.min(pisoVos()*0.98, a.y+R3()*1.9)};   // "mitad de cancha": 0,9·R3 de trote hasta la llave (~2,5 s)
+        const pasador={x:a.x+lado*24*ESC(), y:Math.min(pisoVos()*0.98, a.y+R3()*1.6)};   // v5 (su caza: "es todo muy lento ahora"): 0,6·R3 de trote a 1,5× (~1,2 s)
         D.metaBase={x:a.x, y:a.y+R3()*1.02};   // la punta de la llave, de frente al aro y a vos
         G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
         D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
         const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;
         const v0=clampMundoJugable(mx, my-Math.sqrt(Math.max(0,d0*d0-half*half)));   // hacia el aro (y menor)
         G.vos={x:v0.x,y:v0.y};
-        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=700; D.aguante=1000-nv*600;   // 18-frame fija tell y tDec al llegar
+        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
         /* B: tu marca con la pelota en el perímetro, el pívot rival plantado a su lado (26·ESC, del lado por el que
            sale), vos adelante a 38·ESC hacia el aro. A los 0,6 s arranca: pasa la cortina y va al aro. */
@@ -13819,7 +13819,7 @@ function tiraRival(j){
                                       G.vos.y+(j.y-G.vos.y)/dl*26*ESC()*0.9);
         G.vos.x=lunge.x; G.vos.y=lunge.y;
         G.joyLock=performance.now()+600;
-        G.joy=null; G.joyMoviendo=false;
+        G.joy=null; G.joyMoviendo=false; G.vosQuietoDesde=performance.now();   // el cuerpo vendido no está plantado
         veredicto(t(L('¡TE VENDIÓ!','YOU BIT!','CAIU NA FINTA!')),'mal');
         D.mordido=true; D.drive=true;
         /* el drive: la meta se mete al aro y el loop de siempre hace el resto (rodea tu
@@ -16309,7 +16309,7 @@ function frame(now){
           D.corredor = Math.abs(d1-d2)<8*ESC() ? (Math.random()<0.5?t1:t2) : (d1>d2?t1:t2);
           posar(D.portador,'pasa',D.corredor,D.tellDur||400); posar(D.corredor,'pide',D.portador,D.tellDur||400); }   // el tell se ve en los dos: el brazo del base y las manos del ala
         if(D.ruta && D.ruta.length && dist(D.portador,D.ruta[0])<10*ESC()){ D.ruta.shift(); if(D.ruta.length) D.meta=D.ruta[0]; }
-        if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.vel||105));
+        if(arranco) mv2(D.portador, D.rodeo||D.meta, D.rodeo?150:(D.velSube&&!D.llego&&!D.recibio?D.velSube:(D.vel||105)));
         if(D.corredor && D.escena!=='cierre') mv2(D.corredor, {x:a2.x+D.ladoD*R3()*0.16, y:a2.y+R3()*0.30}, 130);
         if(D.tiradores && D.tirMeta && !D.recibio){ mv2(D.tiradores[0], D.tirMeta[0], 28); mv2(D.tiradores[1], D.tirMeta[1], 28); }
         /* LA VUELTA DEFIENDE DE VERDAD (su caza 2026-08-28: "está completamente pintado,
@@ -16331,7 +16331,7 @@ function frame(now){
           const metaP=D.rodeo||D.meta, dm2=Math.max(1,dist(D.portador,metaP));
           const hacia=((metaP.x-D.portador.x)*(G.vos.x-D.portador.x)
                       +(metaP.y-D.portador.y)*(G.vos.y-D.portador.y))/(dm2*dCh);
-          if(plantado && adelanteDe(D.portador) && hacia>0.8){
+          if(plantado && !D.mordido && adelanteDe(D.portador) && hacia>0.8){   // §2z87 g (su caza: "TE VENDIÓ 1 ms y después CARGA"): el que mordió no saca la carga
             D.decidio=true; D.resuelto=true; D.merito=true; flash(D.portador);   // §2z87: la carga es tuya, paga el drill
             veredicto(t(L('¡CARGA!','CHARGE!','FALTA DE ATAQUE!')),'ok');
             /* LA CARGA TAMBIÉN PAGA (su caza 2026-09-02: "salió «posesión nuestra»… pero no me

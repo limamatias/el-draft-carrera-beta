@@ -12885,22 +12885,16 @@ function dibujarBarra(pts,md,p,vis){
     if(dV>0) trazo(pts,1-dV,1,`rgba(125,208,135,${0.95*V})`,15);            // el casquete
     else     trazo(pts,1-Math.max(0.022,dR*0.12),1,`rgba(${colR},${0.92*V})`,15);  // sin verde: el techo se ve
   }
-  /* ══ §2z67 LA BOCA (su caza 2026-09-06: "hay tiros que en el aro te salen en VERDE pero después la barra no
-     tiene ninguna parte verde… y si soltás un poco atrás te dice CORTO, cuando es todo amarillo. Y no es TAN claro
-     dónde tenés que soltar en la que es toda amarilla").
-     La última frase es la que manda: **la barra no marcaba dónde soltar salvo que hubiera casquete verde**, y el
-     casquete existe sólo con pico > 0,90, o sea para un tirador de élite. El resto del juego mira un degradé sin
-     ningún punto de referencia y suelta a ojo.
-     La boca no inventa nada — es la LÍNEA QUE EL VEREDICTO YA USA, dibujada. El fallo dice "CORTA" cuando
-     `cerca = exp(-(d0/w)²) ≤ 0,35`, o sea a d0 = 1,0246·w del pico; arriba de ahí bailás o entrás. Los dos ticks
-     van justo ahí: **de la boca para arriba estás en el tiro, abajo es corta**.
-     Y como el ancho `w` es de la SITUACIÓN (marca, distancia, fuego), la boca se abre y se cierra sola: la
-     dificultad se sigue viendo, que es la regla 1. Sin tocar un solo número. */
-  { const dB=Math.min(0.985, w*1.0246);
-    const q=pts[Math.round(clamp(1-dB,0,1)*40)];
-    ctx.strokeStyle=`rgba(233,236,243,${0.75*V})`; ctx.lineWidth=2; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(q.x-15,q.y); ctx.lineTo(q.x-8,q.y);
-                     ctx.moveTo(q.x+8,q.y);  ctx.lineTo(q.x+15,q.y); ctx.stroke(); }
+  /* §2z67 (2026-09-06) ACÁ VIVIÓ "LA BOCA" Y DURÓ UNA TANDA. Dos ticks en la línea que el veredicto usa para
+     cantar CORTA (d0 = 1,0246·w del pico): matemáticamente exactos, y **ilegibles**. Su caza al verlos: *"¿la boca
+     qué dice, dónde soltar o dónde EMPEZAR a soltar? Figura al principio, confunde más. La sacaría"*. Tenía razón:
+     una marca en el borde de ABAJO de la ventana se lee como una salida, no como un blanco — el ojo va al primer
+     mojón que encuentra subiendo y ahí no hay que soltar, ahí hay que seguir.
+     ⚠️ LA REGLA QUE QUEDA: **un límite no es un blanco.** Si hay que marcar dónde soltar, se marca el LUGAR
+     (el tope, que ya tiene su remate), no la frontera del castigo. Marcar el borde de una ventana informa de más y
+     apunta al lado equivocado.
+     Lo que él sigue queriendo saber —dónde soltar cuando la barra es toda amarilla— sigue abierto, y la respuesta
+     no es otra rayita: es el tope, que es lo que dice el cartel. */
   if(p>0) trazo(pts,0,Math.min(p,1),`rgba(233,236,243,${0.92*V})`,7);       // la carga
   const T=pts[40];                                                          // el remate
   ctx.strokeStyle=`rgba(233,236,243,${0.9*V})`; ctx.lineWidth=2.5; ctx.lineCap='round';
@@ -13439,6 +13433,14 @@ function corteEscena(){
 const REBOTE_PROB=0.3;
 function reboteTrasBailar(esc){
   if(!enCancha(esc)) return false;   // afuera es afuera (04/10)
+  /* §2z68 (su caza 2026-09-06: "en la práctica de tiro ME SALIÓ EL REBOTE OFENSIVO, eso sí está raro"). Y sí: una
+     práctica examina UN gesto, y el rebote es otro examen entero —otro presupuesto, otros toques, otro veredicto—
+     que aparecía de la nada porque el tiro bailó. Peor en un tutorial: `finPosesion` es `finTut`, así que la
+     escena del rebote se comía el intento y la lección no volvía a arrancar.
+     Es la misma familia que §2z63 y §2z67 b: **una pieza de práctica no hereda las ramas del partido.** La
+     compuerta vive acá porque acá vive la única de frecuencia (el comentario de arriba), así que cubre los tres
+     llamadores de una. */
+  if(G.esDrill || G.tut) return false;
   if(Math.random()>=REBOTE_PROB) return false;
   const a=aro();
   const caeR={x:a.x+rnd(-42,42), y:a.y+rnd(26,56)};   // nunca ADENTRO del aro dibujado

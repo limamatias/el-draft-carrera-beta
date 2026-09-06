@@ -20691,6 +20691,10 @@ function otraTemporada(destino){
 }
 
 function abrirLobby(){
+  /* §2z88 MIGRACIÓN: la partida que ya venía con la ventana cerrada y las fechas del club colgando se pone al
+     día acá (su caza: *"F7 sigue diciendo CON LA SELECCIÓN"* — el arreglo corre al cerrar la ventana, y la suya
+     se había cerrado antes). Es idempotente: sin nada que jugar no toca el estado. */
+  { const e=est(); if(e){ const antes=e.fechaJugada; alDiaTrasSeleccion(e); if(e.fechaJugada!==antes) guardar(); } }
   $l('lobby').classList.remove('oculto');
   $l('lobby').classList.remove('plena');   // ninguna carrera arranca adentro de un submenú
   document.getElementById('fin').classList.add('oculto');

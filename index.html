@@ -16290,7 +16290,7 @@ function frame(now){
        recibió adentro) la LEE tarde (700 − 6·def ms) y SALE al aro a sprint de cierre (2·def). Con def
        16 no llega y la bandeja es tuya; con 40 llega justo; con 64 llega antes. El contacto cobra lo
        mismo que el custodio del contra. */
-    if(G.asig && !G.custodio && !(G.tipo==='bloqueo'&&G.pantalla) && G.tipo!=='sacada' && G.tipo!=='contra'){
+    if(!G.tutQuieto && G.asig && !G.custodio && !(G.tipo==='bloqueo'&&G.pantalla) && G.tipo!=='sacada' && G.tipo!=='contra'){
       const a7=aro();
       let prot=null; for(const [df,co] of G.asig) if(co&&co.big&&df.big) prot=df;
       const portador = G.pelotaEn && G.comps.includes(G.pelotaEn) ? G.pelotaEn : (G.fase==='conduzco'||G.fase==='espera'||G.fase==='apunto') ? G.vos : null;
@@ -21843,6 +21843,10 @@ function intento(){
     const rin=[[-0.95,0.15],[0.95,0.15],[-0.7,0.95],[0.7,0.95]]; let ri=0;
     for(const o of [...G.comps, ...G.defs.filter(d=>d!==G.marca)]){ const [fx,fy]=rin[ri++%rin.length]; o.x=clamp(a.x+fx*R3(), MARG()+16, W-MARG()-16); o.y=a.y+fy*R3(); o.vida=null; }
   }
+  /* §2z58 (su caza: "según cuándo tocás te aparece la cámara centrada de un lado o del otro"): armarPosesion encuadró
+     el spawn al azar y después movimos al jugador; la cámara quedaba deslizándose desde donde estaba. Encuadre en
+     seco sobre el lugar fijo de la lección. */
+  encuadrar();
   /* §2z58 LOS DOS PASOS DEL BOTE (su corte: "primero practicás el movimiento, después lo practicás en partido y con el
      detalle claro de tocar para frenar: llegás hasta un punto y el juego se frena y te indica que tenés que TOCAR").
      DRIBBLEAR: cancha vacía, avanzaste medio radio → listo. DRIBBLEAR CON MARCA: cuando entrás al radio del aro el

@@ -12742,7 +12742,9 @@ function tocarPelota(x,y){
   G.toqueErr=clamp(Math.abs(dy-sweet)*0.09, 0, 0.08);
   /* §2z48 a: el gajo muerto no se toca — la pelota grande ya lo mostró tapado */
   { const forma=zona==='costado'?'arriba':zona;
-    if(G.tiro&&G.tiro.blanco&&G.tiro.blanco.tipo!=='tiro'&&formaTapada(forma)){ chip(t(L('Tapado: elegí otra forma.','Covered: pick another shape.','Tapado: escolhe outra forma.'))); return; } }
+    /* §2z64: con las tres tapadas no hay "otra forma" — el gajo se toca y el pase sale mal, que es una decisión;
+       prohibir las tres era quedarse sin nada que tocar hasta que el reloj te matara (12-lanzar) */
+    if(G.tiro&&G.tiro.blanco&&G.tiro.blanco.tipo!=='tiro'&&formaTapada(forma)&&!todasTapadas()){ chip(t(L('Tapado: elegí otra forma.','Covered: pick another shape.','Tapado: escolhe outra forma.'))); return; } }
   lanzar(zona);
 }
 
@@ -12984,6 +12986,19 @@ const NOMBRE={tiro:{arriba:t(L('Tenso','Flat','Reto')),medio:t(L('Al aro','At th
    lo que existe. */
 function caeDelTiro(){ const t=G.tiro, desde=G.vos, hasta=t.blanco.p; const dir=Math.atan2(hasta.y-desde.y,hasta.x-desde.x), r=alcance(t.potencia);
   return {x:desde.x+Math.cos(dir)*r, y:desde.y+Math.sin(dir)*r}; }
+/* §2z64 (su caza 2026-09-06: "cuando querés pasar, si el pase va a salir mal quedan bloqueadas LAS 3 SECCIONES —
+   te obliga a que te corra el tiempo. No tiene sentido"). Tenía razón y es un CALLEJÓN SIN SALIDA: dos defensores
+   escalonados en el carril tapan las tres formas a la vez —'abajo' mira el tramo [0 · 0,25], 'medio' el [0 · 1] y
+   'arriba' el [0,4 · 0,8], así que uno cerca y otro lejos cubren todo— y la pantalla se queda sin nada que tocar
+   hasta que el reloj te mata. §2z48 a existía porque el juego le VENDIÓ un pase imposible; la píldora TAPADO ya
+   arregla la venta. Prohibir era el cinturón de más, y es el que crea el callejón.
+   La regla que queda: **el tapado avisa, no prohíbe — salvo que haya otra salida.** Con una sola forma viva, la
+   muerta no se toca (elegís entre lo que existe). Con las TRES muertas no hay entre qué elegir: tirás la menos mala
+   y te comés la consecuencia, que es una decisión tuya y no una muerte por reloj. */
+function todasTapadas(){
+  const t=G.tiro; if(!t||!t.blanco||t.blanco.tipo==='tiro') return false;
+  return !!formaTapada('arriba') && !!formaTapada('medio') && !!formaTapada('abajo');
+}
 function formaTapada(forma){
   const t=G.tiro; if(!t||!t.blanco||t.blanco.tipo==='tiro') return null;
   const desde=G.vos, cae=caeDelTiro();
@@ -16696,6 +16711,17 @@ function frame(now){
       ctx.fillStyle='rgba(125,208,135,.9)';
       ctx.fillText(t(L('CRUZÁ ACÁ','CROSS HERE','CRUZA AQUI')), W/2, my-10);
     }
+    /* §2z64 LA LÍNEA DEL TUTORIAL DEL BOTE: el mismo idioma que el avance —punteada verde de lado a lado y
+       CRUZÁ ACÁ—, porque es el mismo contrato (llegá hasta acá con la pelota). Vive en el mundo, así que la
+       cámara la lleva; la pone `intento()` (18c) a 1,6·R3 de tu salida y la borra `limpiarEscena`. */
+    if(G.tutMeta!=null && (G.fase==='espera'||G.fase==='apunto'||G.fase==='conduzco')){
+      const my=aPantalla({x:0,y:G.tutMeta}).y;
+      ctx.strokeStyle='rgba(125,208,135,.75)'; ctx.lineWidth=3; ctx.setLineDash([10,9]);
+      ctx.beginPath(); ctx.moveTo(14,my); ctx.lineTo(W-14,my); ctx.stroke(); ctx.setLineDash([]);
+      ctx.textAlign='center'; ctx.font='600 15px Barlow Condensed';
+      ctx.fillStyle='rgba(125,208,135,.9)';
+      ctx.fillText(t(L('CRUZÁ ACÁ','CROSS HERE','CRUZA AQUI')), W/2, my-10);
+    }
     /* EL SLALOM SE VE ENTERO (regla 1) Y EN EL IDIOMA DE NSS (corregido 2026-08-28): la
        línea verde UNE CONO CON CONO — es la del video 7, y con conos sueltos alcanza para
        entender el circuito: subís serpenteando, pasando del lado interior de cada uno. El
@@ -17023,7 +17049,17 @@ function frame(now){
           /* ⚠️ EL CARTEL SEGUÍA MANDÁNDOLO AL VERDE CUANDO NO HABÍA VERDE (encontrado
              2026-08-30 revisando el híbrido): leía `tier`, que es el semáforo del aro, no
              si el casquete EXISTE. Ahora pregunta lo mismo que dibuja la barra. */
-          ctx.fillText(md.pico>0.90?t(L('apretá y soltá en el verde','press and release in the green','aperta e solta no verde')):t(L('apretá y soltá al final','press and release at the end','aperta e solta no final')), B.x, B.y+26); }
+          /* §2z64 (su caza 2026-09-06: "clickear para activar la barra no tiene que ser clickear SOBRE la barra,
+             sino en cualquier lugar; si tu primer impulso es tocar la barra, la tapás un poco y te hace más difícil
+             tirar"). El motor ya acepta el apoyo en cualquier lado —el pointerdown de la fase 'forma' es de la
+             pantalla entera (10-gesto)—, pero el cartel colgaba de la barra y era lo único que decía dónde tocar:
+             el dedo iba ahí y se tapaba lo que tenía que mirar. Ahora el cartel lo dice, con las mismas palabras que
+             la gomera ("arrastrá desde donde quieras"). Es §2y del lado que pasa: te cambia lo que creés que podés. */
+          const txt=md.pico>0.90?t(L('apretá donde quieras y soltá en el verde','press anywhere, release in the green','aperta onde quiser e solta no verde')):t(L('apretá donde quieras y soltá al final','press anywhere, release at the end','aperta onde quiser e solta no final'));
+          /* clamp: el renglón es más largo que antes y B.x se apoya en el borde cuando la barra queda contra la
+             raya — centrado a secas se cortaba (la clase de bug del ancho a mitad de pantalla, en canvas) */
+          const anc=ctx.measureText(txt).width;
+          ctx.fillText(txt, clamp(B.x, anc/2+8, W-anc/2-8), B.y+26); }
       }
     }
     // la fase 2: la pelota grande
@@ -17063,7 +17099,12 @@ function frame(now){
       if(esT) pildora(t(L('TABLERO','BANK','TABELA')), Math.min(pb.x+pb.r+16,W-52), pb.y-pb.r*0.7);
       ctx.font='500 14px Barlow Condensed'; ctx.textAlign='center';
       ctx.fillStyle='rgba(154,164,184,.85)';
-      ctx.fillText(t(L('LA SUBÍS — tocala donde la soltás','ON THE WAY UP — tap it where you release','NA SUBIDA — toca onde você solta')), pb.x, clamp(pb.y-pb.r-52,hudH+40,H));
+      /* §2z64: con las TRES tapadas el renglón cambia — si no, tres píldoras rojas se leen como "no se puede" y te
+         quedás mirando correr el reloj (que era el bug). Las tres se tocan; elegís la menos mala. */
+      const nada=!esT&&tap.arriba&&tap.abajo&&tap.medio;
+      if(nada) ctx.fillStyle='rgba(224,108,90,.9)';
+      ctx.fillText(nada?t(L('TE TAPARON TODO — elegí la menos mala','ALL COVERED — pick the least bad','TAPARAM TUDO — escolhe a menos ruim'))
+                       :t(L('LA SUBÍS — tocala donde la soltás','ON THE WAY UP — tap it where you release','NA SUBIDA — toca onde você solta')), pb.x, clamp(pb.y-pb.r-52,hudH+40,H));
       const restoMs=G.formaHasta-now;
       if(restoMs<1200){
         const resto=restoMs/1200;
@@ -21862,6 +21903,11 @@ function intento(){
        sin compañeros, sin defensores. Como el slalom: nadie te marca (06). */
     G.vos.x=a.x; G.vos.y=pisoVos();
     G.comps=[]; G.defs=[]; G.marca={x:-9999,y:-9999}; G.asig=null; G.custodio=null;
+    /* §2z64 (la misma clase que §2z63): el renglón heredado del carril decía "Arrastrá y empujás la pelota. Toque
+       seco: frenás y tirás." — y el toque seco es la lección de DRIBBLEAR CON MARCA, el paso DOS. Peor: acá el toque
+       levanta el dribble y te deja sin poder cruzar. El dedito dice lo de este paso ("arrastrá y soltá, arrastrá y
+       soltá") y el renglón se va; el visto de 'carril' queda intacto para el partido. */
+    relato('',false); vistos()[T.m.tipo]=antesTipo;
   }
   if(k==='conducir'){
     /* el segundo paso: la misma salida, con tu marca adelante a la distancia de la perilla y el resto en los rincones */
@@ -21881,11 +21927,23 @@ function intento(){
   if(T.poll){ clearInterval(T.poll); T.poll=null; }
   if(k==='dribblear'||k==='conducir'){
     const y0=G.vos.y, mOK=T.m; T.frenoPedido=false; G.tutFrenoPide=false;
+    /* §2z64 (su corte 2026-09-06: "hoy hacés dos dribbles y se corta solo… debería ser que pases una línea verde,
+       y que te diga que tenés que arrastrar y soltar, arrastrar y soltar; si no pensás en SOLO arrastrar una vez").
+       LA LECCIÓN ES QUE EL GESTO SE REPITE, y un examen de dos toques no la puede enseñar.
+       (1) qué examina: que el bote es arrastrá-y-soltá OTRA VEZ, no un arrastre único.
+       (2) el presupuesto: cada arrastre empuja la pelota min(L·0,95, 0,20·W) —típico 0,17·W, medido de su video
+           del drill de NSS (10-gesto)— y la pelota rueda a ~120 px/s con vos atrás.
+       (3) el cuerpo por el hueco: tu jugador por una línea que cruza la cancha entera; no hay hueco lateral.
+       (4) las desigualdades: con D la distancia a la línea, quiero 3 arrastres como PISO aun tirando al tope y 5
+           como techo con el arrastre típico → D ≥ 3·0,20·W = 0,60·W y D ≤ 5·0,17·W = 0,85·W. Tomo D = 1,6·R3.
+           Y R3 = min(0,44·W, 0,34·H), que en las dos canchas reales (375×812 y 375×600) es 0,44·W: D = 0,70·W,
+           o sea 4,1 arrastres típicos y 3,5 al tope. Fija por diseño, como manda la ley del dispositivo. */
+    if(k==='dribblear') G.tutMeta=y0-1.6*R3();
     T.poll=setInterval(()=>{
       if(!T||T.m!==mOK||G.fase==='entre'){ clearInterval(T.poll); T.poll=null; return; }
       if(k==='dribblear'){
-        if(G.fase==='conduzco' && (y0-G.vos.y)>R3()*0.5){ clearInterval(T.poll); T.poll=null; G.levanto=true; G.fase='espera';
-          finTut(true, t(L('Eso es el bote: la pelota va adonde arrastrás.','That is the dribble: the ball goes where you drag.','Isso é o drible: a bola vai pra onde você arrasta.'))); }
+        if(G.fase==='conduzco' && G.vos.y<=G.tutMeta){ clearInterval(T.poll); T.poll=null; G.levanto=true; G.fase='espera'; G.tutMeta=null;
+          finTut(true, t(L('Eso es el bote: arrastrás, soltás, y otra vez.','That is the dribble: drag, release, and again.','Isso é o drible: arrasta, solta, e de novo.'))); }
         return; }
       if(!T.frenoPedido){
         if(G.fase==='conduzco' && dist(G.vos,aro())<R3()*1.0){ T.frenoPedido=true; G.pausa=true; G.pausaT0=performance.now(); G.tutFrenoPide=true;
@@ -21930,7 +21988,7 @@ function finTut(anoto,resumen){
 }
 function limpiarEscena(){
   if(T&&T.poll){ clearInterval(T.poll); T.poll=null; }
-  G.tutFrenoPide=false; if(G.pausa) G.pausa=false;   // §2z58: la pausa del tutorial del bote no sobrevive a la escena
+  G.tutFrenoPide=false; G.tutMeta=null; if(G.pausa) G.pausa=false;   // §2z58/§2z64: ni la pausa ni la línea del bote sobreviven a la escena
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null; G.bola=null; G.boteo=null;
   G.joy=null; G.levanto=false; G.medidor=null; G.defensa=null; G.tutQuieto=false;
   $t('sit').textContent='';
@@ -21987,7 +22045,17 @@ function dibujar(now){
     }
     else if(G.fase!=='entre') hecho();
   }
-  else if(k==='dribblear'||k==='conducir'){
+  else if(k==='dribblear'){
+    /* §2z64: el dedito NO se apaga con el primer arrastre — la lección es que el gesto se repite, así que sigue
+       latiendo mientras boteás hasta que cruces. Y apunta DERECHO A LA LÍNEA: la guía diagonal de `conducir`
+       esquiva a la marca, y acá no hay marca (está en -9999), así que el cálculo del lado mandaba el dedito a
+       33° de donde tenés que ir. */
+    if(G.fase==='espera'||G.fase==='conduzco'){
+      fantasmaArrastre(sv.x, sv.y, sv.x, sv.y-90, now, t(L('arrastrá y soltá, arrastrá y soltá','drag and release, drag and release','arrasta e solta, arrasta e solta')));
+    }
+    else if(G.levanto||G.fase==='apunto'||G.fase==='forma'||G.fase==='vuelo') hecho();
+  }
+  else if(k==='conducir'){
     if(G.fase==='espera'&&!T.boteo){
       /* su corte: la guía va PARA DONDE QUEDÁS LIBRE, no encima del defensor — hacia el aro,
          doblando al lado contrario de tu marca */

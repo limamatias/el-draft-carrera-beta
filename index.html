@@ -4367,9 +4367,11 @@ const ENERGIA_MIN_ENTRENAR = 25;    // fundido no entrenás (como no salís a la
  * `fechaJugada`, así que 8 fechas eran 3 semanas y media en la LNB (38 fechas) y bastante más en una liga
  * corta — la misma perilla castigaba distinto según dónde jugaras, encima de la energía. Ahora el reloj es
  * el CALENDARIO: entrenar se compra por semana (2 sesiones), así que el óxido se cuenta por semana.
- * ⚠️ El número: 5 semanas = 10 sesiones. Con cinco skills, mantenerlos vivos cuesta 5 y te deja las otras
- * 5 para progresar — la mitad de tu agenda, no el 78 % que costaba con 8 fechas en la LNB. */
-const DECAY_SEMANAS = 5;            // sin entrenar N semanas, el skill empieza a gotear
+ * ⚠️ EL NÚMERO ES 8, y es suyo (2026-09-06): *"haría 8 semanas y listo. Que no sea algo que te destruye…
+ * de última ajustamos para abajo"*. Son 16 sesiones: mantener los cinco skills cuesta 5 y te deja 11 para
+ * progresar (el 69 % de tu agenda). Con las 8 FECHAS que había antes, en la LNB la mantención se comía el
+ * 78 % — el óxido era la agenda, no una presión de fondo. La perilla es una sola y baja fácil. */
+const DECAY_SEMANAS = 8;            // sin entrenar N semanas, el skill empieza a gotear
 const SKILL_TECHO = 99;             // §2s: 99 = arranque + 60★ de escalera + cupo de cartas
 const NIVELES_ESCALERA = 20;        // §2s: 20 niveles por skill, hasta 3★ cada uno (+60 máx)
 /* §2z39.46 LA BETA (su corte 2026-09-04): el ★3 arranca con +18 encima, y con la escalera entera

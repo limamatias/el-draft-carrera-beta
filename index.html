@@ -3622,6 +3622,39 @@ function elegirCalientes(estado) {
       const n = (porRival[rid] = (porRival[rid] || 0) + 1);
       if (n <= (principal ? 2 : 1) && total < CLASICOS_MAX) { clasicoOk.add(fecha.nro); total++; }
     } }
+  /* §2z93 EL RIVAL MÁS FUERTE ES CLAVE, Y ESO NO DEPENDE DE LA TABLA (su regla 2026-09-07: *"haría que el
+     partido clave de LAS AMÉRICAS sea contra el equipo de mayor fuerza… lo mismo lo podemos aplicar a la liga:
+     los partidos contra los equipos más fuertes son clave, así no dependemos de posiciones o de cosas
+     variables"*). Hasta hoy el único caliente por RIVAL era el clásico (identidad) y el único por mérito era
+     `puesto`, que necesita tabla hecha: en el primer tercio del año no había ni un partido grande que no fuera
+     un clásico. La fuerza existe desde la fecha 1, no se mueve, y es lo único comparable entre ligas — la misma
+     vara que §2z82 ya usa en el continental.
+     El tope SALE DEL LARGO DE TU TEMPORADA, no de un número a mano: medido, con "el más fuerte da sus dos
+     cruces y el segundo el primero" la LNB quedaba en 7 calientes de 36 (bien) pero la Federal en 5 de 16
+     (uno cada tres partidos: eso ya no es un partido grande, es el lunes). Así que 3 arriba de 30 fechas
+     tuyas, 2 arriba de 20, 1 abajo — y se ordenan por peso: primero los dos cruces con el más fuerte,
+     después el primero con el segundo.
+     ⚠️ Se mide sobre los rivales que TE TOCAN (con zonas jugás sólo la tuya: el mejor de la otra zona no es
+     tu problema) y con `estado.fuerzas`, que es la fuerza VIVA del año — la misma que juega los partidos. */
+  const fuertes = {};
+  { const rivales = new Map();
+    for (const fecha of estado.fixture) {
+      const mio = fecha.partidos.find((p) => p.local === estado.miClubId || p.visita === estado.miClubId);
+      if (!mio) continue;
+      const rid = mio.local === estado.miClubId ? mio.visita : mio.local;
+      if (!rivales.has(rid)) rivales.set(rid, []);
+      rivales.get(rid).push(fecha.nro);
+    }
+    const fz = (id) => (estado.fuerzas && estado.fuerzas[id] !== undefined
+      ? estado.fuerzas[id] : (clubPorId(estado.clubes, id) || {}).fuerza || 0);
+    const orden = [...rivales.keys()].sort((a, b) => fz(b) - fz(a));
+    let misFechas = 0; for (const fs of rivales.values()) misFechas += fs.length;
+    const cupo = misFechas >= 30 ? 3 : misFechas >= 20 ? 2 : 1;
+    const cola = [];
+    if (orden[0]) for (const f of rivales.get(orden[0]).slice(0, 2)) cola.push([f, 1]);
+    if (orden[1]) for (const f of rivales.get(orden[1]).slice(0, 1)) cola.push([f, 2]);
+    for (const [f, top] of cola.slice(0, cupo)) fuertes[f] = top;
+  }
   const calientes = [];
   let primero = true;
   for (const fecha of estado.fixture) {
@@ -3658,6 +3691,9 @@ function elegirCalientes(estado) {
       const puesto = Math.min(pos[estado.miClubId], pos[rivalId]);
       porque = `Se juega el ${puesto === 1 ? 'primer' : puesto + '.º'} puesto`;
       clave = 'puesto'; extra = { puesto };
+    } else if (fuertes[fecha.nro]) {   // §2z93: el que no depende de la tabla — va último, la historia del momento gana
+      porque = fuertes[fecha.nro] === 1 ? 'El más fuerte de la liga' : 'De los más fuertes de la liga';
+      clave = 'fuerte'; extra = { topFz: fuertes[fecha.nro] };
     }
     primero = false;
     if (porque) calientes.push({ fecha: fecha.nro, rival: rivalId, local: mio.local === estado.miClubId, porque, clave, ...extra });
@@ -11073,6 +11109,22 @@ function aprende(que){
 }
 
 const CORTE_EN_PARTIDO=true;
+/* §2z93 LA NOCHE NO REPITE ESCENA DEFENSIVA (su caza 2026-09-07: *"en el mismo partido no te debería salir dos
+   veces la misma jugada defensiva: tuve 2 y las 2 fueron 1v1"*). El sorteo de §2z87 n era independiente cada vez,
+   así que con dos defensivas por noche repetir salía 1 de cada 4 — y repetir no se lee como azar, se lee como que
+   el juego tiene UNA sola escena. Ahora la noche recuerda: se sortea con los mismos pesos entre las que TODAVÍA no
+   salieron, y la bolsa se rellena recién cuando salieron las cuatro. Una noche trae 2-5 defensivas, así que en la
+   práctica nunca se repite; y los pesos siguen mandando en cuál sale primero. */
+const DEF_ESCENAS=[[null,35],['cierre',25],['cortina',20],['1v1',20]];
+function sortearEscenaDef(){
+  let libres=DEF_ESCENAS.filter(([k])=>(G.defEscenasVistas||[]).indexOf(k)<0);
+  if(!libres.length){ G.defEscenasVistas=[]; libres=DEF_ESCENAS; }
+  const tot=libres.reduce((a,x)=>a+x[1],0);
+  let r=Math.random()*tot, out=libres[libres.length-1][0];
+  for(const [k,w] of libres){ if(r<w){ out=k; break; } r-=w; }
+  G.defEscenasVistas=(G.defEscenasVistas||[]).concat([out]);
+  return out;
+}
 /* §2z39.11 (su corte: "el drill es buscar al desmarcado, no otra cosa; no debería usar la misma
    terminología que jugadas que en el juego implican ATACAR"): la píldora del drill de visión dice su
    objetivo, siempre — nunca TIRÁ O PASÁ ni CARRIL */
@@ -11335,8 +11387,7 @@ function armarPosesion(){
   else if(G.tipo==='def1v1'){ G.tipo='defensa'; G.defEscena='1v1'; }
   /* §2z87 n: EN EL PARTIDO la defensiva sortea su escena — contra 35 % (la única que viene de un robo o un rebote),
      cierre 25 %, cortina 20 %, 1v1 20 %. El tutorial de defender sigue siendo la contra (su geometría es fija, 18c). */
-  else if(G.tipo==='defensa' && !G.tut && !(G.beat&&G.beat.drill)){
-    const r=Math.random(); G.defEscena = r<0.35 ? null : r<0.60 ? 'cierre' : r<0.80 ? 'cortina' : '1v1'; }
+  else if(G.tipo==='defensa' && !G.tut && !(G.beat&&G.beat.drill)) G.defEscena=sortearEscenaDef();
   /* EL BLOQUEO (co-diseñado 2026-08-25 — su corte: SIN mecánica nueva): una parte de las
      'decision' llega con el big subiendo a poner una PANTALLA. El verbo es el bote de
      siempre; lo nuevo es física (la pantalla es un cuerpo que tu marca no atraviesa) y
@@ -14658,7 +14709,15 @@ function recibe(compi,forma,txt,va){
        (sin cierre extra: el corredor libre es el premio que ya se chequeó) */
     setTimeout(()=>{
       const dA2=Math.max(1,dist(compi,aro()));
-      const meta={x:aB.x+(compi.x-aB.x)/dA2*24*ESC(), y:aB.y+Math.max(26*ESC(),(compi.y-aB.y)/dA2*26*ESC())};
+      /* §2z93 (su caza 2026-09-07: *"cuando se la pasás a un jugador cerca del aro y elige hacer una bandeja,
+         como que se corre directo para estar ENFRENTE del aro, en vez de hacer una bandeja capaz desde el
+         costado"*): el destino era (24 al costado, AL MENOS 26 abajo) — ese `Math.max` sobre la componente
+         vertical le enderezaba la entrada. Al que venía del rincón corto (casi todo x, casi nada de y) lo
+         plantaba a 41° cuando había llegado a 72°: se lo veía CORRER A PONERSE DE FRENTE. Ahora el punto de
+         apoyo está sobre la MISMA recta aro→él, a un paso del aro: el ángulo con el que llegó es el ángulo
+         con el que la baja. El único piso que queda es no terminar detrás del tablero. */
+      const uxB=(compi.x-aB.x)/dA2, uyB=(compi.y-aB.y)/dA2, rB=34*ESC();
+      const meta={x:aB.x+uxB*rB, y:aB.y+Math.max(8*ESC(),uyB*rB)};
       /* la pose del que CORRE a bandejear (la que faltaba de los muñecos v2): el brazo
          ya va estirado durante la corrida — el trote lo ponen las piernas */
       const durB=Math.max(0.25, dA2/300);
@@ -15231,7 +15290,7 @@ function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,esFinal:false,finalDesde:null,vinetaFuego:false});
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false});
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
@@ -18377,7 +18436,7 @@ function esClaveAmericas(e,p){
   return p.rival===top;
 }
 function amPorqueTxt(o){
-  if(o.etapa==='grupo') return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(esClaveAmericas(est(),o)?' · '+t(L('EL MEJOR DEL GRUPO','THE BEST IN THE GROUP','O MELHOR DO GRUPO')):'');   // §2z82
+  if(o.etapa==='grupo') return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'');   // §2z82
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
@@ -19102,6 +19161,10 @@ function porqueTxt(c){
   if(c.clave==='definicion') return t(L('Última fecha: definición','Last round: it all gets decided','Última rodada: decisão'));
   if(c.clave==='puesto') return t(L('Se juega el '+(c.puesto===1?'primer':c.puesto+'.º')+' puesto',
     'Battle for '+c.puesto+ordEn(c.puesto)+' place','Vale o '+c.puesto+'º lugar'));
+  /* §2z93: el caliente que no depende de la tabla — dice POR QUÉ es grande, que es la fuerza del rival */
+  if(c.clave==='fuerte') return c.topFz===1
+    ? t(L('El más fuerte de la liga','The strongest team in the league','O mais forte da liga'))
+    : t(L('De los más fuertes de la liga','One of the strongest in the league','Um dos mais fortes da liga'));
   return '';
 }
 const vsTxt=(local)=>local?'vs ':t(L('en ','at ','em '));

@@ -3683,17 +3683,20 @@ function elegirCalientes(estado) {
     } else if (fecha.nro === miUltima) {
       porque = 'Última fecha: definición'; clave = 'definicion';
     } else if (
-      // El rival directo pide TABLA HECHA: con una fecha jugada todos están a ≤2 y el
-      // candado ancho regala calientes espurios — recién habla con un tercio jugado.
-      // §2z81 (su caza 2026-09-06: "voy 6-0 primero, Gimnasia está 6-0 también, jugamos en la fecha 12: ¿no
-      // debería ser clave?"): la segunda puerta — los DOS de arriba, con 5 jugados y a una victoria, se juegan el
-      // primer puesto aunque no haya pasado el tercio. Sigue siendo estrecha: 1.º contra 2.º y nada más.
+      /* §2z96 EL 🔥 VALE PORQUE ES RARO (su ok 2026-09-07, medido sobre 5 temporadas por liga): el rival directo
+       * tenía DOS puertas y la ancha —un tercio jugado, ±2 puestos y ±2 victorias— marcaba media temporada,
+       * porque la tabla se mueve y cada semana califica un rival distinto. Contado: `puesto` ponía 80 de los 114
+       * calientes de la NBA y 32 de los 45 de la Federal, y el total por temporada era 11,6 en la LNB · 23,8 en la
+       * NBA · 9,0 de tus 16 en la Federal. Uno cada tres partidos no es un partido importante.
+       * Queda SÓLO la puerta estrecha, que es la que él escribió en §2z81: los dos de arriba, con 5 jugados y a
+       * una victoria. Medido después: 9,0 · 8,6 · 3,4 — y cada uno tiene nombre (el debut, los clásicos, los del
+       * más fuerte, la última fecha, y el 1.º contra 2.º).
+       * ⚠️ La otra mitad de la cura es §2z93: sin un caliente que exista desde la fecha 1 (`fuerte`), achicar
+       * éste dejaba el primer tercio del año sin un solo partido grande. Las dos van juntas. */
       rec[estado.miClubId] && rec[rivalId] &&
-      ((estado.fechaJugada * 3 >= estado.fechasTotales &&
-        Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 2 &&
-        Math.abs(pos[estado.miClubId] - pos[rivalId]) <= 2)
-       || (pos[estado.miClubId] <= 2 && pos[rivalId] <= 2 && rec[estado.miClubId].pj >= 5 && rec[rivalId].pj >= 5 &&
-           Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 1))
+      pos[estado.miClubId] <= 2 && pos[rivalId] <= 2 &&
+      rec[estado.miClubId].pj >= 5 && rec[rivalId].pj >= 5 &&
+      Math.abs(rec[estado.miClubId].pg - rec[rivalId].pg) <= 1
     ) {
       const puesto = Math.min(pos[estado.miClubId], pos[rivalId]);
       porque = `Se juega el ${puesto === 1 ? 'primer' : puesto + '.º'} puesto`;

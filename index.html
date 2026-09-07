@@ -4361,7 +4361,15 @@ const SESIONES_POR_SEMANA = 2;      // el tope duro (NSS: 2/semana, sin excepci�
 const ENERGIA_SESION = 25;          // NSS cobra ~25; nuestro partido cuesta 22
 const ENERGIA_SESION_TRAINER = 18;  // con entrenador comprado (§2q: reduce el costo)
 const ENERGIA_MIN_ENTRENAR = 25;    // fundido no entrenás (como no salís a la cancha)
-const DECAY_FECHAS = 8;             // sin entrenar N fechas, el skill empieza a gotear
+/* §2z90 EL ÓXIDO SE MIDE EN SEMANAS, NO EN FECHAS (su corte 2026-09-06): *"esto te penaliza cuantos más
+ * partidos hay en la liga que jugás, lo que encima ya te está cobrando porque gastás más energía jugando…
+ * hoy cae el skill más rápido donde más partidos jugás"*. Y tenía razón: el reloj corría sobre
+ * `fechaJugada`, así que 8 fechas eran 3 semanas y media en la LNB (38 fechas) y bastante más en una liga
+ * corta — la misma perilla castigaba distinto según dónde jugaras, encima de la energía. Ahora el reloj es
+ * el CALENDARIO: entrenar se compra por semana (2 sesiones), así que el óxido se cuenta por semana.
+ * ⚠️ El número: 5 semanas = 10 sesiones. Con cinco skills, mantenerlos vivos cuesta 5 y te deja las otras
+ * 5 para progresar — la mitad de tu agenda, no el 78 % que costaba con 8 fechas en la LNB. */
+const DECAY_SEMANAS = 5;            // sin entrenar N semanas, el skill empieza a gotear
 const SKILL_TECHO = 99;             // §2s: 99 = arranque + 60★ de escalera + cupo de cartas
 const NIVELES_ESCALERA = 20;        // §2s: 20 niveles por skill, hasta 3★ cada uno (+60 máx)
 /* §2z39.46 LA BETA (su corte 2026-09-04): el ★3 arranca con +18 encima, y con la escalera entera
@@ -4837,7 +4845,7 @@ function cupoCartas(jugador, skillKey) {
   return Math.max(0, SKILL_TECHO - base - nivelesTope() * 3 - ganadas);
 }
 
-/* El decaimiento (§2q "clave" + §2s): cada DECAY_FECHAS sin entrenar, el óxido te come
+/* El decaimiento (§2q "clave" + §2s): cada DECAY_SEMANAS sin entrenar, el óxido te come
  * 1★ DEL NIVEL MÁS ALTO donde tengas estrellas (la misma moneda que la subida — suyo).
  * Recuperarla = volver a rendir ese nivel, que ya conocés. Los niveles abiertos quedan
  * abiertos SIEMPRE (marca de agua); el piso es EL ARRANQUE: sin estrellas no hay qué
@@ -4846,13 +4854,19 @@ function cupoCartas(jugador, skillKey) {
  * todavía no tiene drill (§2q abierto), era un goteo sin contramedida posible. Cuando
  * su drill exista, entra a la lista. */
 const SKILLS_ENTRENABLES = ['tiro', 'manejo', 'vision', 'defensa', 'fisico'];   // §2z18: físico entra
-function aplicarDecaimiento(jugador, fechaActual) {
+/** §2z90: las SEMANAS del calendario que pasaron desde que tocaste el skill (0 si nunca lo tocaste y
+ *  la temporada recién arranca). `ultimo` guarda una FECHA —así el save viejo migra solo—; la cuenta la
+ *  hace el calendario, que es el que sabe cuántas fechas mete cada liga en una semana. */
+function semanasSinTocar(semilla, ultimo, fechaActual, ritmo) {
+  return Math.max(0, semanaDeFecha(semilla, fechaActual, ritmo) - semanaDeFecha(semilla, ultimo || 1, ritmo));
+}
+function aplicarDecaimiento(jugador, fechaActual, semilla, ritmo) {
   const en = jugador.entreno;
   const caidos = [];
   for (const k of SKILLS_ENTRENABLES) {
     if (!(k in jugador.skills)) continue;
     const ultimo = en.ultimo[k] || 0;
-    const owed = Math.max(0, Math.floor((fechaActual - ultimo) / DECAY_FECHAS));
+    const owed = Math.floor(semanasSinTocar(semilla, ultimo, fechaActual, ritmo) / DECAY_SEMANAS);
     const aplicado = en.decay[k] || 0;
     if (owed > aplicado) {
       const esc = (en.escalera || {})[k] || [];
@@ -19994,17 +20008,13 @@ function timerSkill(k,en,e){
      el arranque, y "recién entrenado" es el estado normal de lo que acabás de tocar. Lo
      único que este renglón tiene para decir es CUÁNDO SE VA A OXIDAR, y sólo cuando falta
      poco o ya pasó — el resto del tiempo se calla. */
-  const ult=en.ultimo[k], hace=ult===undefined?null:e.fechaJugada-ult;
-  const oxida=hace===null?e.fechaJugada>=DECAY_FECHAS:hace>=DECAY_FECHAS;
-  if(oxida) return '⚠ '+t(L('se está oxidando','going rusty','está enferrujando'));
-  if(hace===null||hace<DECAY_FECHAS-2) return '';
-  /* §2z89 (su caza 2026-09-06: *"¿por qué dice fechas, no semanas?"*): entrenar se mide en SEMANAS —el cupo
-     son 2 sesiones por semana y el botón de al lado dice PASAR LA SEMANA—, así que el aviso habla en la misma
-     unidad. Y cuántas fechas entran en una semana lo decide la liga (la LNB aprieta 2-3, la Federal espacia),
-     o sea que "8 fechas" ni siquiera era la misma cantidad de tiempo en dos ligas: la cuenta va por el
-     calendario real, no por una división. */
-  const sem=semanaDeFecha(e.semilla,ult+DECAY_FECHAS,e.ritmo)-semanaDeFecha(e.semilla,e.fechaJugada,e.ritmo);
-  if(sem<=0) return '⚠ '+t(L('se oxida esta semana','goes rusty this week','enferruja esta semana'));
+  /* §2z89/§2z90: el aviso habla en SEMANAS porque el óxido se cuenta en semanas (ver `semanasSinTocar`
+     en 01h) — y porque entrenar se compra por semana: el cupo son 2 sesiones y el botón de al lado dice
+     PASAR LA SEMANA. La misma cuenta que el motor, para que el cartel no mienta. */
+  const hace=semanasSinTocar(e.semilla,en.ultimo[k],e.fechaJugada,e.ritmo);
+  if(hace>=DECAY_SEMANAS) return '⚠ '+t(L('se está oxidando','going rusty','está enferrujando'));
+  const sem=DECAY_SEMANAS-hace;
+  if(sem>2) return '';
   return '⚠ '+t(L('se oxida en '+sem+(sem===1?' semana':' semanas'),
     'goes rusty in '+sem+(sem===1?' week':' weeks'),
     'enferruja em '+sem+(sem===1?' semana':' semanas')));
@@ -20622,7 +20632,7 @@ function registrarResultado(){
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
-  const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada):[];
+  const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada,e.semilla,e.ritmo):[];   // §2z90: el óxido cuenta semanas, y las semanas las sabe el calendario
   /* §2z29: la ventana de los últimos jugados con los dedos y la identidad emergente */
   C.pjCarrera=(C.pjCarrera||0)+1;
   C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-IDENTIDAD_VENTANA);

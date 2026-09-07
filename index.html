@@ -19377,7 +19377,15 @@ function filaFix(f,calPorFecha,proxFecha){
      partido que vas a jugar VOS, y ése lo juega el club sin vos; (2) medido, "🔥 CON LA SELECCIÓN"
      pide 101 px y `.res` tiene 78 — la columna crecería (min-content) y le volvería a robar el
      ancho al nombre, que es justo lo que §2z31 vino a arreglar. */
-  const cal=(f.am||f.sel||f.conSel)?null:calPorFecha[f.fecha];
+  /* §2z95 (su caza 2026-09-07: *"no veo fueguito ni nada que te diga «este partido es más importante»"*): el
+     partido clave del continental existía SÓLO como texto en el pre-partido — la fila del fixture lo excluía del
+     fuego junto con la selección. El motivo original era bueno (la fila del globo no tiene fecha de liga, así que
+     `calPorFecha[f.fecha]` es basura), pero la salida era tirar el fuego en vez de preguntar por el lado correcto.
+     ⚠️ Sólo si todavía NO se jugó: la del club nunca puede traerlo (elegirCalientes saltea las jugadas) y acá hay
+     que decirlo a mano — `.res` tiene 78 px y "🔥 110–105 · G" no entra (§2z31). */
+  const cal=(f.sel||f.conSel)?null
+    :f.am?(!f.res&&esClaveAmericas(e,{tipo:'americas',etapa:f.etapa,rival:f.rival})?1:null)
+    :calPorFecha[f.fecha];
   /* §2z31 EL FUEGO SALE DE LA COLUMNA DEL NOMBRE (2026-09-04, su corte "moverlo al lado del
      día"). Adentro de `.q` se llevaba 29 px —20 el glifo, 9 el gap— y cortaba el nombre justo
      en el partido que el juego marca como IMPORTANTE ("en José Hernández" pedía 108 y tenía 88).

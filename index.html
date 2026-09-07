@@ -468,6 +468,13 @@
   /* §2z39.62: el latido por salto (numTick) se fue — El Draft no lo tiene y se veía raro; queda el latido de la caja */
   @keyframes numTick{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
   #lobby .mediaDelta{font-size:13px;font-weight:700;letter-spacing:.5px;line-height:1;white-space:nowrap;animation:mediaCaja .32s ease-out both}
+  /* §2z94 (su caza 2026-09-07: *"cuando te tira el +1 de media post entrenamiento, el contenedor de media SE
+     AGRANDA momentáneamente para que se vea el +1: es un horror estético"*). Clase 3 de CLAUDE.md —ancho por
+     contenido en algo que cambia de cifras—, esta vez en la caja: el delta entraba como HERMANO en flujo de un
+     flex `flex:none`, así que mientras vivía la caja crecía su ancho + los 6 del gap, y al irse volvía. El
+     dibujo que él validó en §2z39.62 (el delta a la izquierda, centrado con el número) queda igual: lo que
+     cambia es que se cuelga AFUERA del borde y no empuja nada. La del escalón (.escCab) ya era absoluta. */
+  #lobby .mediaBox .mediaDelta{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:6px}
   #lobby .escCab .mediaDelta{position:absolute;left:50%;top:-16px;transform:translateX(-50%)}
   /* §12: la bandera de una selección adentro de la caja del escudo. ⚠️ La caja del escudo es un
      REDONDEL con borde (para los escudos de club) y ahí adentro la bandera salía recortada en

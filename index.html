@@ -662,6 +662,15 @@
   .veloB .veloX{position:absolute;top:8px;right:10px;font-size:18px;line-height:1;color:var(--tinta2);
        cursor:pointer;user-select:none;padding:4px 6px}
   .veloB .caja{position:relative}
+  /* §2z91 EL PARTE DE LA SEMANA: las filas entran de a una (el delay lo pone el JS) y el remate —tu
+     promedio y el SEGUIR— entra al final, para que el ojo lea los marcadores antes de poder salir. */
+  #pasoJuegos .fila-item,#pasoTuyo,#pasoOk{opacity:0;animation:entra .32s ease-out forwards}
+  #pasoJuegos .fila-item .desc{display:flex;align-items:center;gap:6px;min-width:0}
+  #pasoJuegos .fila-item .desc .escudito{flex:none}
+  /* ⚠️ la clase entera, no sólo la mía: el parte de la VENTANA (§12) ya pintaba <b class="g">/<b class="p">
+     y nunca hubo regla — los marcadores de la selección salían en tinta como cualquier número. */
+  #pasoJuegos .fila-item b.g,#parteJuegos b.g{color:var(--ok)}
+  #pasoJuegos .fila-item b.p,#parteJuegos b.p{color:var(--mal)}
   /* §12 EL SWITCH CLUB ⇄ SELECCIÓN (su diseño, 2026-09-04): dos pestañas con el escudo de tu
      club y la bandera de tu país. Vive SÓLO en las plenas —el fixture completo y la tabla
      completa—, que es donde ya entraste a mirar; en el lobby sería la entidad que no se ganó. */
@@ -1038,13 +1047,13 @@
   .veloB .cajTag{font-size:12px;letter-spacing:2px;color:var(--naranja);font-weight:700;margin-top:6px}
   .veloB .gancho{font-size:15px;line-height:1.35;color:var(--tinta);padding:10px 0 4px;text-align:center}
   /* §12 EL PARTE DE LA VENTANA: la misma caja de la ceremonia, más chica y sin medalla */
-  #selParte .selCaja{align-items:center;text-align:center;gap:7px}
+  #selParte .selCaja,#pasoParte .selCaja{align-items:center;text-align:center;gap:7px}
   #selParte .selBand{display:flex;justify-content:center}
   #selParte .selBand .flag{width:64px!important;height:43px!important;border-radius:3px;
        box-shadow:0 0 0 1px rgba(0,0,0,.5),0 5px 16px rgba(0,0,0,.5)}
   #selParte h2{font-size:23px;letter-spacing:1.6px;line-height:1.1}
   #selParte h2.mal{color:var(--tinta2)}
-  #selParte #parteJuegos,#selParte #partePos{width:100%}
+  #selParte #parteJuegos,#selParte #partePos,#pasoParte #pasoJuegos{width:100%}
   #selParte .gancho{padding:2px 0 4px;font-size:14px}
   /* §12 LA CEREMONIA DE LA SELECCIÓN — la bandera grande, el puesto, la medalla y tu planilla */
   #selVelo .selCaja{align-items:center;text-align:center;gap:8px}
@@ -1999,6 +2008,19 @@
     <div id="parteTuyo" class="gancho"></div>
     <div id="partePos"></div>
     <button class="jugar ancho" id="parteOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+  </div>
+</div>
+<!-- §2z91 EL PARTE DE LA SEMANA (su pedido 2026-09-06: "si pongo pasar la semana, ¿te dice cómo
+     salieron los partidos que simulaste? debería haber una ventana intermedia donde te cuenta cómo
+     salieron, con alguna transición entre que aparece el resultado de cada partido con su color").
+     Mismo esqueleto que el parte de la ventana; las filas entran de a una. -->
+<div id="pasoParte" class="veloB oculto">
+  <div class="caja selCaja">
+    <div id="pasoTag" class="cajTag"></div>
+    <h2 id="pasoTit"></h2>
+    <div id="pasoJuegos"></div>
+    <div id="pasoTuyo" class="gancho"></div>
+    <button class="jugar ancho" id="pasoOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
   </div>
 </div>
 <!-- §12 LA CEREMONIA DE LA SELECCIÓN: lo que pasa cuando se te termina el torneo. Es el único
@@ -19419,16 +19441,72 @@ function proximaSemana(prox){
 function pasarHasta(sig){
   const e=est();
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,fechaRef(miProximo(e)||{tipo:'fecha',fecha:1})||1),est().ritmo);
+  const antes=e.misPartidos.length;   // §2z91: lo que el relato juegue de acá en más es lo que el parte cuenta
   avanzarHastaFecha(e,sig.fecha);
+  const jugados=e.misPartidos.slice(antes);
   if(esBeta()) betaEvento('salteo',{hasta:sig.fecha});
   const dias=Math.max(1,sig.dia-diaAntes);
   C.jugador.energia=Math.min(100,C.jugador.energia+regenDe()*dias);
   guardar(); pintaLobby(); irLob('hoy');
   /* §12: pasar la semana también puede cerrar una ventana FIBA, y acá no se pasa por
      abrirLobby — sin esto el parte quedaba armado y no lo veías hasta el próximo partido */
-  if(C.selParte&&abrirParteVentana(C.selParte)) return;
+  const despues=()=>{ if(C.selParte&&abrirParteVentana(C.selParte)) return; CARTAS.cartasAlEntrar(); };   // §2z26
+  if(abrirPasoParte(jugados,despues)) return;
   avisar(t(L('Pasaste a la ','You skipped to ','Você pulou para a '))+t(L('fecha','round','rodada'))+' '+sig.fecha+' · '+diaTxt(sig.dia));
-  CARTAS.cartasAlEntrar();   // §2z26
+  despues();
+}
+/* ══ §2z91 EL PARTE DE LA SEMANA (su pedido 2026-09-06: *"si pongo pasar la semana, ¿te dice cómo salieron los
+   partidos que simulaste? debería haber una ventana intermedia donde te cuenta cómo salieron, con alguna
+   transición entre que aparece el resultado de cada partido con su color"*). Hasta hoy no había NADA: pasabas
+   la semana y sólo quedaba un cartelito con el número de la fecha nueva — los partidos de tu club pasaban en
+   silencio y te enterabas entrando al fixture.
+   Qué examina: cómo le fue a tu equipo mientras el relato jugaba, y cuánto pusiste vos. Una fila por partido,
+   con su marcador en su color, entrando de a una (220 ms) como la planilla del fin; el título es el balance.
+   ⚠️ No se abre si el relato no jugó nada tuyo: un velo vacío es peor que el cartelito. */
+function abrirPasoParte(jugados,despues){
+  if(!jugados||!jugados.length) return false;
+  const e=est(), amJ=(e.americas?misJuegosAM(e):[]);
+  const filas=jugados.map(p=>{
+    if(p.po||p.sel) return null;   // los playoffs y la selección tienen su propio velo
+    const j=p.am?amJ.find(x=>x.etapa===p.etapa&&x.n===p.n):null;
+    const res=p.am?(j&&j.res):e.resultados.find(r=>r.fecha===p.fecha&&(r.local===e.miClubId||r.visita===e.miClubId));
+    if(!res) return null;
+    const local=p.am?!!(j&&j.local):res.local===e.miClubId;
+    const mios=local?res.ptsLocal:res.ptsVisita, sus=local?res.ptsVisita:res.ptsLocal;
+    return {rival:p.rival,local,mios,sus,am:!!p.am,fecha:p.fecha||null,
+      conSel:!!p.conSeleccion,pts:p.pts,ast:p.ast};
+  }).filter(Boolean);
+  if(!filas.length) return false;
+  const g=filas.filter(x=>x.mios>x.sus).length, n=filas.length;
+  const tit=$l('pasoTit');
+  tit.textContent=n===1
+    ? (g?t(L('GANAMOS','WE WON','GANHAMOS')):t(L('PERDIMOS','WE LOST','PERDEMOS')))
+    : g===n?t(L('GANAMOS LAS '+n,'WE WON ALL '+n,'GANHAMOS OS '+n))
+    : g===0?t(L('PERDIMOS LAS '+n,'WE LOST ALL '+n,'PERDEMOS OS '+n))
+    : t(L('GANAMOS '+g+' DE '+n,'WE WON '+g+' OF '+n,'GANHAMOS '+g+' DE '+n));
+  tit.className=g===n?'oro':g===0?'mal':'';
+  $l('pasoTag').textContent=t(L('EL RELATO JUGÓ','THE SIM PLAYED','A NARRAÇÃO JOGOU'));
+  const paso=220;
+  $l('pasoJuegos').innerHTML=filas.map((x,i)=>
+    '<div class="fila-item" style="animation-delay:'+(i*paso)+'ms"><span class="desc">'
+    +(x.am?icono('globo',14):fPrefijo()+x.fecha)+' '+escudito(x.rival)+' '+vsTxt(x.local)+nomCorto(x.rival).toUpperCase()+'</span>'
+    +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
+  /* lo tuyo: el promedio de lo que el relato te anotó — y las fechas que no jugaste porque estabas
+     con la selección se dicen aparte, que es justo lo que un 0 no explica (§2z91) */
+  const mias=filas.filter(x=>!x.conSel), sinVos=filas.length-mias.length;
+  const tuyo=$l('pasoTuyo');
+  tuyo.style.animationDelay=(n*paso)+'ms';
+  tuyo.innerHTML=(mias.length
+      ? t(L('Vos: ','You: ','Você: '))+'<b>'+fdec(mias.reduce((a,x)=>a+x.pts,0)/mias.length)+' PTS · '
+        +fdec(mias.reduce((a,x)=>a+x.ast,0)/mias.length)+' AST</b>'
+      : '')
+    +(sinVos?(mias.length?' · ':'')+t(L('estabas con la selección','you were on NT duty','você estava com a seleção')):'');
+  const ok=$l('pasoOk');
+  ok.style.animationDelay=(n*paso)+'ms';
+  ok.onclick=()=>{ $l('pasoParte').classList.add('oculto'); if(despues) despues(); };
+  $l('pasoParte').classList.remove('oculto');
+  verQueSeVe('pasoParte','EL PARTE DE LA SEMANA');
+  return true;
 }
 /* §2z39.24: el popup de PASAR LA SEMANA — qué te perdés, antes de pasar */
 function abrirPasarConfirm(sig,ref){
@@ -19636,7 +19714,13 @@ function pintaLobby(){
        último puede ser de hace una semana. Ahora dice el DÍA en que se jugó; sin día (playoffs, selección), "Último". */
     const diaUlt=(ultimo.fecha&&!ultimo.po&&!ultimo.sel)?diaTxt(diaDeFecha(e.semilla,Math.max(1,ultimo.fecha),est().ritmo)):null;
     const cuando=diaUlt?(idioma()==='en'?diaUlt:t(L('El ','','')) +diaUlt)+': ':t(L('Último: ','Last game: ','Último: '));
-    $l('lobGoteo1').innerHTML=cuando+m+t(L('Tuyos:','Yours:','Seus:'))+' <b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>';
+    /* §2z91 (su caza 2026-09-06: *"acá debería decir «estabas con la selección»: que no hiciste nada es real,
+       ¡pero porque no jugaste!"*): la fecha que el club jugó mientras vos estabas en la ventana FIBA entra a
+       `misPartidos` con 0/0 y `conSeleccion`, y el renglón la leía como una noche horrible tuya. El marcador del
+       club queda —es su partido y te interesa—; lo que cambia es por qué no hay línea. */
+    $l('lobGoteo1').innerHTML=cuando+m+(ultimo.conSeleccion
+      ? t(L('estabas con la selección','you were on NT duty','você estava com a seleção'))
+      : t(L('Tuyos:','Yours:','Seus:'))+' <b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>');
   } else {
     $l('lobGoteo1').textContent=t(L('Arranca la temporada.','The season begins.','Começa a temporada.'));
   }

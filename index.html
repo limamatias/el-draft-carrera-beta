@@ -785,6 +785,13 @@
   #lobby .fila-skill{display:flex;align-items:center;gap:10px;padding:4px 0}
   #lobby .fila-skill .nom{width:84px;font-size:15px;font-weight:600;letter-spacing:1.5px}
   #lobby .fila-skill .barraNrg{height:9px}
+  /* §2z89 LA NOTA DEL ÓXIDO NO PUEDE SER UN RENGLÓN (su caza 2026-09-06: *"apareció scroll y es sólo una
+     stat de las 5"*). Medido: la caja de ENTRENAR tiene 308 px y el contenido sin notas 296 — DOCE de
+     sobra; una nota como renglón pesa 22, y cinco 110. Nunca iba a entrar. La columna de la barra tiene
+     la altura del botón (28) y la barra sólo 9: la nota vive en ese aire, y el renglón no crece un píxel. */
+  #lobby .fila-skill .barraCol{flex:1;min-width:0;height:28px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+  #lobby .fila-skill .oxi{font-size:10px;line-height:1;letter-spacing:.5px;color:var(--naranja);
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-skill .barraNrg i{background:linear-gradient(90deg,#e0b13f,var(--naranja))}
   #lobby .fila-skill .val{width:26px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   /* la tienda y el contrato: TABLAS de dato, no párrafos (su caza de VIDA) */
@@ -19954,19 +19961,21 @@ function pintaEntrenar(){
   let html='<div class="fila-item"><span class="desc">'+t(L('CÓMO SE JUEGA','HOW TO PLAY','COMO SE JOGA'))+'</span>'
     +'<button class="btn" data-tut="1">'+t(L('VER','SHOW','VER'))+'</button></div>';
   for(const [k,nom,vivo] of SKILL_DEFS){
+    /* la nota del óxido sólo cuando dice algo (su caza 2026-09-02: "el menú de entrenar
+       quedó scrolleable, defensa queda tapado" — cinco renglones vacíos con margen se
+       comían 40 px en la cancha corta).
+       §2z89: y cuando dice algo va DEBAJO DE LA BARRA, adentro del mismo renglón — como renglón
+       propio volvía a poner el scroll con una sola nota (ver el comentario de .barraCol en el CSS) */
+    const nota=timerSkill(k,en,e);
     html+='<div class="fila-skill"><span class="nom">'+t(nom)+'</span>'
-      +'<span class="barraNrg"><i style="width:'+J.skills[k]+'%"></i></span>'
+      +'<span class="barraCol"><span class="barraNrg"><i style="width:'+J.skills[k]+'%"></i></span>'
+      +(nota?'<span class="oxi">'+nota+'</span>':'')+'</span>'
       +'<span class="val">'+Math.round(J.skills[k])+'</span>'
       /* ⚠️ FÍSICO llevaba PRONTO y ahora lleva IR como todos (su pedido: *"pongamos mismo
          botón de IR y que no lleve a ningún lado — el único usuario somos nosotros"*). El
          drill del rebote sigue sin existir; lo que se fue es el cartel que lo anunciaba. */
       +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+'</button>'
       +'</div>';
-    /* la nota del óxido sólo cuando dice algo (su caza 2026-09-02: "el menú de entrenar
-       quedó scrolleable, defensa queda tapado" — cinco renglones vacíos con margen se
-       comían 40 px en la cancha corta) */
-    const nota=timerSkill(k,en,e);
-    if(nota) html+='<div class="nota" style="text-align:left;margin:-2px 0 6px;font-size:13px">'+nota+'</div>';
   }
   $l('lobEntrenar').innerHTML=html;
   /* §2t: IR abre LA PANTALLA DEL SKILL, con la grilla de niveles — la vista de NSS
@@ -19989,10 +19998,16 @@ function timerSkill(k,en,e){
   const oxida=hace===null?e.fechaJugada>=DECAY_FECHAS:hace>=DECAY_FECHAS;
   if(oxida) return '⚠ '+t(L('se está oxidando','going rusty','está enferrujando'));
   if(hace===null||hace<DECAY_FECHAS-2) return '';
-  const faltan=DECAY_FECHAS-hace;
-  return t(L('se oxida en '+faltan+(faltan===1?' fecha':' fechas'),
-    'goes rusty in '+faltan+(faltan===1?' round':' rounds'),
-    'enferruja em '+faltan+(faltan===1?' rodada':' rodadas')));
+  /* §2z89 (su caza 2026-09-06: *"¿por qué dice fechas, no semanas?"*): entrenar se mide en SEMANAS —el cupo
+     son 2 sesiones por semana y el botón de al lado dice PASAR LA SEMANA—, así que el aviso habla en la misma
+     unidad. Y cuántas fechas entran en una semana lo decide la liga (la LNB aprieta 2-3, la Federal espacia),
+     o sea que "8 fechas" ni siquiera era la misma cantidad de tiempo en dos ligas: la cuenta va por el
+     calendario real, no por una división. */
+  const sem=semanaDeFecha(e.semilla,ult+DECAY_FECHAS,e.ritmo)-semanaDeFecha(e.semilla,e.fechaJugada,e.ritmo);
+  if(sem<=0) return '⚠ '+t(L('se oxida esta semana','goes rusty this week','enferruja esta semana'));
+  return '⚠ '+t(L('se oxida en '+sem+(sem===1?' semana':' semanas'),
+    'goes rusty in '+sem+(sem===1?' week':' weeks'),
+    'enferruja em '+sem+(sem===1?' semana':' semanas')));
 }
 
 /* LA GRILLA DE NIVELES (§2t, la vista de NSS): 20 cuadraditos, las estrellas abajo de

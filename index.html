@@ -19744,8 +19744,14 @@ function pintaLobby(){
   if(avTor&&e.fase==='terminada') $l('lobGoteo1').innerHTML=avTor.txt;
   /* §12.25 (su caza: "ese PROMEDIÁS toma todo lo de la temporada, club + selección; es misleading"): el promedio
      es el de la competencia que viene — con la selección, tus partidos de selección; con el club, los del club */
+  /* ⚠️ §2z92 (su pregunta 2026-09-06: *"ese partido que no jugás, ¿te cuenta para los promedios? ¿para el MVP?
+     ¿para algo? porque ese 0/0, si era sólo cosmético es una cosa"*): NO era sólo cosmético acá. Auditados los
+     ocho consumidores de `misPartidos`, siete ya lo dejaban afuera —el MVP y el mercado filtran `jugado` y
+     `rating`, el rol también, el RESUMEN de VOS excluye `conSeleccion` por §2z71, y `miLinea` ni se toca porque
+     `anotarMiLinea` corta antes de sumar—. El que faltaba era ÉSTE, que es encima el número que más se mira:
+     el PROMEDIÁS del HOY dividía por un partido de más con 0 pts, 0 ast y 0 min. */
   const enSelHoy=!!(prox&&prox.tipo==='seleccion');
-  const mp=(e.misPartidos||[]).filter(p=>!!p.sel===enSelHoy);
+  const mp=(e.misPartidos||[]).filter(p=>!!p.sel===enSelHoy&&!p.conSeleccion);
   const ml=mp.reduce((a,p)=>({pj:a.pj+1,pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),min:a.min+(p.minutos||0)}),{pj:0,pts:0,ast:0,min:0});
   const marcaProm=enSelHoy?escuditoDe(clubDeSeleccion(C.jugador.nacionalidad||'ar')):escudito(e.miClubId);   // §12.26: de quién es el promedio (el CSS del goteo lo pone en línea)
   $l('lobGoteo2').innerHTML=ml.pj

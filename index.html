@@ -16704,7 +16704,11 @@ function frame(now){
                                       : dif.def*1.8*Math.min(1.8,1+G.tDrive*0.42)*(esMarca?1:0.6))*dt;
         /* §2z147: en la CONTRA tu marca te corre de atrás a velocidad de transición (la del avance, 112; sube con la
            liga hasta 140 y nunca te alcanza corriendo: 190), no a la de contenerte parado — que se leía como quieta */
-        if(G.tipo==='contra' && esMarca) v=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
+        /* §2z155 (su caza 2026-09-08: "arranqué por abajo y ni bien me moví me salió a tapar MUY RÁPIDO un jugador que
+           estaba ADELANTE mío"): en la clásica y el trailer la marca nace ADELANTE tuyo (yMarca = 22 % del camino al
+           aro, 06), y la velocidad de transición la convertía en un closeout demencial al primer arrastre. La
+           transición es sólo para el que te corre DE ATRÁS (más lejos del aro que vos); adelante, contiene como siempre. */
+        if(G.tipo==='contra' && esMarca && df.y>G.vos.y+10*ESC()) v=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
         if(d0>26*ESC()){ df.x+=(G.vos.x-df.x)/d0*v;
           df.y=Math.max(df.y+(G.vos.y-df.y)/d0*v, pisoDef());  // nadie ADENTRO del aro — salvo que vos estés más abajo (§2z117 v2)
           cuerpoPantalla(df); }
@@ -20572,7 +20576,7 @@ function pintaEntrenar(){
   /* §7.1 la segunda puerta de los tutoriales (18c): SIEMPRE, arriba de los drills — es del juego, no de la beta */
   /* §2z149 (su caza 2026-09-08: "¿por qué CÓMO SE JUEGA no es el botón, en vez de un título y un botoncito naranja en
      la otra punta?"): el renglón tiene UNA acción, así que el renglón es el botón. Mismo alto (28) que las filas. */
-  let html='<div class="fila-item"><button class="btn ancho" data-tut="1">'+t(L('CÓMO SE JUEGA','HOW TO PLAY','COMO SE JOGA'))+'</button></div>';
+  let html='';
   for(const [k,nom,vivo] of SKILL_DEFS){
     /* la nota del óxido sólo cuando dice algo (su caza 2026-09-02: "el menú de entrenar
        quedó scrolleable, defensa queda tapado" — cinco renglones vacíos con margen se
@@ -20590,6 +20594,8 @@ function pintaEntrenar(){
       +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+'</button>'
       +'</div>';
   }
+  /* §2z149/§2z155: el botón entero va DEBAJO de los skills (su corte: "al ser todo grande debería ir abajo") */
+  html+='<div class="fila-item"><button class="btn ancho" data-tut="1">'+t(L('CÓMO SE JUEGA','HOW TO PLAY','COMO SE JOGA'))+'</button></div>';
   $l('lobEntrenar').innerHTML=html;
   /* §2t: IR abre LA PANTALLA DEL SKILL, con la grilla de niveles — la vista de NSS
      (verificada en los frames del video 4, y su pedido: "20 cuadraditos en fila... los

@@ -2539,7 +2539,7 @@ const CLUBES_NACIONAL = [
   { id: 'OLIM', sigla: 'OLI', nombre: 'Olímpico', ciudad: 'La Banda', apodo: 'El Negro', color: '#111111', color2: '#FFFFFF', fuerza: 54, rival: 'QUIM', rivales: ['QUIM'] },
   { id: 'FERR', sigla: 'FER', nombre: 'Ferro Carril Oeste', corto: 'Ferro', ciudad: 'Buenos Aires', apodo: 'El Verdolaga', color: '#1B7F4D', color2: '#FFFFFF', fuerza: 61, rival: 'ATEN', rivales: ['ATEN', 'OBRA', 'SLOR'] },
   { id: 'UNIO', sigla: 'UNI', nombre: 'La Unión de Formosa', corto: 'La Unión (FOR)', ciudad: 'Formosa', apodo: 'La U', color: '#1B76BC', color2: '#C9A96A', fuerza: 57, rival: null },
-  { id: 'ARJU', sigla: 'ARJ', nombre: 'Argentino de Junín', corto: 'Argentino (Jun)', ciudad: 'Junín', apodo: null, color: '#1F5FA8', color2: '#7FA8D0', fuerza: 50, rival: null },
+  { id: 'ARJU', sigla: 'ARG', nombre: 'Argentino de Junín', corto: 'Argentino (Jun)', ciudad: 'Junín', apodo: null, color: '#1F5FA8', color2: '#7FA8D0', fuerza: 50, rival: null },
   { id: 'RACH', sigla: 'RCH', nombre: 'Racing de Chivilcoy', corto: 'Racing (Chiv)', ciudad: 'Chivilcoy', apodo: 'La Academia', color: '#5FA9E8', color2: '#FFFFFF', fuerza: 51, rival: null },
   { id: 'LANU', sigla: 'LAN', nombre: 'Lanús', ciudad: 'Lanús', apodo: 'El Granate', color: '#7B202C', color2: '#FFFFFF', fuerza: 53, rival: null },
   { id: 'PLAT', sigla: 'PLA', nombre: 'Platense', ciudad: 'Vicente López', apodo: 'El Calamar', color: '#FFFFFF', color2: '#633C1B', fuerza: 50, rival: null },
@@ -17848,9 +17848,17 @@ function frame(now){
           const aScr=aPantalla(aro());
           const pisa=Math.hypot(cp.x-aScr.x,(cp.y+42)-aScr.y)<46*ESC();
           const ty=pisa? cp.y-36 : cp.y+42, ty2=pisa? ty-18 : ty+18;
+          /* §2z153 (su caza 2026-09-08: "figuraba LA TIRA pero cuando me salió la pelota estaba completamente tapado,
+             las tres opciones en rojo; es medio mentiroso que te tire verde"): el cartel juzgaba al receptor y la
+             píldora al carril, y podían decir lo contrario. Si con la fuerza que llevás las TRES formas están tapadas
+             (todasTapadas, §2z64), el contrato lo dice en rojo — la promesa verde es sólo para un pase que llega. */
+          const tapado=estable('tap', !esLob && todasTapadas());
           if(sinTiempo){
             ctx.fillStyle='rgba(255,150,51,.95)';
             ctx.fillText(t(L('¡sin tiempo — la tira!','no time — he heaves it!','sem tempo — ele arremessa!')), cp.x, ty);
+          } else if(tapado){
+            ctx.fillStyle='rgba(224,108,90,.95)';
+            ctx.fillText(t(L('¡TAPADO!','COVERED!','TAPADO!')), cp.x, ty);
           } else {
           ctx.fillStyle=va?'rgba(125,208,135,.95)':'rgba(233,236,243,.9)';
           ctx.fillText(va?t(L('¡LA TIRA!','HE SHOOTS IT!','ELE ARREMESSA!')):t(L('te la devuelve','he gives it back','ele devolve pra você')), cp.x, ty);

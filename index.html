@@ -13924,8 +13924,13 @@ function lanzar(zona){
          vuelca NO es un alley-oop). El de verdad — la señal del corte y el pase al espacio —
          es un desbloqueo de carrera, anotado en DISEÑO. Al principio, nadie se mueve solo. */
       if(!carrera && aCompi<=50){ recibe(compi,forma,undefined,vaATirar); return; }
+      /* §2z156 (su caza: "la pelota le apareció ATRÁS suyo y tiró «marcado» porque el juego asumía que estaba solo"):
+         el que no llegó a la pelota no la teletransporta — CORRE hasta donde cayó, y recién ahí se lo juzga, con la
+         defensa donde quedó */
       if(!carrera){ G.suelo=cae;
-        recibe(compi,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],vaATirar); return; }
+        correr(compi,{x:cae.x,y:cae.y},Math.min(0.5,aCompi/190),()=>{ G.suelo=null;
+          recibe(compi,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],
+            (G.corrida&&G.corrida.j===compi)?tiraElCompi(compi,cae):vaATirar); }); return; }
       // la pelota rueda con la carrera ya lanzada: la gana el que llegue primero
       vuelo(cae,carrera.rod,0.04,0.4,()=>{
         const rod=carrera.rod;
@@ -16973,6 +16978,14 @@ function frame(now){
           if(cor.stallD===undefined || dNow<cor.stallD-2){ cor.stallD=dNow; cor.stallT=now; }
           else if(now-cor.stallT>600){ cor.i++; cor.stallD=undefined; } } }
       const tramo=cor.camino?cor.camino[cor.i]:cor.meta, dm=dist(j,cor.meta), dT=dist(j,tramo);
+      /* §2z156 (su caza 2026-09-08 en la sacada: "picaba hacia el medio y se quedó TRABADO atrás de un rival; me seguía
+         apareciendo como buen pase tirarla donde en teoría tenía que estar"): el atasco de §2z120 sólo cubría los
+         tramos intermedios — en el tramo FINAL el que corre podía quedar empujado por un cuerpo para siempre, y todo
+         lo demás (la proyección del pase, el cartel, la flecha) lo leía donde DEBERÍA estar. Si en 700 ms no se
+         acercó a su meta, LLEGÓ donde pudo: la meta pasa a ser su cuerpo, la flecha se apaga y el pase lo juzga ahí. */
+      if(now>=cor.arranca && !cor.llego && dm>12*ESC() && (!cor.camino || cor.i>=cor.camino.length-1)){
+        if(cor.stallM===undefined || dm<cor.stallM-2){ cor.stallM=dm; cor.stallMT=now; }
+        else if(now-cor.stallMT>700){ cor.meta={x:j.x,y:j.y}; cor.llego=true; cor.trabado=true; } }
       if(now>=cor.arranca && !cor.sono){ cor.sono=true; sfx('zapatillas',0.5); }
       /* EL PLANTE TIENE MEMORIA (su caza 2026-08-27b: "sigue habiendo jugadas donde
          quedan jugadores vibrando" — el plante a 34·ESC arregló UN par, pero cualquier

@@ -816,11 +816,13 @@
   #lobby .fila-skill .oxi{font-size:10px;line-height:1;letter-spacing:.5px;color:var(--naranja);
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-skill .barraNrg i{background:linear-gradient(90deg,#e0b13f,var(--naranja))}
-  /* §2z122: los escalones del skill — verde desde 70, dorado desde 85 (el número acompaña) */
+  /* §2z122 v2 (su caza: "el dorado parece más amarillo que el naranja, que parece más dorado; no se siente que
+     mejorás, y en el medio tenés verde"): la escala es la de la ENERGÍA, que él ya lee — más verde es mejor. Ámbar
+     hasta 69, verde de 70 a 84, verde brillante con brillo de 85 en adelante. Sin dorado. */
   #lobby .fila-skill.alto .barraNrg i{background:linear-gradient(90deg,#5aa869,var(--ok))}
   #lobby .fila-skill.alto .val{color:var(--ok)}
-  #lobby .fila-skill.elite .barraNrg i{background:linear-gradient(90deg,#c99a35,#f2c94c)}
-  #lobby .fila-skill.elite .val{color:#f2c94c}
+  #lobby .fila-skill.elite .barraNrg i{background:linear-gradient(90deg,#7dd087,#a8f0b0);box-shadow:0 0 10px rgba(125,208,135,.7)}
+  #lobby .fila-skill.elite .val{color:#a8f0b0;text-shadow:0 0 10px rgba(125,208,135,.6)}
   #lobby .fila-skill .val{width:26px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   /* la tienda y el contrato: TABLAS de dato, no párrafos (su caza de VIDA) */
   /* ⚠️⚠️ LA TIENDA ENTRA SIN SCROLL, Y EL TAMAÑO SALE DE LA JERARQUÍA (su caza 2026-09-04:

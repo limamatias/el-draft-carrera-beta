@@ -58,6 +58,8 @@
      slalom: "el cartel en negro tiene que ir ARRIBA — tapa todo, es un desastre"): en el
      slalom los conos ocupan la mitad de abajo entera, y el aviso caía justo encima. */
   #chips.arriba{bottom:auto;top:20%}
+  /* §2z123: con la barra del tiro viva, el relato y los chips no la tapan */
+  body.conBarra #relato, body.conBarra #chips{visibility:hidden}
   #chipJugada{background:var(--chip);border:1px solid rgba(255,150,51,.5);color:var(--tinta);
               padding:5px 15px;border-radius:20px;font-size:18px;letter-spacing:.8px;opacity:0;
               transform:translateY(9px);transition:opacity .16s,transform .16s;
@@ -17693,6 +17695,11 @@ function frame(now){
       }
     }
     // la fase 2 en modo MEDIDOR: la barra 2K al lado tuyo, con la cancha a la vista
+    /* §2z123 (su caza 2026-09-07: "el mensaje de «levantaste el dribble» según dónde estés te tapa la barra de tiro"):
+       el HUD se mide al armar la posesión y el aro cuelga de esa medida (no se puede re-medir en vivo); un relato de
+       dos renglones que entra DESPUÉS crece por debajo y pisa la barra cuando estás arriba. Mientras la barra está
+       viva, el relato y los chips se apagan: la barra es lo único que hay que mirar. */
+    document.body.classList.toggle('conBarra', !!(G.fase==='forma' && G.medidor));
     if(G.fase==='forma' && G.medidor){
       const md=G.medidor;
       const pts=puntosBarra();

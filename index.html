@@ -14022,6 +14022,11 @@ function reboteTrasBailar(esc, txtEllos){
   const armaEllos=(txt)=>{ G.fase='vuelo'; G.suelo=caeR;
     correr(suBig,{x:caeR.x+rnd(-6,6), y:caeR.y}, 0.45, ()=>{ G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now(), txtEllos:txt};
       resolverRebote(false); }); };
+  /* §2z152 (su caza 2026-09-08: "cayó cerca mío pero con un rival literalmente al lado; mi jugador se movió solo hasta
+     la pelota y no tuve chance"): con el rival ENCIMA de la pelota (a menos de un cuerpo, 30·ESC — el mismo umbral del
+     palmeo, §2z4.1) no hay pelea que abrir: es de ellos, y se lo ve agarrarla. La pelea sólo se abre cuando los dos
+     tienen que correr. */
+  if(dRiv<30*ESC()){ armaEllos(txtEllos); return true; }
   if(dVos<zona && dVos<dRiv*0.85){
     /* TUYA SIN PELEA: nadie más cerca — la levantás donde cayó */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();
@@ -14030,7 +14035,7 @@ function reboteTrasBailar(esc, txtEllos){
       correr(G.vos,caeR,0.3,()=>resolverRebote(true)); }, 250);
     return true;
   }
-  if(dVos<zona && dRiv<dVos*1.2){
+  if(dVos<zona && dRiv<zona){
     /* PELEA: la escena, con vos corriendo (§2z17) */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();
     setTimeout(()=>{ if(G.fase!=='vuelo') return;

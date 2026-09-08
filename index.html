@@ -15243,7 +15243,7 @@ function siguienteBeat(){
     /* §2z113 (su caza 2026-09-07: "pensé que estaba en cancha y de la nada te dice «volvés a la cancha para el
        cierre», sin que te hayan dicho que saliste"): el último cuarto arranca en el banco SIN AVISO — los tres
        primeros anuncian "salís a descansar" cuando cruzás la rotación, pero acá enCancha se apagaba en silencio. */
-    if(b.n===3 && !G.enCancha && !G.sub) setTimeout(()=>fila(t(L('Arrancás el último en el banco: volvés para el cierre.','You start the fourth on the bench: back for the close.','Você começa o último no banco: volta pro fim.')),'hito'),700);
+    if(b.n===3 && !G.enCancha && !G.sub) setTimeout(()=>fila(t(L('Arrancás el último cuarto en el banco.','You start the fourth on the bench.','Você começa o último quarto no banco.')),'hito'),700);   // §2z113 v2 (su caza: "volvés para el cierre" repetía al de la entrada)
     G.pedidaEnCuarto=false;   // PEDILA: una por cuarto (el último es libre)
     pintarBtnPedila();   // el repintado del beat corrió ANTES de resetear el reloj (quedaba en 0)
     fila([t(L('ARRANCA EL PARTIDO','THE GAME TIPS OFF','COMEÇA O JOGO')),

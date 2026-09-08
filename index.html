@@ -216,6 +216,7 @@
   /* §2z19: la card del cierre de serie — ancho completo, entra última (después de la barra) */
   #finNota .nivelNuevo{font-size:22px;font-weight:700;letter-spacing:3px;color:#f2c94c;text-align:center;width:100%;
        text-shadow:0 0 18px rgba(242,201,76,.55);opacity:0;animation:entra .35s ease-out forwards}
+  #finNota .nivelNuevo.perdida{color:var(--mal);text-shadow:0 0 18px rgba(224,108,90,.45)}   /* §2z145 */
   #finNota .serie{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:10px 12px;border-radius:12px;
        background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.35);opacity:0;animation:entra .3s ease-out forwards;text-align:center}
   #finNota .serie .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
@@ -11911,8 +11912,19 @@ function armarPosesion(){
     if(vC==='abre'){ G.custodio=G.defs[0]; G.defs[0].vuelve=true;
       G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30); G.defs[1].big=false; }
     else if(hayCustodio) G.custodio=G.defs[1];
-    else { G.custodio=null;
-      G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30); }
+    else {
+      /* §2z147 (su caza 2026-09-08: "hay contras donde todos se quedan muy estáticos: vos vas directo al aro y se
+         quedan parados en mitad de cancha"): el que "no llegó" nacía a mitad de cancha SIN cerebro —ni marca, ni
+         perseguidor, ni custodio— y sólo se movía si pasabas a 70·ESC de él. Ahora es EL QUE VUELVE TARDE: corre a la
+         pintura (el puesto del custodio) a una velocidad que sale de la desigualdad: llega tu tiempo al aro + un
+         margen DESPUÉS que vos, así corriendo derecho el coast-to-coast sigue siendo tuyo; si boteás o dudás, llega,
+         se planta y es el custodio de siempre (lee y se compromete, §2z39.27). El margen baja con la liga:
+         0,25 + 0,5·(56−def)/56 s → novato ~0,6 s, titular ~0,46, estrella 0,25. Incluso abajo se mueven (su corte:
+         "si no parece abandono de nuestro lado"). */
+      G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30);
+      const puesto={x:a.x, y:a.y+60*ESC()}, tVos=dist(G.vos,a)/190, margen=0.25+0.5*Math.max(0,56-(dif.def||16))/56;
+      G.defs[1].vuelve=true; G.defs[1].vTarde=clamp(dist(G.defs[1],puesto)/(tVos+margen), 40, 170);
+      G.custodio=G.defs[1]; }
     G.comprometido=false; G.custodioLee=null;   // §2z39.27
   }
   if(G.tipo==='defensa'){
@@ -13455,8 +13467,9 @@ function soltarMedidor(){
   /* el tiro viaja con el fuego que tenías al soltarlo (la llama muere donde el tiro muere) */
   const fallo=(hastaF,ver,chipTxt)=>{ const fu=G.fuego; apagaFuego();
     vuelo(desde,hastaF,0.5,dur,()=>{ veredicto(ver,'mal'); if(chipTxt)chip(chipTxt);
-      correr(G.defs[2]||G.defs[0], {x:hastaF.x+rnd(-10,10), y:Math.max(hastaF.y,aro().y+24)}, 0.45, ()=>{});
-      finPosesion(false,L('Tu tiro no entró.','Your shot didn\'t fall.','Seu arremesso não caiu.')[idioma()]); }, fu); };
+      if(!reboteTrasBailar(hastaF,L('Tu tiro no entró y el rebote fue de ellos.','Your shot missed and they got the board.','Seu arremesso não caiu e o rebote foi deles.')[idioma()])){   // §2z146
+        correr(G.defs[2]||G.defs[0], {x:hastaF.x+rnd(-10,10), y:Math.max(hastaF.y,aro().y+24)}, 0.45, ()=>{});
+        finPosesion(false,L('Tu tiro no entró.','Your shot didn\'t fall.','Seu arremesso não caiu.')[idioma()]); } }, fu); };
   const anotaF=()=>{ const v=es3?3:2;
     canastaFx(); G.nos+=v; G.pts+=v; G.aciertos++; if(v===3)G.triples++;
     prendeFuego(); aprende('jumper');
@@ -13478,7 +13491,7 @@ function soltarMedidor(){
       const esc={x:borde.x+Math.cos(angO)*rnd(36,72), y:borde.y+Math.sin(angO)*rnd(36,72)};
       vuelo(borde,esc,0.5,0.28,()=>{ veredicto(L('Bailó en el hierro','Rattled out','Dançou no ferro')[idioma()],'mal'); apagaFuego();
         /* el "casi" del medidor alimenta el rebote vivo, como el bailó de siempre */
-                if(!reboteTrasBailar(esc)){ correr(G.defs[2]||G.defs[0], {x:esc.x+rnd(-8,8), y:Math.max(esc.y,aro().y+24)}, 0.4, ()=>{});
+                if(!reboteTrasBailar(esc,L('Tu tiro bailó y el rebote fue de ellos.','Your shot rattled out and they got the board.','Seu arremesso dançou e o rebote foi deles.')[idioma()])){ correr(G.defs[2]||G.defs[0], {x:esc.x+rnd(-8,8), y:Math.max(esc.y,aro().y+24)}, 0.4, ()=>{});
           finPosesion(false,enCancha(esc)?L('Tu tiro bailó y salió.','Your shot rattled out.','Seu arremesso dançou no aro e saiu.')[idioma()]
                                         :L('Tu tiro bailó y se fue afuera.','Your shot rattled out of bounds.','Seu arremesso dançou no aro e saiu da quadra.')[idioma()]); } }); }, G.fuego); };
   /* 1) la gomera manda primero: fuerza + puntería (su regla 2026-08-28) — el medidor
@@ -13662,7 +13675,7 @@ function lanzar(zona){
                    y:destino.y+Math.sin(angO)*rnd(30,64)};
         vuelo(destino, esc, 0.5, 0.28, ()=>{
           veredicto(largoDe?L('Bailó — LARGO','Rattled — LONG','Dançou — LONGO')[idioma()]:L('Bailó — CORTO','Rattled — SHORT','Dançou — CURTO')[idioma()],'mal'); apagaFuego();
-                    if(!reboteTrasBailar(esc)){ correr(G.defs[2]||G.defs[0], {x:esc.x+rnd(-8,8), y:Math.max(esc.y,aro().y+24)}, 0.4, ()=>{});
+                    if(!reboteTrasBailar(esc,L('Tu tiro bailó y el rebote fue de ellos.','Your shot rattled out and they got the board.','Seu arremesso dançou e o rebote foi deles.')[idioma()])){ correr(G.defs[2]||G.defs[0], {x:esc.x+rnd(-8,8), y:Math.max(esc.y,aro().y+24)}, 0.4, ()=>{});
             finPosesion(false,enCancha(esc)?L('Tu tiro bailó y salió.','Your shot rattled out.','Seu arremesso dançou no aro e saiu.')[idioma()]
                                           :L('Tu tiro bailó y se fue afuera.','Your shot rattled out of bounds.','Seu arremesso dançou no aro e saiu da quadra.')[idioma()]); }
         }); return;
@@ -13674,8 +13687,10 @@ function lanzar(zona){
         chip(porPunteria?L('La puntería: mirá para dónde se fue','Your aim: watch where it went','A mira: olha pra onde foi')[idioma()]
             :porToque?L('El toque sucio la desvió — mirá cómo salió','The sloppy touch pushed it off — watch how it flew','O toque sujo desviou — olha como saiu')[idioma()]:L('La fuerza: mirá dónde cayó','Your power: watch where it landed','A força: olha onde caiu')[idioma()]);
         apagaFuego();
-        correr(G.defs[2]||G.defs[0], {x:cae.x+rnd(-10,10), y:Math.max(cae.y,aro().y+24)}, 0.45, ()=>{});
-        finPosesion(false,L('Tu tiro no entró.','Your shot didn\'t fall.','Seu arremesso não caiu.')[idioma()]); }
+        /* §2z146: el fallo feo también deja la pelota suelta — la geometría decide */
+        if(!reboteTrasBailar(cae,L('Tu tiro no entró y el rebote fue de ellos.','Your shot missed and they got the board.','Seu arremesso não caiu e o rebote foi deles.')[idioma()])){
+          correr(G.defs[2]||G.defs[0], {x:cae.x+rnd(-10,10), y:Math.max(cae.y,aro().y+24)}, 0.45, ()=>{});
+          finPosesion(false,L('Tu tiro no entró.','Your shot didn\'t fall.','Seu arremesso não caiu.')[idioma()]); } }
     }, G.fuego);
   } else {
     /* EL PASE EN EL AIRE ES TIEMPO TUYO (su regla 2026-08-28): mientras viaja, el reloj
@@ -13970,23 +13985,48 @@ function corteEscena(){
    repetitivo y no es lo importante del juego"): UNA compuerta de frecuencia, acá y en ningún
    otro lado. No es un dado sobre tu error —el tiro ya se erró—: es el guion decidiendo si
    esta pelota queda viva. A calibrar por sus dedos. */
-const REBOTE_PROB=0.3;
-function reboteTrasBailar(esc){
+/* §2z146 (su caza 2026-09-08: "erro un tiro lejos, la animación del rebote sale PARA MI LADO, no hay ningún rival
+   en el camino… y la jugada termina"). El dado se fue: la pelota suelta la decide la GEOMETRÍA, como el palmeo
+   (§2z4.1). Y cubre también el fallo feo (corto/largo/cruzado), que antes no tenía camino al rebote.
+   Las cuatro líneas: (1) examina leer la pelota suelta —si quedó más cerca tuyo que de cualquier rival es tuya; si
+   hay pelea, la reacción con toques de §2z17—; (2) presupuesto: el de §2z17, sin cambios; (3) el punto de caída
+   contra cuatro cuerpos: vos, tu grandote, su grandote y tu marca; zona de alcance 0,55·R3 (~90 px);
+   (4) d_vos < zona y d_vos < 0,85·d_rival → tuya sin pelea (segunda chance, reloj 6 s, la pelota en la mano donde
+   cayó); d_vos < zona y d_rival < 1,2·d_vos → pelea con toques; si no, de ellos — y el que la agarra LLEGA A LA
+   VISTA antes de cerrar (el respiro de 1,4 s del rebote perdido).
+   Lo esporádico ya no lo pone un dado sino la geometría: tu marca casi siempre está encima tuyo, así que la
+   mayoría de las pelotas que vienen para tu lado son pelea, no regalo. Su corte: "no tiene que pasar SIEMPRE… me
+   preocupa que la mayoría sean rebote + bandeja": por eso al ganarla la marca se re-planta ENTRE vos y el aro
+   (resolverRebote) y su grandote sigue en el aro — la segunda chance no es un carril libre. */
+const REBOTE_ZONA=0.55;
+function reboteTrasBailar(esc, txtEllos){
   if(!enCancha(esc)) return false;   // afuera es afuera (04/10)
   /* §2z68 (su caza 2026-09-06: "en la práctica de tiro ME SALIÓ EL REBOTE OFENSIVO, eso sí está raro"). Y sí: una
      práctica examina UN gesto, y el rebote es otro examen entero —otro presupuesto, otros toques, otro veredicto—
      que aparecía de la nada porque el tiro bailó. Peor en un tutorial: `finPosesion` es `finTut`, así que la
      escena del rebote se comía el intento y la lección no volvía a arrancar.
-     Es la misma familia que §2z63 y §2z67 b: **una pieza de práctica no hereda las ramas del partido.** La
-     compuerta vive acá porque acá vive la única de frecuencia (el comentario de arriba), así que cubre los tres
-     llamadores de una. */
+     Es la misma familia que §2z63 y §2z67 b: **una pieza de práctica no hereda las ramas del partido.** */
   if(G.esDrill || G.tut) return false;
-  if(Math.random()>=REBOTE_PROB) return false;
   const a=aro();
-  const caeR={x:a.x+rnd(-42,42), y:a.y+rnd(26,56)};   // nunca ADENTRO del aro dibujado
-  const miBig=G.comps[0], suBig=G.defs[2]||G.defs[0], zona=R3()*0.55;
-  if(dist(G.vos,caeR)<zona){
-    /* ES TUYO: la escena, con vos corriendo */
+  const caeR={x:esc.x, y:Math.max(esc.y, a.y+26)};   // nunca ADENTRO del aro dibujado
+  const miBig=G.comps.find(c=>c.big)||G.comps[0], zona=R3()*REBOTE_ZONA;
+  const rivales=G.defs.filter(Boolean);
+  let suBig=G.defs[2]||G.defs[0], dRiv=Infinity;
+  for(const d of rivales){ const dd=dist(d,caeR); if(dd<dRiv){ dRiv=dd; suBig=d; } }   // el rival MÁS CERCANO la pelea
+  const dVos=dist(G.vos,caeR);
+  const armaEllos=(txt)=>{ G.fase='vuelo'; G.suelo=caeR;
+    correr(suBig,{x:caeR.x+rnd(-6,6), y:caeR.y}, 0.45, ()=>{ G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now(), txtEllos:txt};
+      resolverRebote(false); }); };
+  if(dVos<zona && dVos<dRiv*0.85){
+    /* TUYA SIN PELEA: nadie más cerca — la levantás donde cayó */
+    G.fase='vuelo'; G.suelo=caeR; corteEscena();
+    setTimeout(()=>{ if(G.fase!=='vuelo') return;
+      G.scr={mi:G.vos, su:suBig, t:caeR, boost:0, t0:performance.now(), vos:true};
+      correr(G.vos,caeR,0.3,()=>resolverRebote(true)); }, 250);
+    return true;
+  }
+  if(dVos<zona && dRiv<dVos*1.2){
+    /* PELEA: la escena, con vos corriendo (§2z17) */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();
     setTimeout(()=>{ if(G.fase!=='vuelo') return;
       veredicto(t(L('¡REBOTE VIVO!','LIVE BALL!','REBOTE VIVO!')),'neu',1000);
@@ -13997,24 +14037,27 @@ function reboteTrasBailar(esc){
   }
   /* LEJOS: el grandote, por relato — sin dado: la gana si está en zona y claramente mejor
      parado que el de ellos (los dos cuerpos están a la vista) */
-  if(dist(miBig,caeR)<zona && dist(miBig,caeR)<dist(suBig,caeR)*0.85){
+  if(miBig && dist(miBig,caeR)<zona && dist(miBig,caeR)<dRiv*0.85){
     G.fase='vuelo'; G.suelo=caeR;
     correr(miBig,caeR,0.45,()=>{ G.suelo=null;
       G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now()};   // el estado que resolverRebote lee
       resolverRebote(true); });
     return true;
   }
-  return false;
+  /* DE ELLOS: el que la agarra llega a la vista, y recién ahí cierra */
+  armaEllos(txtEllos);
+  return true;
 }
 function resolverRebote(gana){
   const a=aro(), caeR=G.scr.t, miBig=G.scr.mi, suBig=G.scr.su;
-  G.scr=null; G.suelo=null;
+  G.scrTxt=G.scr.txtEllos||null; G.scr=null; G.suelo=null;
   if(!gana){
     /* el cierre no se apaga de golpe (su reporte 2026-08-23: "se apaga todo rápido y te
        tira el mensaje"): el grandote de ellos LA ASEGURA a la vista, un respiro, y recién
        ahí la posesión termina */
     flash(suBig); G.pelotaEn=suBig; veredicto(t(L('REBOTE DE ELLOS','THEIR BOARD','REBOTE DELES')),'mal');
-    setTimeout(()=>finPosesion(false,t(L('Tu tiro bailó y el rebote fue de ellos.','Your shot rattled out and they got the board.','Seu arremesso dançou e o rebote foi deles.'))), 1400);
+    const txtE=G.scrTxt||t(L('Tu tiro bailó y el rebote fue de ellos.','Your shot rattled out and they got the board.','Seu arremesso dançou e o rebote foi deles.')); G.scrTxt=null;
+    setTimeout(()=>finPosesion(false,txtE), 1400);
     return; }
   /* la segunda chance es JUGADA NUEVA para la marca (su reporte 2026-08-23: "cuando te
      pasa la pelota la marca te sigue corriendo... me pasaron por arriba"): heredaba tu
@@ -14028,9 +14071,10 @@ function resolverRebote(gana){
     veredicto(t(L('¡REBOTE TUYO!','YOUR BOARD!','REBOTE SEU!')),'ok');
     relato(t(L('La ganaste vos: segunda chance, definí.','You won it: second chance, finish.','Você ganhou: segunda chance, finaliza.')),true);
     /* recepción protegida, como la devolución: la marca no puede estar ya encima */
-    { const dM=dist(G.marca,G.vos), piso=55*ESC();
-      if(dM<piso){ const an=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x)||0;
-        G.marca.x=G.vos.x+Math.cos(an)*piso; G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, a.y+20*ESC()); } }
+    /* §2z146 (su corte: "me preocupa que la mayoría sean rebote + bandeja"): la marca se re-planta ENTRE vos y el
+       aro, a un cuerpo — la segunda chance no es un carril libre */
+    { const piso=55*ESC(), an=Math.atan2(a.y-G.vos.y,a.x-G.vos.x)||0;
+      G.marca.x=G.vos.x+Math.cos(an)*piso; G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, a.y+20*ESC()); }
     G.devuelta=true; G.levanto=false; G.fase='espera';
     return;
   }
@@ -16646,8 +16690,11 @@ function frame(now){
         const esMarca=df===G.marca;
         if(!esMarca && d0>70*ESC()) continue;
         const rampa=esMarca ? Math.min(1.4, 1+G.tDrive*0.22) : 0.6;
-        const v=(dif.drive==='toques' ? dif.def*0.85*rampa
+        let v=(dif.drive==='toques' ? dif.def*0.85*rampa
                                       : dif.def*1.8*Math.min(1.8,1+G.tDrive*0.42)*(esMarca?1:0.6))*dt;
+        /* §2z147: en la CONTRA tu marca te corre de atrás a velocidad de transición (la del avance, 112; sube con la
+           liga hasta 140 y nunca te alcanza corriendo: 190), no a la de contenerte parado — que se leía como quieta */
+        if(G.tipo==='contra' && esMarca) v=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
         if(d0>26*ESC()){ df.x+=(G.vos.x-df.x)/d0*v;
           df.y=Math.max(df.y+(G.vos.y-df.y)/d0*v, pisoDef());  // nadie ADENTRO del aro — salvo que vos estés más abajo (§2z117 v2)
           cuerpoPantalla(df); }
@@ -17013,7 +17060,7 @@ function frame(now){
       } else if(!G.comprometido) G.custodioLee=null;
       const meta = G.comprometido ? G.vos
         : {x:a2.x+(G.vos.x-a2.x)/dVA*60*ESC(), y:a2.y+(G.vos.y-a2.y)/dVA*60*ESC()};
-      const vCu=(G.comprometido ? Math.max(55,dif.def*2) : cu.vuelve ? Math.max(130,dif.def*1.6) : dif.def*1.6)*dt;   // §2z106: el que vuelve tarde sprintea hasta su puesto
+      const vCu=(G.comprometido ? Math.max(55,dif.def*2) : cu.vuelve ? (cu.vTarde||Math.max(130,dif.def*1.6)) : dif.def*1.6)*dt;   // §2z106: el que vuelve tarde sprintea hasta su puesto · §2z147: o a la velocidad de la desigualdad
       const dd=dist(cu,meta), tope=G.comprometido?26*ESC():4;
       /* el custodio plantado también tiene latch (sólo sin comprometer: el sprint del
          closeout no se congela) — llegó al puesto y se queda; re-corre pasando 14·ESC */
@@ -21011,7 +21058,11 @@ terminar=function(){
      era todo el anuncio. Cuando la estrella es nueva, después de la barra sale el renglón dorado ★n+1 — NUEVO NIVEL. */
   const nivelEl=document.getElementById('finNivel');
   nivelEl.classList.add('oculto'); nivelEl.textContent='';
+  nivelEl.classList.toggle('perdida',bajo);
   if(nivelDespues>nivelAntes){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
+  /* §2z145 (su caza 2026-09-08: "perdiste la estrella en un cartelito rojo chiquito, tapando otras cosas"): la
+     estrella perdida se anuncia igual que la nueva —el mismo renglón del cierre, en rojo—, no con el toast del lobby */
+  else if(bajo){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('PERDISTE LA ESTRELLA','YOU LOST THE STAR','PERDEU A ESTRELA')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
   document.getElementById('finEstB').textContent='★'+(nivBarra+1);
   const barra=document.getElementById('finBarra'); barra.style.animationDelay=tRels+'ms';
   const antes=document.getElementById('finBarraAntes'), ahora=document.getElementById('finBarraAhora'), perdida=document.getElementById('finBarraPerdida');
@@ -21218,11 +21269,10 @@ function registrarResultado(){
   enPartido=null;
   guardar();
   const volverAlLobby=()=>{ abrirLobby();
-  if(subio) avisar(t(L('Subiste de nivel: ','You leveled up: ','Você subiu de nível: '))+'★'+J.nivel);
-  else if(bajo) avisar(t(L('Perdiste la estrella: ','You lost the star: ','Você perdeu a estrela: '))+'★'+J.nivel);   // §2z101
-  else if(amAviso) avisar(amAviso);
+  /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
+  if(amAviso) avisar(amAviso);
   else if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…')));
-  if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),(subio||bajo||amAviso||caidos.length)?2200:0); };   // §2z105: después del otro aviso, no encima
+  if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),(amAviso||caidos.length)?2200:0); };   // §2z105: después del otro aviso, no encima
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
   if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby();
 }

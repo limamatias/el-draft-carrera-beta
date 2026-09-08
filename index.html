@@ -11522,8 +11522,12 @@ function armarPosesion(){
        tirar de 3; si SIEMPRE está, se pierde el incentivo a pasársela a cualquier otro"): §2z49 subió el rango del
        compañero a 1,20·R3 y "el que está solo tira" — la válvula, sin defensor, quedaba entre 1,12 y 1,20 y era el
        triple gratis que esta misma nota prohibía. Va a >1,28·R3: fuera del rango, resetea adentro. */
-    const dCorta=dist(corta,a);
-    if(dCorta<R3()*1.28){ const k=R3()*1.28/Math.max(1,dCorta);
+    /* §2z129 (su caza 2026-09-07: "ahora tenés el jugador libre de 3 pero como está un paso atrás no tira; ¿la solución
+       era que NUNCA pueda tirar? es raro"): §2z77 lo sacaba del rango (>1,28·R3) para que no fuera el triple gratis. Vuelve
+       al rango (1,06–1,16·R3) y en vez de estar solo tiene MARCA (defs[3], a un cuerpo del lado de la pelota): la válvula
+       es un jugador de verdad — si lo dejan, tira; si lo marcan, resetea adentro. */
+    const dCorta=dist(corta,a), rC=R3()*rnd(1.06,1.16);
+    { const k=rC/Math.max(1,dCorta);
       corta.x=clamp(a.x+(corta.x-a.x)*k, MARG()+16, W-MARG()-16);
       corta.y=clamp(a.y+(corta.y-a.y)*k, a.y+40, H*0.9); }
     G.comps.push(corta);
@@ -11559,6 +11563,9 @@ function armarPosesion(){
        (2z39.1): sale a rotar cuando la pelota entra a la pintura */
     (()=>{ const b=G.comps[0], dB=Math.max(1,dist(b,a)); return { x: b.x+(a.x-b.x)/dB*34*ESC(), y: b.y+(a.y-b.y)/dB*34*ESC(), big:true }; })(),
   ];
+  /* §2z129: la marca de la válvula de la sacada, a un cuerpo de él del lado de la pelota */
+  if(G.tipo==='sacada' && G.comps[2]){ const cv=G.comps[2], dV=Math.max(1,dist(cv,G.vos));
+    G.defs.push({ x: cv.x+(G.vos.x-cv.x)/dV*30*ESC()+rnd(-5,5), y: cv.y+(G.vos.y-cv.y)/dV*30*ESC()+rnd(-5,5) }); }
   /* LA POSESIÓN HEREDADA HEREDA EL ELENCO (su reporte 2026-08-23: "los jugadores no
      quedan en la misma posición que pasaron al ataque en la transición"): tras el cruce
      del avance o el cierre del contra, cada uno queda DONDE SU CARRERA LO DEJÓ — nada
@@ -20906,7 +20913,7 @@ terminar=function(){
   document.getElementById('finLinea').classList.add('oculto');   // la planilla la reemplaza en la carrera
   document.getElementById('cFin').classList.add('oculto');   // "Partidos: 1 · récord de racha" es del modo suelto, no de la carrera
   caja.classList.remove('oculto');
-  setTimeout(()=>{ ahora.style.transition=''; ahora.style.width=(fDespues*100)+'%'; if(dExp<0) perdida.style.opacity='1'; },tBarra);
+  setTimeout(()=>{ ahora.style.transition=''; ahora.style.width=(fDespues*100)+'%'; if(dExp<0){ perdida.style.opacity='1'; setTimeout(()=>{ perdida.style.opacity='0'; },1800); } },tBarra);   // §2z130: el rojo se muestra y se va
 };
 /* Si ESTE partido cierra tu serie, qué pasó: se calcula ANTES de registrar el resultado
    (la serie viva todavía no tiene tu juego). null si no es serie o si sigue abierta. */

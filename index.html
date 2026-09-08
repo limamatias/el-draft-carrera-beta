@@ -279,8 +279,6 @@
   #finNota #finBarraAhora{background:#f2c94c;transition:width .9s cubic-bezier(.2,.8,.2,1)}
   /* §2z101: lo que la noche te sacó, en rojo, y el número del partido al lado de la barra */
   #finNota #finBarraPerdida{background:var(--mal);transition:opacity .4s ease-out}
-  #finNota .barraExp small{flex:none;min-width:34px;text-align:right;font-size:12px;font-weight:700;letter-spacing:.5px;opacity:0;animation:entra .3s ease-out forwards}
-  #finNota .barraExp small.ok{color:var(--ok)} #finNota .barraExp small.mal{color:var(--mal)}
   /* la misión del DT en el pre-partido: tarjeta propia, no un renglón más del scouting */
   #lobPreMision{display:flex;align-items:center;gap:10px;width:min(100%,300px);margin:6px auto 0;padding:8px 12px;
        border-radius:12px;background:rgba(20,27,44,.92);border:1px solid rgba(255,150,51,.45);text-align:left}
@@ -1486,7 +1484,7 @@
     <div class="planilla" id="finPlanilla"></div>
     <div class="puntuacion" id="finPuntuacion"><span class="lbl" data-l-en="MATCH RATING" data-l-pt="PONTUAÇÃO">PUNTUACIÓN</span><b id="finNotaNum"></b></div>
     <div class="rels" id="finRels"></div>
-    <div class="barraExp" id="finBarra"><span id="finEstA"></span><div class="pista"><i id="finBarraAntes"></i><i id="finBarraAhora"></i><i id="finBarraPerdida"></i></div><span id="finEstB"></span><small id="finBarraDelta"></small></div>
+    <div class="barraExp" id="finBarra"><span id="finEstA"></span><div class="pista"><i id="finBarraAntes"></i><i id="finBarraAhora"></i><i id="finBarraPerdida"></i></div><span id="finEstB"></span></div>
     <!-- §2z19: LA CARD DEL CIERRE DE SERIE (su ok 2026-09-02) — sólo el partido que cierra tu serie -->
     <div class="serie oculto" id="finSerie"><span class="lbl" id="finSerieLbl"></span><b id="finSerieTxt"></b></div>
   </div>
@@ -11078,7 +11076,9 @@ const rachaReal=()=>Math.max(0,G.fuego-(G.fuegoRegalo||0));
 function prendeFuego(){
   G.fuego++; G.fuegoMax=Math.max(G.fuegoMax,rachaReal());
   if(G.fuego===CALENTANDO) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Estás entrando en ritmo.',"You're heating up.",'Está pegando ritmo.')),true); }, 750);
-  if(G.fuego===ENFUEGO) setTimeout(()=>{ if(G.fase!=='fin'){ sfx('fuego',0.8);
+  /* §2z109 (su caza 2026-09-07: "metí el tiro en la última y justo quedé on fire: me salieron las dos imágenes
+     juntas"): sobre la chicharra el partido terminó — el momento es el de la volcada (15), y el fuego no tiene futuro */
+  if(G.fuego===ENFUEGO && !G.esFinal) setTimeout(()=>{ if(G.fase!=='fin'){ sfx('fuego',0.8);
     if(!G.vinetaFuego){ G.vinetaFuego=true; vineta('fuego',1550);
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
@@ -20768,7 +20768,9 @@ terminar=function(){
   const antes=document.getElementById('finBarraAntes'), ahora=document.getElementById('finBarraAhora'), perdida=document.getElementById('finBarraPerdida');
   antes.style.width=(fAntes*100)+'%'; ahora.style.transition='none'; ahora.style.width=(fAntes*100)+'%';
   perdida.style.left=(fDespues*100)+'%'; perdida.style.width=(dExp<0?(fAntes-fDespues)*100:0)+'%'; perdida.style.opacity='0';
-  const dLbl=document.getElementById('finBarraDelta'); dLbl.textContent=(dExp>0?'+':'')+fdec(dExp); dLbl.className=dExp>0?'ok':dExp<0?'mal':''; dLbl.style.animationDelay=tBarra+'ms';
+  /* §2z110 (su caza: "dice +2,6 y no entiendo qué es: nunca decimos de cuánto a cuánto va el nivel; mostrar unos puntos
+     no tiene sentido") — la ley de no aclarar: el número era una escala sin nombre. La barra sola: lo ganado se ve
+     porque el tramo nuevo entra más brillante que el viejo, y lo perdido queda en rojo. */
   /* §2z19: LA CARD DEL CIERRE DE SERIE (su ok, 2026-09-02: "veo ok lo de la card") — sólo en
      el partido que CIERRA tu serie, después de la barra: qué pasó con la serie, en una
      palabra. NOS QUEDAMOS / DESCENDEMOS (play-out), ELIMINADOS EN <ronda>, SERIE GANADA,

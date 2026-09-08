@@ -5615,7 +5615,9 @@ function mostrarCarta(c,rotulo,alTerminar){
   document.getElementById('cartaFondo').style.backgroundImage=fondo?'url('+fondo+')':'none';
   v.classList.toggle('sobreCancha',!fondo);
   document.getElementById('cartaRotulo').textContent=rotulo;
-  document.getElementById('cartaGancho').textContent=t(c.gancho);
+  /* §2z136: red — un gancho-función que llegue crudo se resuelve con el contexto general; nunca una carta muda */
+  let gancho=c.gancho; if(typeof gancho==='function'){ try{ gancho=gancho(ctxCarta(null)); }catch(err){ gancho=''; } }
+  document.getElementById('cartaGancho').textContent=t(gancho);
   const ops=document.getElementById('cartaOpciones');
   /* §2z42.3 (su regla: "puede salirte «invitar el asado» aunque estés con 0 pesos, pero grisada y que te aclare que
      necesitás X cantidad de plata"): `requierePlataX` es cuántos pagos por partido pide la opción; si no llegás,
@@ -5796,7 +5798,11 @@ function cartaDePrensa(u,volver,forzar){
     : (u.serie||u.playoffs)?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
     : u.fecha?t(L('FECHA','ROUND','RODADA'))+' '+u.fecha
     : null;
-  mostrarCarta(c,t(L('LA PRENSA','THE PRESS','A IMPRENSA'))+(dedonde?' · '+dedonde:''),volver);
+  /* §2z136 (su captura 2026-09-07: la carta de la misión en el clave salió SIN prosa, sólo las opciones): §2z100 hizo
+     función al gancho de las dos cartas de misión (lee `u.grande`) y este camino no la resolvía — sólo el del túnel
+     (§2z40.1) lo hacía. Se resuelve acá y, de red, en mostrarCarta. */
+  const cc=typeof c.gancho==='function'?{...c,gancho:c.gancho(ctx)}:c;
+  mostrarCarta(cc,t(L('LA PRENSA','THE PRESS','A IMPRENSA'))+(dedonde?' · '+dedonde:''),volver);
   return true;
 }
 

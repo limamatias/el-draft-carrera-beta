@@ -16800,7 +16800,15 @@ function frame(now){
         if(sep||tope){ cor.esperaSep=null; cor.arranca=now+300; } }
       /* §2z39: el corte pedido va por un CAMINO de tramos (backdoor: paso afuera + diagonal; deslizamiento:
          por el arco; flash: recto) — el tramo vigente es cor.camino[cor.i]; cor.meta es el final */
-      if(cor.camino){ cor.i=cor.i||0; while(cor.i<cor.camino.length-1 && dist(j,cor.camino[cor.i])<=4) cor.i++; }
+      /* §2z120 (su novia en el drill 1 de desmarque: "el que se desmarca en curva por la línea de 3 se quedó trabado
+         alrededor suyo junto al marcador, nunca llegó"): el tramo se daba por alcanzado a 4 px, y en el drill el
+         camino de reserva puede pasar por VOS o tu marca — cuerpos que lo empujan a 24/28·ESC: nunca llegaba a 4 px
+         de ese punto y giraba alrededor. Un tramo intermedio se alcanza a 12·ESC, y si en 600 ms no se acercó (lo
+         están empujando), se salta al siguiente. */
+      if(cor.camino){ cor.i=cor.i||0; while(cor.i<cor.camino.length-1 && dist(j,cor.camino[cor.i])<=12*ESC()) cor.i++;
+        if(cor.i<cor.camino.length-1 && now>=cor.arranca){ const dNow=dist(j,cor.camino[cor.i]);
+          if(cor.stallD===undefined || dNow<cor.stallD-2){ cor.stallD=dNow; cor.stallT=now; }
+          else if(now-cor.stallT>600){ cor.i++; cor.stallD=undefined; } } }
       const tramo=cor.camino?cor.camino[cor.i]:cor.meta, dm=dist(j,cor.meta), dT=dist(j,tramo);
       if(now>=cor.arranca && !cor.sono){ cor.sono=true; sfx('zapatillas',0.5); }
       /* EL PLANTE TIENE MEMORIA (su caza 2026-08-27b: "sigue habiendo jugadas donde
@@ -20382,7 +20390,7 @@ function pintaEscalera(k){
      centraba entre VOLVER, ancho, y ★0/60, angosto). La cabecera es una grilla 1fr·auto·1fr:
      el medio queda en el medio pase lo que pase a los costados. */
   let html='<div class="escCab"><span></span>'
-    +'<span class="escTit">'+nom+' <b class="escNum"></b></span>'
+    +'<span class="escTit">'+nom+'</span>'   /* §2z121 (su caza: "adentro del drill no debería decir el skill: «VISIÓN 43» sin la barrita se siente rarísimo") */
     +'<span class="escEstrellas">★'+total+'/'+(nivelesTope()*3)+'</span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">';
   for(let n=1;n<=NIVELES_ESCALERA;n++){
@@ -20403,8 +20411,7 @@ function pintaEscalera(k){
   $l('lobEntrenar').innerHTML=html;
   /* el número del skill cuenta hacia arriba al volver del drill (mismo efecto que la media);
      el valor "mostrado" persiste entre pintadas en escNumMostrado[k] porque el nodo se rehace */
-  { const n=$l('lobEntrenar').querySelector('.escNum'); n._mostrado=escNumMostrado[k];
-    numeroQueSube(n,J.skills[k],$l('lobEntrenar').querySelector('.escCab')); escNumMostrado[k]=Math.round(J.skills[k]); }
+  /* §2z121: el número del skill se fue de la cabecera (el +N lo dice el aviso al volver del drill) */
   $l('lobEntrenar').querySelectorAll('[data-nivel]:not([disabled])').forEach(b=>
     /* FÍSICO no tiene drill todavía (§2q: el rebote no lo convence y se prototipa aparte):
        el nivel se toca y no pasa nada, que es lo que él pidió en vez del cartel PRONTO */

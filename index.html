@@ -6170,10 +6170,10 @@ const CARTAS_GENERAL=[
    gancho:L('El club te pone un nutricionista. Chau milanesa con papas.', 'The club puts you on a nutritionist. So long, milanesa and fries.', 'O clube te dá um nutricionista. Tchau, milanesa com fritas.'),
    opciones:[
      { tipo:'segura', label:L('Seguir comiendo como siempre', 'Keep eating like always', 'Continuar comendo como sempre'),
-       desenlaces:[ {p:100, remate:null, texto:L('El asado no se negocia.', 'The barbecue is not up for debate.', 'O churrasco não se negocia.'), ef:{ rel:{hinchada:3} }} ] },
+       desenlaces:[ {p:100, remate:null, texto:L('La milanesa no se negocia.', 'The milanesa is not up for debate.', 'A milanesa não se negocia.'), ef:{ rel:{hinchada:3} }} ] },
      { tipo:'apuesta', label:L('Cumplir el plan', 'Stick to the plan', 'Seguir o plano'),
        desenlaces:[
-         {p:80, remate:L('Cuerpo de manual', 'Textbook body', 'Corpo de manual'), texto:L('Te sentís liviano todo el año. Comés arroz con pollo mirando el asado de los demás.', 'You feel light all year. Chicken and rice while you watch everyone else at the barbecue.', 'Você se sente leve o ano todo. Arroz com frango olhando o churrasco dos outros.'), ef:{ skills:{fisico:3}, rel:{hinchada:-3} }},
+         {p:80, remate:L('Cuerpo de manual', 'Textbook body', 'Corpo de manual'), texto:L('Te sentís liviano todo el año. Comés arroz con pollo mirando las milanesas de los demás.', 'You feel light all year. Chicken and rice while you watch the others eat milanesas.', 'Você se sente leve o ano todo. Arroz com frango olhando as milanesas dos outros.'), ef:{ skills:{fisico:3}, rel:{hinchada:-3} }},
          {p:20, remate:L('Te pasaste', 'You overdid it', 'Passou do ponto'), texto:L('Bajaste demasiado y te quedaste sin fuerza.', 'You dropped too much weight and lost your strength.', 'Você emagreceu demais e ficou sem força.'), ef:{ skills:{fisico:-2} }} ] },
    ] },
 
@@ -11933,7 +11933,11 @@ function armarPosesion(){
            niveles altos la corrida satura ahí — la dificultad la ponen el aguante y el tell, que ya escalan. */
         const v0=clampMundoJugable(mx, Math.max(a.y+R3()*0.40, my-Math.sqrt(Math.max(0,d0*d0-half*half))));   // hacia el aro (y menor), con piso
         G.vos={x:v0.x,y:v0.y};
-        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=D.tellSkill||600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
+        D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=D.tellSkill||600;
+        /* §2z118 (su caza 2026-09-07: "en el partido es todo muuuy rápido, no llegué a reaccionar; en el drill lo esperaba"):
+           en el PARTIDO el pasador aguanta más arriba de la llave (1,3 s en el nivel 1 → 0,7 s en el 20); el drill queda
+           como estaba (0,7 → 0,2), que es donde se practica el reflejo */
+        D.aguante=(G.esDrill||G.tut)?700-nv*500:1300-nv*600; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
         /* B v2 (sus cazas: "arranca rápido; después es estar adelante del que lleva la pelota 5 segundos hasta que
            tira, no la pasa, no intenta otra cosa; el que hace la cortina queda planchado, debería cortar al aro"):
@@ -12135,9 +12139,10 @@ function armarPosesion(){
           if(G.esDrill && window.drillEsVision && window.drillEsVision() && window.drillPrimerIntento && window.drillPrimerIntento()){
             const conBote=G.tipo==='carril';
             G.veloDrill={t0:t(L('EL DESMARCADO','THE OPEN MAN','O DESMARCADO')),
-              t1:t(L('uno de los tuyos se va a desmarcar: encontrá el pase','one of yours is about to break free: find the pass','um dos seus vai se desmarcar: acha o passe')),
-              t2:conBote?t(L('dribbleá para alejarte de tu marca; cuando salga, tirásela adelante','dribble away from your man; when he goes, throw it ahead','dribla pra longe da marcação; quando ele sair, joga na frente'))
-                        :t(L('tirásela adelante, adonde corre','throw it ahead, where he is running','joga na frente, pra onde ele corre')),
+              /* §2z119 (su caza: "la frase que te explica está redactada horrible y «adonde» está mal escrito") */
+              t1:t(L('Un compañero va a cortar. Encontrá el pase.','A teammate is about to cut. Find the pass.','Um companheiro vai cortar. Acha o passe.')),
+              t2:conBote?t(L('Dribbleá lejos de tu marca. Cuando arranque, pasásela adelante.','Dribble away from your man. When he goes, throw it ahead of him.','Dribla pra longe da marcação. Quando ele sair, joga na frente dele.'))
+                        :t(L('Cuando arranque, pasásela adelante, hacia donde corre.','When he goes, throw it ahead of him, where he is running.','Quando ele sair, joga na frente dele, pra onde ele corre.')),
               t3:t(L('tocá para empezar','tap to start','toca para começar'))};
             G.tutQuieto=true; G.corrida.arranca=Infinity; } } } }
   elencoAlEncuadre();       // y NADIE queda fuera de pantalla (04, su regla 2026-08-28)

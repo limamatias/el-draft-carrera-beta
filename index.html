@@ -16956,7 +16956,14 @@ function frame(now){
          el aro, a 0,30·R3 del aro. El contacto es cuando VOS llegás a él (<26·ESC): el dado de §2z39.19. El hueco
          que abre es su hombre, y el anillo del aro (10-gesto) paga el pase al cuerpo. */
       const dPA = portador ? dist(portador,a7) : 1e9;
-      const adentro = portador && dPA < R3()*(G.rot?1.30:1.15);
+      /* §2z125 (su caza 2026-09-07: "el big me sale incluso cuando no estoy tan cerca del aro y estoy en TIRÁ O PASÁ;
+         se acerca pasado un rato y libera a su propia marca, que queda para un pase fácil"): el umbral era 1,15·R3
+         para todo — casi la línea de tres, parado. Parado con la pelota (espera/apunto) el protector sólo sale si
+         estás PROFUNDO (0,62·R3, "la pelota entra a la pintura"); conduciendo, desde 0,95·R3 (la regla de §2z72 b);
+         un compañero que recibió adentro, igual que conduciendo. Histéresis +0,15. */
+      const parado = portador===G.vos && G.fase!=='conduzco';
+      const umbralRot = (parado ? 0.62 : 0.95) + (G.rot ? 0.15 : 0);
+      const adentro = portador && dPA < R3()*umbralRot;
       if(prot && adentro){
         /* la cobertura es un paso de SOMBRA, no una lectura del drive (medido: con la lectura del sprint, 0,9 s con
            def 16, la bandeja arrancaba sola a 0,35·R3 antes de que se moviera). Lee corto; tu MANEJO igual le vende

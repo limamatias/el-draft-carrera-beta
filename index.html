@@ -14072,7 +14072,9 @@ function resolverRebote(gana){
        ahí la posesión termina */
     flash(suBig); G.pelotaEn=suBig; veredicto(t(L('REBOTE DE ELLOS','THEIR BOARD','REBOTE DELES')),'mal');
     const txtE=G.scrTxt||t(L('Tu tiro bailó y el rebote fue de ellos.','Your shot rattled out and they got the board.','Seu arremesso dançou e o rebote foi deles.')); G.scrTxt=null;
-    setTimeout(()=>finPosesion(false,txtE), 1400);
+    /* §2z157 (su caza 2026-09-08: "cuando no la agarrás la escena dura un poco más de lo que debería; tampoco que
+       termine sin que te enteres"): 1400 → 800 ms — el flash y el REBOTE DE ELLOS ya te lo contaron */
+    setTimeout(()=>finPosesion(false,txtE), 800);
     return; }
   /* la segunda chance es JUGADA NUEVA para la marca (su reporte 2026-08-23: "cuando te
      pasa la pelota la marca te sigue corriendo... me pasaron por arriba"): heredaba tu

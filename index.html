@@ -12110,7 +12110,10 @@ function armarPosesion(){
   const sit=$('#sit');
   if(G.esFinal){
     veredicto(t(L('¡LA ÚLTIMA!','LAST SHOT!','A ÚLTIMA!')),'fuego',1600); tensionArrancar();
-    sit.textContent=t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')); sit.className='cierre';
+    /* §2z102 (su caza 2026-09-07: "en LA ÚLTIMA sale todo en rojo, nada te hace dar cuenta que es una jugada con
+       dribble; tardé 1 segundo en entender que no tenía que tirar de parado"): la píldora va en VERDE, el color del
+       carril —el verbo del juego es el color—, y dice el verbo. */
+    sit.textContent=t(L('LA ÚLTIMA · ATACÁ','LAST SHOT · DRIVE','A ÚLTIMA · ATACA')); sit.className='carril';
     /* EL RENGLÓN DICE EL VERBO (su caza 2026-08-29: "en LA ÚLTIMA no entendí nunca que
        tenía que dribblear o tirar — como que no me aclaró nada"). Era una REGRESIÓN, no
        un olvido: `boteDeEscena()` incluye G.esFinal desde su pedido del 27 —el arrastre
@@ -12121,7 +12124,9 @@ function armarPosesion(){
        prueba de fuego de §2y (te cambia lo que creés que podés hacer — creía que no
        podía botear) y no repite al feed, que ya se cerró. */
     const mF=G.riv-G.nos;
-    explicar('carril',(dif.drive==='toques' ? t(L('Arrastrá y la llevás. Toque seco: tirás.','Drag to push it. Quick tap: shoot.','Arrasta e leva. Toque seco: arremessa.'))
+    /* §2z102: SIEMPRE, no por explicar(): la clave 'carril' ya estaba vista desde el primer carril del juego, así que
+       ni el verbo ni la cuenta ("el triple empata") volvían a aparecer en ninguna última posterior */
+    relato((dif.drive==='toques' ? t(L('Arrastrá y la llevás. Toque seco: tirás.','Drag to push it. Quick tap: shoot.','Arrasta e leva. Toque seco: arremessa.'))
                                  : t(L('Conducí y frená para tirar.','Drive, then pull up to shoot.','Conduz e para pra arremessar.')))
          + ' ' + (mF===3 ? t(L('El triple empata.','The three ties it.','A de três empata.'))
                 : mF===2 ? t(L('El doble empata, el triple gana.','The two ties it, the three wins it.','A de dois empata, a de três ganha.'))
@@ -12389,9 +12394,12 @@ function apodo(){
    invalidación de layout por frame. Ahora compara con lo último escrito y toca el DOM
    sólo cuando algo cambió (el reloj cambia una vez por segundo, no 60). */
 let _mkTab='', _mkStat='';
+/* §2z103: el rótulo del cuarto — 1C…4C, y SUP / 2SUP en el suplementario (marcador y feed lo comparten) */
+function cuartoTxt(){ const c=G.cuarto;
+  return c>4 ? L(c>5?`${c-4}SUP`:'SUP', c>5?`${c-4}OT`:'OT', c>5?`${c-4}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
 function marcador(){
   const t=Math.max(0,Math.ceil(G.reloj)), txt=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
-  const cuarto=L(`${G.cuarto}C`,`Q${G.cuarto}`,`${G.cuarto}Q`)[idioma()];
+  const cuarto=cuartoTxt();
   const tab=`${G.nos}|${G.riv}|${cuarto}|${txt}`;
   if(tab!==_mkTab){ _mkTab=tab;
     $('#sNos').textContent=G.nos; $('#sRiv').textContent=G.riv;
@@ -14923,6 +14931,7 @@ const uno=a=>{ let i=Math.floor(Math.random()*a.length);
    (RACHA puntos) cae en P_RACHA de los renglones. Con estas perillas: ≥10-0 en el 31 %, ≥15-0 en el
    2 %, ≥20-0 nunca. Los renglones secos quedan como sabor (P_SECO). Sus números, elegidos en el banco. */
 const RELATO={ruido:3, pRacha:0.10, racha:6, pSeco:0.03, k:0.12, tope:8};
+const OT_SEG=300;   // §2z103: el suplementario dura 5:00 en toda liga (FIBA y NBA)
 function partes(nosQ,rivQ,n){
   const w=[]; let sw=0; for(let i=0;i<n;i++){ const x=0.5+Math.random(); w.push(x); sw+=x; }
   const out=[];
@@ -15040,7 +15049,7 @@ function fila(txt,tono,seg){
   d.className='fila'+(tono?' '+tono:'');
   const sinMin = tono==='hito'||tono==='fuego';
   const rel=fmtReloj(seg!==undefined?seg:G.reloj);
-  const min=t(L(`${G.cuarto}C ${rel}`,`Q${G.cuarto} ${rel}`,`${G.cuarto}Q ${rel}`));
+  const min=cuartoTxt()+' '+rel;   // §2z103: SUP en el suplementario
   d.innerHTML=(sinMin?'':`<span class="min">${min}</span>`)+`<span>${txt}</span>`;
   l.appendChild(d);
   while(l.children.length>7) l.removeChild(l.firstChild);
@@ -15076,7 +15085,7 @@ function pedilaSinSentido(){
   const relojYa = G.relojAnim ? Math.min(G.reloj, G.relojAnim.b) : G.reloj;
   if(!prox || relojYa<=12) return true;
   if(!G.enCancha || G.sub) return true;              // desde el banco no se pide
-  if(G.pedidaEnCuarto && G.cuarto<4) return true;    // una por cuarto; el último es libre
+  if(G.pedidaEnCuarto && G.cuarto!==4) return true;  // una por cuarto; el último es libre; el suplementario no tiene (§2z103)
   if(prox.t==='chicharra' || prox.t==='cuarto') return true;
   if(prox.t==='jugada') return (relojYa - (prox.hasta ?? relojYa)) <= 25;
   return false;
@@ -15118,19 +15127,35 @@ function siguienteBeat(){
     /* EL SUPLEMENTARIO EXPRESS (empate al final, co-diseñado 2026-08-25): la de ellos se
        narra, la última vuelve a ser tuya. Si empatan de nuevo, otro — es raro y es época.
        Con vos en el banco no hay final: el suplementario entero se narra y se pierde. */
+    /* §2z103 (su corte 2026-09-07, en vez del express: "en OT deberías tener varias jugadas, más que en 5 minutos
+       normales"): CINCO MINUTOS DE VERDAD. Un beat de cuarto (n=4, reloj 5:00), tres relatos parejos escalados
+       al puntaje de la liga, TRES jugadas tuyas (3:20 · 1:10 · 0:25), y la chicharra con la regla de siempre: a un
+       tiro (0–3), la última es tuya. Si empatan de nuevo, otro. Con vos en el banco se narra entero. Sin PEDILA.
+       Los 5 minutos van a tu línea (18b: minutosJugados). */
     if(g && G.nos===G.riv && G.fase!=='fin'){
-      fila(t(L('EMPATADO — SUPLEMENTARIO.','TIED — OVERTIME.','EMPATADO — PRORROGAÇÃO.')),'hito');
-      cerrarRelojAnim(); G.reloj=30; G.relojAnim=null; marcador();
-      G.enCancha=!G.sub; G.rotSale=null; G.rotEntra=null;   // el cierre lo jugás vos
-      g.beats.push({t:'relato', nos:0, riv:Math.random()<0.55?2:0, hasta:8});
-      if(!G.sub) g.beats.push({t:'jugada', tipo:'decision', final:true});
-      setTimeout(siguienteBeat, 1600); return;
+      G.ot=(G.ot||0)+1;
+      const refOT=(dif.ptsRef||108)/4*(OT_SEG/RELOJ_CUARTO);   // el parcial de 5' a la escala de la liga
+      const rivQ=Math.max(4,Math.round(rnd(refOT*0.8,refOT*1.2))), nosQ=Math.max(4,Math.round(rivQ+rnd(-2,3)));
+      const ab=partes(nosQ,rivQ,3);
+      g.beats.push({t:'cuarto', n:4, minQ:MIN_CUARTO, ot:true});
+      g.beats.push({t:'relato', nos:ab[0][0], riv:ab[0][1], hasta:245});
+      if(!G.sub) g.beats.push({t:'jugada', hasta:200});
+      g.beats.push({t:'relato', nos:ab[1][0], riv:ab[1][1], hasta:115});
+      if(!G.sub) g.beats.push({t:'jugada', hasta:70});
+      g.beats.push({t:'relato', nos:ab[2][0], riv:ab[2][1], hasta:40});
+      if(!G.sub) g.beats.push({t:'jugada', hasta:25});
+      g.beats.push({t:'chicharra', n:4});
+      setTimeout(siguienteBeat, 400); return;
     }
     terminar(); return; }
   const b=g.beats[g.i++];
   G.pidio=false; pintarBtnPedila();
   if(b.t==='cuarto'){
-    cerrarRelojAnim(); G.cuarto=b.n+1; G.reloj=RELOJ_CUARTO; G.relojAnim=null; marcador();
+    cerrarRelojAnim(); G.cuarto=b.n+1; G.reloj=b.ot?OT_SEG:RELOJ_CUARTO; G.relojAnim=null; marcador();
+    if(b.ot){   // §2z103: el suplementario — lo jugás si terminaste en cancha; sin rotación ni pedida
+      G.rotSale=null; G.rotEntra=null; G.enCancha=!G.sub; G.pedidaEnCuarto=true; pintarBtnPedila();
+      fila(t(L('EMPATADO — SUPLEMENTARIO.','TIED — OVERTIME.','EMPATADO — PRORROGAÇÃO.')),'hito');
+      setTimeout(siguienteBeat, 1400); return; }
     /* LA ROTACIÓN (su regla 2026-08-29): jugás el arranque de los tres primeros cuartos
        y el cierre del último. Los umbrales viven acá; el cruce lo anuncia el relato. */
     G.rotSale = b.n<3 && b.minQ<MIN_CUARTO ? RELOJ_CUARTO - b.minQ*60 : null;
@@ -15343,7 +15368,7 @@ function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null});
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0});
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
@@ -18199,6 +18224,8 @@ const descuentoPartido=()=>tieneItem(C.jugador,'preparador')?3:0;
 /* los minutos ya no son fijos: los decide el rol (01h, §2q — dos ventanas por temporada) */
 /* §2z12: los minutos son un CONTINUO guardado en la carrera; el rol se lee de ellos */
 const minutosDe=()=>C.jugador.minutos!==undefined?C.jugador.minutos:semillaMinutos(C.ligaId,C.jugador.rol||'titular');
+/* §2z103: lo que JUGASTE de verdad — los minutos del DT más 5 por cada suplementario en cancha (la línea, la nota, la energía) */
+const minutosJugados=()=>((enPartido&&enPartido.minReal)||minutosDe())+((typeof G!=='undefined'&&G.ot&&!G.sub)?5*G.ot:0);
 
 let C=null;         // la carrera: {v, semilla, anio, ligaId, jugador, temporada}
 let preAbierto=null; // qué ofrece el pre-partido: un objeto de miProximo (o el clave)
@@ -20611,7 +20638,7 @@ terminar=function(){
   const caja=document.getElementById('finNota');
   if(!enPartido||!C){ caja.classList.add('oculto'); document.getElementById('finVeredicto').classList.add('oculto'); const fd=document.getElementById('finDonde'); if(fd) fd.classList.add('oculto'); document.getElementById('finLinea').classList.remove('oculto'); document.getElementById('cFin').classList.remove('oculto'); return; }
   const J=C.jugador, gano=G.nos>G.riv;
-  const linea={min:enPartido.minReal||minutosDe(),pts:G.pts,ast:G.ast,rob:G.robos,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
+  const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
   let rating=ratingDe(linea,gano,enPartido.contexto);
   /* §2z99: la última es tuya y pesa — medio punto en cada sentido (la metiste / no entró) */
   if(G.clutch) rating=Math.max(0,Math.min(10,Math.round((rating+(G.clutch.anoto?0.5:-0.5))*10)/10));
@@ -20792,7 +20819,7 @@ function ultimoPartido(cierre,e){
 function registrarResultado(){
   const e=est(), J=C.jugador;
   const miJuego={ptsNos:G.nos,ptsRiv:G.riv,
-    linea:{min:enPartido.minReal||minutosDe(),pts:G.pts,ast:G.ast,rob:G.robos,
+    linea:{min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,
            tri:G.triples||0,t3:G.tiros3||0,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,tap:G.tapas||0,md:G.malDesmarque||0,esc:ESC_RITMO()}};   // §2z29: la planilla entera · §2z43.1: con el ritmo en que se jugó
   /* el nivel (§2p): el rating del partido alimenta tu experiencia — rendimiento
      sostenido, nunca tus stats. La línea guarda el rating para leerlo después. */
@@ -20868,7 +20895,7 @@ function registrarResultado(){
      descansaste al salir a la cancha. Sumarlos después del costo, en la misma cuenta,
      te devolvía a 100 con el primer partido (día 6 × 6 = +36 contra 22 de costo) y con
      cualquier semana espaciada. Ahora: primero el descanso, TOPE 100, y recién el costo. */
-  J.energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-costoJugar(enPartido.minReal||minutosDe(),C.ligaId));
+  J.energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-costoJugar(minutosJugados(),C.ligaId));
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */

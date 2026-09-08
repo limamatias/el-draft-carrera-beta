@@ -13218,7 +13218,11 @@ const MEDIDOR={sub:900,
      Todas las perillas viven acá para que él las mueva de a una. */
   picoBase:0.52, picoSkill:0.048,   // techo del personaje: tiro 0 → 0,52 · tiro 10 → 1,00
   picoAbierto:0.30,                 // cuánto del techo se lo lleva estar marcado
-  ancho:0.26, anchoMin:0.030};      // el ancho de la campana, en fracción de barra
+  ancho:0.26, anchoMin:0.030,       // el ancho de la campana, en fracción de barra
+  /* §2z115 (su corte 2026-09-07: "hoy tirar triples era cualquier cosa"): el PICO también baja con la distancia —
+     1 hasta 0,5·R3, lineal hasta picoTriple en el triple (1,1·R3), piso picoLejos más allá. Medido antes: un triple
+     solo perfecto pagaba 81 % con skill 56, igual que una bandeja; ahora 49 % (bien soltado, 45 %). */
+  picoTriple:0.60, picoLejos:0.55};
 /* §2z112 (su caza 2026-09-07: "el big me salió a cortar, lo tenía ADELANTE y el tiro me figuró en verde"): el tiro
    leía SÓLO a tu marca asignada — el custodio comprometido, la ayuda del carril o el que cambia en el switch no
    existían para el semáforo, la campana ni la tapa. Ahora lee al defensor MÁS CERCANO, sea quien sea; y el que te
@@ -13256,8 +13260,10 @@ function bandaDe(d){
      coordinado en nivel 1 llegaba casi al mismo techo que en nivel 10. La marca se lleva
      una parte del techo, pero NO lo hunde: un tiro contestado soltado perfecto tiene que
      entrar (su regla del mismo día). */
+  const distP=d<=R3()*0.5 ? 1 : d>=R3()*1.1 ? Math.max(MEDIDOR.picoLejos, MEDIDOR.picoTriple-(d-R3()*1.1)/R3()*0.25)
+             : lerp(1, MEDIDOR.picoTriple, (d-R3()*0.5)/(R3()*0.6));   // §2z115
   const pico=clamp((MEDIDOR.picoBase+dif.tiro*MEDIDOR.picoSkill)
-                   *(1-MEDIDOR.picoAbierto+MEDIDOR.picoAbierto*cst), 0.05, 1);
+                   *(1-MEDIDOR.picoAbierto+MEDIDOR.picoAbierto*cst)*distP, 0.05, 1);
   /* EL ANCHO ES DE LA SITUACIÓN: marca, distancia y fuego. Acá vive lo que él pidió —
      "el resto te dé valores más bajos si no estás totalmente libre": abierto la campana es
      ancha y errarle por poco sigue pagando; con la marca encima sólo el pico paga. */

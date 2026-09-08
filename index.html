@@ -12467,6 +12467,7 @@ function marcador(){
      renglón corre la cancha solo, en cualquier resolución */
   const stat=`<b>${apodo()}</b> · ${G.pts} PTS · ${G.ast} AST · ${G.aciertos}/${G.tiros}`+
     (G.tiros3?` · ${G.triples}/${G.tiros3} 3P`:``)+
+    (G.fta?L(` · ${G.ftm}/${G.fta} TL`,` · ${G.ftm}/${G.fta} FT`,` · ${G.ftm}/${G.fta} LL`)[idioma()]:``)+   // §2z135 (su caza: los libres estaban en la planilla del final pero no acá)
     (G.robos?L(` · ${G.robos} ROB`,` · ${G.robos} STL`,` · ${G.robos} ROU`)[idioma()]:``)+           // tapas y robos también (su pedido 2026-08-29)
     (G.tapas?L(` · ${G.tapas} TAP`,` · ${G.tapas} BLK`,` · ${G.tapas} TOC`)[idioma()]:``)+
     /* las pérdidas también cuentan (su caza 2026-08-28) — y van ANTES de la misión (su
@@ -17033,7 +17034,10 @@ function frame(now){
           { const rO=32*ESC(); const ocupa=[...G.comps,...G.defs].find(o=>o!==prot && dist(o,meta)<rO);
             if(ocupa){ const px=-uy, py=ux, lado=((meta.x-ocupa.x)*px+(meta.y-ocupa.y)*py)>=0?1:-1;
               meta.x+=px*lado*36*ESC(); meta.y=Math.max(meta.y+py*lado*36*ESC(), a7.y+18*ESC()); } }
-          const vP=Math.min(150,Math.max(90,(dif.def||16)*2))*(G.rot.suave?0.7:1)*dt, dM=dist(prot,meta);
+          /* §2z134 (su insistencia 2026-09-07: "el big del aro se mueve DEMASIADO rápido; me salió a cortar mucho más rápido de
+             lo que me muevo yo"): §2z72 b dice TROTA, y trotaba a 90–150 px/s continuos contra tu empujón de 210 a ráfagas —
+             se lo ve más rápido que vos. Ahora 60–110 px/s (def 16 → 60, def 50 → 80, tope 110); el suave, ×0,7. */
+          const vP=Math.min(110,Math.max(60,(dif.def||16)*1.6))*(G.rot.suave?0.7:1)*dt, dM=dist(prot,meta);
           if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
           if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;
             /* §2z39.19 (su regla: "no sólo el nivel del rival, sino el tuyo — a favor"): el FÍSICO decide el

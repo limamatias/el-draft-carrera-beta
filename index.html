@@ -21287,7 +21287,11 @@ function pintaSecciones(){
      (los que te perdiste por la selección no son partidos tuyos), la selección con sus `sel` más los torneos del año. */
   const sumar=(ps)=>ps.reduce((a,p)=>({pj:a.pj+1,min:a.min+(p.minutos||0),pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),rob:a.rob+(p.rob||0),tap:a.tap+(p.tap||0)}),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0});
   const mp=e.misPartidos||[];
-  const lClub=sumar(mp.filter(p=>!p.sel&&!p.am&&!p.po&&!p.conSeleccion));
+  /* §2z124 (su caza 2026-09-07: "en RESUMEN, en VOS, sólo te toma partidos de liga nacional cuando jugaste el
+     continental también"): el lado del club es TODO lo que jugaste con el club — liga + continental; los playoffs siguen
+     en su renglón. El rótulo lo dice. */
+  const hayAm=mp.some(p=>p.am&&!p.conSeleccion);
+  const lClub=sumar(mp.filter(p=>!p.sel&&!p.po&&!p.conSeleccion));
   const torAnio=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.anio===C.anio&&x.linea);
   const lSel=sumar(mp.filter(p=>p.sel)); for(const x of torAnio){ const l=x.linea; lSel.pj+=l.pj||0; lSel.min+=l.min||0; lSel.pts+=l.pts||0; lSel.ast+=l.ast||0; lSel.rob+=l.rob||0; lSel.tap+=l.tap||0; }
   const haySelVos=lSel.pj>0;
@@ -21303,7 +21307,7 @@ function pintaSecciones(){
      encabezado y PJ en la grilla: no se repiten. */
   const rotulo=enSel
     ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
-    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+' · '+anioTxt();
+    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt();   // §2z124
   $l('lobResumen').innerHTML=
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+

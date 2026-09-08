@@ -12878,7 +12878,11 @@ c.addEventListener('pointerup',e=>{
    la vertical donde mundo y pantalla coinciden): además de las rayas, el drive se acota
    al encuadre de la cámara activa. */
 function clampMundoJugable(x,y){
-  let px=clamp(x,MARG()+8,W-MARG()-8), py=clamp(y,baseY()+8,H*0.92);
+  /* §2z117 (su hallazgo 2026-09-07: "si vas a tirar bandeja BIEN PEGADO a la línea de fondo, el big no te llega a
+     contestar"): vos podías bajar hasta la línea de fondo (34·ESC DETRÁS del aro) mientras TODOS los defensores tienen
+     piso en aro+18/20·ESC ("nadie ADENTRO del aro"): pegado al fondo quedabas a ≥42·ESC de cualquiera y la bandeja era
+     incontestable. Nadie juega detrás del tablero, vos tampoco: piso en aro+12·ESC. */
+  let px=clamp(x,MARG()+8,W-MARG()-8), py=clamp(y,aro().y+12*ESC(),H*0.92);
   if(G.camLat){
     const s=aPantalla({x:px,y:py});
     const sx=clamp(s.x,12,W-12), sy=clamp(s.y,hudH+30,H-12);

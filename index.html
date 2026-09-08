@@ -11083,7 +11083,7 @@ function prendeFuego(){
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
 }
-function apagaFuego(){ G.fuego=0; G.fuegoRegalo=0; }
+function apagaFuego(){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; }   // §2z114: la próxima racha se vuelve a anunciar
 
 /* ══════════ EL DUELO CON MEMORIA (§2b) ══════════
    Tu marca es UN tipo que se acuerda: la postura mueve SU DISTANCIA (no su velocidad — las
@@ -13219,13 +13219,27 @@ const MEDIDOR={sub:900,
   picoBase:0.52, picoSkill:0.048,   // techo del personaje: tiro 0 → 0,52 · tiro 10 → 1,00
   picoAbierto:0.30,                 // cuánto del techo se lo lleva estar marcado
   ancho:0.26, anchoMin:0.030};      // el ancho de la campana, en fracción de barra
+/* §2z112 (su caza 2026-09-07: "el big me salió a cortar, lo tenía ADELANTE y el tiro me figuró en verde"): el tiro
+   leía SÓLO a tu marca asignada — el custodio comprometido, la ayuda del carril o el que cambia en el switch no
+   existían para el semáforo, la campana ni la tapa. Ahora lee al defensor MÁS CERCANO, sea quien sea; y el que te
+   corre desde ATRÁS (más lejos del aro que vos) cuenta la mitad (su corte: "el de atrás no te tiene que contar
+   tanto, iría por la mitad"): su distancia se lee doble. Devuelve la distancia efectiva y quién es. */
+function defensorDelTiro(){
+  const a=aro(), dVA=dist(G.vos,a); let mejor={d:1e9, df:null};
+  for(const df of (G.defs||[])){ if(!df) continue;
+    const d=dist(df,G.vos), atras=dist(df,a)>dVA+10*ESC();
+    const dEf=atras?d*2:d;
+    if(dEf<mejor.d) mejor={d:dEf, df}; }
+  if(!mejor.df && G.marca) mejor={d:dist(G.marca,G.vos), df:G.marca};
+  return mejor;
+}
 function bandaDe(d){
   /* LA MARCA ES UN ESPECTRO, NO TRES BALDES (su corrección 2026-08-23: "si ambos estamos
      'marcado' pero el otro tiene la marca más lejos, no es el mismo marcado — debería
      afectar de forma continua"): el factor interpola por la DISTANCIA REAL, pasando por
      los anclajes ya calibrados (38·e→0,32 · 66·e→0,6 · 150·e→1). Sólo el ANUNCIO queda
      discreto: un color necesita nombre. */
-  const dm=dist(G.marca,G.vos), e=ESC();
+  const dm=defensorDelTiro().d, e=ESC();   // §2z112
   const cst = dm<38*e ? 0.32
             : dm<66*e ? lerp(0.32,0.6,(dm-38*e)/(28*e))
             : dm<150*e ? lerp(0.6,1,(dm-66*e)/(84*e)) : 1;
@@ -13415,9 +13429,10 @@ function soltarMedidor(){
     /* LA TAPA (su ok 2026-08-23): sólo existe en la PLEGARIA (rojo) Y con la marca encima —
        las dos cosas se vieron ANTES de tirar, así que es información, no dado. Abierto, o
        en verde/amarillo, pasarse sigue saliendo LARGA: tu error viaja. */
-    if(md.tier==='roja' && G.marca && dist(G.marca,G.vos)<80*ESC()){
+    const dT=defensorDelTiro();   // §2z112: tapa el que te tiene encima, sea quien sea
+    if(md.tier==='roja' && dT.df && dT.d<80*ESC()){
       fx('224,108,90'); apagaFuego();
-      const m=G.marca;
+      const m=dT.df;
       const palm={x:lerp(desde.x,m.x,0.7)+rnd(-8,8), y:lerp(desde.y,m.y,0.7)+rnd(-6,6)};
       vuelo(desde,palm,0.18,0.16,()=>{ veredicto(L('¡TAPA!','BLOCKED!','TOCO!')[idioma()],'mal'); flash(m);
         vuelo(palm,{x:palm.x+rnd(-30,30), y:palm.y+rnd(20,60)},0.12,0.25,()=>{
@@ -13487,7 +13502,7 @@ function lanzar(zona){
   const d=dist(desde,hasta);
   const m=d/(R3()/6.75);
   const justa=potPara(d);          // la fuerza justa, en el espacio del gesto (escala única)
-  const marcaCerca=dist(G.marca,G.vos);
+  const marcaCerca=defensorDelTiro().d;   // §2z112: el más cercano, el de atrás a la mitad
 
   const forma=esTiro? zona : (zona==='costado'?'arriba':zona);
   chip(L(`${esTiro ? (esTriple(desde) ? 'Triple':'Doble') : 'Pase'} · ${m.toFixed(1).replace('.',',')} m · ${NOMBRE[esTiro?'tiro':'pase'][forma]}`,
@@ -15197,6 +15212,10 @@ function siguienteBeat(){
     G.rotSale = b.n<3 && b.minQ<MIN_CUARTO ? RELOJ_CUARTO - b.minQ*60 : null;
     G.rotEntra = b.n===3 && b.minQ<MIN_CUARTO ? b.minQ*60 : null;
     G.enCancha = b.n<3 || b.minQ>=MIN_CUARTO;
+    /* §2z113 (su caza 2026-09-07: "pensé que estaba en cancha y de la nada te dice «volvés a la cancha para el
+       cierre», sin que te hayan dicho que saliste"): el último cuarto arranca en el banco SIN AVISO — los tres
+       primeros anuncian "salís a descansar" cuando cruzás la rotación, pero acá enCancha se apagaba en silencio. */
+    if(b.n===3 && !G.enCancha && !G.sub) setTimeout(()=>fila(t(L('Arrancás el último en el banco: volvés para el cierre.','You start the fourth on the bench: back for the close.','Você começa o último no banco: volta pro fim.')),'hito'),700);
     G.pedidaEnCuarto=false;   // PEDILA: una por cuarto (el último es libre)
     pintarBtnPedila();   // el repintado del beat corrió ANTES de resetear el reloj (quedaba en 0)
     fila([t(L('ARRANCA EL PARTIDO','THE GAME TIPS OFF','COMEÇA O JOGO')),
@@ -15348,9 +15367,12 @@ function finPosesion(anoto, resumen){
     abrirFeed();
     if(resumen&&typeof resumen==='string') fila(resumen, anoto?'nos':'riv');
     /* §2z40.1: el número es la racha REAL; si el ritmo vino prestado de la carta y todavía no lo ganaste, sin número */
-    if(G.fuego>=CALENTANDO) fila(rachaReal()>=CALENTANDO
+    /* §2z114 (su caza 2026-09-07: "cada vez que hay una jugada o hacés algo te dice «estás caliente — 3 tiros»;
+       debería ser sólo cuando metiste el anterior, no salir siempre pase lo que pase"): el renglón sale cuando la
+       racha CRECIÓ en esta posesión (anotaste), no en cada cierre mientras el fuego siga vivo. */
+    if(G.fuego>=CALENTANDO && anoto && G.fuego!==G.fuegoDicho){ G.fuegoDicho=G.fuego; fila(rachaReal()>=CALENTANDO
       ? t(L(`¡Estás caliente — ${rachaReal()} seguidas!`,`You're heating up — ${rachaReal()} in a row!`,`Você está quente — ${rachaReal()} seguidas!`))
-      : t(L('¡Estás caliente!',"You're heating up!",'Você está quente!')),'fuego');
+      : t(L('¡Estás caliente!',"You're heating up!",'Você está quente!')),'fuego'); }
     /* ON FIRE TE BUSCAN (su regla 2026-08-29: "cuando estás on fire deberían darte más
        posesiones"): cada canasta tuya EN FUEGO agenda una jugada extra en la próxima
        bajada — el mecanismo de la pedida, sin gastarla. La bola de nieve es tuya
@@ -15404,7 +15426,7 @@ function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0});
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
@@ -16233,7 +16255,7 @@ function pelotita(x,y,r,esc,rot,fuego){
 function calidadTiro(d){
   let f=clamp(1.05 - d/(R3()*2.2), 0.4, 1.05);
   if(d>R3()*1.3) f*=0.55;
-  const marcada=dist(G.marca,G.vos)<64*ESC()?0.55:1;
+  const marcada=defensorDelTiro().d<64*ESC()?0.55:1;   // §2z112
   const tolEst=0.10*f*marcada*bonoFuego();
   return tolEst>0.075?'BUENA':tolEst>0.045?'DIFÍCIL':'PLEGARIA';
 }

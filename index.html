@@ -12888,11 +12888,10 @@ c.addEventListener('pointerup',e=>{
    la vertical donde mundo y pantalla coinciden): además de las rayas, el drive se acota
    al encuadre de la cámara activa. */
 function clampMundoJugable(x,y){
-  /* §2z117 (su hallazgo 2026-09-07: "si vas a tirar bandeja BIEN PEGADO a la línea de fondo, el big no te llega a
-     contestar"): vos podías bajar hasta la línea de fondo (34·ESC DETRÁS del aro) mientras TODOS los defensores tienen
-     piso en aro+18/20·ESC ("nadie ADENTRO del aro"): pegado al fondo quedabas a ≥42·ESC de cualquiera y la bandeja era
-     incontestable. Nadie juega detrás del tablero, vos tampoco: piso en aro+12·ESC. */
-  let px=clamp(x,MARG()+8,W-MARG()-8), py=clamp(y,aro().y+12*ESC(),H*0.92);
+  /* §2z117 v2 (su corte: "el no dribble contra la línea de fondo se ve todavía más raro, siento que me falta una parte
+     de la cancha; la solución era más movilidad del big, no limitarte eso"): tu piso vuelve a la línea de fondo; el que
+     te cierra baja con vos (pisoDef, 18-frame). */
+  let px=clamp(x,MARG()+8,W-MARG()-8), py=clamp(y,baseY()+8,H*0.92);
   if(G.camLat){
     const s=aPantalla({x:px,y:py});
     const sx=clamp(s.x,12,W-12), sy=clamp(s.y,hudH+30,H-12);
@@ -16362,7 +16361,7 @@ function frame(now){
          compra separación DE VERDAD y llegás a la devolución con el aire que te ganaste. */
       const vM=G.tutQuieto?0:dif.def*0.55*dt, dM=dist(G.marca,G.vos);   // §7.1: en el tutorial de pasar, quietos
       if(dM>26*ESC()){ G.marca.x+=(G.vos.x-G.marca.x)/dM*vM;
-        G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/dM*vM, aro().y+20*ESC()); }
+        G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/dM*vM, pisoDef()); }   // §2z117 v2
       if(!dif.clkOff) G.posClock-=dt*1000;   // el reloj corre SIEMPRE: nada de saltos ocultos (bug cazado por él)
       if(now>=G.desmarque.hasta){
         const dm=G.desmarque; G.desmarque=null; G.pelotaEn=null; G.fase='vuelo';
@@ -16412,7 +16411,7 @@ function frame(now){
           { const dM=dist(G.marca,G.vos), piso=55*ESC();
             if(dM<piso){ const an=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x)||0;
               G.marca.x=G.vos.x+Math.cos(an)*piso;
-              G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, aro().y+20*ESC()); } }
+              G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, pisoDef()); } }   // §2z117 v2
           /* Y EL RELOJ SE RE-ARMA AL PISO QUE DECAE (su regla 2026-08-28: el segundo
              movimiento tiene que dar tiempo de JUGAR, pero sin ping-pong): 4,5s la
              primera devolución, 3s la segunda, 2,6s después — ver pisoDevolucion(). */
@@ -16552,7 +16551,7 @@ function frame(now){
         const v=(dif.drive==='toques' ? dif.def*0.85*rampa
                                       : dif.def*1.8*Math.min(1.8,1+G.tDrive*0.42)*(esMarca?1:0.6))*dt;
         if(d0>26*ESC()){ df.x+=(G.vos.x-df.x)/d0*v;
-          df.y=Math.max(df.y+(G.vos.y-df.y)/d0*v, aro().y+20*ESC());  // nadie ADENTRO del aro
+          df.y=Math.max(df.y+(G.vos.y-df.y)/d0*v, pisoDef());  // nadie ADENTRO del aro — salvo que vos estés más abajo (§2z117 v2)
           cuerpoPantalla(df); }
         /* §2z39.71 (su caza 2026-09-05 en el bloqueo: "NI BIEN me moví para pasar por el bloqueo, un defensor me chocó y
            me hizo falta; no tuve ni opción de hacer nada"): la marca arranca a 38·ESC, 12 px fuera del radio del
@@ -16923,7 +16922,7 @@ function frame(now){
       if(!G.comprometido){ if(dd<=tope){ cu.plantado=true; cu.vuelve=false; } else if(dd>14*ESC()) cu.plantado=false; }
       else cu.plantado=false;
       if(dd>tope && !cu.plantado){ cu.x+=(meta.x-cu.x)/dd*Math.min(vCu,dd);
-        cu.y=Math.max(cu.y+(meta.y-cu.y)/dd*Math.min(vCu,dd), a2.y+18*ESC()); }
+        cu.y=Math.max(cu.y+(meta.y-cu.y)/dd*Math.min(vCu,dd), Math.min(a2.y+18*ESC(), pisoDef())); }   // §2z117 v2
       /* el choque con el custodio conduciendo cobra lo mismo que la contención (mismos
          strings): llevarla adentro con él comprometido es el riesgo que elegiste */
       else if(G.comprometido && G.fase==='conduzco' && dd<=26*ESC()){
@@ -17824,6 +17823,12 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+/* §2z117 v2: EL PISO DE LA DEFENSA BAJA CON VOS. "Nadie ADENTRO del aro" (aro+20·ESC) dejaba la línea de fondo como
+   tierra de nadie: vos podías bajar 34·ESC detrás del aro y ningún defensor te seguía — la bandeja pegada al fondo era
+   incontestable (su hallazgo). Su corte fue darle movilidad al big, no cerrarte la cancha: el que te cierra puede bajar
+   hasta tu altura (+4·ESC), nunca más allá de la línea de fondo. Sin vos abajo, el piso es el de siempre. */
+function pisoDef(){ return Math.min(aro().y+20*ESC(), Math.max(baseY()+8, G.vos.y+4*ESC())); }
 /* ══ 18a — LA CARD COMPARTIBLE (§2z30, 2026-09-02): "compartir cómo venís" EN CUALQUIER MOMENTO de
    la carrera — su pedido ("tener sólo una card al final de la carrera le saca bastante"). Dos
    piezas como en El Draft (Card.tsx / Tira.tsx): la CORTA cuadrada (1080×1080) y la de CARRERA

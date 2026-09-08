@@ -814,6 +814,11 @@
   #lobby .fila-skill .oxi{font-size:10px;line-height:1;letter-spacing:.5px;color:var(--naranja);
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-skill .barraNrg i{background:linear-gradient(90deg,#e0b13f,var(--naranja))}
+  /* §2z122: los escalones del skill — verde desde 70, dorado desde 85 (el número acompaña) */
+  #lobby .fila-skill.alto .barraNrg i{background:linear-gradient(90deg,#5aa869,var(--ok))}
+  #lobby .fila-skill.alto .val{color:var(--ok)}
+  #lobby .fila-skill.elite .barraNrg i{background:linear-gradient(90deg,#c99a35,#f2c94c)}
+  #lobby .fila-skill.elite .val{color:#f2c94c}
   #lobby .fila-skill .val{width:26px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   /* la tienda y el contrato: TABLAS de dato, no párrafos (su caza de VIDA) */
   /* ⚠️⚠️ LA TIENDA ENTRA SIN SCROLL, Y EL TAMAÑO SALE DE LA JERARQUÍA (su caza 2026-09-04:
@@ -20333,7 +20338,7 @@ function pintaEntrenar(){
        §2z89: y cuando dice algo va DEBAJO DE LA BARRA, adentro del mismo renglón — como renglón
        propio volvía a poner el scroll con una sola nota (ver el comentario de .barraCol en el CSS) */
     const nota=timerSkill(k,en,e);
-    html+='<div class="fila-skill"><span class="nom">'+t(nom)+'</span>'
+    html+='<div class="fila-skill'+claseSkill(J.skills[k])+'"><span class="nom">'+t(nom)+'</span>'
       +'<span class="barraCol"><span class="barraNrg"><i style="width:'+J.skills[k]+'%"></i></span>'
       +(nota?'<span class="oxi">'+nota+'</span>':'')+'</span>'
       +'<span class="val">'+Math.round(J.skills[k])+'</span>'
@@ -21122,8 +21127,11 @@ $l('tutHolaSi').onclick=()=>{ $l('tutHola').classList.add('oculto'); window.__tu
 $l('tutHolaNo').onclick=()=>{ $l('tutHola').classList.add('oculto'); CARTAS.cartasAlEntrar(); };
 
 /* ── las secciones (§2m.8: la botonera son ACCIONES; el resumen vive atrás de un botón) ── */
+/* §2z122 (su caza 2026-09-07: "la barra de skill arriba de cierto valor se ve siempre del mismo color; ¿no debería cambiar
+   a verde?"): tres escalones — naranja hasta 69, VERDE de 70 a 84, DORADO de 85 en adelante. En ENTRENAR y en VOS. */
+const claseSkill=(v)=>v>=85?' elite':v>=70?' alto':'';
 function filaBarra(nombre,valor){
-  return '<div class="fila-skill"><span class="nom">'+nombre+'</span>'+
+  return '<div class="fila-skill'+claseSkill(valor)+'"><span class="nom">'+nombre+'</span>'+
     '<span class="barraNrg"><i style="width:'+valor+'%"></i></span>'+
     '<span class="val">'+Math.round(valor)+'</span></div>';
 }

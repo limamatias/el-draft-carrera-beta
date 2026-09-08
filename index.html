@@ -16715,7 +16715,16 @@ function frame(now){
            estaba ADELANTE mío"): en la clásica y el trailer la marca nace ADELANTE tuyo (yMarca = 22 % del camino al
            aro, 06), y la velocidad de transición la convertía en un closeout demencial al primer arrastre. La
            transición es sólo para el que te corre DE ATRÁS (más lejos del aro que vos); adelante, contiene como siempre. */
-        if(G.tipo==='contra' && esMarca && df.y>G.vos.y+10*ESC()) v=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
+        /* §2z158 (su caza 2026-09-08, la contra ADELANTE: "arranqué bastante adelante, con jugadores adelante y atrás,
+           la sentí muy atrapado para ser una contra; me la robaron"): la que viene de atrás en transición te
+           ALCANZABA si boteabas a toques (112–140 contra el paso de un toque) y cobraba el choque. El que te corre de
+           atrás en una contra TE SIGUE, no te caza: trota a un cuerpo y medio (40·ESC) y no cobra; el contacto en la
+           contra lo cobran los de adelante (el custodio, la marca que nace adelante). Su corte: "cierto movimiento,
+           no que te corran a 200 y no te dejen avanzar". */
+        if(G.tipo==='contra' && esMarca && df.y>G.vos.y+10*ESC()){
+          const vT=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
+          if(d0>40*ESC()){ df.x+=(G.vos.x-df.x)/d0*vT; df.y=Math.max(df.y+(G.vos.y-df.y)/d0*vT, pisoDef()); cuerpoPantalla(df); }
+          continue; }
         if(d0>26*ESC()){ df.x+=(G.vos.x-df.x)/d0*v;
           df.y=Math.max(df.y+(G.vos.y-df.y)/d0*v, pisoDef());  // nadie ADENTRO del aro — salvo que vos estés más abajo (§2z117 v2)
           cuerpoPantalla(df); }

@@ -17015,6 +17015,13 @@ function frame(now){
         if(now>=G.rot.leido){
           const rC=R3()*0.30, ux=(portador.x-a7.x)/Math.max(1,dPA), uy=(portador.y-a7.y)/Math.max(1,dPA);
           const meta={x:a7.x+ux*rC, y:Math.max(a7.y+uy*rC, a7.y+18*ESC())};
+          /* §2z131 (su caza 2026-09-07: "el big salió a defenderme y se quedó enganchado con su marca, no se movió más,
+             tildado"): el punto de cobertura caía ENCIMA de nuestro grandote (el rincón corto está a ~0,3·R3 del aro), y
+             la separación de cuerpos lo devolvía cada frame mientras él empujaba hacia el punto: vibraba en el lugar.
+             Si un cuerpo ocupa el punto (a <32·ESC), el punto se corre un cuerpo al costado, del lado libre. */
+          { const rO=32*ESC(); const ocupa=[...G.comps,...G.defs].find(o=>o!==prot && dist(o,meta)<rO);
+            if(ocupa){ const px=-uy, py=ux, lado=((meta.x-ocupa.x)*px+(meta.y-ocupa.y)*py)>=0?1:-1;
+              meta.x+=px*lado*36*ESC(); meta.y=Math.max(meta.y+py*lado*36*ESC(), a7.y+18*ESC()); } }
           const vP=Math.min(150,Math.max(90,(dif.def||16)*2))*(G.rot.suave?0.7:1)*dt, dM=dist(prot,meta);
           if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
           if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;

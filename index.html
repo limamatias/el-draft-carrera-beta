@@ -4295,13 +4295,19 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
  * Vive en jugador.dbeta y viaja con el save. Números v0: el ajuste fino es de sus dedos. ══ */
 const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: 26, piso: 4, ventana: 3, bien: 7, mal: 5 };
 function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DBETA.arranque[ligaId] : 8; }
-function pasoDbeta(dbeta, notas) {
+/* §2z104 (su corte 2026-09-07: "debería subir un escalón después de tres partidos seguidos… pero después necesitar 3
+ * partidos buenos EN EL NUEVO NIVEL; si empieza a subir todo el tiempo es raro. Y bajar también debería requerir varios
+ * malos seguidos"): la ventana son los partidos jugados DESDE el último escalón (`desde`: cuántos van), no los últimos
+ * 3 a secas — con la ventana deslizante, tres buenos disparaban un escalón por partido. Devuelve {dbeta, desde}. Al
+ * tope desde el arranque: 6 escalones × 3 partidos = 18 partidos (LNB 8→26, NBA 10→26). */
+function pasoDbeta(dbeta, notas, desde) {
+  desde = (desde || 0) + 1;
   const u = (notas || []).filter((n) => n !== undefined && n !== null).slice(-DBETA.ventana);
-  if (u.length < DBETA.ventana) return dbeta;
+  if (desde < DBETA.ventana || u.length < DBETA.ventana) return { dbeta, desde };
   const prom = u.reduce((s, n) => s + n, 0) / u.length;
-  if (prom >= DBETA.bien) return Math.min(DBETA.techo, dbeta + DBETA.sube);
-  if (prom < DBETA.mal) return Math.max(DBETA.piso, dbeta - DBETA.baja);
-  return dbeta;
+  if (prom >= DBETA.bien) return { dbeta: Math.min(DBETA.techo, dbeta + DBETA.sube), desde: 0 };
+  if (prom < DBETA.mal) return { dbeta: Math.max(DBETA.piso, dbeta - DBETA.baja), desde: 0 };
+  return { dbeta, desde };
 }
 
 /* El ESTILO DEFENSIVO del club (§2p, idea suya): un rasgo fijo por club que mueve dist —
@@ -20907,7 +20913,7 @@ function registrarResultado(){
   /* §7.1 la dificultad dinámica de la beta: un escalón por partido, sobre las últimas 3 notas */
   if(esBeta()){
     const dAntes=J.dbeta;
-    J.dbeta=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating));
+    { const p=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating),J.dbetaDesde); J.dbeta=p.dbeta; J.dbetaDesde=p.desde; }   // §2z104
     betaEvento('partido',{fecha:enPartido.fecha||null,tipo:enPartido.tipo,nota:rating,gano:G.nos>G.riv,min:miJuego.linea.min,
       pts:G.pts,ast:G.ast,dbeta:dAntes,dbetaDespues:J.dbeta,energia:Math.round(J.energia)});
   }

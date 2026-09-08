@@ -19635,7 +19635,7 @@ function proximaSemana(prox){
 }
 /* Pasar: el relato juega lo que salteás y la energía vuelve por los días REALES que pasan
    (§2q: el descanso es por día, no por fecha). Misma economía que SALTAR AL CLAVE. */
-function pasarHasta(sig){
+function pasarHasta(sig,alFinal){
   const e=est();
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,fechaRef(miProximo(e)||{tipo:'fecha',fecha:1})||1),est().ritmo);
   const antes=e.misPartidos.length;   // §2z91: lo que el relato juegue de acá en más es lo que el parte cuenta
@@ -19647,7 +19647,9 @@ function pasarHasta(sig){
   guardar(); pintaLobby(); irLob('hoy');
   /* §12: pasar la semana también puede cerrar una ventana FIBA, y acá no se pasa por
      abrirLobby — sin esto el parte quedaba armado y no lo veías hasta el próximo partido */
-  const despues=()=>{ if(C.selParte&&abrirParteVentana(C.selParte)) return; CARTAS.cartasAlEntrar(); };   // §2z26
+  /* §2z111: SALTAR AL CLAVE pasa por acá con `alFinal` = abrir la previa del clave (su corte: "debería funcionar como
+     PASAR LA SEMANA: te muestra cómo se simulan los partidos que saltás y ahí te lleva a la pantalla del otro partido") */
+  const despues=()=>{ if(C.selParte&&abrirParteVentana(C.selParte)) return; if(alFinal){ alFinal(); return; } CARTAS.cartasAlEntrar(); };   // §2z26
   if(abrirPasoParte(jugados,despues)) return;
   avisar(t(L('Pasaste a la ','You skipped to ','Você pulou para a '))+t(L('fecha','round','rodada'))+' '+sig.fecha+' · '+diaTxt(sig.dia));
   despues();
@@ -19706,9 +19708,10 @@ function abrirPasoParte(jugados,despues){
   return true;
 }
 /* §2z39.24: el popup de PASAR LA SEMANA — qué te perdés, antes de pasar */
-function abrirPasarConfirm(sig,ref){
+function abrirPasarConfirm(sig,ref,alFinal){
   const e=est(), P=$l('lobPasarConfirm');
-  const fs=ref===null?[]:misFechas().filter(f=>!f.am&&!f.res&&f.fecha>=ref&&f.fecha<sig.fecha);
+  /* §2z111: el continental que cae en el medio también lo juega el relato — va en la lista, con su globo */
+  const fs=ref===null?[]:misFechas().filter(f=>!f.res&&f.fecha>=ref&&f.fecha<sig.fecha&&(!f.am||alFinal));
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,ref||1),e.ritmo);
   const dias=Math.max(1,sig.dia-diaAntes);
   const J=C.jugador, energia=Math.min(100,J.energia+regenDe()*dias)-J.energia;
@@ -19718,10 +19721,10 @@ function abrirPasarConfirm(sig,ref){
                     :t(L('El relato juega estos partidos sin vos','The sim plays these games without you','A narração joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
-  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+fPrefijo()+f.fecha+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
+  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+f.fecha)+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
-  $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig); };
+  $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };
 }
 /* §2z19 (su regla, 2026-09-02: "si te quedaste afuera antes no debería haber un simular
    semana: que te lleve al final de temporada de una"): sin partido tuyo por delante —tu
@@ -20124,7 +20127,15 @@ function pintaLobby(){
     cont.innerHTML='<button class="jugar principal" id="lobBJugar">'+t(L('JUGAR EL PRÓXIMO','PLAY NEXT','JOGAR O PRÓXIMO'))+'</button>'
       +'<button class="jugar secundario" id="lobBSaltar">'+t(L('SALTAR AL CLAVE','SKIP TO THE BIG ONE','PULAR PRO JOGO CHAVE'))+'</button>';
     $l('lobBJugar').addEventListener('click',()=>abrirPre(prox));
-    $l('lobBSaltar').addEventListener('click',()=>abrirPre({tipo:'fecha',fecha:clave.fecha,rival:clave.rival,local:clave.local,porqueCal:clave}));
+    /* §2z111 (su corte 2026-09-07: "saltar al clave te abre directo la previa; debería funcionar como PASAR LA SEMANA:
+       la pantallita de cómo se simulan los partidos que saltás y de ahí a la previa. Si no, no vemos cómo se simulan"):
+       el mismo popup, el mismo parte, y al cerrar el parte, la previa del clave. */
+    { const objClave={tipo:'fecha',fecha:clave.fecha,rival:clave.rival,local:clave.local,porqueCal:clave};
+      const sigC={fecha:clave.fecha,dia:diaDeFecha(e.semilla,clave.fecha,e.ritmo)};
+      $l('lobBSaltar').addEventListener('click',()=>{
+        const refC=prox?fechaRef(prox):null;   // (refP2 vive en la rama de PASAR LA SEMANA)
+        if(refC!==null && clave.fecha>refC) abrirPasarConfirm(sigC,refC,()=>abrirPre(objClave));
+        else abrirPre(objClave); }); }
   } else {
     /* ⚠️ PASAR LA SEMANA (su caza: *"después del primer partido no me da la opción de
        simular hasta la próxima semana, que es lo que habíamos acordado"*). El juego es de
@@ -20550,7 +20561,7 @@ function abrirPre(objetivo){
     const prox=miProximo(e);
     const salteadas=prox&&objetivo.fecha>prox.fecha
       ? misFechas().filter(f=>!f.res&&f.fecha>=prox.fecha&&f.fecha<objetivo.fecha) : [];
-    const lista=salteadas.map(f=>fPrefijo()+f.fecha);
+    const lista=salteadas.map(f=>f.am?t(L('Américas','Americas','Américas')):fPrefijo()+f.fecha);   // §2z111: "F10, F11 y F11" era el continental
     const listaTxt=lista.length>1
       ? lista.slice(0,-1).join(', ')+t(L(' y ',' and ',' e '))+lista[lista.length-1]
       : lista.join('');

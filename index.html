@@ -12094,7 +12094,7 @@ function armarPosesion(){
   if(G.tipo!=='sacada'&&G.tipo!=='contra') G.corrida=null;
   if(G.tipo!=='contra'){ G.custodio=null; G.comprometido=false; }
   G.rot=null;   // §2z39.1: la rotación al aro arranca con la pelota adentro
-  G.cierreVolado=null; G.veloDrill=null;
+  G.cierreVolado=null; G.cierraTarde=null; G.veloDrill=null;   // §2z127
   if(G.tipo!=='avance') G.transicion=null;
   if(G.tipo!=='slalom'){ G.slalom=null; G.camCentro=null; }
   encuadrar(!!beatDesde);   // la heredada desliza; el spawn nuevo corta
@@ -13771,6 +13771,11 @@ function lanzar(zona){
                            : {x:df.x+Math.cos(angC)*alcanza, y:df.y+Math.sin(angC)*alcanza};
         correr(df, meta, dur, ()=>{});
         G.cierreVolado={df, llega};   // §2z39.6: el drill lo lee al recibir
+        /* §2z127 (su caza 2026-09-07: "al poste le tirás el pase atrás tuyo, se aleja de su marcador y SIEMPRE queda
+           solo; el que lo marca se queda estático"): el que no llegaba corría lo que alcanzaba DURANTE el vuelo y se
+           plantaba; el receptor se declaraba solo (nadie a 60·ESC) y tiraba. Ahora sigue cerrando después de la
+           recepción mientras el receptor tenga la pelota (18-frame), y el "solo" lo ve venir (tiraElCompi). */
+        if(!llega) G.cierraTarde={df, j:compi, v:vCierre};
         /* EL CIERRE DEL VOLADO EN DOS MITADES (su corrección 2026-08-23: "el pase al poste
            por arriba SIEMPRE se la sacan porque llega el que se mueve — debería ser un
            CONTEST, no 'lo marca cuando parece que ya recibió y eso hace que la pierda'"):
@@ -14684,7 +14689,10 @@ function tiraElCompi(compi,p){
      como regla: se comparaba Q contra Q. Ahora el rango es 1,20·R3, y EL QUE ESTÁ SOLO (nadie a dos cuerpos, 60·ESC)
      TIRA, sin mirar tu Q. */
   if(!(dist(p,aro())<R3()*1.20 && G.posClock>800)) return false;
-  if(G.defs.every(d=>dist(d,p)>60*ESC())) return true;
+  /* §2z127: el que viene cerrando y llega en <0,6 s (el armado) no cuenta como "nadie" */
+  const ct=G.cierraTarde;
+  const llegaPronto=(d)=>!!(ct && ct.df===d && ct.j===compi && (dist(d,p)-34*ESC())/Math.max(1,ct.v)<0.6);
+  if(G.defs.every(d=>dist(d,p)>60*ESC() && !llegaPronto(d))) return true;
   const qCompi=calidadDesde(p,false), qTuya=calidadDesde(G.vos,true);
   /* tira si su tiro es BUENO en sí (amarillo alto para arriba), o decente Y claramente
      mejor que el tuyo — libertad y posición en un solo número */
@@ -14929,6 +14937,24 @@ function recibe(compi,forma,txt,va){
     },450);
     return;
   }
+  /* §2z128 (su caza 2026-09-07: "metí un pase de mitad de cancha en la contra a uno cerca del aro, y como estaba
+     marcado frenó para devolvérmela cuando yo estaba MUY lejos"): la devolución pide que estés a tiro de pase
+     (≤1,0·R3). Lejos, no hay devolución: la juega él como puede — marcado, con su Q de apuro. */
+  if(dist(compi,G.vos)>R3()*1.0){
+    relato(t(L('Estás lejos: la juega él.','You are far: he plays it himself.','Você está longe: ele joga sozinho.')),true);
+    setTimeout(()=>{ if(G.fase==='fin') return;
+      G.pelotaEn=null; posar(compi,'tira',aro(),1000);
+      vuelo({x:compi.x,y:compi.y},{...aro()},0.65,Math.max(0.3,dAro/460),()=>{
+        const p=pMeteNPC(compi,true);
+        if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; G.ast++; G.ptsAsist+=v; marcador();
+          aprende('pase'); veredicto(t(L('¡LA METIÓ!','HE HIT IT!','ACERTOU!')),'ok');
+          finPosesion(true,t(L('Asistencia tuya: la resolvió marcado.','Your assist: he scored under pressure.','Assistência sua: resolveu marcado.'))); }
+        else { G.pasesTiro=(G.pasesTiro||0)+1; veredicto(t(L('Marcado — afuera','Contested — no good','Marcado — fora')),'mal');
+          finPosesion(false,t(L('La tiró marcado y no entró. Estabas lejos para la devolución.','He shot it contested and missed. You were too far for the return pass.','Arremessou marcado e errou. Você estava longe pra devolução.'))); }
+      });
+    },350);
+    return;
+  }
   devolver(compi,forma, txt||t(L('Buen pase: quedaste mejor parado.','Good pass: you\'re better set now.','Bom passe: você ficou melhor posicionado.')));
 }
 function vuelo(desde,hasta,arco,durS,alLlegar,fuego){
@@ -14983,6 +15009,10 @@ const TE_BUSCA=[t(L('¡La pelota te busca!','The ball finds you!','A bola te pro
 /* EL RENGLÓN DE LA DEFENSA (su caza 2026-08-29: "me salió «el técnico grita tu nombre»…
    y me salió una jugada DEFENSIVA"): TE_BUSCA promete ataque en las cinco variantes, y
    el 17% de las jugadas es defensa. El feed no puede prometer una cosa y cortar a otra. */
+/* §2z126 (su caza 2026-09-07: "me salió «te la buscan en el codo» y era un saque del costado"): la sacada promete
+   otra cosa, y tiene su renglón */
+const TE_SACA=[t(L('Pelota afuera: sacás vos.','Ball out of bounds: you inbound.','Bola fora: você repõe.')),
+               t(L('Saque de costado: la ponés en juego vos.','Sideline inbound: you put it in play.','Reposição lateral: você põe em jogo.'))];
 const TE_TOCA_DEF=[t(L('La bajan ellos: te toca frenarlo.','They push it back: you have to stop him.','Eles sobem a bola: você trava.')),
                    t(L('Vienen por tu lado.','They come at you.','Vêm pelo seu lado.')),
                    t(L('Te lo dejan a vos: defendé.','He is yours: defend.','Ele é seu: defende.'))];
@@ -15357,7 +15387,7 @@ function siguienteBeat(){
             la última es pareja te vuelven a buscar: es mentira"): el flag `ultima` sigue (arma el cierre),
             pero el renglón no lo anuncia — es una bola más que te buscan */
          : b.pedida ? t(L('La que pediste: es tuya.','The one you called for: it\'s yours.','A que você pediu: é sua.'))
-         : b.tipo==='defensa' ? uno(TE_TOCA_DEF) : uno(TE_BUSCA), 'vos', b.final?6:b.hasta);
+         : b.tipo==='defensa' ? uno(TE_TOCA_DEF) : b.tipo==='sacada' ? uno(TE_SACA) : uno(TE_BUSCA), 'vos', b.final?6:b.hasta);   // §2z126
     G.beat=b;
     if(!G.sinCadena) setTimeout(()=>{ cerrarFeed(); armarPosesion(); }, 1200);
     };
@@ -16934,6 +16964,10 @@ function frame(now){
           perderPelota(t(L('Te chocaste con la defensa conduciendo.','You ran into the defense on the drive.','Você trombou na defesa durante a condução.')),null,true); }
       }
     }
+    /* §2z127: el que no llegó a la recepción SIGUE cerrando al receptor mientras tenga la pelota, hasta un cuerpo */
+    if(G.cierraTarde){ const ct=G.cierraTarde;
+      if(G.pelotaEn!==ct.j || G.fase==='fin') G.cierraTarde=null;
+      else { const d=dist(ct.df,ct.j); if(d>34*ESC()){ const paso=Math.min(ct.v*dt, d-34*ESC()); ct.df.x+=(ct.j.x-ct.df.x)/d*paso; ct.df.y+=(ct.j.y-ct.df.y)/d*paso; } } }
     /* §2z39.1 EL ARO SE PROTEGE POR ROTACIÓN (su salvedad: "que atacar el aro no sea demasiado fácil"):
        en las escenas sin custodio ni pantalla, la marca del grandote vive con él en el rincón corto;
        cuando la pelota entra a la pintura (vos conduciendo adentro de 0,62·R3, o un compañero que

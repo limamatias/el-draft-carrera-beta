@@ -11418,7 +11418,16 @@ function armarPosesion(){
      CODO (casasDelBig), fuera del rectángulo de la pintura; entra sólo cuando ataca él. Antes vivía
      a 0,28-0,42 del ancho de la pintura y 0,18-0,34·R3 del aro: con su marca y la ayuda eran tres
      cuerpos en una pintura donde entran cuatro, y ningún corte podía cruzar (medido, 2026-09-05). */
-  const casaBig = casasDelBig(bigLado)[Math.random()<0.5?0:1];
+  /* §2z107 (su caza 2026-09-07: "en una de CIERRE aparecés con la pelota y tenés a un compañero casi encima tuyo…
+     se siente rarísimo, y el pase no me salía porque estaba demasiado cerca"): el lado del big era un sorteo
+     independiente de dónde nacés vos, y el codo (0,36·R3, 0,86·R3) coincide con un arranque tuyo al ala corta —
+     medido, 20 px. El big vive del lado DÉBIL (el opuesto al tuyo) y su casa se elige a ≥0,45·R3 de vos; si ninguna
+     cumple, la más lejana. */
+  const casaBig = (()=>{ const lados=Math.abs(G.vos.x-a.x)>R3()*0.15 ? [-Math.sign(G.vos.x-a.x), Math.sign(G.vos.x-a.x)] : [bigLado,-bigLado];
+    const cands=lados.flatMap(l=>casasDelBig(l)).map(c=>({c, d:dist(c,G.vos)}));
+    const ok=cands.filter(o=>o.d>=R3()*0.45);
+    const pool=ok.length?ok.slice(0,2):[cands.reduce((m,o)=>o.d>m.d?o:m,cands[0])];
+    return pool[Math.floor(Math.random()*pool.length)].c; })();
   G.comps = [
     {x: casaBig.x+rnd(-6,6), y: casaBig.y+rnd(-6,6), big:true},
     {x: a.x + lado*Math.min(W*0.36,R3()*rnd(0.75,0.98)), y: a.y + R3()*rnd(0.5,0.8), big:false},
@@ -11835,8 +11844,17 @@ function armarPosesion(){
        nunca subió existe y custodia; la otra mitad el aro está VACÍO — ese defensor viene
        volviendo desde atrás con los demás y el coast-to-coast es tuyo si corrés. */
     /* §2z50: la clásica y el trailer, la mitad; el que se abre, nunca; tres contra dos y vos adelante, siempre */
-    const hayCustodio = vC==='abre' ? false : (vC==='tresdos'||vC==='adelante') ? true : Math.random()<0.55;
-    if(hayCustodio) G.custodio=G.defs[1];
+    /* §2z106 (su caza 2026-09-07: "cuando corre alguien a tirar de 3 lo corren MUY de cerca, no hay pase posible; y el
+       resto se queda todo atrás, así que la jugada es correr al aro sin oposición"): en ABRE el perseguidor NO lo corre
+       de atrás —el que se abre frenaba y el perseguidor se le pegaba a 34·ESC: nunca solo—. El que vuelve tarde
+       (defs[0]) VUELVE POR EL MEDIO a proteger el aro (es el custodio, a sprint de vuelta), y el que estaba a mitad de
+       cancha (defs[1]) es el CLOSEOUT: se queda hasta que la pelota sale o vos cruzás la mitad, y recién ahí cierra al
+       tirador (18-frame). Las desigualdades: el tirador llega en 1,2 s < tu pase 1,7 s < el closeout (~1 s desde que
+       gatilla) → el pase temprano lo encuentra solo; el que vuelve llega al aro antes que vos → la bandeja no es gratis. */
+    const hayCustodio = vC==='abre' ? true : (vC==='tresdos'||vC==='adelante') ? true : Math.random()<0.55;
+    if(vC==='abre'){ G.custodio=G.defs[0]; G.defs[0].vuelve=true;
+      G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30); G.defs[1].big=false; }
+    else if(hayCustodio) G.custodio=G.defs[1];
     else { G.custodio=null;
       G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30); }
     G.comprometido=false; G.custodioLee=null;   // §2z39.27
@@ -11908,7 +11926,12 @@ function armarPosesion(){
         G.defs=[pasador, t1, t2]; G.comps=[]; G.marca=t1;
         D.portador=pasador; D.corredor=null; D.tiradores=[t1,t2]; D.vuelta=null; D.ladoD=lado; D.recibio=false;
         const mx=(t1.x+t2.x)/2, my=(t1.y+t2.y)/2, half=dist(t1,t2)/2;
-        const v0=clampMundoJugable(mx, my-Math.sqrt(Math.max(0,d0*d0-half*half)));   // hacia el aro (y menor)
+        /* §2z108 (su caza 2026-09-07: "APARECÍ ATRÁS DEL ARO, no tuve tiempo de reaccionar ni de ir a defender"): la
+           desigualdad de las cuatro líneas no tenía piso — a d0 ≥ ~140·ESC (nivel ~6 en adelante, y la beta llega ahí
+           en un rato) el punto a d0 de las dos alas cae DETRÁS del aro (medido a Dbeta 13: 50 px atrás). Las alas son
+           simétricas al eje, así que CUALQUIER punto del eje es neutral: vos nacés a ≥0,40·R3 delante del aro, y en los
+           niveles altos la corrida satura ahí — la dificultad la ponen el aguante y el tell, que ya escalan. */
+        const v0=clampMundoJugable(mx, Math.max(a.y+R3()*0.40, my-Math.sqrt(Math.max(0,d0*d0-half*half))));   // hacia el aro (y menor), con piso
         G.vos={x:v0.x,y:v0.y};
         D.tDec=performance.now()+1e9; D.tell=null; D.meta=D.metaBase; D.tellDur=D.tellSkill||600; D.aguante=700-nv*500; D.velSube=D.vel*1.5;   // 18-frame fija tell y tDec al llegar
       } else if(G.defEscena==='cortina'){
@@ -16720,8 +16743,11 @@ function frame(now){
         o.esqLado = Math.abs(cr)>0.15 ? (cr>=0?-1:1) : ((G.vos.x-MARG()) >= (W-MARG()-G.vos.x) ? 1 : -1); }
       const w=(1-dv/R)*3.0*dot;
       let nx=dx+(-dy)*o.esqLado*w, ny=dy+dx*o.esqLado*w; const n=Math.hypot(nx,ny)||1; return {x:nx/n,y:ny/n}; };
+    /* §2z106: en la contra ABRE el que persigue es el del medio (defs[1]), y sólo desde que gatilla el closeout */
+    const perseguidorDe=(cor)=> cor.pedida ? cor.ch : G.tipo==='sacada' ? G.defs[1] : (G.tipo==='contra'&&cor.abre) ? G.defs[1] : G.defs[0];
     window.esPerseguidor=(df)=>{ const cor=G.corrida; if(!cor||cor.llego||now<cor.arranca) return false;
-      return df===(cor.pedida ? cor.ch : G.tipo==='sacada' ? G.defs[1] : G.defs[0]) && df!==G.marca; };
+      if(cor.abre && G.tipo==='contra' && !cor.cierra) return false;
+      return df===perseguidorDe(cor) && df!==G.marca; };
     if(G.corrida && (G.tipo==='sacada'||G.tipo==='contra'||G.tipo==='bloqueo'||G.corrida.pedida)   // §2z38: el pedido corre en cualquier escena
        && (G.fase==='espera'||G.fase==='apunto'||(G.tipo!=='sacada'&&G.fase==='conduzco')||G.fase==='vuelo')){   // §2z39.52: el que corre sigue corriendo mientras la pelota vuela (era sólo la pedida)
       const cor=G.corrida, j=cor.j;
@@ -16757,13 +16783,16 @@ function frame(now){
          contra, 0,88×, también para la sacada. En la sacada arranca CON el corte — la
          flecha es para vos; la defensa reacciona al movimiento, no a la pizarra. La
          separación se sigue ganando (él sale primero); la recepción la cobra la Q. */
-      const ch = cor.pedida ? cor.ch : G.tipo==='sacada' ? G.defs[1] : G.defs[0];   // en bloqueo, tu marca vieja persigue el roll; §2z38: al pedido lo corre SU marca
+      const ch = perseguidorDe(cor);   // en bloqueo, tu marca vieja persigue el roll; §2z38: al pedido lo corre SU marca · §2z106: en ABRE, el del medio
+      /* §2z106: el closeout GATILLA cuando la pelota sale o cuando cruzás la mitad de la cancha; antes, se queda */
+      if(G.tipo==='contra' && cor.abre && !cor.cierra && (G.paseVivo || G.vos.y < lerp(aro().y, pisoVos(), 0.5))) cor.cierra=true;
+      const cierraAbre = !(G.tipo==='contra' && cor.abre) || !!cor.cierra;
       /* §2z38 v2 (su corte: "el pase no siempre tiene que ser fácil, si no siempre esperás a que se
          desmarque y listo"): el perseguidor ESCALA con la defensa — con def 16 lo lee a los 600 ms y
          lo corre al 78 %; con def 64 lo lee a los 320 ms y casi lo alcanza (98 %). La ventana se achica
          con el nivel: en los altos dura medio segundo y es timing puro. */
       const reaccion=cor.pedida?Math.max(420,700-6*(dif.def||16)):0;   // §2z39.15 (nivel 19/20: "lo corren DEMASIADO de cerca, imposible buscar la ventana"): piso 420 ms
-      if(ch && ch!==G.marca && now>=cor.arranca+reaccion){
+      if(ch && ch!==G.marca && now>=cor.arranca+reaccion && cierraAbre){
         /* el perseguidor se planta AFUERA del radio de la regla 2 (28·ESC) — a 30px crudos
            quedaba ADENTRO y la separación lo empujaba mientras él volvía a entrar: los dos
            vibraban abrazados al lado del aro (su reporte 2026-08-27, la contra) */
@@ -16830,11 +16859,11 @@ function frame(now){
       } else if(!G.comprometido) G.custodioLee=null;
       const meta = G.comprometido ? G.vos
         : {x:a2.x+(G.vos.x-a2.x)/dVA*60*ESC(), y:a2.y+(G.vos.y-a2.y)/dVA*60*ESC()};
-      const vCu=(G.comprometido ? Math.max(55,dif.def*2) : dif.def*1.6)*dt;
+      const vCu=(G.comprometido ? Math.max(55,dif.def*2) : cu.vuelve ? Math.max(130,dif.def*1.6) : dif.def*1.6)*dt;   // §2z106: el que vuelve tarde sprintea hasta su puesto
       const dd=dist(cu,meta), tope=G.comprometido?26*ESC():4;
       /* el custodio plantado también tiene latch (sólo sin comprometer: el sprint del
          closeout no se congela) — llegó al puesto y se queda; re-corre pasando 14·ESC */
-      if(!G.comprometido){ if(dd<=tope) cu.plantado=true; else if(dd>14*ESC()) cu.plantado=false; }
+      if(!G.comprometido){ if(dd<=tope){ cu.plantado=true; cu.vuelve=false; } else if(dd>14*ESC()) cu.plantado=false; }
       else cu.plantado=false;
       if(dd>tope && !cu.plantado){ cu.x+=(meta.x-cu.x)/dd*Math.min(vCu,dd);
         cu.y=Math.max(cu.y+(meta.y-cu.y)/dd*Math.min(vCu,dd), a2.y+18*ESC()); }

@@ -4295,8 +4295,10 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
  * Vive en jugador.dbeta y viaja con el save. Números v0: el ajuste fino es de sus dedos. ══ */
 /* §2z105 (su corte 2026-09-07: "el techo de la NBA debería ser un poco más alto, sobre todo porque se van a jugar más
  * partidos"): techo POR LIGA — 26 en la LNB (un ★2-3 de la LNB; al tope en 18 partidos de 38) y 38 en la NBA (el
- * umbral donde el cierre deja de esperar tu toque, `gat:'tiempo'`; al tope en 30 partidos de 82). */
-const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 38 }, piso: 4, ventana: 3, bien: 7, mal: 5 };
+ * umbral donde el cierre deja de esperar tu toque, `gat:'tiempo'`; al tope en 30 partidos de 82).
+ * Y su segunda vuelta el mismo día ("NBA pondría un poco más alto el techo, repito; si está roto ese nivel lo ajustamos
+ * cuando lleguemos"): **44** — def 58, reloj 10 s, cierre por tiempo; al tope en 36 partidos de 82. */
+const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 44 }, piso: 4, ventana: 3, bien: 7, mal: 5 };
 const dbetaTecho = (ligaId) => DBETA.techo[ligaId] !== undefined ? DBETA.techo[ligaId] : 26;
 function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DBETA.arranque[ligaId] : 8; }
 /* §2z104 (su corte 2026-09-07: "debería subir un escalón después de tres partidos seguidos… pero después necesitar 3

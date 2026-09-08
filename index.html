@@ -529,6 +529,10 @@
        font-size:13px;font-weight:700;padding:3px 8px 3px 5px;
        display:flex;align-items:center;gap:3px}
   #lobby .lataMini svg{width:11px;height:16px}
+  /* §2z150 (su caza 2026-09-08: "el botoncito de la latita cambia de tamaño según si es 0 o 1"): clase 3 de CLAUDE.md,
+     ancho por contenido en algo que cambia de cifras — dos cifras tabulares, fijas; y el % de energía, lo mismo (100%) */
+  #lobby .lataMini span{display:inline-block;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+  #lobby .rec.nrg .num{min-width:4ch;text-align:right}
   #lobby .lataMini:disabled{opacity:.4;cursor:default}
   /* ⚠️ LA CANCHA CORTA (375×600, verificada con el arnés 2026-09-01): el contenido del medio
      se apoya abajo, y cuando no entra —tabs + chip + tabla en un teléfono corto— antes

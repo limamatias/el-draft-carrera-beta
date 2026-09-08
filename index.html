@@ -4293,19 +4293,24 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
  * baja −2 cuando es <5. Un escalón por partido, nunca antes del tercero. Techo 26 (la
  * dificultad de un ★5 de la LNB: def≈41, reloj 13 s, gate por toque siempre), piso 4.
  * Vive en jugador.dbeta y viaja con el save. Números v0: el ajuste fino es de sus dedos. ══ */
-const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: 26, piso: 4, ventana: 3, bien: 7, mal: 5 };
+/* §2z105 (su corte 2026-09-07: "el techo de la NBA debería ser un poco más alto, sobre todo porque se van a jugar más
+ * partidos"): techo POR LIGA — 26 en la LNB (un ★2-3 de la LNB; al tope en 18 partidos de 38) y 38 en la NBA (el
+ * umbral donde el cierre deja de esperar tu toque, `gat:'tiempo'`; al tope en 30 partidos de 82). */
+const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 38 }, piso: 4, ventana: 3, bien: 7, mal: 5 };
+const dbetaTecho = (ligaId) => DBETA.techo[ligaId] !== undefined ? DBETA.techo[ligaId] : 26;
 function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DBETA.arranque[ligaId] : 8; }
 /* §2z104 (su corte 2026-09-07: "debería subir un escalón después de tres partidos seguidos… pero después necesitar 3
  * partidos buenos EN EL NUEVO NIVEL; si empieza a subir todo el tiempo es raro. Y bajar también debería requerir varios
  * malos seguidos"): la ventana son los partidos jugados DESDE el último escalón (`desde`: cuántos van), no los últimos
  * 3 a secas — con la ventana deslizante, tres buenos disparaban un escalón por partido. Devuelve {dbeta, desde}. Al
  * tope desde el arranque: 6 escalones × 3 partidos = 18 partidos (LNB 8→26, NBA 10→26). */
-function pasoDbeta(dbeta, notas, desde) {
+function pasoDbeta(dbeta, notas, desde, techo) {
+  techo = techo === undefined ? 26 : techo;
   desde = (desde || 0) + 1;
   const u = (notas || []).filter((n) => n !== undefined && n !== null).slice(-DBETA.ventana);
   if (desde < DBETA.ventana || u.length < DBETA.ventana) return { dbeta, desde };
   const prom = u.reduce((s, n) => s + n, 0) / u.length;
-  if (prom >= DBETA.bien) return { dbeta: Math.min(DBETA.techo, dbeta + DBETA.sube), desde: 0 };
+  if (prom >= DBETA.bien) return { dbeta: Math.min(techo, dbeta + DBETA.sube), desde: 0 };
   if (prom < DBETA.mal) return { dbeta: Math.max(DBETA.piso, dbeta - DBETA.baja), desde: 0 };
   return { dbeta, desde };
 }
@@ -20854,6 +20859,7 @@ function registrarResultado(){
          moverRelaciones(J,{gano:G.nos>G.riv,clave:esClave,local:!!enPartido.local,ast:miJuego.linea.ast,rating,mision:cierre.mision},relDestino); }
   const antes=e.fechaJugada;
   let amAviso=null;   // §2z27: lo que el continental te dice al volver al vestuario
+  let dbetaAviso=null;   // §2z105: el escalón de la beta, anunciado
   if(enPartido&&enPartido.tipo==='fecha'){
     avanzarHastaFecha(e,enPartido.fecha);
     jugarFecha(e,miJuego);
@@ -20913,7 +20919,12 @@ function registrarResultado(){
   /* §7.1 la dificultad dinámica de la beta: un escalón por partido, sobre las últimas 3 notas */
   if(esBeta()){
     const dAntes=J.dbeta;
-    { const p=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating),J.dbetaDesde); J.dbeta=p.dbeta; J.dbetaDesde=p.desde; }   // §2z104
+    { const p=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating),J.dbetaDesde,dbetaTecho(C.ligaId)); J.dbeta=p.dbeta; J.dbetaDesde=p.desde; }   // §2z104 · §2z105
+    /* §2z105 (su pedido: "comunicar al pasar que jugaste bien algunos partidos seguidos y va a subir la dificultad;
+       si no, de la nada te cuesta más y es frustrante"): el escalón se anuncia al volver al vestuario */
+    /* copia corta: el toast es nowrap a 14,5 px (clase 1 de CLAUDE.md, left:50%) — 43 caracteres entran en 375 */
+    if(J.dbeta>dAntes) dbetaAviso={txt:t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
+    else if(J.dbeta<dAntes) dbetaAviso={txt:t(L('Tres flojos seguidos: te aflojan la marca.','Three poor in a row: they ease up on you.','Três fracos seguidos: aliviam a marcação.'))};
     betaEvento('partido',{fecha:enPartido.fecha||null,tipo:enPartido.tipo,nota:rating,gano:G.nos>G.riv,min:miJuego.linea.min,
       pts:G.pts,ast:G.ast,dbeta:dAntes,dbetaDespues:J.dbeta,energia:Math.round(J.energia)});
   }
@@ -20928,7 +20939,8 @@ function registrarResultado(){
   if(subio) avisar(t(L('Subiste de nivel: ','You leveled up: ','Você subiu de nível: '))+'★'+J.nivel);
   else if(bajo) avisar(t(L('Perdiste la estrella: ','You lost the star: ','Você perdeu a estrela: '))+'★'+J.nivel);   // §2z101
   else if(amAviso) avisar(amAviso);
-  else if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…'))); };
+  else if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…')));
+  if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),(subio||bajo||amAviso||caidos.length)?2200:0); };   // §2z105: después del otro aviso, no encima
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
   if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby();
 }

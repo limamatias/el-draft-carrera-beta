@@ -13222,7 +13222,9 @@ const MEDIDOR={sub:900,
   /* §2z115 (su corte 2026-09-07: "hoy tirar triples era cualquier cosa"): el PICO también baja con la distancia —
      1 hasta 0,5·R3, lineal hasta picoTriple en el triple (1,1·R3), piso picoLejos más allá. Medido antes: un triple
      solo perfecto pagaba 81 % con skill 56, igual que una bandeja; ahora 49 % (bien soltado, 45 %). */
-  picoTriple:0.60, picoLejos:0.55};
+  /* §2z116 (su corte: "con 99 y perfecto y solo tiene que entrar casi siempre"): el techo del triple ES DEL SKILL —
+     de picoTriple0 (tiro 0) a picoTriple10 (tiro 10). La distancia le cuesta al que no tiene tiro, no al especialista. */
+  picoTriple0:0.60, picoTriple10:0.95};
 /* §2z112 (su caza 2026-09-07: "el big me salió a cortar, lo tenía ADELANTE y el tiro me figuró en verde"): el tiro
    leía SÓLO a tu marca asignada — el custodio comprometido, la ayuda del carril o el que cambia en el switch no
    existían para el semáforo, la campana ni la tapa. Ahora lee al defensor MÁS CERCANO, sea quien sea; y el que te
@@ -13260,8 +13262,9 @@ function bandaDe(d){
      coordinado en nivel 1 llegaba casi al mismo techo que en nivel 10. La marca se lleva
      una parte del techo, pero NO lo hunde: un tiro contestado soltado perfecto tiene que
      entrar (su regla del mismo día). */
-  const distP=d<=R3()*0.5 ? 1 : d>=R3()*1.1 ? Math.max(MEDIDOR.picoLejos, MEDIDOR.picoTriple-(d-R3()*1.1)/R3()*0.25)
-             : lerp(1, MEDIDOR.picoTriple, (d-R3()*0.5)/(R3()*0.6));   // §2z115
+  const pT=lerp(MEDIDOR.picoTriple0, MEDIDOR.picoTriple10, clamp((dif.tiro||0)/10,0,1));   // §2z116
+  const distP=d<=R3()*0.5 ? 1 : d>=R3()*1.1 ? Math.max(pT-0.05, pT-(d-R3()*1.1)/R3()*0.25)
+             : lerp(1, pT, (d-R3()*0.5)/(R3()*0.6));   // §2z115
   const pico=clamp((MEDIDOR.picoBase+dif.tiro*MEDIDOR.picoSkill)
                    *(1-MEDIDOR.picoAbierto+MEDIDOR.picoAbierto*cst)*distP, 0.05, 1);
   /* EL ANCHO ES DE LA SITUACIÓN: marca, distancia y fuego. Acá vive lo que él pidió —
@@ -13450,7 +13453,11 @@ function soltarMedidor(){
   const d0=Math.max(0, 1-p);
   const cerca=Math.exp(-(d0/md.w)*(d0/md.w));   // 1 en el pico, se cae según el ancho
   const prob=md.pico*cerca;
-  if(Math.random()<prob){
+  /* §2z116 (su duda: "¿hay tiros verdes que soltás bien y errás?"): el CASQUETE verde de la barra se dibujaba como
+     "entra siempre" (dV, con pico > 0,90) pero se tiraba el dado igual: adentro del casquete pagaba entre 90 y 100 %.
+     Ahora la promesa se cumple: soltaste adentro del casquete, entró. El verde del ARO es otra cosa (la situación). */
+  const dV=md.pico>0.90 ? md.w*Math.sqrt(Math.log(md.pico/0.90)) : 0;
+  if((dV>0 && d0<=dV) || Math.random()<prob){
     fx('125,208,135');   // entró: verde, como en 2K
     /* EL BAILA-Y-ENTRA (su reporte 2026-08-25): el acierto marginal PEGA Y CAE — la promesa
        del traqueteo a veces cumple. Cuanto más lejos del pico la soltaste, más probable. */

@@ -14018,7 +14018,12 @@ function reboteTrasBailar(esc, txtEllos){
      Es la misma familia que §2z63 y §2z67 b: **una pieza de práctica no hereda las ramas del partido.** */
   if(G.esDrill || G.tut) return false;
   const a=aro();
-  const caeR={x:esc.x, y:Math.max(esc.y, a.y+26)};   // nunca ADENTRO del aro dibujado
+  /* §2z159 (su caza 2026-09-08: "si el rebote SE PASA DE LARGO no debería haber rebote, ¡geometría!"): el punto de
+     caída es el REAL. Antes se clampeaba a abajo del aro (para no caer adentro del aro dibujado), y una pelota que
+     pasaba de largo se "traía" hacia adelante — rebote fantasma delante tuyo. Sólo se corre si cae adentro del aro
+     dibujado; y la que pasa de largo, detrás del aro, es de ellos: ahí no hay nadie tuyo. */
+  const enElAro=dist(esc,a)<26;
+  const caeR=enElAro ? {x:esc.x, y:a.y+26} : {x:esc.x, y:esc.y};
   const miBig=G.comps.find(c=>c.big)||G.comps[0], zona=R3()*REBOTE_ZONA;
   const rivales=G.defs.filter(Boolean);
   let suBig=G.defs[2]||G.defs[0], dRiv=Infinity;
@@ -14031,7 +14036,7 @@ function reboteTrasBailar(esc, txtEllos){
      la pelota y no tuve chance"): con el rival ENCIMA de la pelota (a menos de un cuerpo, 30·ESC — el mismo umbral del
      palmeo, §2z4.1) no hay pelea que abrir: es de ellos, y se lo ve agarrarla. La pelea sólo se abre cuando los dos
      tienen que correr. */
-  if(dRiv<30*ESC()){ armaEllos(txtEllos); return true; }
+  if(dRiv<30*ESC() || caeR.y<a.y-8*ESC()){ armaEllos(txtEllos); return true; }   // §2z159: de largo, detrás del aro, es de ellos
   if(dVos<zona && dVos<dRiv*0.85){
     /* TUYA SIN PELEA: nadie más cerca — la levantás donde cayó */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();

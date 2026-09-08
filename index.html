@@ -19981,8 +19981,11 @@ function abrirPasoParte(jugados,despues){
 /* §2z39.24: el popup de PASAR LA SEMANA — qué te perdés, antes de pasar */
 function abrirPasarConfirm(sig,ref,alFinal){
   const e=est(), P=$l('lobPasarConfirm');
-  /* §2z111: el continental que cae en el medio también lo juega el relato — va en la lista, con su globo */
-  const fs=ref===null?[]:misFechas().filter(f=>!f.res&&f.fecha>=ref&&f.fecha<sig.fecha&&(!f.am||alFinal));
+  /* §2z111: el continental que cae en el medio también lo juega el relato — va en la lista, con su globo.
+     §2z148 (su caza 2026-09-08: "me decía que sólo me iba a perder F16, pero simuló un continental y después la F16"):
+     PASAR LA SEMANA lo escondía (`!f.am` venía de §2z39.24 y §2z111 sólo lo abrió para SALTAR AL CLAVE), pero
+     `avanzarHastaFecha` lo juega igual — y cuando el continental ES tu próximo partido, la lista mentía. Va siempre. */
+  const fs=ref===null?[]:misFechas().filter(f=>!f.res&&f.fecha>=ref&&f.fecha<sig.fecha);
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,ref||1),e.ritmo);
   const dias=Math.max(1,sig.dia-diaAntes);
   const J=C.jugador, energia=Math.min(100,J.energia+regenDe()*dias)-J.energia;

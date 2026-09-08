@@ -214,6 +214,8 @@
   #finNota .chip b.ok{color:var(--ok)} #finNota .chip b.mal{color:var(--mal)}
   #finNota .barraExp{display:flex;align-items:center;gap:8px;width:100%;opacity:0;animation:entra .3s ease-out forwards}
   /* §2z19: la card del cierre de serie — ancho completo, entra última (después de la barra) */
+  #finNota .nivelNuevo{font-size:22px;font-weight:700;letter-spacing:3px;color:#f2c94c;text-align:center;width:100%;
+       text-shadow:0 0 18px rgba(242,201,76,.55);opacity:0;animation:entra .35s ease-out forwards}
   #finNota .serie{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:10px 12px;border-radius:12px;
        background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.35);opacity:0;animation:entra .3s ease-out forwards;text-align:center}
   #finNota .serie .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
@@ -759,6 +761,7 @@
   /* el toast de las ESTRELLAS del drill va en oro (su regla): mismo criterio que el
      veredicto — el premio siempre dorado, llena o hueca según lo que sacaste */
   #lobToast.oro{background:#2a2313;border-color:#f2c94c;color:#f7e3a1;font-size:18px;letter-spacing:2px}
+  #lobToast.info{background:#141b2c;border-color:rgba(154,164,184,.5)}   /* §2z142: neutro — el rojo es del error */
   /* el aviso puede tener dos renglones (el del drill): respeta el salto y no se desborda */
   /* width:max-content: con left:50% el ancho disponible de un absoluto es la MITAD de la pantalla
      (medido: 187 px), y el texto envolvía en tres renglones */
@@ -801,6 +804,12 @@
   /* §2z15: la NUEVA OFERTA es tarjeta propia dentro del panel del contrato */
   #lobby .cajon.oferta{border-color:rgba(255,150,51,.5);margin-top:8px;display:flex;flex-direction:column;gap:8px;text-align:center}
   #lobby .cajon.oferta .cajTag{color:var(--naranja)}
+  /* §2z139: el contrato vigente con los mismos tres números que la oferta, alineados */
+  #lobby #lobContrato>.cajTag{text-align:center}
+  #lobby #lobContrato>.nums{display:flex;justify-content:space-around;gap:8px;margin-top:8px}
+  #lobby #lobContrato>.nums span{display:flex;flex-direction:column;align-items:center;gap:1px}
+  #lobby #lobContrato>.nums b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  #lobby #lobContrato>.nums small{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #lobby .cajon.oferta .nums{display:flex;justify-content:space-around;gap:8px}
   #lobby .cajon.oferta .nums span{display:flex;flex-direction:column;align-items:center;gap:1px}
   #lobby .cajon.oferta .nums b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -1500,6 +1509,8 @@
     <div class="puntuacion" id="finPuntuacion"><span class="lbl" data-l-en="MATCH RATING" data-l-pt="PONTUAÇÃO">PUNTUACIÓN</span><b id="finNotaNum"></b></div>
     <div class="rels" id="finRels"></div>
     <div class="barraExp" id="finBarra"><span id="finEstA"></span><div class="pista"><i id="finBarraAntes"></i><i id="finBarraAhora"></i><i id="finBarraPerdida"></i></div><span id="finEstB"></span></div>
+    <!-- §2z140: la estrella nueva se anuncia (su caza: "si hay algo que te anuncia que subiste de nivel ni lo sentí") -->
+    <div class="nivelNuevo oculto" id="finNivel"></div>
     <!-- §2z19: LA CARD DEL CIERRE DE SERIE (su ok 2026-09-02) — sólo el partido que cierra tu serie -->
     <div class="serie oculto" id="finSerie"><span class="lbl" id="finSerieLbl"></span><b id="finSerieTxt"></b></div>
   </div>
@@ -5292,12 +5303,18 @@ const factorHinchada = (J) => 0.8 + J.relaciones.hinchada / 250;
 
 /* ── La misión del DT: una por partido, sorteada con la semilla, a la medida de tus minutos
  * (el partido reparte nInt = min/3 posesiones: no se pide lo que el guion no da). */
-const MISIONES = ['puntos', 'asistencias', 'triples', 'robos', 'perdidas'];
-function misionDe(semilla, clave, minutos, cadaMin) {
+const MISIONES = ['puntos', 'asistencias', 'triples', 'robos', 'perdidas', 'racha'];
+/* §2z141 (su caza 2026-09-07: "las misiones son muy repetitivas… capaz no siempre debería haber misión"): en una fecha
+ * común el DT pide algo 6 de cada 10 veces; los partidos que importan (playoffs, continental, selección) siempre traen
+ * una. Y entra la RACHA: 3 seguidas (el fuego del partido, `fuegoMax`). */
+const P_SIN_MISION = 0.4;
+function misionDe(semilla, clave, minutos, cadaMin, siempre) {
   const nInt = Math.round(minutos / (cadaMin || 3));   // §2z43: la misión escala con las jugadas del ritmo
-  const tipo = rngFor(semilla, 'mision', clave).pick(MISIONES);
+  const rng = rngFor(semilla, 'mision', clave);
+  if (!siempre && rng.chance(P_SIN_MISION)) return null;
+  const tipo = rng.pick(MISIONES);
   const meta = { puntos: Math.max(6, Math.round(nInt * 1.1)), asistencias: Math.max(2, Math.round(nInt / 4)),
-                 triples: Math.max(1, Math.round(nInt / 5)), robos: 1, perdidas: 2 }[tipo];
+                 triples: Math.max(1, Math.round(nInt / 5)), robos: 1, perdidas: 2, racha: 3 }[tipo];
   return { tipo, meta };
 }
 /* [singular, plural] — "1 ROBO", "2 TRIPLES" */
@@ -5307,6 +5324,7 @@ const MISION_TXT = {
   triples: [L('TRIPLE', 'THREE', 'BOLA DE TRÊS'), L('TRIPLES', 'THREES', 'BOLAS DE TRÊS')],
   robos: [L('ROBO O TAPA', 'STEAL OR BLOCK', 'ROUBO OU TOCO'), L('ROBOS O TAPAS', 'STEALS OR BLOCKS', 'ROUBOS OU TOCOS')],   // §2z39.30: cuenta las dos
   perdidas: [L('PÉRDIDA COMO MÁXIMO', 'TURNOVER AT MOST', 'PERDA NO MÁXIMO'), L('PÉRDIDAS COMO MÁXIMO', 'TURNOVERS AT MOST', 'PERDAS NO MÁXIMO')],
+  racha: [L('SEGUIDA', 'IN A ROW', 'SEGUIDA'), L('SEGUIDAS', 'IN A ROW', 'SEGUIDAS')],   // §2z141: "3 SEGUIDAS"
 };
 /* el nombre sin traducir (el HUD del partido lo indexa por idioma: ahí `t` es otra cosa) */
 const misionNombre = (m) => MISION_TXT[m.tipo][m.meta === 1 ? 0 : 1];
@@ -5314,7 +5332,7 @@ const misionMeta = (m) => m.meta + ' ' + t(misionNombre(m));
 function misionValor(m, G) {
   /* §2z39.30 (su corte: "la misión de UN ROBO es un montón; debería ser «robo o tapa»"): la clave sigue
      siendo `robos` (las carreras guardadas la tienen), pero cuenta robos + tapas */
-  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: (G.robos || 0) + (G.tapas || 0), perdidas: G.perdidas }[m.tipo] || 0;
+  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: (G.robos || 0) + (G.tapas || 0), perdidas: G.perdidas, racha: G.fuegoMax || 0 }[m.tipo] || 0;
 }
 function misionCumplida(m, G) {
   const v = misionValor(m, G);
@@ -5968,13 +5986,22 @@ const CARTAS_PRENSA=[
  /* §2z99: LA ÚLTIMA FUE TUYA (su pedido 2026-09-07: "esa jugada CLUTCH tiene que generar algo en la prensa"). Van
     ANTES de las de misión y las tapan: el titular de esa noche es uno solo. */
  { id:'prensa_clutch_metida', repite:true,
-   cuando:(c)=>!!(c.u.clutch&&c.u.clutch.anoto&&c.u.gano),
+   cuando:(c)=>!!(c.u.clutch&&c.u.clutch.anoto&&!c.u.clutch.asistio&&c.u.gano),
    gancho:L('La última fue tuya y la metiste. Te esperan todos los micrófonos.','The last one was yours and you hit it. Every microphone is waiting.','A última foi sua e você acertou. Todos os microfones te esperam.'),
    opciones:[
      {tipo:'segura',label:L('Era la jugada','That was the play','Era a jogada'),desenlaces:[{p:100,remate:null,texto:L('El DT dice que la dibujó él. Vos sonreís.','The coach says he drew it up. You smile.','O técnico diz que foi ele que desenhou. Você sorri.'),ef:{rel:{dt:1,hinchada:2}}}]},
      {tipo:'apuesta',label:L('Dámela siempre','Give it to me every time','Me dá sempre'),desenlaces:[
        {p:60,remate:L('El cerrador','The closer','O fechador'),texto:L('Desde esa noche la última es tuya sin que la pidas.','From that night on the last one is yours without asking.','Desde essa noite a última é sua sem pedir.'),ef:{minutos:3,rel:{hinchada:4}}},
        {p:40,remate:L('Mucho ruido','Loud','Muito barulho'),texto:L('Un compañero: "una entró, tranquilo". El vestuario se ríe, pero no con vos.','A teammate: "one went in, easy". The locker room laughs, but not with you.','Um companheiro: "uma entrou, calma". O vestiário ri, mas não com você.'),ef:{rel:{plantel:-2}}}]}]},
+ /* §2z138: LA ÚLTIMA LA PASASTE (su caza 2026-09-07): la asistencia sobre la chicharra tiene su propio titular. */
+ { id:'prensa_clutch_asistida', repite:true,
+   cuando:(c)=>!!(c.u.clutch&&c.u.clutch.anoto&&c.u.clutch.asistio&&c.u.gano),
+   gancho:L('La última fue tuya y la pasaste: la metió él. Te preguntan por qué no la tiraste.','The last one was yours and you passed it: he hit it. They ask why you did not shoot.','A última foi sua e você passou: ele acertou. Perguntam por que não arremessou.'),
+   opciones:[
+     {tipo:'segura',label:L('Estaba solo','He was open','Ele estava livre'),desenlaces:[{p:100,remate:null,texto:L('El que la metió te abraza en la nota. El vestuario lo anota.','The one who hit it hugs you on camera. The locker room takes note.','Quem acertou te abraça na entrevista. O vestiário anota.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('La próxima la tiro yo','Next time I shoot it','A próxima eu arremesso'),desenlaces:[
+       {p:60,remate:L('Con hambre','Hungry','Com fome'),texto:L('El DT lee el titular y sonríe: la quiere en tus manos.','The coach reads the headline and smiles: he wants it in your hands.','O técnico lê a manchete e sorri: quer na sua mão.'),ef:{minutos:3,rel:{dt:2,hinchada:3}}},
+       {p:40,remate:L('Desagradecido','Ungrateful','Ingrato'),texto:L('El que la metió lee que "la próxima la tirás vos". No te la devuelve en una semana.','The one who hit it reads that "next time you shoot it". He does not pass to you for a week.','Quem acertou lê que "a próxima é sua". Não te devolve a bola por uma semana.'),ef:{rel:{plantel:-3}}}]}]},
  { id:'prensa_clutch_errada', repite:true,
    cuando:(c)=>!!(c.u.clutch&&!c.u.clutch.anoto),
    gancho:L('Tuviste la última y no entró. Te preguntan si la volverías a tirar.','You had the last one and it did not go in. They ask if you would take it again.','Você teve a última e não entrou. Perguntam se arremessaria de novo.'),
@@ -11459,6 +11486,7 @@ function armarPosesion(){
   const beatDesde = G.beat && G.beat.desde;
   const beatElenco = G.beat && G.beat.elenco;
   G.esFinal = !!(G.beat && G.beat.final);   // la última posesión del partido, jugada
+  if(G.esFinal) G.astAlFinal=G.ast;   // §2z138: para saber si la última la METISTE o la PASASTE
   /* LA HEREDADA NO ES OTRA ESCENA (su corte 2026-08-25: "¿por qué tenemos que
      transicionar a otra escena?"): la posesión que hereda el elenco entra en perfil
      bajo — la píldora y el relato se actualizan, pero el veredicto grande no vuelve a
@@ -12464,8 +12492,8 @@ function apodo(){
    sólo cuando algo cambió (el reloj cambia una vez por segundo, no 60). */
 let _mkTab='', _mkStat='';
 /* §2z103: el rótulo del cuarto — 1C…4C, y SUP / 2SUP en el suplementario (marcador y feed lo comparten) */
-function cuartoTxt(){ const c=G.cuarto;
-  return c>4 ? L(c>5?`${c-4}SUP`:'SUP', c>5?`${c-4}OT`:'OT', c>5?`${c-4}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
+function cuartoTxt(){ const c=G.cuarto, o=G.ot||1;   // §2z138: G.cuarto queda en 5 en TODO suplementario — el número es G.ot
+  return c>4 ? L(o>1?`${o}SUP`:'SUP', o>1?`${o}OT`:'OT', o>1?`${o}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
 function marcador(){
   const t=Math.max(0,Math.ceil(G.reloj)), txt=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
   const cuarto=cuartoTxt();
@@ -15227,7 +15255,7 @@ function pedilaSinSentido(){
      había reseteado y el botón vivía — la pedida se agendaba DETRÁS de la que venía y las dos salían como pedidas. Con
      una jugada anunciada en la mano, no se pide. */
   if(G.beat && G.beat.t==='jugada') return true;
-  if(G.pedidaEnCuarto && G.cuarto!==4) return true;  // una por cuarto; el último es libre; el suplementario no tiene (§2z103)
+  if(G.pedidaEnCuarto && G.cuarto<4) return true;  // una por cuarto; el último y el suplementario son libres (§2z138: "las que te quedan tienen que valer en el OT")
   if(prox.t==='chicharra' || prox.t==='cuarto') return true;
   if(prox.t==='jugada') return (relojYa - (prox.hasta ?? relojYa)) <= 25;
   return false;
@@ -15295,7 +15323,7 @@ function siguienteBeat(){
   if(b.t==='cuarto'){
     cerrarRelojAnim(); G.cuarto=b.n+1; G.reloj=b.ot?OT_SEG:RELOJ_CUARTO; G.relojAnim=null; marcador();
     if(b.ot){   // §2z103: el suplementario — lo jugás si terminaste en cancha; sin rotación ni pedida
-      G.rotSale=null; G.rotEntra=null; G.enCancha=!G.sub; G.pedidaEnCuarto=true; pintarBtnPedila();
+      G.rotSale=null; G.rotEntra=null; G.enCancha=!G.sub; G.pedidaEnCuarto=false; pintarBtnPedila();   // §2z138: las pedidas que te quedan valen en el OT
       fila(t(L('EMPATADO — SUPLEMENTARIO.','TIED — OVERTIME.','EMPATADO — PRORROGAÇÃO.')),'hito');
       setTimeout(siguienteBeat, 1400); return; }
     /* LA ROTACIÓN (su regla 2026-08-29): jugás el arranque de los tres primeros cuartos
@@ -15442,8 +15470,12 @@ function finPosesion(anoto, resumen){
   /* §2z99 (su caza 2026-09-07: "erré el triple para empatar… esa jugada CLUTCH tiene que generar algo"): el motor
      sabía cuál era la última pero no guardaba qué hiciste con ella. Queda escrito para el cierre (la nota, la
      planilla) y la prensa. Con suplementario, la ÚLTIMA última es la que cuenta. */
-  if(G.esFinal) G.clutch={anoto:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv};
-  if(G.esFinal && anoto && G.nos>G.riv) vineta('volcada',2300);   // el buzzer-beater ganado
+  /* §2z138 (su caza 2026-09-07: "la última LA PASÉ y la metió mi compañero; me salió la card de «la metiste» y la
+     viñeta de la volcada — se siente raro"): `asistio` distingue la última pasada de la última tirada. La viñeta de la
+     volcada es de TU canasta; la prensa tiene su propia carta para la asistencia. */
+  const asistio=!!anoto && G.astAlFinal!=null && G.ast>G.astAlFinal;
+  if(G.esFinal) G.clutch={anoto:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
+  if(G.esFinal && anoto && G.nos>G.riv && !asistio) vineta('volcada',2300);   // el buzzer-beater ganado
   /* el lamento de la tribuna es de TU tiro errado (los resúmenes arrancan igual EN CADA
      IDIOMA — i18n: si un resumen de tiro errado nuevo no arranca así en los tres, el uhh
      muere en silencio; las pérdidas ya tienen su golpe y el libre no corta el murmullo */
@@ -17968,8 +18000,16 @@ function instalarCard(dep) {
        Va aparte de los tramos por club: una medalla no es de un club, y meterla ahí sería
        decir que la ganó tu equipo. */
     const seleccion = ((C.seleccion && C.seleccion.torneos) || []).slice().sort((a, b) => b.anio - a.anio);
+    /* §2z142 (su caza 2026-09-07: "en las piezas compartibles no figura nada de la selección ni de copa continental"):
+       lo EN CURSO también cuenta — los partidos con la mayor y hasta dónde vas en la continental de este año. */
+    const selPJ = (C.seleccion && C.seleccion.jugados) || 0;
+    const am = e.americas && e.americas.campo && e.americas.campo.includes(e.miClubId) ? e.americas : null;
+    const americas = am ? (am.campeon === e.miClubId ? T('CAMPEÓN', 'CHAMPIONS', 'CAMPEÃO')
+      : am.eliminado ? T('ELIMINADO', 'OUT', 'ELIMINADO') + ' · ' + dep.amEtapaTxt(am.miFase || 'grupo', am.miGrupo)
+      : dep.amEtapaTxt(am.miFase || 'grupo', am.miGrupo)) : null;
     return { C, J, e, temporadas, tot, kpis, tramos, clubActual, liga, vitrina: dep.vitrina(),
-      seleccion, pais: J.nacionalidad || 'ar', identidad: (C.identidad && C.identidad.id) || 'formacion' };
+      seleccion, selPJ, americas, elimEnCurso: !!(e.seleccion && !e.seleccion.fin && selPJ),
+      pais: J.nacionalidad || 'ar', identidad: (C.identidad && C.identidad.id) || 'formacion' };
   }
   const clubTxt = (id, ligaId) => { const c = dep.clubEn(id, ligaId); return c ? c.nombre : id; };
   const ligaTxt = (ligaId) => { const l = dep.LIGAS[ligaId]; return l ? l.nombre.replace(/^Liga /, '') : ''; };
@@ -18105,7 +18145,16 @@ function instalarCard(dep) {
 
   /* ── LA CORTA (Card.tsx): cabecera · regla · stats de TODA la carrera · los logros como renglones · pie ── */
   async function dibujarCorta(cv) {
-    const d = datos(), H = 1080; cv.width = W; cv.height = H;
+    const d = datos();
+    /* §2z142 (su caza: "con una sola temporada la CORTA es más larga que la de CARRERA"): el alto ya no es 1080 fijo —
+       se mide la cabecera en un lienzo aparte y la card termina donde termina el contenido. */
+    const alto = 84;
+    const logros = d.vitrina.slice(0, LOGROS_CORTA);
+    const nFilas = logros.length || (2 + (d.temporadas[d.temporadas.length - 1].nota ? 1 : 0) + (d.selPJ ? 1 : 0) + (d.americas ? 1 : 0) + (dep.miTabla(d.e) && dep.miTabla(d.e).fila ? 1 : 0) - 1);
+    const medidor = document.createElement('canvas'); medidor.width = W; medidor.height = 400;
+    const yCab = await cabecera(medidor.getContext('2d'), d, 100, true);
+    const H = yCab + 26 + 186 + 24 + nFilas * alto + 16 + 96 + MARCO;
+    cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
     await papel(ctx, H, d.clubActual);
     let y = await cabecera(ctx, d, 100, true);
@@ -18114,8 +18163,6 @@ function instalarCard(dep) {
     regla(ctx, y + 8); y += 24;
     /* sólo lo más relevante (su corte: "no ocupemos media card con logros"): los primeros LOGROS_CORTA
        del orden de la vitrina — que ya es el de El Draft, la NBA arriba — y sin '+N' */
-    const alto = 84;
-    const logros = d.vitrina.slice(0, LOGROS_CORTA);
     if (!logros.length) {
       /* §2z71 (su caza: "la card chiquita sin títulos queda MUY vacía, y el «no hay títulos» sale chiquito"): sin
          títulos el bloque es ESTA TEMPORADA —récord del equipo y puesto, tu línea, la nota— con las mismas filas de
@@ -18126,7 +18173,9 @@ function instalarCard(dep) {
       const filas = [];
       if (mt && mt.fila) filas.push([T('RÉCORD DEL EQUIPO', 'TEAM RECORD', 'CAMPANHA DO TIME'), mt.fila.pg + '–' + mt.fila.pp + (mt.puesto ? ' · ' + mt.puesto + 'º' : '')]);
       filas.push([T('ESTA TEMPORADA', 'THIS SEASON', 'ESTA TEMPORADA'), lin.pj + ' PJ · ' + (lin.pj ? dec(lin.pts / lin.pj) : '—') + ' PTS · ' + (lin.pj ? dec(lin.ast / lin.pj) : '—') + ' AST']);
-      if (tm.nota) filas.push([T('NOTA', 'RATING', 'NOTA'), dec(tm.nota)]);
+      if (tm.nota) filas.push([T('PUNTUACIÓN', 'RATING', 'PONTUAÇÃO'), dec(tm.nota)]);   // §2z142: el mismo nombre que el cierre
+      if (d.americas) filas.push([T('LIGA DE LAS AMÉRICAS', 'AMERICAS LEAGUE', 'LIGA DAS AMÉRICAS'), d.americas]);
+      if (d.selPJ) filas.push([T('CON LA SELECCIÓN', 'NATIONAL TEAM', 'COM A SELEÇÃO'), d.selPJ + ' PJ']);
       filas.forEach(([k, v], i) => {
         const yy = y + alto * i;
         if (i) { ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fillRect(X0, yy, X1 - X0, 1); }
@@ -18161,7 +18210,9 @@ function instalarCard(dep) {
     }).filter((tr) => tr.lin.pj > 0 || tr.hasta === d.C.anio);
     const altoTramo = (tr) => 28 + 92 + (tr.logros.length ? 56 : 0) + 28;
     /* §12: la banda de la selección, si jugaste alguno — cabecera más una fila por torneo */
-    const altoSel = d.seleccion.length ? 20 + 40 + d.seleccion.length * 76 + 10 : 0;
+    const filasSel = d.seleccion.slice();
+    if (d.elimEnCurso) filasSel.unshift({ enCurso: true, anio: d.C.anio });   // §2z142: las eliminatorias que estás jugando
+    const altoSel = filasSel.length ? 20 + 40 + filasSel.length * 76 + 10 : 0;
     const H = MARCO + 48 + 130 + 26 + 46 + 2 * 128 + 30 + 60 + tramos.reduce((a, tr) => a + altoTramo(tr), 0) + altoSel + 140 + MARCO;
     cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
@@ -18196,7 +18247,7 @@ function instalarCard(dep) {
       const l = tr.lin, por = (v) => l.pj ? dec(v / l.pj) : '—';
       /* la línea de stats del tramo; la VALORACIÓN (su corte: "NOTA me suena raro") va al final SÓLO si entra sin achicar */
       const base = ligaTxt(tr.ligaId).toUpperCase() + '  ·  ' + l.pj + ' PJ · ' + por(l.pts) + ' PTS · ' + por(l.ast) + ' AST · ' + (terceraTap ? por(l.tap) + ' ' + T('TAP', 'BLK', 'TO') : por(l.rob) + ' ' + T('ROB', 'STL', 'ROU'));
-      const conVal = tr.nota ? base + '  ·  ' + T('VALORACIÓN', 'RATING', 'AVALIAÇÃO') + ' ' + dec(tr.nota) : base;
+      const conVal = tr.nota ? base + '  ·  ' + T('PUNTUACIÓN', 'RATING', 'PONTUAÇÃO') + ' ' + dec(tr.nota) : base;   // §2z142: un solo nombre (la corta decía NOTA, acá VALORACIÓN, el cierre PUNTUACIÓN)
       ctx.font = '600 26px ' + FONT;
       texto(ctx, ctx.measureText(conVal).width <= X1 - xT ? conVal : base, xT, y + 76, { size: 26, peso: 600, color: MUTED, max: X1 - xT });
       if (tr.logros.length) {
@@ -18217,11 +18268,18 @@ function instalarCard(dep) {
     }
     /* §12 LA SELECCIÓN: una fila por torneo, con el año, el puesto y tu promedio. El puesto va
        en el color de la medalla — es lo único de la card que no se mide en promedios. */
-    if (d.seleccion.length) {
+    if (filasSel.length) {
       regla(ctx, y); y += 20;
       texto(ctx, T('LA SELECCIÓN', 'NATIONAL TEAM', 'A SELEÇÃO'), X0, y + 26, { size: 24, peso: 700, color: MUTED, spacing: 3.4 });
       y += 40;
-      for (const x of d.seleccion) {
+      for (const x of filasSel) {
+        if (x.enCurso) {
+          ctx.fillStyle = MUTED2; ctx.beginPath(); ctx.roundRect(X0, y + 2, 6, 58, 3); ctx.fill();
+          texto(ctx, T('ELIMINATORIAS', 'QUALIFIERS', 'ELIMINATÓRIAS'), X0 + 26, y + 32, { size: 32, peso: 700, max: 300 });
+          texto(ctx, String(x.anio), X1, y + 32, { size: 26, peso: 700, color: MUTED2, align: 'right' });
+          texto(ctx, T('EN CURSO', 'IN PROGRESS', 'EM ANDAMENTO') + '  ·  ' + d.selPJ + ' PJ', X0 + 26, y + 58, { size: 24, peso: 600, color: MUTED, max: X1 - X0 - 26 });
+          y += 76; continue;
+        }
         const col = x.medalla === 'oro' ? '#f2c94c' : x.medalla === 'plata' ? '#cfd6e4' : x.medalla === 'bronce' ? '#d69a63' : MUTED2;
         ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(X0, y + 2, 6, 58, 3); ctx.fill();
         const xT = X0 + 26;
@@ -18268,7 +18326,9 @@ function instalarCard(dep) {
     }
     try { await navigator.clipboard.writeText(txt); } catch (err) {}
     if (blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); }
-    dep.avisar(T('Imagen guardada · texto copiado', 'Image saved · text copied', 'Imagem salva · texto copiado'));
+    /* §2z142 (su caza: "dice «imagen guardada, texto copiado» Y EN ROJO", desde el artifact, donde la descarga es inerte):
+       la imagen está en pantalla — el gesto del teléfono es mantenerla apretada — y el aviso va en el tono neutro. */
+    dep.avisar(T('Texto copiado · mantené apretada la imagen para guardarla', 'Text copied · press and hold the image to save it', 'Texto copiado · segure a imagem para salvar'), 'info');
   }
   function abrirCard(t) {
     tipo = t || 'corta';
@@ -19519,6 +19579,7 @@ function numeroQueSube(el,valor,caja){
 function avisar(msg,tono){
   const el=$l('lobToast'); el.textContent=msg;
   el.classList.toggle('oro',tono==='oro');   // las estrellas del drill van doradas
+  el.classList.toggle('info',tono==='info');   // §2z142: el aviso que no es un error
   el.classList.add('ve');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('ve'),1900);
 }
@@ -20761,11 +20822,12 @@ function abrirPre(objetivo){
   objetivo.mision=misionDe(e.semilla,objetivo.tipo==='fecha'?'f'+objetivo.fecha
     :objetivo.tipo==='americas'?'am'+objetivo.etapa+objetivo.juego
     :objetivo.tipo==='seleccion'?'sel'+objetivo.etapa+(objetivo.juego||0)
-    :'po'+objetivo.serie.nombre+objetivo.juego,proximosMinutos(rc),CADA_MIN(!!C.intenso));   // §2z43: la misión escala con las jugadas
+    :'po'+objetivo.serie.nombre+objetivo.juego,proximosMinutos(rc),CADA_MIN(!!C.intenso),objetivo.tipo!=='fecha');   // §2z43: la misión escala con las jugadas · §2z141: en la fecha común no siempre hay
   /* §2z39.64 (su caza: "esos 20 MIN no se entiende que son los que vas a jugar; no está bien ubicado"): los minutos
      son del DT — te los da él, y en el mismo renglón te pide la misión */
   const minPre=objetivo.tipo==='seleccion'?minutosSelDe(objetivo):proximosMinutos(rc);
-  $l('lobPreMision').innerHTML='<span class="dt">DT</span><span class="txt"><small>'+t(L('EL DT TE DA ','THE COACH GIVES YOU ','O TÉCNICO TE DÁ '))+minPre+t(L(' MIN Y TE PIDE',' MIN AND WANTS',' MIN E PEDE'))+'</small><b>'+misionMeta(objetivo.mision)+'</b></span>';
+  $l('lobPreMision').innerHTML='<span class="dt">DT</span><span class="txt"><small>'+t(L('EL DT TE DA ','THE COACH GIVES YOU ','O TÉCNICO TE DÁ '))+minPre
+    +(objetivo.mision?t(L(' MIN Y TE PIDE',' MIN AND WANTS',' MIN E PEDE'))+'</small><b>'+misionMeta(objetivo.mision)+'</b>':' MIN</small>')+'</span>';   // §2z141: sin misión, sólo los minutos
   $l('lobPreScout').innerHTML=scoutingDe(C.jugador,C.ligaId,rc,miClubEn(objetivo),objetivo.local)
     .map(s=>SCOUT_TXT[s.clave]?'▸ '+t(SCOUT_TXT[s.clave]):'').join('<br>');
   pintaRecursos();
@@ -20935,6 +20997,11 @@ terminar=function(){
   const bajo=nivelDespues<nivelAntes, nivBarra=bajo?nivelDespues:nivelAntes;
   const fAntes=bajo?1:fraccionExp(expAntes,nivelAntes), fDespues=nivelDespues>nivelAntes?1:fraccionExp(expDespues,nivBarra);
   document.getElementById('finEstA').textContent='★'+nivBarra;
+  /* §2z140 (su caza 2026-09-07: "si hay algo que te anuncia que subiste de nivel ni lo sentí"): la barra llenándose
+     era todo el anuncio. Cuando la estrella es nueva, después de la barra sale el renglón dorado ★n+1 — NUEVO NIVEL. */
+  const nivelEl=document.getElementById('finNivel');
+  nivelEl.classList.add('oculto'); nivelEl.textContent='';
+  if(nivelDespues>nivelAntes){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
   document.getElementById('finEstB').textContent='★'+(nivBarra+1);
   const barra=document.getElementById('finBarra'); barra.style.animationDelay=tRels+'ms';
   const antes=document.getElementById('finBarraAntes'), ahora=document.getElementById('finBarraAhora'), perdida=document.getElementById('finBarraPerdida');
@@ -21347,14 +21414,15 @@ function pintaSecciones(){
   /* la secundaria ya no dice "amateur" en el contrato: desde 2026-09-04 cobra como la Federal
      (su corte de balance), así que muestra los tres números como cualquier liga */
   const amateur=false;
-  const filaPlata=(k,v)=>filaDato(k,amateur?t(L('amateur','amateur','amador')):fplata(v));
-  /* §2z42.2: arriba el escudo y el año (es un contrato, no una tabla); abajo la historia — lo que cobraste y lo
-     que gastaste esta temporada, y lo que cobraste en la carrera */
+  /* §2z139 (su captura 2026-09-07: "la nueva oferta de contrato scrollea"): la cabecera con escudo (el club ya está
+     arriba) y las tres filas largas medían ~340 px con la oferta abajo, y el panel no llega a 300 en 812. Ahora el
+     contrato vigente son TRES NÚMEROS en un renglón —los mismos tres de la oferta, alineados para compararlos de un
+     vistazo— con la temporada en el rótulo. Sin scroll en 812. */
   const eco=ecoDe(), club=clubDe(e.miClubId);
-  let html='<div class="contratoCab">'+escuditoDe(club)+'<span class="quien"><b>'+club.nombre+'</b><small>'+t(L('CONTRATO','CONTRACT','CONTRATO'))+' · '+anioTxt()+'</small></span></div>'
-    +filaPlata(t(L('POR PARTIDO','PER GAME','POR JOGO')),ct.partido)
-    +filaPlata(t(L('POR GANAR','PER WIN','POR VITÓRIA')),ct.ganar)
-    +filaPlata(t(L('POR MISIÓN','PER MISSION','POR MISSÃO')),ct.mision)
+  const tresNums=(o)=>'<div class="nums"><span><b>'+fplata(o.partido)+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
+      +'<span><b>'+fplata(o.ganar)+'</b><small>'+t(L('GANAR','WIN','VITÓRIA'))+'</small></span>'
+      +'<span><b>'+fplata(o.mision)+'</b><small>'+t(L('MISIÓN','MISSION','MISSÃO'))+'</small></span></div>';
+  let html='<div class="cajTag">'+t(L('CONTRATO','CONTRACT','CONTRATO'))+' · '+anioTxt()+'</div>'+tresNums(ct)
     +'<div class="eco"><span><b>'+fplataCorta(eco.cobT)+'</b><small>'+t(L('COBRASTE','EARNED','GANHOU'))+'</small></span>'
     +'<span><b>'+fplataCorta(eco.gasT)+'</b><small>'+t(L('GASTASTE','SPENT','GASTOU'))+'</small></span>'
     +'<span><b>'+fplataCorta(eco.cob)+'</b><small>'+t(L('CARRERA','CAREER','CARREIRA'))+'</small></span></div>';
@@ -21363,9 +21431,7 @@ function pintaSecciones(){
     /* tarjeta propia (su caza: "se ve como continuación del resto"): borde naranja, los tres
        números grandes y FIRMAR adentro */
     html+='</div><div class="cajon oferta"><div class="cajTag">'+t(L('NUEVA OFERTA','NEW OFFER','NOVA OFERTA'))+' · ★'+C.renegocia.nivel+'</div>'
-      +'<div class="nums"><span><b>'+fplata(of.partido)+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
-      +'<span><b>'+fplata(of.ganar)+'</b><small>'+t(L('GANAR','WIN','VITÓRIA'))+'</small></span>'
-      +'<span><b>'+fplata(of.mision)+'</b><small>'+t(L('MISIÓN','MISSION','MISSÃO'))+'</small></span></div>'
+      +tresNums(of)
       +'<button class="jugar ancho" id="lobFirmar">'+t(L('FIRMAR','SIGN','ASSINAR'))+'</button><div>';
   }
   $l('lobContrato').innerHTML=html;
@@ -22765,6 +22831,7 @@ const CARD=instalarCard({
   clubEn:(id,ligaId)=>{ const liga=LIGAS[ligaId]; return (liga?clubPorId(liga.clubes,id):null)||maestroClub(id)||null; },
   /* §12: los textos de la selección, para la banda de la card de carrera */
   torneoSelTxt:(k)=>selTorneoTxt(k),
+  amEtapaTxt,   // §2z142: la etapa de la continental en curso
   puestoSelTxt:(p)=>t(SEL_CEREMONIA_TXT[p]||L(p||'')),
   vitrina:(pal)=>vitrinaDe(pal||C.palmares||[]).map(g=>({kind:g.clave==='campeon'&&g.ligaId==='nba'?'anillo':PREMIO_TXT[g.clave][0],nombre:nombrePieza(g),veces:g.veces,anios:aniosDe(g.items),tono:tonoPieza(g).trim()})),
 });

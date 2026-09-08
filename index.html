@@ -496,6 +496,10 @@
   @keyframes mediaLatido{0%{transform:scale(1)}45%{transform:scale(1.13)}100%{transform:scale(1)}}
   @keyframes mediaCaja{from{opacity:0}to{opacity:1}}
   #lobby .mediaBox .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  /* §2z137: la MEDIA con la escala de los skills — verde desde 70, verde brillante desde 85 */
+  #lobby .mediaBox.alto .num{color:var(--ok)}
+  #lobby .mediaBox.elite .num{color:#a8f0b0;text-shadow:0 0 12px rgba(125,208,135,.6)}
+  #lobby .mediaBox.alto{border-color:rgba(125,208,135,.45)} #lobby .mediaBox.elite{border-color:rgba(168,240,176,.6)}
   /* §2z39.18: el botón de pasar, armado para confirmar */
   #lobby .jugar.secundario.confirmar{border-color:var(--naranja);color:var(--naranja)}
   #lobby .recursos{display:flex;gap:8px;margin-top:3px}
@@ -19994,6 +19998,10 @@ function pintaLobby(){
   eNom.innerHTML='<span class="ban">'+banderaDe(J.nacionalidad,18)+'</span>'+esc(ape)+
     ' <span class="dorsal">#'+(J.dorsal===undefined?7:J.dorsal)+'</span>';
   numeroQueSube($l('lobMedia'),(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5,$l('lobMedia').closest('.mediaBox'));   // la media SUBE a la vista (El Draft)
+  /* §2z137 (su pregunta 2026-09-07: "¿el contenedor de MEDIA cambia de color en algún momento?"): la misma escala que las
+     barras de skill (§2z122 v2) — blanco hasta 69, verde 70–84, verde brillante ≥85 */
+  { const mb=$l('lobMedia').closest('.mediaBox'), mv=(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5;
+    if(mb){ mb.classList.toggle('alto',mv>=70&&mv<85); mb.classList.toggle('elite',mv>=85); } }
   const eMio=escudito(e.miClubId);
   ponerEscudo('lobEscudo', eMio, 'escudito svg');
   $l('lobClub').textContent=clubDe(e.miClubId).nombre.toUpperCase()+' '+(mt.fila?('('+mt.fila.pg+'–'+mt.fila.pp+')'):'');

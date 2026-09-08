@@ -12493,7 +12493,8 @@ function apodo(){
 let _mkTab='', _mkStat='';
 /* §2z103: el rótulo del cuarto — 1C…4C, y SUP / 2SUP en el suplementario (marcador y feed lo comparten) */
 function cuartoTxt(){ const c=G.cuarto, o=G.ot||1;   // §2z138: G.cuarto queda en 5 en TODO suplementario — el número es G.ot
-  return c>4 ? L(o>1?`${o}OT`:'OT', o>1?`${o}OT`:'OT', o>1?`${o}PR`:'PR')[idioma()]   // §2z143 (su corte): OT también en castellano, como la LNB y la TV : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
+  /* §2z143 (su corte): OT también en castellano, como la LNB y la TV */
+  return c>4 ? L(o>1?`${o}OT`:'OT', o>1?`${o}OT`:'OT', o>1?`${o}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
 function marcador(){
   const t=Math.max(0,Math.ceil(G.reloj)), txt=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
   const cuarto=cuartoTxt();

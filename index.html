@@ -18425,7 +18425,9 @@ const PRECIO_LATA=95;
    cuesta ~85 % de TU pago por partido —el número del contrato—, así sube cada vez que firmás la estrella nueva. Sin
    contrato (o amateur) vale el base de la liga, como antes. Piso 95. */
 const precioLata=()=>{ const b=((typeof SUELDO_LIGA!=='undefined'&&C&&SUELDO_LIGA[C.ligaId])||[110])[0];
-  const mio=(C&&C.contrato&&C.contrato.partido)||0;
+  /* §2z144 (su caza 2026-09-08: "el contrato paga 240 + 75 + 72: en la mayoría cobrás 400, no 200"): la base es
+     la noche completa —partido + ganar + misión—, no sólo el primer número. LNB ★4: 205 → 330. */
+  const ct=C&&C.contrato; const mio=ct?((ct.partido||0)+(ct.ganar||0)+(ct.mision||0)):0;
   return Math.max(PRECIO_LATA, Math.round((mio||b)*0.85/5)*5); };
 const PAGO_PARTIDO=110;
 const PAGO_VICTORIA=40;
@@ -20824,13 +20826,16 @@ function abrirPre(objetivo){
   /* Acá vivía "▸ Jugás con 1 día de descanso." (§2q/§2z27). Se fue por su ley (2026-09-04, §2z39.55): el
      descanso sólo mueve la energía, que ya se ve en la barra — y después de una latita la frase mentía. */
   /* §2z12: LA MISIÓN DEL DT se anuncia acá — una por partido, a la medida de tus minutos */
-  objetivo.mision=misionDe(e.semilla,objetivo.tipo==='fecha'?'f'+objetivo.fecha
-    :objetivo.tipo==='americas'?'am'+objetivo.etapa+objetivo.juego
-    :objetivo.tipo==='seleccion'?'sel'+objetivo.etapa+(objetivo.juego||0)
-    :'po'+objetivo.serie.nombre+objetivo.juego,proximosMinutos(rc),CADA_MIN(!!C.intenso),objetivo.tipo!=='fecha');   // §2z43: la misión escala con las jugadas · §2z141: en la fecha común no siempre hay
   /* §2z39.64 (su caza: "esos 20 MIN no se entiende que son los que vas a jugar; no está bien ubicado"): los minutos
      son del DT — te los da él, y en el mismo renglón te pide la misión */
   const minPre=objetivo.tipo==='seleccion'?minutosSelDe(objetivo):proximosMinutos(rc);
+  /* §2z144 (su caza 2026-09-08: "me piden 12 puntos en 20 minutos"): con la selección la misión se armaba con los
+     minutos del CLUB (~32) y el DT mostraba los de la selección (20). La misión se calcula sobre los MISMOS minutos
+     que se muestran. */
+  objetivo.mision=misionDe(e.semilla,objetivo.tipo==='fecha'?'f'+objetivo.fecha
+    :objetivo.tipo==='americas'?'am'+objetivo.etapa+objetivo.juego
+    :objetivo.tipo==='seleccion'?'sel'+objetivo.etapa+(objetivo.juego||0)
+    :'po'+objetivo.serie.nombre+objetivo.juego,minPre,CADA_MIN(!!C.intenso),objetivo.tipo!=='fecha');   // §2z43: la misión escala con las jugadas · §2z141: en la fecha común no siempre hay
   $l('lobPreMision').innerHTML='<span class="dt">DT</span><span class="txt"><small>'+t(L('EL DT TE DA ','THE COACH GIVES YOU ','O TÉCNICO TE DÁ '))+minPre
     +(objetivo.mision?t(L(' MIN Y TE PIDE',' MIN AND WANTS',' MIN E PEDE'))+'</small><b>'+misionMeta(objetivo.mision)+'</b>':' MIN</small>')+'</span>';   // §2z141: sin misión, sólo los minutos
   $l('lobPreScout').innerHTML=scoutingDe(C.jugador,C.ligaId,rc,miClubEn(objetivo),objetivo.local)

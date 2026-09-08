@@ -14559,14 +14559,20 @@ function sigueYDefine(compi){
   G.corrida=null; G.pelotaEn=compi; G.paseVivo=null; G.corres=null;
   relato(t(L('La recibió corriendo: sigue de largo.','He caught it in stride: he keeps going.','Recebeu correndo: segue em frente.')),true);
   correr(compi,meta,Math.max(0.3,dist(compi,meta)/190),()=>{
-    const contesta=G.defs.some(d=>dist(d,a)<40*ESC());
-    const p=contesta?0.55:0.92;
+    /* §2z132 (su caza 2026-09-07: "la agarró, quedó enganchado entre su defensor Y el big del aro, y tiró «diciendo que
+       estaba solo»"): el contest miraba sólo si había alguien a 40·ESC del ARO — el perseguidor pegado a él no
+       contaba, y el texto decía "definió solo" aunque hubiera entrado contestada. Ahora cuentan los defensores a un
+       cuerpo y medio de ÉL (50·ESC): ninguno 0,92, uno 0,55, dos 0,38. Y el texto dice lo que pasó. */
+    const encima=G.defs.filter(d=>dist(d,compi)<50*ESC() || dist(d,a)<40*ESC()).length;
+    const contesta=encima>0;
+    const p=encima>=2?0.38:encima===1?0.55:0.92;
     posar(compi,'bandeja',a,900);
     vuelo({x:compi.x,y:compi.y},{...a},0.35,0.3,()=>{
       G.pelotaEn=null;
       if(Math.random()<p){ canastaFx(); G.nos+=2; G.ast++; G.ptsAsist+=2; marcador(); aprende('pase');
         veredicto(t(L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!')),'ok');
-        finPosesion(true,t(L('Lo lanzaste adelante y definió solo. Asistencia tuya.','You led him and he finished alone. Your assist.','Você lançou na frente e ele definiu sozinho. Assistência sua.'))); }
+        finPosesion(true,contesta?t(L('Lo lanzaste adelante y definió contestado. Asistencia tuya.','You led him and he finished through contact. Your assist.','Você lançou na frente e ele definiu marcado. Assistência sua.'))
+                              :t(L('Lo lanzaste adelante y definió solo. Asistencia tuya.','You led him and he finished alone. Your assist.','Você lançou na frente e ele definiu sozinho. Assistência sua.'))); }
       else { G.pasesTiro=(G.pasesTiro||0)+1; veredicto(t(L('¡La dejó en el aro!','He left it on the rim!','Deixou no aro!')),'mal');
         finPosesion(false,contesta?t(L('Llegó con el custodio encima y la erró.','The rim protector got there and he missed.','Chegou com o protetor em cima e errou.')):t(L('Llegó solo y la erró.','He got there alone and missed.','Chegou sozinho e errou.'))); }
     });
@@ -15203,6 +15209,11 @@ function pedilaSinSentido(){
   const relojYa = G.relojAnim ? Math.min(G.reloj, G.relojAnim.b) : G.reloj;
   if(!prox || relojYa<=12) return true;
   if(!G.enCancha || G.sub) return true;              // desde el banco no se pide
+  /* §2z133 (su caza 2026-09-07: "cuando la pedís justo cuando se viene una jugada tuya, tanto la que te tocaba como la
+     otra dicen «la que pediste»"): entre el anuncio de una jugada tuya y el corte a la cancha (1,2 s) `pidio` ya se
+     había reseteado y el botón vivía — la pedida se agendaba DETRÁS de la que venía y las dos salían como pedidas. Con
+     una jugada anunciada en la mano, no se pide. */
+  if(G.beat && G.beat.t==='jugada') return true;
   if(G.pedidaEnCuarto && G.cuarto!==4) return true;  // una por cuarto; el último es libre; el suplementario no tiene (§2z103)
   if(prox.t==='chicharra' || prox.t==='cuarto') return true;
   if(prox.t==='jugada') return (relojYa - (prox.hasta ?? relojYa)) <= 25;
@@ -17221,8 +17232,11 @@ function frame(now){
           /* §2z39.58 (su caza: un corte por la pintura corrió a todos, la cadena empujó a SU marca encima
              de él y "me la sacó sin que pueda reaccionar"): tu marca no la mueve nadie más que su propia
              presión — es fija en la separación, como la cortina plantada: empuja, no la empujan. */
-          const fija1=(G.pantalla&&G.pantalla.lista&&p1===G.pantalla.j)||p1===G.marca;
-          const fija2=(G.pantalla&&G.pantalla.lista&&p2===G.pantalla.j)||p2===G.marca;
+          /* §2z132: el que CORRE con correr() (interpolado punto a punto) no se deja empujar — la separación lo corría y
+             la interpolación lo devolvía cada frame: "enganchado" entre dos cuerpos. Empuja, no lo empujan. */
+          const corre1=!!(G.corre&&G.corre.j===p1), corre2=!!(G.corre&&G.corre.j===p2);
+          const fija1=(G.pantalla&&G.pantalla.lista&&p1===G.pantalla.j)||p1===G.marca||corre1;
+          const fija2=(G.pantalla&&G.pantalla.lista&&p2===G.pantalla.j)||p2===G.marca||corre2;
           if(!fija1){ p1.x-=ux*emp*(fija2?2:1); p1.y-=uy*emp*(fija2?2:1); }
           if(!fija2){ p2.x+=ux*emp*(fija1?2:1); p2.y+=uy*emp*(fija1?2:1); }
         }

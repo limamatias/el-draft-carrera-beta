@@ -895,6 +895,7 @@
      IR de entrenar y del VOLVER del drill). Contenedor nuevo con botones = prefijo nuevo. */
   #lobby .fila-item .btn,#lobby .fila-skill .btn,#lobby .fila-tienda .btn,#lobby .volverDrill{font-family:inherit;font-size:12px;font-weight:700;letter-spacing:1px;
        color:#10151f;background:var(--naranja);border:0;border-radius:12px;height:28px;padding:0 12px;cursor:pointer}
+  #lobby .fila-item .btn.ancho{flex:1;text-align:center;letter-spacing:2px}   /* §2z149: el renglón de una sola acción ES el botón */
   #lobby .btn:disabled{background:none;color:var(--tinta2);border:1px solid rgba(154,164,184,.35);cursor:default}
   #lobby .statGrande{display:flex;justify-content:space-between;text-align:center;padding:4px 2px}
   #lobby .statGrande .s b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -20552,8 +20553,9 @@ function pintaEntrenar(){
   $l('lobCupo').classList.add('cajon');
   $l('lobCupo').innerHTML='<div class="fila-item"><span class="desc">'+cupoTxt+'</span></div>';
   /* §7.1 la segunda puerta de los tutoriales (18c): SIEMPRE, arriba de los drills — es del juego, no de la beta */
-  let html='<div class="fila-item"><span class="desc">'+t(L('CÓMO SE JUEGA','HOW TO PLAY','COMO SE JOGA'))+'</span>'
-    +'<button class="btn" data-tut="1">'+t(L('VER','SHOW','VER'))+'</button></div>';
+  /* §2z149 (su caza 2026-09-08: "¿por qué CÓMO SE JUEGA no es el botón, en vez de un título y un botoncito naranja en
+     la otra punta?"): el renglón tiene UNA acción, así que el renglón es el botón. Mismo alto (28) que las filas. */
+  let html='<div class="fila-item"><button class="btn ancho" data-tut="1">'+t(L('CÓMO SE JUEGA','HOW TO PLAY','COMO SE JOGA'))+'</button></div>';
   for(const [k,nom,vivo] of SKILL_DEFS){
     /* la nota del óxido sólo cuando dice algo (su caza 2026-09-02: "el menú de entrenar
        quedó scrolleable, defensa queda tapado" — cinco renglones vacíos con margen se

@@ -21144,6 +21144,14 @@ terminar=function(){
   document.getElementById('cFin').classList.add('oculto');   // "Partidos: 1 · récord de racha" es del modo suelto, no de la carrera
   caja.classList.remove('oculto');
   setTimeout(()=>{ ahora.style.transition=''; ahora.style.width=(fDespues*100)+'%'; if(dExp<0){ perdida.style.opacity='1'; setTimeout(()=>{ perdida.style.opacity='0'; },1800); } },tBarra);   // §2z130: el rojo se muestra y se va
+  /* §2z160 (su caza 2026-09-08 con captura: "después de la animación de que sube la barra, ¿no debería pasar a ser la
+     barra de 4 a 5?"): con la estrella nueva, la barra llena se queda llena. Después del ¡NUEVO NIVEL! (tBarra+900) la
+     barra pasa al tramo nuevo: ★4 · ★5, arranca vacía y sube a lo que ya tenés del nivel nuevo. */
+  if(nivelDespues>nivelAntes) setTimeout(()=>{
+    document.getElementById('finEstA').textContent='★'+nivelDespues; document.getElementById('finEstB').textContent='★'+(nivelDespues+1);
+    antes.style.width='0%'; ahora.style.transition='none'; ahora.style.width='0%';
+    requestAnimationFrame(()=>{ ahora.style.transition=''; ahora.style.width=(fraccionExp(expDespues,nivelDespues)*100)+'%'; });
+  },tBarra+900+700);
 };
 /* Si ESTE partido cierra tu serie, qué pasó: se calcula ANTES de registrar el resultado
    (la serie viva todavía no tiene tu juego). null si no es serie o si sigue abierta. */

@@ -611,9 +611,12 @@
        letter-spacing:1px;border:2px solid rgba(233,236,243,.7)}
   #lobby .partido .info{flex:1;display:flex;flex-direction:column;gap:2px}
   #lobby .partido .cuando{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
-  #lobby .partido .rival{font-size:20px;font-weight:700;letter-spacing:1px;line-height:1.05;display:flex;align-items:baseline;gap:6px;min-width:0}
-  #lobby .partido .rival .nom{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* §2z167 */
-  #lobby .partido .rival .rec{flex:none;font-weight:600;color:var(--tinta2)}
+  /* §2z167 v2 (su corte: "mantener lo anterior y de última mandar el récord a la segunda línea si no entraba"): el
+     nombre entero, y el récord baja de renglón sólo si no entra al lado. La clase es `recd`: `rec` es la de las cajas
+     de DINERO/ENERGÍA y el récord salía encajonado. */
+  #lobby .partido .rival{font-size:20px;font-weight:700;letter-spacing:1px;line-height:1.05;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;row-gap:2px;min-width:0}
+  #lobby .partido .rival .nom{min-width:0}
+  #lobby .partido .rival .recd{white-space:nowrap}
   #lobby .partido .porque{font-size:13px;color:var(--naranja);letter-spacing:.5px;font-weight:600}
   #lobby .tablita{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .tablita .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);letter-spacing:.5px;align-items:center}

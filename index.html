@@ -20041,8 +20041,9 @@ function pintaTablaFull(){
     tabs.querySelectorAll('[data-grupo]').forEach(b=>b.addEventListener('click',()=>{ grupoAmSel=b.dataset.grupo; pintaTablaFull(); }));
     full.innerHTML=htmlAmericas(e,g); return; }
   const k=cortesTabla(e);   // §2z44
-  /* §2z171: en playoffs, la llave dibujada arriba de la tabla (sólo si es un árbol limpio: cada ronda la mitad de la
-     anterior; el federal, con dos llaves y final, y el play-out siguen sin dibujo) */
+  /* §2z171/§2z174: en playoffs, la llave dibujada tiene SU PESTAÑA (su corte: "cuando no hay grupos, ¿no sería mejor una
+     pestaña para el bracket y otra para la tabla?"): PLAYOFFS · TABLA, o PLAYOFFS · ESTE · OESTE con zonas — en la misma
+     fila que ya usaban las zonas. En playoffs entra abierta en PLAYOFFS. El federal (dos llaves y final) sigue sin dibujo. */
   let bkLiga='';
   if(e.playoffs&&e.playoffs.seriesJugadas&&e.playoffs.seriesJugadas.length){
     /* §2z173: las rondas esperadas salen de la definición de la liga (reclasificación · octavos · cuartos · semifinal ·
@@ -20052,17 +20053,24 @@ function pintaTablaFull(){
     if(def&&def.formato!=='federal'&&rondas.some(r=>r.series.length)){
       const mbs=[...new Set(def.rondas.map(r=>r.mejorDe))], fin=def.rondas[def.rondas.length-1];
       const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(def.rondas[0].mejorDe)+' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe);
-      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajTag bkSig">'+t(L('FASE REGULAR','REGULAR SEASON','FASE REGULAR'))+'</div>';
+      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId);
     }
   }
-  if(!e.zonas){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=bkLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
-  const mia=e.zonaDe[e.miClubId];
-  const z=e.zonas.includes(zonaTablaSel)?zonaTablaSel:mia;
-  tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',e.zonas.length>3);
-  tabs.innerHTML=e.zonas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+zonaTxt(x)+'</div>').join('');
+  const PO='__po';
+  const opciones=(bkLiga?[PO]:[]).concat(e.zonas||[]);
+  const mia=e.zonas?e.zonaDe[e.miClubId]:null;
+  let z=opciones.includes(zonaTablaSel)?zonaTablaSel:(bkLiga&&e.fase==='playoffs'&&zonaTablaSel===null?PO:(mia||(bkLiga?'__tabla':null)));
+  if(bkLiga&&!e.zonas&&z!==PO) z='__tabla';
+  const pestanas=bkLiga?(e.zonas?[PO,...e.zonas]:[PO,'__tabla']):(e.zonas||[]);
+  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
+  const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):zonaTxt(x);
+  tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',pestanas.length>3);
+  tabs.innerHTML=pestanas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+nomTab(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
+  if(z===PO){ full.innerHTML=bkLiga; return; }
+  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
   const tz=tabla(e.resultados.filter(r=>e.zonaDe[r.local]===z), e.clubes.filter(c=>c.zona===z));
-  full.innerHTML=bkLiga+tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k);
+  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k);
 }
 /**
  * §2z44 LAS LÍNEAS DE LA TABLA (su pedido 2026-09-05: *"pensemos cómo se ven las cosas en tablas de

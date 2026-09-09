@@ -5667,6 +5667,7 @@ function pildorasDe(ef,sinPlata){
   /* §2z40: lo que la carta le hace al partido que viene */
   if(ef.partido&&ef.partido.fuerzaRival) out.push({txt:ef.partido.fuerzaRival>0?t(L('EL RIVAL SALE A MATAR','THEY COME OUT FOR BLOOD','O RIVAL SAI PARA MATAR')):t(L('EL RIVAL AFLOJA','THEY EASE OFF','O RIVAL AFROUXA')),ok:ef.partido.fuerzaRival<0});
   if(ef.partido&&ef.partido.fuego) out.push({txt:t(L('ARRANCÁS EN RITMO','YOU START IN RHYTHM','VOCÊ COMEÇA NO RITMO')),ok:true});
+  if(ef.verdePrimero) out.sort((a,b)=>(b.ok?1:0)-(a.ok?1:0));   // §12.28 v3 (su corte: "los dos verdes primero y los dos rojos después")
   /* §2z27: la píldora del club — lo que la carta mueve no sos vos, es el plantel en uno de los dos torneos */
   if(ef.copa) out.push({txt:ef.copa==='liga'?t(L('CLUB +2 EN LA LIGA','CLUB +2 IN THE LEAGUE','CLUBE +2 NA LIGA')):t(L('CLUB +3 EN LAS AMÉRICAS','CLUB +3 IN THE AMERICAS','CLUBE +3 NAS AMÉRICAS')),ok:true});
   return out;
@@ -5855,23 +5856,25 @@ function cartaDeVentana(){
   const fs=tablaSel(el), pos=fs.findIndex(x=>x.id===el.pais)+1, fila=fs[pos-1]||{pj:0,pg:0,pp:0};
   /* ⚠️ clase 6 de CLAUDE.md: elimTxt y ordEn son privados del cierre del lobby — llegan por `dep` */
   const ord=(n)=>idioma()==='en'?n+dep.ordEn(n):idioma()==='pt'?n+'º':n+'°';
-  const como=fila.pj===0
-    ? L('Arrancan las eliminatorias.','The qualifiers are getting under way.','Começam as eliminatórias.')
+  /* v3 (su corte: "«te llama para las eliminatorias. Arrancan las eliminatorias» — nos falta pensar la prosa como un
+     todo y no como frases sueltas"): UNA oración, con lo de la tabla como subordinada de las eliminatorias */
+  const rec=fila.pg+'–'+fila.pp, anioM=dep.anioMundial();
+  const donde=fila.pj===0
+    ? L(', que recién arrancan',', which are just getting under way',', que estão só começando')
     : pos<=SEL_ELIM_CLASIFICAN-1
-    ? L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+', adentro de la zona de Mundial.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+', inside the World Cup places.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+', dentro da zona de Mundial.')
+    ? L(', donde vienen '+ord(pos)+' con '+rec+', adentro de la zona de clasificación',', where they sit '+ord(pos)+' at '+rec+', inside the qualifying places',', onde estão em '+ord(pos)+' com '+rec+', dentro da zona de classificação')
     : pos===SEL_ELIM_CLASIFICAN
-    ? L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+': el último lugar al Mundial, y hay que sostenerlo.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+': the last World Cup spot, and it has to be held.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+': a última vaga ao Mundial, e é preciso segurar.')
-    : L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+', afuera de la zona de Mundial: se complica.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+', outside the World Cup places: it is getting tight.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+', fora da zona de Mundial: está complicando.');
-  const anioM=dep.anioMundial();
+    ? L(', donde vienen '+ord(pos)+' con '+rec+': el último lugar que clasifica, y hay que sostenerlo',', where they sit '+ord(pos)+' at '+rec+': the last qualifying spot, and it has to be held',', onde estão em '+ord(pos)+' com '+rec+': a última vaga, e é preciso segurar')
+    : L(', donde vienen '+ord(pos)+' con '+rec+', afuera de la zona de clasificación: se complica',', where they sit '+ord(pos)+' at '+rec+', outside the qualifying places: it is getting tight',', onde estão em '+ord(pos)+' com '+rec+', fora da zona de classificação: está complicando');
   return { id:'sel_ventana_'+v.n, de:'seleccion', repite:true, fondo:'despacho', _ventana:v.n,
-    gancho:L(pais+' te llama para la próxima ventana de las eliminatorias al Mundial '+anioM+'. '+t(como)+' El club no para: si vas, se juegan dos fechas sin vos.',
-             pais+' calls you up for the next window of the World Cup '+anioM+' qualifiers. '+t(como)+' The club does not stop: if you go, two rounds are played without you.',
-             pais+' te convoca para a próxima janela das eliminatórias ao Mundial '+anioM+'. '+t(como)+' O clube não para: se você for, duas rodadas são jogadas sem você.'),
+    gancho:L(pais+' te llama para la próxima ventana de las eliminatorias al Mundial '+anioM+t(donde)+'. El club no para: si vas, se juegan dos fechas sin vos.',
+             pais+' calls you up for the next window of the World Cup '+anioM+' qualifiers'+t(donde)+'. The club does not stop: if you go, two rounds are played without you.',
+             pais+' te convoca para a próxima janela das eliminatórias ao Mundial '+anioM+t(donde)+'. O clube não para: se você for, duas rodadas são jogadas sem você.'),
     opciones:[
       { tipo:'segura', label:L('Ir con la selección','Go with the national team','Ir com a seleção'),
-        desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('El club juega dos fechas sin vos.','The club plays two rounds without you.','O clube joga duas rodadas sem você.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true} }} ] },
+        desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('El club juega dos fechas sin vos.','The club plays two rounds without you.','O clube joga duas rodadas sem você.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true}, verdePrimero:true }} ] },
       { tipo:'segura', label:L('Quedarme en el club','Stay with the club','Ficar no clube'),
-        desenlaces:[ {p:100, remate:L('Te quedás','You stay','Você fica'), texto:L('La ventana se juega sin vos.','The window is played without you.','A janela é jogada sem você.'), ef:{ rel:{dt:3}, relSel:{dt:-5}, ventana:{n:v.n, ir:false} }} ] },
+        desenlaces:[ {p:100, remate:L('Te quedás','You stay','Você fica'), texto:L('La ventana se juega sin vos.','The window is played without you.','A janela é jogada sem você.'), ef:{ rel:{dt:3}, relSel:{dt:-5}, ventana:{n:v.n, ir:false}, verdePrimero:true }} ] },
     ] };
 }
 function cartasAlEntrar(){

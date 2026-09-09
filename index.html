@@ -9360,7 +9360,7 @@ function condicionGrupoAM(am, mi, pasan) {
   const pasaCon = (m) => {
     const res = juegos.filter((x) => x.jugado).map((x) => ({ local: x.local, visita: x.visita, ptsLocal: x.ptsLocal, ptsVisita: x.ptsVisita }));
     const mio = j.local === mi;
-    res.push({ local: j.local, visita: j.visita, ptsLocal: 100 + (mio ? m : -m), ptsVisita: 100 + (mio ? -m : m) });
+    res.push({ local: j.local, visita: j.visita, ptsLocal: mio ? 100 + m : 100, ptsVisita: mio ? 100 : 100 + m });   // el margen es m, no 2m
     return tabla(res, clubes).findIndex((f) => f.id === mi) < pasan;
   };
   if (pasaCon(-60)) return { tipo: 'seguro' };

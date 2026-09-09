@@ -731,6 +731,23 @@
   #lobby .fix .res.selAus{color:var(--tinta2);font-size:10px;letter-spacing:1px}
   #lobby .fix .nota.sinVos{color:var(--tinta2);font-size:9px;letter-spacing:1px;background:none}
   #lobby .tablita .r.amTit{color:var(--tinta);font-weight:600;margin-top:8px}
+  /* §2z171 EL BRACKET: geometría fija (caja 100×40, 18 entre columnas), scroll a lo ancho si no entra */
+  #lobby .bracket{overflow-x:auto;overflow-y:hidden;padding:4px 0 6px;margin:2px 0 4px}
+  #lobby .bracket::-webkit-scrollbar{display:none}
+  #lobby .bkIn{position:relative;margin:0 auto}
+  #lobby .bkTit{position:absolute;top:0;width:100px;text-align:center;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .bkBox{position:absolute;width:100px;height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 7px}
+  #lobby .bkBox.vos{border-color:var(--naranja)}
+  #lobby .bkBox.pend{border-style:dashed;opacity:.55}
+  #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta2);font-variant-numeric:tabular-nums}
+  #lobby .bkRow .escudito{width:14px;height:14px;flex:none}
+  #lobby .bkRow .sig{flex:1;white-space:nowrap}
+  #lobby .bkRow .w{flex:none;min-width:14px;text-align:right}
+  #lobby .bkRow.gana{color:var(--tinta);font-weight:700}
+  #lobby .bkRow.pierde{opacity:.55}
+  #lobby .bkRow.yo:not(.pierde){color:var(--tinta)}
+  #lobby .bkLine{position:absolute;background:rgba(154,164,184,.4)}
+  #lobby .cajTag.bkSig{margin-top:6px}
   #lobby .fix .r.amTit{color:var(--tinta2);font-weight:600;margin-top:8px;font-size:11px;letter-spacing:1.6px}   /* §12.25: VENTANA n como cabecera */
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */
@@ -19018,17 +19035,61 @@ function filaGrupoAM(fila,pos,mio){
     +'<span class="rec2">'+fila.pg+'–'+fila.pp+'</span>'
     +'<span class="dif">'+(dif>0?'+':'')+dif+'</span></div>';
 }
+/* ══ §2z171 EL BRACKET (su pedido 2026-09-08 viendo la llave del continental como lista: "acá debería actualizar de
+   arriba para abajo, el grupo abajo; ¿por qué abreviamos?; nada te dice contra quién jugás; el planetita en CUARTOS
+   cuando ya estamos en la copa; CUARTOS no está centrado; los escudos no alineados; ¿es partido único? ¿a cuánto se
+   juega?… de última tener dibujado un bracket, en todas las que hay algo tipo playoff").
+   Un dibujo, no una lista: columnas por ronda, una caja por serie con los dos cuerpos (escudo · sigla · ganados), las
+   líneas que unen cada par con su serie siguiente, y las rondas que faltan como cajas punteadas — la llave se ve entera
+   desde el primer día. Tu serie lleva el borde naranja; el que ganó va en blanco. El rótulo dice el formato (AL MEJOR
+   DE 3 / PARTIDO ÚNICO). Geometría fija (§2z11: nada depende del dispositivo): caja 100×40, 18 entre columnas; con
+   más de tres columnas el cajón scrollea a lo ancho. La misma pieza dibuja el continental, la llave de la selección y
+   los playoffs de la liga; el formato federal (dos llaves y final) no es una llave limpia y sigue en lista.
+   rondas: [{nombre, series:[{alta,baja,ganAlta,ganBaja,ganador,jugado,ptsAlta,ptsBaja}]}], en orden; `esperadas`:
+   los nombres de todas las rondas del torneo (las que faltan salen punteadas). */
+function htmlBracket(rondas,esperadas,mi,opts){
+  opts=opts||{}; const unico=!!opts.unico;
+  const BW=100,BH=40,GX=18,GY=8,TH=16;
+  const cols=[]; for(const nombre of esperadas){ const r=rondas.find(x=>x.nombre===nombre); const prev=cols[cols.length-1];
+    if(r&&r.series.length) cols.push({nombre,series:r.series});
+    else if(prev){ const n=Math.max(1,Math.floor(prev.series.length/2)); cols.push({nombre,series:Array.from({length:n},()=>null)}); } }
+  if(!cols.length) return '';
+  const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
+  const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
+  const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
+  let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px">';
+  cols.forEach((col,k)=>{ const x=k*(BW+GX);
+    h+='<div class="bkTit" style="left:'+x+'px">'+t(RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
+    col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
+      if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
+      const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
+      const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;
+      h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,gA)+fila(s.baja,gB)+'</div>'; });
+    /* las líneas: cada par de la columna anterior se une con su caja de ésta */
+    if(k>0&&cols[k-1].series.length===col.series.length*2){ const xp=(k-1)*(BW+GX)+BW, xm=xp+GX/2;
+      col.series.forEach((s,i)=>{ const y1=cy(k-1,2*i), y2=cy(k-1,2*i+1), y=cy(k,i);
+        h+='<div class="bkLine" style="left:'+xp+'px;top:'+y1+'px;width:'+(GX/2)+'px;height:1px"></div>'
+          +'<div class="bkLine" style="left:'+xp+'px;top:'+y2+'px;width:'+(GX/2)+'px;height:1px"></div>'
+          +'<div class="bkLine" style="left:'+xm+'px;top:'+y1+'px;width:1px;height:'+(y2-y1)+'px"></div>'
+          +'<div class="bkLine" style="left:'+xm+'px;top:'+y+'px;width:'+(GX/2)+'px;height:1px"></div>'; }); }
+  });
+  h+='</div></div>';
+  return h;
+}
+const formatoTxt=(mejorDe)=>mejorDe>1?t(L('AL MEJOR DE ','BEST OF ','MELHOR DE '))+mejorDe:t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'));
 function htmlAmericas(e){
   const am=e.americas; if(!am) return '';
-  const tit=(x)=>'<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
-  let h='<div class="cajTag">'+t(AM_TXT.grupo)+' '+am.miGrupo+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+  const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
+  let h='';
+  /* §2z171: lo más nuevo arriba — la llave dibujada, después el grupo */
+  if(am.llave){
+    const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
+    h+='<div class="cajTag">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId);
+  }
+  h+='<div class="cajTag'+(am.llave?' bkSig':'')+'">'+t(AM_TXT.grupo)+' '+am.miGrupo+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
   tablaGrupoAM(am,am.miGrupo).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
   { const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
-  if(am.llave) for(const nombre of AMERICAS_RONDAS){
-    const ss=am.llave.seriesJugadas.filter(x=>x.nombre===nombre); if(!ss.length) continue;
-    h+=tit(t(AM_TXT[nombre]));
-    for(const x of ss) h+='<div class="r'+(x.alta===e.miClubId||x.baja===e.miClubId?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)+banderita(x.alta)+'<span class="nom">'+clubDe(x.alta).sigla+' '+x.ganAlta+'–'+x.ganBaja+' '+clubDe(x.baja).sigla+'</span>'+banderita(x.baja)+escudito(x.baja)+'</span><span class="rec2">'+(x.ganador?'✓':'')+'</span></div>';
-  }
   return h;
 }
 
@@ -19202,14 +19263,16 @@ function htmlSeleccion(e){
       h+=tit(selTorneoTxt(t2.torneo)+' · '+t(SEL_TXT.segunda)+' '+t2.miGrupo2);
       tablaSel(t2,t2.miGrupo2).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
     }
-    if(t2.llave) for(const nombre of ['cuartos','semifinal','final','bronce']){
-      const ss=(t2.llave.jugadas||[]).filter(x=>x.nombre===nombre); if(!ss.length) continue;
-      h+=tit(selTorneoTxt(t2.torneo)+' · '+t(SEL_TXT[nombre]||L(nombre)));
-      for(const x of ss){
-        const mio=x.alta===t2.pais||x.baja===t2.pais;
-        const marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
+    if(t2.llave){
+      /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
+      const jug=t2.llave.jugadas||[], esp=['cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');
+      const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
+      const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
+      if(bk) h+='<div class="cajTag">'+selTorneoTxt(t2.torneo)+' · '+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(1)+'</div>'+bk;
+      for(const x of jug.filter(x=>x.nombre==='bronce')){
+        const mio=x.alta===t2.pais||x.baja===t2.pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
         h+='<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)
-          +'<span class="nom">'+SEL_FICHA[x.alta].sigla+' '+marc+' '+SEL_FICHA[x.baja].sigla+'</span>'+escudito(x.baja)
+          +'<span class="nom">'+t(SEL_TXT.bronce||L('BRONCE','BRONZE','BRONZE'))+' · '+SEL_FICHA[x.alta].sigla+' '+marc+' '+SEL_FICHA[x.baja].sigla+'</span>'+escudito(x.baja)
           +'</span><span class="rec2">'+(x.ganador?'✓':'')+'</span></div>';
       }
     }
@@ -19953,14 +20016,28 @@ function pintaTablaFull(){
   if(ladoSel==='sel'){ tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){ tabs.classList.add('oculto'); full.innerHTML=htmlAmericas(e); return; }   // §2z35: la del torneo, sola
   const k=cortesTabla(e);   // §2z44
-  if(!e.zonas){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
+  /* §2z171: en playoffs, la llave dibujada arriba de la tabla (sólo si es un árbol limpio: cada ronda la mitad de la
+     anterior; el federal, con dos llaves y final, y el play-out siguen sin dibujo) */
+  let bkLiga='';
+  if(e.playoffs&&e.playoffs.seriesJugadas&&e.playoffs.seriesJugadas.length){
+    const orden=[]; for(const s of e.playoffs.seriesJugadas){ if(!s.playout&&!orden.includes(s.nombre)) orden.push(s.nombre); }
+    const rondas=orden.map(nombre=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)}));
+    const limpia=rondas.every((r,i)=>i===0||rondas[i-1].series.length===r.series.length*2);
+    const esperadas=orden.slice(); { let n=rondas[rondas.length-1].series.length; const faltan=['cuartos','semifinal','final'];
+      while(n>1&&limpia){ n=Math.floor(n/2); const nom=n===4?'cuartos':n===2?'semifinal':'final'; if(!esperadas.includes(nom)) esperadas.push(nom); } }
+    if(limpia&&e.playoffsDef&&e.playoffsDef.formato!=='federal'){
+      const mb=e.playoffs.seriesJugadas[0].mejorDe||1;
+      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+formatoTxt(mb)+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajTag bkSig">'+t(L('FASE REGULAR','REGULAR SEASON','FASE REGULAR'))+'</div>';
+    }
+  }
+  if(!e.zonas){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=bkLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
   const mia=e.zonaDe[e.miClubId];
   const z=e.zonas.includes(zonaTablaSel)?zonaTablaSel:mia;
   tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',e.zonas.length>3);
   tabs.innerHTML=e.zonas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+zonaTxt(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
   const tz=tabla(e.resultados.filter(r=>e.zonaDe[r.local]===z), e.clubes.filter(c=>c.zona===z));
-  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k);
+  full.innerHTML=bkLiga+tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k);
 }
 /**
  * §2z44 LAS LÍNEAS DE LA TABLA (su pedido 2026-09-05: *"pensemos cómo se ven las cosas en tablas de

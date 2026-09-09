@@ -176,6 +176,14 @@
   /* §2z11 en el partido: el fin y la pausa usan el tamaño de PORTADA para el título (42, es EL
      momento) y el CTA de la escala (48/20). La portada misma (JUGAR) no entra y queda con .velo button. */
   #fin h1,#pausa h1{font-size:42px}
+  /* §2z169: el titular — sobre el lobby (8) y debajo de las cartas (45) */
+  #titular{z-index:30;background:rgba(8,11,19,.9)}
+  #titular .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #titular h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch}
+  #titular h1.oro{color:#f2c94c}
+  #titular .linea{max-width:30ch;line-height:1.3}
+  #titular .linea:empty{display:none}
+  #titular button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
   /* §2z12.5 el renglón de DÓNDE jugaste, entre el marcador y la planilla */
   #fin .donde{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:-6px;font-size:11px;letter-spacing:2px;
        color:var(--tinta2);font-weight:600;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -888,16 +896,9 @@
        font-size:13px;white-space:nowrap}
   /* ⚠️ ancho FIJO: con el precio adentro, el botón medía distinto en cada fila */
   #lobby .fila-tienda .btn{flex:none;width:74px;text-align:center;font-size:11px;padding:5px 0}
-  /* §2z165 v2: el ✓ de lo tuyo se toca (abre LO TUYO); mismo aspecto que el texto de antes */
-  #lobby .fila-tienda .ef button.tenes{font-family:inherit;font-size:inherit;letter-spacing:inherit;background:none;border:0;padding:0;color:var(--tinta2);cursor:pointer;white-space:nowrap;text-decoration:underline dotted;text-underline-offset:2px}
-  #lobTuyoPop .eco{margin-top:0;padding-top:0;border-top:0}
-  #lobTuyoPop .lista{display:flex;flex-direction:column;gap:6px}
-  #lobTuyoPop .r{display:flex;align-items:center;gap:8px;font-size:13px}
-  #lobTuyoPop .r .ico{flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--tinta2)}
-  #lobTuyoPop .r .icoT{width:18px;height:18px}
-  #lobTuyoPop .r.cad-vehiculo .ico{color:#7fb3e6} #lobTuyoPop .r.cad-casa .ico{color:#e0a96b} #lobTuyoPop .r.cad-staff .ico{color:#7dd087} #lobTuyoPop .r.cad-lifestyle .ico{color:#f2c94c}
-  #lobTuyoPop .r .nom{flex:1;font-weight:700;letter-spacing:.8px}
-  #lobTuyoPop .r .ef{color:var(--tinta2);font-size:12px;white-space:nowrap} #lobTuyoPop .r .ef .rayo{width:9px;height:9px}
+  /* §2z165 v3: LO TUYO, la pestaña — la economía arriba (el .eco del contrato) y una fila por compra, como la vidriera */
+  #lobby #lobTuyo .eco{margin-top:0;padding-top:0;border-top:0;padding-bottom:6px;border-bottom:1px solid rgba(154,164,184,.14);margin-bottom:2px}
+  #lobby #lobTuyo .fila-tienda .ef{color:var(--tinta2)}
   /* ⚠️ LO TUYO envuelve en dos renglones apenas comprás cuatro cosas, y esos dos renglones son
      los que devolvían el scroll: va chico y sin interlineado de más (medido a 375×600). */
   #lobby .tuyo{margin-top:4px;font-size:10px;line-height:1.25;letter-spacing:.8px;color:var(--tinta2)}
@@ -1063,29 +1064,14 @@
        font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
   #introAjustes:active{border-color:var(--naranja);color:var(--naranja)}
   /* el popup de confirmación del lobby: la caja del sistema, sí-no y nada más */
-  /* §2z164: el popup de la MEDIA — hermano de los de confirmar; cada skill con su barra en tres tramos */
-  #lobMediaPop .leyenda{display:flex;gap:12px;font-size:10px;letter-spacing:1.6px;font-weight:600;color:var(--tinta2)}
-  #lobMediaPop .leyenda span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
-  #lobMediaPop .leyenda .b::before,#lobMediaPop .seg .b{background:rgba(154,164,184,.55)}
-  #lobMediaPop .leyenda .e::before,#lobMediaPop .seg .e{background:var(--naranja)}
-  #lobMediaPop .leyenda .c::before,#lobMediaPop .seg .c{background:var(--ok)}
-  #lobMediaPop .lista{display:flex;flex-direction:column;gap:7px}
-  #lobMediaPop .r{display:flex;flex-direction:column;gap:3px}
-  #lobMediaPop .r .fila{display:flex;align-items:baseline;gap:8px;font-size:13px;letter-spacing:.5px}
-  #lobMediaPop .r .nom{font-weight:700;letter-spacing:1px;flex:1}
-  #lobMediaPop .r .nums{color:var(--tinta2);font-variant-numeric:tabular-nums;font-size:12px}
-  #lobMediaPop .r .tot{font-weight:700;font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
-  #lobMediaPop .seg{display:flex;height:7px;border-radius:99px;overflow:hidden;background:#0a0e18}
-  #lobMediaPop .seg i{display:block;height:100%}
-  #lobby .mediaBox{cursor:pointer}
-  #lobConfirm,#lobLataConfirm,#lobPasarConfirm,#lobMediaPop,#lobTuyoPop{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
+  #lobConfirm,#lobLataConfirm,#lobPasarConfirm{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
        display:flex;align-items:center;justify-content:center;padding:24px}
-  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja,#lobMediaPop .caja,#lobTuyoPop .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
+  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
        border:1px solid rgba(255,150,51,.5);border-radius:14px;padding:16px;
        display:flex;flex-direction:column;gap:10px}
-  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg,#lobMediaPop .preg,#lobTuyoPop .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
+  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
   #lobConfirm .nota2,#lobLataConfirm .nota2,#lobPasarConfirm .nota2{font-size:13px;color:var(--tinta2);letter-spacing:.5px}
-  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones,#lobMediaPop .opciones,#lobTuyoPop .opciones{display:flex;gap:8px;margin-top:4px}
+  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones{display:flex;gap:8px;margin-top:4px}
   /* §2z39.24: los partidos que juega el relato, un renglón cada uno, con escudo */
   #lobPasarConfirm .lista{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;letter-spacing:.5px}
   #lobPasarConfirm .lista .r{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1529,6 +1515,14 @@
 
 <!-- §2z14: el veredicto — un velo de 1,5 s antes de la planilla, sólo cuando la nota opina -->
 <div id="finVeredicto" class="oculto"><b id="finVeredictoTxt"></b></div>
+<!-- §2z169: EL TITULAR — la noticia grande de la carrera (Mundial, ascenso, descenso, beca, NEW BOSS, el torneo de la
+     selección) en un velo con SEGUIR, nunca en el toast (su corte: "es algo IMPORTANTE en una carrera que dura mucho") -->
+<div class="velo oculto" id="titular">
+  <div class="rotulo" id="titularRot"></div>
+  <h1 id="titularTxt"></h1>
+  <div class="linea" id="titularSub"></div>
+  <button id="titularOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+</div>
 <div class="velo oculto" id="fin">
   <h1 id="finTitulo"></h1>
   <div class="linea" id="finMarcador"></div>
@@ -1749,6 +1743,7 @@
       <div class="vista oculto" id="lv-vida">
         <div class="tabs">
           <div class="tab act" data-lp="vida-tienda" tabindex="0" data-l-en="SHOP" data-l-pt="LOJA">TIENDA</div>
+          <div class="tab" data-lp="vida-tuyo" tabindex="0" data-l-en="YOURS" data-l-pt="O SEU">LO TUYO</div>
           <div class="tab" data-lp="vida-contrato" tabindex="0" data-l-en="CONTRACT" data-l-pt="CONTRATO">CONTRATO</div>
         </div>
         <div class="paneles">
@@ -1760,6 +1755,10 @@
                La prosa que había —"una recarga entera", "recuperás +2 ⚡ extra por día de
                descanso, ya es tuyo"— decía lo mismo con veinte palabras más. -->
           <div class="cajon" id="lobTienda"></div>
+        </div>
+        <!-- §2z165 v3: LO TUYO es una pestaña — un lugar propio que crece con las compras, sin cargar la vidriera -->
+        <div class="panel" id="lp-vida-tuyo">
+          <div class="cajon" id="lobTuyo"></div>
         </div>
         <div class="panel" id="lp-vida-contrato">
           <div class="cajon" id="lobContrato"></div>
@@ -1839,24 +1838,6 @@
     </div>
   </div>
   <!-- §2z39.24: PASAR LA SEMANA confirma con el mismo popup que SALIR; el contenido lo arma 18b -->
-  <!-- §2z164: de dónde viene cada skill (arranque · entreno · escenas) — se abre tocando la MEDIA -->
-  <div id="lobMediaPop" class="oculto">
-    <div class="caja">
-      <div class="preg" id="lobMediaPopTit"></div>
-      <div class="leyenda"><span class="b" data-l-en="START" data-l-pt="INÍCIO">ARRANQUE</span><span class="e" data-l-en="TRAINING" data-l-pt="TREINO">ENTRENO</span><span class="c" data-l-en="SCENES" data-l-pt="CENAS">ESCENAS</span></div>
-      <div class="lista" id="lobMediaPopLista"></div>
-      <div class="opciones"><button class="jugar principal" id="lobMediaPopOk" data-l-en="CLOSE" data-l-pt="FECHAR">CERRAR</button></div>
-    </div>
-  </div>
-  <!-- §2z165 v2: LO TUYO — lo que compraste y qué te da -->
-  <div id="lobTuyoPop" class="oculto">
-    <div class="caja">
-      <div class="preg" data-l-en="YOURS" data-l-pt="O SEU">LO TUYO</div>
-      <div class="eco" id="lobTuyoPopEco"></div>
-      <div class="lista" id="lobTuyoPopLista"></div>
-      <div class="opciones"><button class="jugar principal" id="lobTuyoPopOk" data-l-en="CLOSE" data-l-pt="FECHAR">CERRAR</button></div>
-    </div>
-  </div>
   <div id="lobPasarConfirm" class="oculto">
     <div class="caja">
       <div class="preg"></div>
@@ -19769,6 +19750,16 @@ function numeroQueSube(el,valor,caja){
     el._cuentaT=setTimeout(()=>{ caja.classList.remove('is-up','is-down'); d.remove(); }, saltos*cada+CUENTA_RESALTADO_MS);
   }
 }
+/* §2z169 (su corte 2026-09-08: "todas esas cosas no pueden ir al cartelito rojo horrible; es algo IMPORTANTE en una
+   carrera que dura mucho, le damos menos importancia que en El Draft"): EL TITULAR. Un velo con rótulo, la noticia
+   grande y SEGUIR; `volver` corre al cerrar. El toast queda para lo chico y los errores. */
+function mostrarTitular(rot,txt,tono,sub,volver){
+  const v=$('#titular'); if(!v){ if(volver) volver(); return; }
+  $l('titularRot').textContent=rot||''; $l('titularSub').textContent=sub||'';
+  const h=$l('titularTxt'); h.textContent=txt; h.className=tono==='oro'?'oro':tono==='mal'?'perdio':'gano';
+  v.classList.remove('oculto'); verQueSeVe('titular','El titular');
+  $l('titularOk').onclick=()=>{ v.classList.add('oculto'); if(volver) volver(); };
+}
 function avisar(msg,tono){
   const el=$l('lobToast'); el.textContent=msg;
   el.classList.toggle('oro',tono==='oro');   // las estrellas del drill van doradas
@@ -20264,7 +20255,7 @@ function pintaLobby(){
      niveles — gris <60 · azul 60–69 · violeta 70–77 · naranja 78–84 · dorado ≥85 — con su paleta (--med-1..5). Los skills
      quedan con la suya (§2z122 v2): son dos cosas distintas y se ven distintas. */
   { const mb=$l('lobMedia').closest('.mediaBox'), mv=(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5;
-    if(mb){ const n=mv>=85?5:mv>=78?4:mv>=70?3:mv>=60?2:1; for(let i=1;i<=5;i++) mb.classList.toggle('med-'+i,i===n); mb.onclick=abrirMediaPop; } }   // §2z164
+    if(mb){ const n=mv>=85?5:mv>=78?4:mv>=70?3:mv>=60?2:1; for(let i=1;i<=5;i++) mb.classList.toggle('med-'+i,i===n); } }
   const eMio=escudito(e.miClubId);
   ponerEscudo('lobEscudo', eMio, 'escudito svg');
   $l('lobClub').textContent=clubDe(e.miClubId).nombre.toUpperCase()+' '+(mt.fila?('('+mt.fila.pg+'–'+mt.fila.pp+')'):'');
@@ -21375,7 +21366,7 @@ function registrarResultado(){
     pasoTorneoSel(C.selTorneo,e,miJuego);
     if(!proximoTorneoSel(C.selTorneo)) cerrarTorneoReceso();
     const av=avisoTorneoSel();
-    if(av&&C.selAviso&&C.selAviso.clave==='jugado') amAviso=av.txt;
+    if(av&&C.selAviso&&C.selAviso.clave==='jugado') amAviso={rot:t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),txt:av.txt,tono:av.tono};   // §2z169
   } else if(enPartido&&enPartido.tipo==='seleccion'&&enPartido.etapa==='eliminatorias'){
     /* §12: la eliminatoria resuelve SU jornada (la tuya con tu resultado, las otras dos simuladas) */
     jugarJuegoSeleccion(e,miJuego);   // §2z88: al cerrar la ventana el motor pone al día las dos fechas del club
@@ -21385,8 +21376,8 @@ function registrarResultado(){
        año anio+2, y si tu país no pasó, no lo juega (las diez eliminatorias tienen que servir) */
     if(e.seleccion.fin) C.seleccion.mundial={anio:C.anio+2,pase:!!e.seleccion.pase,pais:e.seleccion.pais};
     if(e.seleccion.fin) amAviso=e.seleccion.pase
-      ? t(L('¡CLASIFICAMOS AL MUNDIAL!','WE QUALIFIED FOR THE WORLD CUP!','CLASSIFICAMOS AO MUNDIAL!'))
-      : t(L('Nos quedamos afuera del Mundial.','We missed the World Cup.','Ficamos fora do Mundial.'));
+      ? {rot:t(SEL_TXT.eliminatorias),txt:t(L('¡CLASIFICAMOS AL MUNDIAL!','WE QUALIFIED FOR THE WORLD CUP!','CLASSIFICAMOS AO MUNDIAL!')),tono:'oro'}
+      : {rot:t(SEL_TXT.eliminatorias),txt:t(L('AFUERA DEL MUNDIAL','OUT OF THE WORLD CUP','FORA DO MUNDIAL')),tono:'mal'};   // §2z169
   } else if(enPartido&&enPartido.tipo==='americas'){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
     const faseAM=e.americas.fase;
@@ -21440,9 +21431,10 @@ function registrarResultado(){
   guardar();
   const volverAlLobby=()=>{ abrirLobby();
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
-  if(amAviso) avisar(amAviso);
-  else if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…')));
-  if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),(amAviso||caidos.length)?2200:0); };   // §2z105: después del otro aviso, no encima
+  const chicos=()=>{ if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…')));
+    if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),caidos.length?2200:0); };   // §2z105: después del otro aviso, no encima
+  if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,'',chicos);   // §2z169: la noticia grande, en su velo
+  else chicos(); };
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
   if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby();
 }
@@ -21497,11 +21489,13 @@ function otraTemporada(destino){
   C.renegocia=null;
   guardar();
   pintaLobby(); irLob('hoy');
+  /* §2z169: las noticias del receso van al TITULAR, no al toast */
+  const rotM=t(L('EL MERCADO','THE MARKET','O MERCADO'));
   if(destino&&destino.draftPick){ /* §2z13: la escena ya lo dijo */ }
-  else if(destino&&destino.beca) avisar(t(L('BECA: un año de college en ','SCHOLARSHIP: a college year at ','BOLSA: um ano de college em '))+destino.club.nombre.toUpperCase());
-  else if(destino) avisar(t(L('NEW BOSS: nadie te conoce todavía.','NEW BOSS: nobody knows you yet.','NEW BOSS: ninguém te conhece ainda.')));
-  else if(clubSube) avisar(t(L('¡EL CLUB ASCIENDE! Ahora jugás la ','THE CLUB IS PROMOTED! You now play in the ','O CLUBE SOBE! Agora você joga a '))+liga.nombre.toUpperCase());
-  else if(clubBaja) avisar(t(L('El club desciende: ahora jugás la ','The club goes down: you now play in the ','O clube cai: agora você joga a '))+liga.nombre.toUpperCase());
+  else if(destino&&destino.beca) mostrarTitular(rotM,t(L('BECA','SCHOLARSHIP','BOLSA')),'oro',t(L('Un año de college en ','A college year at ','Um ano de college em '))+destino.club.nombre.toUpperCase());
+  else if(destino) mostrarTitular(rotM,'NEW BOSS','ok',t(L('Nadie te conoce todavía.','Nobody knows you yet.','Ninguém te conhece ainda.')));
+  else if(clubSube) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('¡ASCENDEMOS!','PROMOTED!','SUBIMOS!')),'oro',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase());
+  else if(clubBaja) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('DESCENDEMOS','RELEGATED','CAÍMOS')),'mal',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase());
 }
 
 function abrirLobby(){
@@ -21556,26 +21550,6 @@ const ICONO_TIENDA={
 /* §2z42.6 (su caza: "¿por qué latita no usa el mismo ícono que antes? No es una latita eso"): la lata es LA lata del HUD */
 const LATA_SVG='<svg class="icoT lata" viewBox="0 0 34 48" aria-hidden="true"><ellipse cx="17" cy="6.5" rx="11" ry="4" fill="#3a3325"/><path d="M6 8 C6 8 5 14 5 24 C5 34 6 42 6 42 C6 45 11 47 17 47 C23 47 28 45 28 42 C28 42 29 34 29 24 C29 14 28 8 28 8 C28 10.5 23 12 17 12 C11 12 6 10.5 6 8 Z" fill="#9aa4b8"/><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z" fill="#ff9633"/></svg>';   // el cuerpo claro: sobre el cajón oscuro la lata negra del HUD no se veía (su caza)
 const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="'+ICONO_TIENDA[k]+'"/></svg>';
-/* §2z164 (su pregunta 2026-09-08: "en ningún lugar te decimos cuánto de tus skills viene de entrenar, cuánto era de
-   base y cuánto de escenas; podría salir si tocás en MEDIA"): tocás la MEDIA y cada skill se abre en sus tres tramos —
-   arranque (el arquetipo) · entreno (la escalera, con el óxido ya comido) · escenas (las cartas). Los mismos números
-   que suma recalcularSkill (01h): una sola fuente. */
-function abrirMediaPop(){
-  const J=C.jugador, en=J.entreno||{}, P=$l('lobMediaPop'); if(!P) return;
-  $l('lobMediaPopTit').textContent=t(L('MEDIA','RATING','MÉDIA'))+' '+Math.round(miMedia(J));
-  let h='';
-  for(const [k,nom] of SKILL_DEFS){
-    const tot=Math.round(J.skills[k]||0);
-    const esc=((en.escalera||{})[k]||[]).reduce((a,b)=>a+(b||0),0), car=(en.cartas||{})[k]||0;
-    const base=Math.max(0,tot-esc-car);   // = J.arranque[k] cuando existe; en un save viejo, lo que queda
-    const pc=(v)=>(tot>0?v/tot*100:0)+'%';
-    h+='<div class="r"><div class="fila"><span class="nom">'+t(nom)+'</span><span class="nums">'+base+(esc?' · +'+esc:'')+(car?' · +'+car:'')+'</span><span class="tot">'+tot+'</span></div>'
-      +'<span class="seg"><i class="b" style="width:'+pc(base)+'"></i><i class="e" style="width:'+pc(esc)+'"></i><i class="c" style="width:'+pc(car)+'"></i></span></div>';
-  }
-  $l('lobMediaPopLista').innerHTML=h;
-  P.classList.remove('oculto'); verQueSeVe('lobMediaPop','La media');
-  $l('lobMediaPopOk').onclick=()=>P.classList.add('oculto');
-}
 function pintaTienda(){
   const J=C.jugador;
   const item=(cad,nom,efecto,precio,id,tenes,escalones,extra)=>
@@ -21590,10 +21564,7 @@ function pintaTienda(){
   /* …y sin prosa (su segunda vuelta: "tener la prosa ahí de «tenés X cosa» no me termina de cerrar"): un tilde y el
      nombre pelado, sin artículo — "✓ moto" es un estado, no una frase */
   const pelado=(n)=>n.replace(/^(EL|LA|LOS|LAS|THE|O|A|OS|AS)\s+/i,'').toLowerCase();
-  /* §2z165 v2 (su corte: "estamos metiendo más cosas en la misma pantalla; es un flood que mantiene el mismo
-     problema"): la vidriera queda como estaba. El ✓ de lo tuyo se TOCA y abre LO TUYO — tu economía de energía y
-     cada compra con su aporte — en un popup hermano del de la MEDIA. */
-  const tenes=(k)=>{ const m=mejorDe(J,k); return m?'<button class="tenes" data-tuyo="1">✓ '+pelado(t(m.nom))+'</button>':''; };
+  const tenes=(k)=>{ const m=mejorDe(J,k); return m?'<span class="tenes">✓ '+pelado(t(m.nom))+'</span>':''; };
   const porDia=r=>'+'+r+' '+RAYO+' '+t(L('por día','per day','por dia'));
   const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
                     : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
@@ -21608,40 +21579,38 @@ function pintaTienda(){
   /* de cada cadena, el SIGUIENTE escalón; si la terminaste, el último dice TUYO */
   const fila=k=>{ const sig=siguienteDe(J,k); const it=sig||ESCALERA[k][ESCALERA[k].length-1];
     return item(k,t(it.nom),efectoFila(k,it),it.precio,it.id,!sig,tenes(k)); };
-  window.__efectoTienda=efectoDe; window.__peladoTienda=pelado;   // LO TUYO usa los mismos textos
   $l('lobTienda').innerHTML=
     item('lata',t(L('LATITA','ENERGY CAN','LATINHA')),
       t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas,
       precioLata(),'lata',false)+
     fila('staff')+fila('vehiculo')+fila('casa')+fila('lifestyle');
   $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
-  $l('lobTienda').querySelectorAll('[data-tuyo]').forEach(b=>{ b.onclick=abrirTuyoPop; });
 }
-/* §2z165 v2: LO TUYO — tu economía de energía (lo que las compras mueven) y cada compra con su aporte */
-function abrirTuyoPop(){
-  const J=C.jugador, P=$l('lobTuyoPop'); if(!P) return;
+/* §2z165 v3 (sus dos cortes 2026-09-08: "es un flood que mantiene el mismo problema" · "me gusta la idea de fondo de LO
+   TUYO, pero todo subrayado es feo, cualquier ✓ te lleva al mismo menú con las palabras en minúscula, y si acumulás se
+   rompe"): LO TUYO es una PESTAÑA de VIDA, al lado de TIENDA. Arriba tu economía de energía —lo que las compras
+   mueven—; abajo una fila por compra con el mismo dibujo de la vidriera (ícono, NOMBRE, efecto), en el orden de las
+   cadenas. Crece como lista, en su lugar. La vidriera no cambia. */
+function pintaTuyo(){
+  const J=C.jugador, box=$l('lobTuyo'); if(!box) return;
   const sesion=(J.entreno&&J.entreno.trainer)?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
-  $l('lobTuyoPopEco').innerHTML='<span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
+  const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
+                    : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
+                    : it.regen ? '+'+it.regen+' '+RAYO+' '+t(L('por día','per day','por dia')) : '';
+  let h='<div class="eco"><span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
     +'<span><b>−'+costoJugar(minutosDe(),C.ligaId)+' '+RAYO+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
-    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span>';
-  let h='';
+    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span></div>';
+  let n=0;
   for(const k of ['staff','vehiculo','casa','lifestyle']){
-    const mios=ESCALERA[k].filter(it=>tieneItem(J,it.id)); if(!mios.length) continue;
     const m=mejorDe(J,k);
-    for(const it of mios){
-      /* en las cadenas que reemplazan, sólo el mejor aporta; los anteriores quedan sin número */
-      const vale=(k==='staff'||k==='lifestyle')||it===m;
-      h+='<div class="r cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span><span class="nom">'+window.__peladoTienda(t(it.nom))+'</span><span class="ef">'+(vale?window.__efectoTienda(it):'')+'</span></div>';
-    }
+    for(const it of ESCALERA[k]){ if(!tieneItem(J,it.id)) continue; n++;
+      const vale=(k==='staff'||k==='lifestyle')||it===m;   // en las cadenas que reemplazan, sólo el mejor aporta
+      h+='<div class="fila-tienda cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span>'
+        +'<span class="txt"><span class="nom">'+t(it.nom)+'</span><span class="ef">'+(vale?efectoDe(it):'')+'</span></span></div>'; }
   }
-  $l('lobTuyoPopLista').innerHTML=h;
-  P.classList.remove('oculto'); verQueSeVe('lobTuyoPop','Lo tuyo');
-  $l('lobTuyoPopOk').onclick=()=>P.classList.add('oculto');
+  if(!n) h+='<div class="fila-item"><span class="desc">'+t(L('Todavía nada','Nothing yet','Ainda nada'))+'</span></div>';
+  box.innerHTML=h;
 }
-/* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
-   hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */
-let ladoRel='club', ladoRel_auto=true;
-let ladoVos='club';   // §2z71: el lado del resumen de VOS   // auto: sigue al próximo partido hasta que tocás el switch
 function pintaRelaciones(){
   const J=C.jugador, e=est(), sw=$l('lobRelSwitch');
   /* §12.20.1 (su caza: "juego contra Panamá y en EQUIPO me siguen figurando las de Boca"): en una partida de antes
@@ -21675,7 +21644,7 @@ function pintaSecciones(){
   const chip=$l('lobBetaChip'); if(chip) chip.classList.toggle('oculto',!esBeta());   // §7.1
   pintaEntrenar();
   pintaRelaciones();
-  pintaTienda();
+  pintaTienda(); pintaTuyo();
   /* ⚠️ El contrato decía tres frases —"cobrás $110 por partido + $40 si ganan", "te queda
      esta temporada de contrato", "se renegocia en el receso — llegá con números"—. La
      última era prosa pura (su caza) y las otras dos eran un dato envuelto en una oración.

@@ -21611,6 +21611,10 @@ function pintaTuyo(){
   if(!n) h+='<div class="fila-item"><span class="desc">'+t(L('Todavía nada','Nothing yet','Ainda nada'))+'</span></div>';
   box.innerHTML=h;
 }
+/* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
+   hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */
+let ladoRel='club', ladoRel_auto=true;
+let ladoVos='club';   // §2z71: el lado del resumen de VOS   // auto: sigue al próximo partido hasta que tocás el switch
 function pintaRelaciones(){
   const J=C.jugador, e=est(), sw=$l('lobRelSwitch');
   /* §12.20.1 (su caza: "juego contra Panamá y en EQUIPO me siguen figurando las de Boca"): en una partida de antes

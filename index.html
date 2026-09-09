@@ -603,7 +603,9 @@
        letter-spacing:1px;border:2px solid rgba(233,236,243,.7)}
   #lobby .partido .info{flex:1;display:flex;flex-direction:column;gap:2px}
   #lobby .partido .cuando{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
-  #lobby .partido .rival{font-size:20px;font-weight:700;letter-spacing:1px;line-height:1.05}
+  #lobby .partido .rival{font-size:20px;font-weight:700;letter-spacing:1px;line-height:1.05;display:flex;align-items:baseline;gap:6px;min-width:0}
+  #lobby .partido .rival .nom{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}   /* §2z167 */
+  #lobby .partido .rival .rec{flex:none;font-weight:600;color:var(--tinta2)}
   #lobby .partido .porque{font-size:13px;color:var(--naranja);letter-spacing:.5px;font-weight:600}
   #lobby .tablita{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .tablita .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);letter-spacing:.5px;align-items:center}
@@ -886,11 +888,16 @@
        font-size:13px;white-space:nowrap}
   /* ⚠️ ancho FIJO: con el precio adentro, el botón medía distinto en cada fila */
   #lobby .fila-tienda .btn{flex:none;width:74px;text-align:center;font-size:11px;padding:5px 0}
-  /* §2z165: lo que ya tenés del staff, con lo que aporta cada uno — un renglón chico debajo del efecto */
-  #lobby .fila-tienda .tuyos{color:var(--tinta2);font-size:10px;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #lobby .fila-tienda .tuyos .rayo{width:8px;height:8px}
-  /* §2z165: tu economía de energía arriba de la tienda — lo que te dan las compras, sumado */
-  #lobby .eco.tienda{margin-top:0;padding-top:2px;padding-bottom:6px;border-top:0;border-bottom:1px solid rgba(154,164,184,.14);margin-bottom:4px}
+  /* §2z165 v2: el ✓ de lo tuyo se toca (abre LO TUYO); mismo aspecto que el texto de antes */
+  #lobby .fila-tienda .ef button.tenes{font-family:inherit;font-size:inherit;letter-spacing:inherit;background:none;border:0;padding:0;color:var(--tinta2);cursor:pointer;white-space:nowrap;text-decoration:underline dotted;text-underline-offset:2px}
+  #lobTuyoPop .eco{margin-top:0;padding-top:0;border-top:0}
+  #lobTuyoPop .lista{display:flex;flex-direction:column;gap:6px}
+  #lobTuyoPop .r{display:flex;align-items:center;gap:8px;font-size:13px}
+  #lobTuyoPop .r .ico{flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--tinta2)}
+  #lobTuyoPop .r .icoT{width:18px;height:18px}
+  #lobTuyoPop .r.cad-vehiculo .ico{color:#7fb3e6} #lobTuyoPop .r.cad-casa .ico{color:#e0a96b} #lobTuyoPop .r.cad-staff .ico{color:#7dd087} #lobTuyoPop .r.cad-lifestyle .ico{color:#f2c94c}
+  #lobTuyoPop .r .nom{flex:1;font-weight:700;letter-spacing:.8px}
+  #lobTuyoPop .r .ef{color:var(--tinta2);font-size:12px;white-space:nowrap} #lobTuyoPop .r .ef .rayo{width:9px;height:9px}
   /* ⚠️ LO TUYO envuelve en dos renglones apenas comprás cuatro cosas, y esos dos renglones son
      los que devolvían el scroll: va chico y sin interlineado de más (medido a 375×600). */
   #lobby .tuyo{margin-top:4px;font-size:10px;line-height:1.25;letter-spacing:.8px;color:var(--tinta2)}
@@ -1071,14 +1078,14 @@
   #lobMediaPop .seg{display:flex;height:7px;border-radius:99px;overflow:hidden;background:#0a0e18}
   #lobMediaPop .seg i{display:block;height:100%}
   #lobby .mediaBox{cursor:pointer}
-  #lobConfirm,#lobLataConfirm,#lobPasarConfirm,#lobMediaPop{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
+  #lobConfirm,#lobLataConfirm,#lobPasarConfirm,#lobMediaPop,#lobTuyoPop{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
        display:flex;align-items:center;justify-content:center;padding:24px}
-  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja,#lobMediaPop .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
+  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja,#lobMediaPop .caja,#lobTuyoPop .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
        border:1px solid rgba(255,150,51,.5);border-radius:14px;padding:16px;
        display:flex;flex-direction:column;gap:10px}
-  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg,#lobMediaPop .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
+  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg,#lobMediaPop .preg,#lobTuyoPop .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
   #lobConfirm .nota2,#lobLataConfirm .nota2,#lobPasarConfirm .nota2{font-size:13px;color:var(--tinta2);letter-spacing:.5px}
-  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones,#lobMediaPop .opciones{display:flex;gap:8px;margin-top:4px}
+  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones,#lobMediaPop .opciones,#lobTuyoPop .opciones{display:flex;gap:8px;margin-top:4px}
   /* §2z39.24: los partidos que juega el relato, un renglón cada uno, con escudo */
   #lobPasarConfirm .lista{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;letter-spacing:.5px}
   #lobPasarConfirm .lista .r{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1841,14 +1848,23 @@
       <div class="opciones"><button class="jugar principal" id="lobMediaPopOk" data-l-en="CLOSE" data-l-pt="FECHAR">CERRAR</button></div>
     </div>
   </div>
+  <!-- §2z165 v2: LO TUYO — lo que compraste y qué te da -->
+  <div id="lobTuyoPop" class="oculto">
+    <div class="caja">
+      <div class="preg" data-l-en="YOURS" data-l-pt="O SEU">LO TUYO</div>
+      <div class="eco" id="lobTuyoPopEco"></div>
+      <div class="lista" id="lobTuyoPopLista"></div>
+      <div class="opciones"><button class="jugar principal" id="lobTuyoPopOk" data-l-en="CLOSE" data-l-pt="FECHAR">CERRAR</button></div>
+    </div>
+  </div>
   <div id="lobPasarConfirm" class="oculto">
     <div class="caja">
       <div class="preg"></div>
       <div class="nota2"></div>
       <div class="lista"></div>
       <div class="opciones">
-        <button class="jugar secundario" id="lobPasarNo" data-l-en="NO, I PLAY" data-l-pt="NÃO, EU JOGO">NO, JUEGO</button>
-        <button class="jugar principal" id="lobPasarSi" data-l-en="YES, SKIP" data-l-pt="SIM, PULAR">SÍ, PASAR</button>
+        <button class="jugar secundario" id="lobPasarNo" data-l-en="BACK" data-l-pt="VOLTAR">VOLVER</button>
+        <button class="jugar principal" id="lobPasarSi" data-l-en="SKIP" data-l-pt="PULAR">PASAR</button>
       </div>
     </div>
   </div>
@@ -20114,8 +20130,10 @@ function abrirPasarConfirm(sig,ref,alFinal){
   const J=C.jugador, energia=Math.min(100,J.energia+regenDe()*dias)-J.energia;
   P.querySelector('.preg').textContent=t(L('¿Pasar hasta el ','Skip to ','Pular até '))+diaTxt(sig.dia)+'?';
   P.querySelector('.nota2').textContent=(fs.length
-    ? (fs.length===1?t(L('El relato juega este partido sin vos','The sim plays this game without you','A narração joga este jogo sem você'))
-                    :t(L('El relato juega estos partidos sin vos','The sim plays these games without you','A narração joga estes jogos sem você')))
+    /* §2z168 (su caza 2026-09-08: "está raro el wording: «el relato juega» y el botón de NO dice «No, juego»"): el
+       relato es palabra nuestra, no del juego — para el que juega es SU EQUIPO el que juega sin él */
+    ? (fs.length===1?t(L('Tu equipo juega este partido sin vos','Your team plays this game without you','Seu time joga este jogo sem você'))
+                    :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
   P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+f.fecha)+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
@@ -20373,7 +20391,8 @@ function pintaLobby(){
     if(prox.tipo==='fecha'){
       $l('lobHoyCuando').textContent=t(L('PRÓXIMO','NEXT UP','PRÓXIMO'))+' · '
         +diaTxt(diaDeFecha(e.semilla,Math.max(1,prox.fecha),est().ritmo));
-      $l('lobHoyRival').textContent=vsTxt(prox.local)+rc.nombre.toUpperCase()+' '+recordDe(prox.rival);
+      /* §2z167 (su captura: "vs INDEPENDIENTE DE OLIVA (4-12)" partía la línea): el nombre recorta, el récord no envuelve */
+      $l('lobHoyRival').innerHTML='<span class="nom">'+vsTxt(prox.local)+rc.nombre.toUpperCase()+'</span><span class="rec">'+recordDe(prox.rival)+'</span>';
       const c=calPorFecha[prox.fecha];
       $l('lobHoyPorque').style.display=c?'':'none';
       $l('lobHoyPorque').textContent=c?porqueTxt(c):'';
@@ -21212,7 +21231,7 @@ terminar=function(){
   if(enPartido.cierre) enPartido.cierre.serie=cs;   // §2z26: la prensa lee la serie cerrada
   if(cs){
     cardSerie.className='serie '+cs.tono; cardSerie.style.animationDelay=(tBarra+900)+'ms';
-    document.getElementById('finSerieLbl').textContent=t(L('SERIE CERRADA','SERIES OVER','SÉRIE ENCERRADA'))+' · '+cs.miGan+'–'+cs.riGan;
+    document.getElementById('finSerieLbl').textContent=cs.lbl||(t(L('SERIE CERRADA','SERIES OVER','SÉRIE ENCERRADA'))+' · '+cs.miGan+'–'+cs.riGan);   // §2z166: el grupo tiene su rótulo
     document.getElementById('finSerieTxt').textContent=cs.txt;
   } else cardSerie.className='serie oculto';
   document.getElementById('finLinea').classList.add('oculto');   // la planilla la reemplaza en la carrera
@@ -21231,6 +21250,17 @@ terminar=function(){
 /* Si ESTE partido cierra tu serie, qué pasó: se calcula ANTES de registrar el resultado
    (la serie viva todavía no tiene tu juego). null si no es serie o si sigue abierta. */
 function cierreDeSerie(p,gano){
+  /* §2z166 (su caza 2026-09-08: "pasamos de ronda en la copa y me avisó con un cartelito rojo de esos que desaparecen;
+     siento que hay cosas que van por default a ese cartel"): el cierre del GRUPO tiene su card, como la serie. Sos
+     siempre el primero de tu grupo (01p) y jugás las cuatro ventanas, así que en tu último partido los demás ya se
+     jugaron y la misma cuenta de §2z163 dice si pasaste con tu marcador real. */
+  if(p&&p.tipo==='americas'&&p.etapa==='grupo'){
+    const e=est(), am=e&&e.americas; if(!am||am.fase!=='grupo') return null;
+    const c=condicionGrupoAM(am,e.miClubId,AMERICAS_PASAN); if(!c) return null;
+    const pasa=c.tipo==='seguro'||(c.tipo==='margen'&&(G.nos-G.riv)>=c.m);
+    return {txt:pasa?t(L('¡A CUARTOS!','ON TO THE QUARTERFINALS!','ÀS QUARTAS!')):t(L('AFUERA EN LA FASE DE GRUPOS','OUT IN THE GROUP STAGE','FORA NA FASE DE GRUPOS')),
+            tono:pasa?'ok':'mal', lbl:t(L('GRUPO CERRADO','GROUP OVER','GRUPO ENCERRADO'))};
+  }
   if(!p||(p.tipo!=='serie'&&p.tipo!=='americas')||!p.serie) return null;
   const s=p.serie, e=est(), mi=e.miClubId, meta=Math.ceil(s.mejorDe/2);
   const miGan=(s.alta===mi?s.ganAlta:s.ganBaja)+(gano?1:0), riGan=(s.alta===mi?s.ganBaja:s.ganAlta)+(gano?0:1);
@@ -21363,9 +21393,7 @@ function registrarResultado(){
     jugarJuegoAmericas(e,miJuego);
     e.americas.ultimoDia=diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)+1;   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
     alDiaTrasSeleccion(e);   // §2z88: la ventana del continental era la que frenaba el ponerse al día
-    if(faseAM==='grupo'&&e.americas.fase==='llave') amAviso=e.americas.eliminado
-      ? t(L('Liga de las Américas: afuera en la fase de grupos.','Americas League: out in the group stage.','Liga das Américas: fora na fase de grupos.'))
-      : t(L('¡Pasamos a cuartos de la Liga de las Américas!','On to the Americas League quarterfinals!','Passamos às quartas da Liga das Américas!'));
+    /* §2z166: el cierre del grupo ya lo dijo la card del cierre (cierreDeSerie); acá no va más el toast */
   }
   /* la energía vuelve por DÍA de descanso real (§2q b2b/giras): los días entre tu último
      partido y éste, leídos del calendario. En playoffs, cada juego son DIAS_PO. §2z27: el
@@ -21562,7 +21590,10 @@ function pintaTienda(){
   /* …y sin prosa (su segunda vuelta: "tener la prosa ahí de «tenés X cosa» no me termina de cerrar"): un tilde y el
      nombre pelado, sin artículo — "✓ moto" es un estado, no una frase */
   const pelado=(n)=>n.replace(/^(EL|LA|LOS|LAS|THE|O|A|OS|AS)\s+/i,'').toLowerCase();
-  const tenes=(k)=>{ const m=mejorDe(J,k); return m?'<span class="tenes">✓ '+pelado(t(m.nom))+'</span>':''; };
+  /* §2z165 v2 (su corte: "estamos metiendo más cosas en la misma pantalla; es un flood que mantiene el mismo
+     problema"): la vidriera queda como estaba. El ✓ de lo tuyo se TOCA y abre LO TUYO — tu economía de energía y
+     cada compra con su aporte — en un popup hermano del de la MEDIA. */
+  const tenes=(k)=>{ const m=mejorDe(J,k); return m?'<button class="tenes" data-tuyo="1">✓ '+pelado(t(m.nom))+'</button>':''; };
   const porDia=r=>'+'+r+' '+RAYO+' '+t(L('por día','per day','por dia'));
   const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
                     : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
@@ -21574,21 +21605,38 @@ function pintaTienda(){
   const efectoFila=(k,it)=>{ const m=mejorDe(J,k);
     if(m&&m.regen&&it.regen&&m!==it) return '+'+m.regen+' → +'+it.regen+' '+RAYO+' '+t(L('por día','per day','por dia'));
     return efectoDe(it); };
-  const tuyosStaff=()=>{ const l=ESCALERA.staff.filter(it=>tieneItem(J,it.id)).map(it=>'✓ '+pelado(t(it.nom))+' '+efectoDe(it));
-    return l.length?'<span class="tuyos">'+l.join(' · ')+'</span>':''; };
   /* de cada cadena, el SIGUIENTE escalón; si la terminaste, el último dice TUYO */
   const fila=k=>{ const sig=siguienteDe(J,k); const it=sig||ESCALERA[k][ESCALERA[k].length-1];
-    return item(k,t(it.nom),efectoFila(k,it),it.precio,it.id,!sig,k==='staff'?'':tenes(k),k==='staff'?tuyosStaff():''); };
-  const e=est(), sesion=(J.entreno&&J.entreno.trainer)?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
-  const eco='<div class="eco tienda"><span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
-    +'<span><b>−'+costoJugar(minutosDe(),C.ligaId)+' '+RAYO+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
-    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span></div>';
-  $l('lobTienda').innerHTML=eco+
+    return item(k,t(it.nom),efectoFila(k,it),it.precio,it.id,!sig,tenes(k)); };
+  window.__efectoTienda=efectoDe; window.__peladoTienda=pelado;   // LO TUYO usa los mismos textos
+  $l('lobTienda').innerHTML=
     item('lata',t(L('LATITA','ENERGY CAN','LATINHA')),
       t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas,
       precioLata(),'lata',false)+
     fila('staff')+fila('vehiculo')+fila('casa')+fila('lifestyle');
   $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
+  $l('lobTienda').querySelectorAll('[data-tuyo]').forEach(b=>{ b.onclick=abrirTuyoPop; });
+}
+/* §2z165 v2: LO TUYO — tu economía de energía (lo que las compras mueven) y cada compra con su aporte */
+function abrirTuyoPop(){
+  const J=C.jugador, P=$l('lobTuyoPop'); if(!P) return;
+  const sesion=(J.entreno&&J.entreno.trainer)?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
+  $l('lobTuyoPopEco').innerHTML='<span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
+    +'<span><b>−'+costoJugar(minutosDe(),C.ligaId)+' '+RAYO+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
+    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span>';
+  let h='';
+  for(const k of ['staff','vehiculo','casa','lifestyle']){
+    const mios=ESCALERA[k].filter(it=>tieneItem(J,it.id)); if(!mios.length) continue;
+    const m=mejorDe(J,k);
+    for(const it of mios){
+      /* en las cadenas que reemplazan, sólo el mejor aporta; los anteriores quedan sin número */
+      const vale=(k==='staff'||k==='lifestyle')||it===m;
+      h+='<div class="r cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span><span class="nom">'+window.__peladoTienda(t(it.nom))+'</span><span class="ef">'+(vale?window.__efectoTienda(it):'')+'</span></div>';
+    }
+  }
+  $l('lobTuyoPopLista').innerHTML=h;
+  P.classList.remove('oculto'); verQueSeVe('lobTuyoPop','Lo tuyo');
+  $l('lobTuyoPopOk').onclick=()=>P.classList.add('oculto');
 }
 /* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
    hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */

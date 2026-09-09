@@ -5848,8 +5848,25 @@ function cartaDeVentana(){
   const el=e.seleccion, v=el.ventanas[el.idx];
   if(!v||v.eleccion!=='pendiente'||v.f>e.fechaJugada) return null;
   const pais=SELECCIONES[el.pais].nombre;
+  /* §12.28 v2 (su corte: "¿por qué «ventana 1»? es para la próxima ventana y listo; que diga La Selección; te podría
+     decir que te llaman para la próxima ventana de eliminatorias para X torneo, tenemos espacio de sobra; y cómo
+     venís, si el equipo viene mal o se complica clasificar"): la escena, personalizada con lo que hay en el motor —
+     el torneo y el año (elimTxt), y la tabla del grupo con la línea de corte (SEL_ELIM_CLASIFICAN). */
+  const fs=tablaSel(el), pos=fs.findIndex(x=>x.id===el.pais)+1, fila=fs[pos-1]||{pj:0,pg:0,pp:0};
+  /* ⚠️ clase 6 de CLAUDE.md: elimTxt y ordEn son privados del cierre del lobby — llegan por `dep` */
+  const ord=(n)=>idioma()==='en'?n+dep.ordEn(n):idioma()==='pt'?n+'º':n+'°';
+  const como=fila.pj===0
+    ? L('Arrancan las eliminatorias.','The qualifiers are getting under way.','Começam as eliminatórias.')
+    : pos<=SEL_ELIM_CLASIFICAN-1
+    ? L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+', adentro de la zona de Mundial.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+', inside the World Cup places.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+', dentro da zona de Mundial.')
+    : pos===SEL_ELIM_CLASIFICAN
+    ? L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+': el último lugar al Mundial, y hay que sostenerlo.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+': the last World Cup spot, and it has to be held.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+': a última vaga ao Mundial, e é preciso segurar.')
+    : L('Vienen '+ord(pos)+' con '+fila.pg+'–'+fila.pp+', afuera de la zona de Mundial: se complica.','They sit '+ord(pos)+' at '+fila.pg+'–'+fila.pp+', outside the World Cup places: it is getting tight.','Estão em '+ord(pos)+' com '+fila.pg+'–'+fila.pp+', fora da zona de Mundial: está complicando.');
+  const anioM=dep.anioMundial();
   return { id:'sel_ventana_'+v.n, de:'seleccion', repite:true, fondo:'despacho', _ventana:v.n,
-    gancho:L(pais+' te llama para la ventana '+v.n+'. El club no para.', pais+' calls you up for window '+v.n+'. The club does not stop.', pais+' te convoca para a janela '+v.n+'. O clube não para.'),
+    gancho:L(pais+' te llama para la próxima ventana de las eliminatorias al Mundial '+anioM+'. '+t(como)+' El club no para: si vas, se juegan dos fechas sin vos.',
+             pais+' calls you up for the next window of the World Cup '+anioM+' qualifiers. '+t(como)+' The club does not stop: if you go, two rounds are played without you.',
+             pais+' te convoca para a próxima janela das eliminatórias ao Mundial '+anioM+'. '+t(como)+' O clube não para: se você for, duas rodadas são jogadas sem você.'),
     opciones:[
       { tipo:'segura', label:L('Ir con la selección','Go with the national team','Ir com a seleção'),
         desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('El club juega dos fechas sin vos.','The club plays two rounds without you.','O clube joga duas rodadas sem você.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true} }} ] },
@@ -5859,7 +5876,7 @@ function cartaDeVentana(){
 }
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
-  { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO'))+' · '+t(L('VENTANA','WINDOW','JANELA'))+' '+cv._ventana,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
+  { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
   if(ev){ const e=est(), club=clubDe(e.miClubId); mostrarCarta(ev,(club?club.nombre.toUpperCase():'')+' · '+t(L('FECHA','ROUND','RODADA'))+' '+e.fechaJugada,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
   const c=cartaPendiente(); if(!c) return false;
@@ -21486,7 +21503,7 @@ function priorizarCopa(cual){
   if(cual==='liga'){ e.fuerzas[mi]+=2; e.americas.fuerzas[mi]-=3; }
   else { e.americas.fuerzas[mi]+=3; e.fuerzas[mi]-=2; }
 }
-const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata});   // §2z42: la plata pasa por la contabilidad
+const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata,elimTxt,ordEn,anioMundial});   // §2z42: la plata pasa por la contabilidad · §12.28: la carta de la ventana lee el torneo
 /* §2z26: lo que LA PRENSA puede leer del partido que acabás de jugar. Se arma antes de soltar
    enPartido; la serie y la clave vienen del cierre que calculó el velo de fin. */
 function ultimoPartido(cierre,e){

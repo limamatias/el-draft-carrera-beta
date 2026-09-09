@@ -20314,7 +20314,13 @@ function pintaLobby(){
        lleva las SIGLAS de los dos —y ahora también en el de la selección, que salía pelado ("Último: Tuyos: …")— y
        el promedio lleva adelante el escudo o la bandera de la competencia que viene. Ni una palabra más. */
     const paisU=C.jugador.nacionalidad||'ar', miIdU=ultimo.sel?paisU:e.miClubId;
-    const marc=ultimo.sel
+    /* §2z170 (su caza 2026-09-08: "«Último: Tuyos:» se ve rarísimo, y creo que viene de siempre"): venía del
+       continental — el marcador del último no miraba los partidos `am`, quedaba vacío y el renglón salía con las dos
+       etiquetas pegadas. Ahora el continental también trae su marcador; y sin marcador, "Tuyos:" no se escribe. */
+    const marcAM=()=>{ const j=ultimo.am?misJuegosAM(e).find(x=>x.etapa===ultimo.etapa&&x.n===ultimo.n):null;
+      return j&&j.res?{local:j.local?miIdU:j.rival, visita:j.local?j.rival:miIdU, ptsLocal:j.res.ptsLocal, ptsVisita:j.res.ptsVisita}:null; };
+    const marc=ultimo.am ? marcAM()
+      : ultimo.sel
       ? (e.seleccion&&e.seleccion.juegos||[]).filter(g=>g.jugado&&g.j===ultimo.n&&(g.local===paisU||g.visita===paisU)).pop()
       : ultimo.po
       ? e.playoffs.juegos.filter(j=>j.local===e.miClubId||j.visita===e.miClubId).pop()
@@ -20335,7 +20341,7 @@ function pintaLobby(){
        club queda —es su partido y te interesa—; lo que cambia es por qué no hay línea. */
     $l('lobGoteo1').innerHTML=cuando+m+(ultimo.conSeleccion
       ? t(L('estabas con la selección','you were on NT duty','você estava com a seleção'))
-      : t(L('Tuyos:','Yours:','Seus:'))+' <b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>');
+      : (m?t(L('Tuyos:','Yours:','Seus:'))+' ':'')+'<b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>');
   } else {
     $l('lobGoteo1').textContent=t(L('Arranca la temporada.','The season begins.','Começa a temporada.'));
   }
@@ -20386,7 +20392,7 @@ function pintaLobby(){
       $l('lobHoyCuando').textContent=t(L('PRÓXIMO','NEXT UP','PRÓXIMO'))+' · '
         +diaTxt(diaDeFecha(e.semilla,Math.max(1,prox.fecha),est().ritmo));
       /* §2z167 (su captura: "vs INDEPENDIENTE DE OLIVA (4-12)" partía la línea): el nombre recorta, el récord no envuelve */
-      $l('lobHoyRival').innerHTML='<span class="nom">'+vsTxt(prox.local)+rc.nombre.toUpperCase()+'</span><span class="rec">'+recordDe(prox.rival)+'</span>';
+      $l('lobHoyRival').innerHTML='<span class="nom">'+vsTxt(prox.local)+rc.nombre.toUpperCase()+'</span><span class="recd">'+recordDe(prox.rival)+'</span>';
       const c=calPorFecha[prox.fecha];
       $l('lobHoyPorque').style.display=c?'':'none';
       $l('lobHoyPorque').textContent=c?porqueTxt(c):'';

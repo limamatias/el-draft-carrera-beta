@@ -25,6 +25,12 @@
   #marcador .lado small{font-size:16px;font-weight:700;color:var(--tinta2);letter-spacing:1.5px}
   #marcador .reloj{background:#0a0e18;color:var(--naranja);padding:4px 11px;font-size:25px;display:flex;align-items:center;gap:6px}
   #marcador .reloj b{font-size:14px;color:var(--tinta2);letter-spacing:1px}
+  /* §2z183: LA ENERGÍA EN LA CANCHA — el borde de abajo del reloj es tu barra, bajando en vivo por minuto jugado.
+     Absoluta: no suma alto al HUD (04 lo mide para la cámara). Se esconde sin partido de carrera (gym, tutoriales). */
+  #marcador .reloj,#feedMarcador .reloj{position:relative}
+  .nrgReloj{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.1);display:none}
+  .nrgReloj i{display:block;height:100%;width:100%;background:var(--naranja);transition:width .25s linear}
+  .nrgReloj.viva{display:block}
   /* el reloj mide lo mismo con 10:00 que con 9:59 (su caza 2026-09-02: "el marcador se
      achica al toque"): ancho fijo para cinco cifras, tabulares */
   #sReloj,#fReloj{display:inline-block;min-width:5.2ch;text-align:center}
@@ -925,6 +931,7 @@
   #lobby .fila-tienda .ef{color:var(--tinta2);font-size:11px;white-space:nowrap;
        overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-tienda .ef .rayo{width:9px;height:9px}
+  #lobby .fila-skill .btn .rayo{fill:currentColor;width:7px;height:12px;vertical-align:-2px}   /* §2z183: naranja sobre naranja no se veía */
   #lobby .fila-tienda .precio{flex:none;font-weight:700;font-variant-numeric:tabular-nums;
        font-size:13px;white-space:nowrap}
   /* ⚠️ ancho FIJO: con el precio adentro, el botón medía distinto en cada fila */
@@ -1448,7 +1455,7 @@
 <div id="hud">
   <div id="marcador">
     <div class="lado" id="sNosLado"><small id="sNosTag" data-l-en="YOU" data-l-pt="VOCÊ">VOS</small><span id="sNos">0</span></div>
-    <div class="reloj"><b id="sCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="sReloj">12:00</span></div>
+    <div class="reloj"><b id="sCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="sReloj">12:00</span><span class="nrgReloj" id="sNrg"><i></i></span></div>
     <div class="lado" id="sRivLado"><span id="sRiv">0</span><small id="sRivTag" data-l-en="OPP" data-l-pt="RIV">RIV</small></div>
   </div>
   <div id="posClock"><i></i></div>
@@ -1460,7 +1467,7 @@
 <div id="feed" class="oculto">
   <div id="feedMarcador">
     <div class="lado" id="fNosLado"><small id="fNosTag" data-l-en="YOU" data-l-pt="VOCÊ">VOS</small><span id="fNos">0</span></div>
-    <div class="reloj"><b id="fCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="fReloj">12:00</span></div>
+    <div class="reloj"><b id="fCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="fReloj">12:00</span><span class="nrgReloj" id="fNrg"><i></i></span></div>
     <div class="lado" id="fRivLado"><span id="fRiv">0</span><small id="fRivTag" data-l-en="OPP" data-l-pt="RIV">RIV</small></div>
   </div>
   <!-- la statline vive ACÁ, en el entre-jugadas (su pedido: en la cancha estás con el
@@ -2935,7 +2942,12 @@ const CLUBES_INVITADOS_AMERICAS = [
  *   = las semanas de 2-3 fechas de siempre; 'apretado' (LN·NBB·Euroliga) carga la mano a
  *   las de 3; 'nba' son 3-4 fechas por semana con b2b de verdad (01h, patronDeSemana).
  * - `amateur` (HS/NCAA): no se cobra ni se aparece en el mercado pro — el sueldo llega
- *   con el contrato profesional (§2r). */
+ *   con el contrato profesional (§2r).
+ * - `regen` es EL CLUB TE CUIDA (§2z182, 2026-09-10): la energía que devuelve cada día de descanso sin
+ *   comprar nada — la base sale de la densidad del fixture (la referencia que sólo juega termina la
+ *   semana entre 80 y 90): 3 en las de ~1,5 partidos por semana, 4 en las de ~1,8 (Argentina, HS, NCAA), 7 en la NBA (3,5).
+ * - `lata` es la fracción de una noche de sueldo que cuesta la lata (§2z182, a lo NSS: barata en el
+ *   primer nivel para que entrenes, cerca del sueldo después): 0,4 en esc 0 · 0,6 en 8–14 · 0,85 arriba. */
 const LIGAS = {
   federal: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [3, 7], regularHasta: [5, 31], playoffsHasta: [7, 31], mismoAnio: true, diasPO: 5, recesos: [] },
@@ -2948,7 +2960,7 @@ const LIGAS = {
      * madre del reglamento); la final de llave NO se rotula ascenso hasta que la
      * escalera de clubes conecte las ligas (§2z5, precedente del play-out de la LNB). */
     nombre: 'Liga Federal', clubes: CLUBES_FEDERAL, fechas: 18,
-    esc: 0, palancas: {}, ptsRef: 76, reloj: 600, ritmo: 'espaciado',
+    regen: 3, lata: 0.4, esc: 0, palancas: {}, ptsRef: 76, reloj: 600, ritmo: 'espaciado',
     zonas: ZONAS_FEDERAL, fechasPorZona: true, vecindario: VECINDARIO_FEDERAL,
     playoffs: {
       formato: 'federal',
@@ -2967,7 +2979,7 @@ const LIGAS = {
   argentina: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 31], regularHasta: [3, 28], playoffsHasta: [6, 15], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Argentina', allstar: true, clubes: CLUBES_ARGENTINA, fechas: 34, // ida y vuelta por zona (17 clubes, con libre)
-    esc: 8, palancas: {}, ptsRef: 78, reloj: 600,
+    regen: 4, lata: 0.6, esc: 8, palancas: {}, ptsRef: 78, reloj: 600,
     zonas: ['norte', 'sur'],
     playoffs: {
       clasifican: 12, directos: 4, // por zona
@@ -2983,7 +2995,7 @@ const LIGAS = {
   nacional: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [9, 24], regularHasta: [4, 19], playoffsHasta: [6, 20], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Nacional', allstar: true, clubes: CLUBES_NACIONAL, fechas: 38,
-    esc: 18, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
+    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     playoffs: {
       clasifican: 12, directos: 4,
       /* §2z7: el PLAY-OUT entre los dos últimos, al mejor de 5, se juega a la par de la
@@ -3000,7 +3012,7 @@ const LIGAS = {
   hs: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [12, 1], regularHasta: [2, 27], playoffsHasta: [3, 15], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'Secundaria EE.UU.', clubes: CLUBES_HS, fechas: 22,
-    esc: 0, palancas: {}, ptsRef: 62, reloj: 600, amateur: true,
+    regen: 4, lata: 0.4, esc: 0, palancas: {}, ptsRef: 62, reloj: 600, amateur: true,
     // el torneo del cierre: cuatro clasifican, a partido único — la final de la secundaria
     playoffs: { clasifican: 4, directos: 0, rondas: [
       { nombre: 'semifinal', mejorDe: 1 }, { nombre: 'final', mejorDe: 1 },
@@ -3009,7 +3021,7 @@ const LIGAS = {
   ncaa: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [11, 3], regularHasta: [3, 15], playoffsHasta: [4, 6], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'NCAA', clubes: CLUBES_NCAA, fechas: 31, zonas: ['este', 'oeste'],
-    esc: 14, palancas: {}, ptsRef: 72, reloj: 600, amateur: true,
+    regen: 4, lata: 0.6, esc: 14, palancas: {}, ptsRef: 72, reloj: 600, amateur: true,
     // EL TORNEO (March Madness a nuestra escala): 8 por región, TODO a partido único
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'octavos', mejorDe: 1, porZona: true }, { nombre: 'cuartos', mejorDe: 1, porZona: true },
@@ -3023,7 +3035,7 @@ const LIGAS = {
     // `fechas: 32` re-copiado de allá (2026-09-01): 22 de todos contra todos + los 10 del
     // hexagonal — "el número real de partidos que juega un equipo de arriba", textual.
     nombre: 'Liga Uruguaya', allstar: true, clubes: CLUBES_LUB, fechas: 32,
-    esc: 18, palancas: {}, ptsRef: 78, reloj: 600,
+    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 78, reloj: 600,
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 7 },
     ] },
@@ -3033,7 +3045,7 @@ const LIGAS = {
     // el formato REAL del NBB, copiado de El Draft (FORMATO_DEL_SUR.liga_brasil):
     // clasifican 16, cuatro rondas TODAS al mejor de 5 — como La Liga Argentina
     nombre: 'NBB', allstar: true, clubes: CLUBES_NBB, fechas: 38,
-    esc: 18, palancas: {}, ptsRef: 84, reloj: 600, ritmo: 'apretado',
+    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 84, reloj: 600, ritmo: 'apretado',
     playoffs: { clasifican: 16, directos: 0, rondas: [
       { nombre: 'octavos', mejorDe: 5 }, { nombre: 'cuartos', mejorDe: 5 },
       { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 5 },
@@ -3042,7 +3054,7 @@ const LIGAS = {
   euroliga: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 1], regularHasta: [4, 15], playoffsHasta: [5, 30], diasPO: 5, recesos: [[[12, 24], [12, 26]]], fiba: true },
     nombre: 'Euroliga', clubes: CLUBES_EUROLIGA, fechas: 34,
-    esc: 26, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
+    regen: 3, lata: 0.85, esc: 26, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     // la Final Four es A PARTIDO ÚNICO — es el formato real, no un redondeo
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 1 }, { nombre: 'final', mejorDe: 1 },
@@ -3051,7 +3063,7 @@ const LIGAS = {
   nba: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 21], regularHasta: [4, 12], playoffsHasta: [6, 20], diasPO: 4, recesos: [[[2, 13], [2, 19]]] },   // 2026-09-10: la semana del All-Star
     nombre: 'NBA', allstar: true, clubes: CLUBES_NBA, fechas: 82, zonas: ['este', 'oeste'], formato: 'nba',   // 2026-09-09: el fixture real por divisiones (4 · 4/3 · 2 = 82), con cruces de conferencia
-    esc: 34, palancas: {}, ptsRef: 114, reloj: 720, ritmo: 'nba',
+    regen: 7, lata: 0.85, esc: 34, palancas: {}, ptsRef: 114, reloj: 720, ritmo: 'nba',
     // primera ronda/semis/finales de conferencia POR ZONA, la final es el único cruce
     /* 2026-09-10 (su corte): el PLAY-IN real — 7 vs 8 y 9 vs 10 por conferencia a partido único; el ganador del primero es 7°,
        el perdedor contra el ganador del segundo por el 8°; seis entran directo */
@@ -12886,6 +12898,20 @@ let _mkTab='', _mkStat='';
 function cuartoTxt(){ const c=G.cuarto, o=G.ot||1;   // §2z138: G.cuarto queda en 5 en TODO suplementario — el número es G.ot
   /* §2z143 (su corte): OT también en castellano, como la LNB y la TV */
   return c>4 ? L(o>1?`${o}OT`:'OT', o>1?`${o}OT`:'OT', o>1?`${o}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
+/* §2z183: la barra de energía del reloj. El lobby (18b) deja en `window.NRG_PARTIDO` con qué saliste y cuánto cuesta
+   la noche entera (el mismo `costoJugar` del cierre); acá baja con el reloj: la fracción jugada del partido (los cuartos
+   más el suplementario) por el costo. Sin global no hay barra (gym, tutoriales, el banco). */
+let _nrgTab='';
+function pintarNrgReloj(){
+  const N=window.NRG_PARTIDO, viva=!!(N&&!G.gym&&!G.tut);
+  const total=4*RELOJ_CUARTO+(G.ot||0)*OT_SEG;
+  const c=G.cuarto||1, jugado=!viva?0:Math.min(total,Math.max(0,c<=4?c*RELOJ_CUARTO-G.reloj:4*RELOJ_CUARTO+(c-4)*OT_SEG-G.reloj));
+  const val=viva?Math.max(0,N.ini-N.costo*jugado/(4*RELOJ_CUARTO)):0;
+  const tab=viva+'|'+Math.round(val*4);
+  if(tab===_nrgTab) return; _nrgTab=tab;
+  for(const id of ['sNrg','fNrg']){ const el=document.getElementById(id); if(!el) continue;
+    el.classList.toggle('viva',viva); el.firstElementChild.style.width=val+'%'; }
+}
 function marcador(){
   const t=Math.max(0,Math.ceil(G.reloj)), txt=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
   const cuarto=cuartoTxt();
@@ -12895,6 +12921,7 @@ function marcador(){
     $('#sCuarto').textContent=cuarto; $('#sReloj').textContent=txt;
     $('#fNos').textContent=G.nos; $('#fRiv').textContent=G.riv;
     $('#fCuarto').textContent=cuarto; $('#fReloj').textContent=txt; }
+  pintarNrgReloj();
   /* tu statline a la vista (pedido suyo 2026-08-22) — el HUD se mide del DOM, así que este
      renglón corre la cancha solo, en cualquier resolución */
   const stat=`<b>${apodo()}</b> · ${G.pts} PTS · ${G.ast} AST · ${G.aciertos}/${G.tiros}`+
@@ -18871,7 +18898,12 @@ const ANIO_INICIO=2026;
    partidos"). La derivación está en DISEÑO §4 (2026-09-02): con regen 6/día, jugar solo
    tiene que ser sostenible hasta en la NBA (4,3 partidos/semana → costo a tope ≤ 10), y
    entrenar al máximo (2 sesiones = 50) es lo que te manda a la lata. */
-const COSTO_JUGAR_BASE=3, COSTO_JUGAR_MIN=9;   // banco (12/40) ≈ 6 · titular (26/40) ≈ 9 · referencia (34/40) ≈ 11
+/* §2z182 (2026-09-10, co-diseñado por chat): JUGAR MUCHO EROSIONA, DESPACIO. La referencia que sólo juega, sin
+   tienda ni gimnasio, termina la semana entre 80 y 90; el suplente casi entero. La pendiente entre roles es la
+   que lo hace: FIBA suplente (16/40) 12 · titular (26/40) 19 · referencia (32/40) 23; NBA (48') 12 · 17 · 20.
+   La base que lo compensa es DEL CLUB (`LIGAS[...].regen`, 01d) y sale del fixture: LNB 3 · Argentina/HS/NCAA 4 · NBA 7.
+   La sonda: `node prototipo/tools-carrera/energia-sonda.mjs`. */
+const COSTO_JUGAR_BASE=2, COSTO_JUGAR_MIN=26;
 const costoJugar=(min,ligaId,fiba)=>{ const dur=(fiba?600:LIGAS[ligaId].reloj)*4/60;   // 2026-09-09: el partido de selección dura 40' también en la NBA
   return Math.max(2,Math.round(COSTO_JUGAR_BASE+COSTO_JUGAR_MIN*Math.min(1,(min||0)/dur))-descuentoPartido()); };
 /* §2z80 (su caza 2026-09-06: "la energía se gasta muy poco: terminar en 90 % después de cada partido no te lleva a
@@ -18881,14 +18913,14 @@ const costoJugar=(min,ligaId,fiba)=>{ const dur=(fiba?600:LIGAS[ligaId].reloj)*4
 /* §2z83 (su ok 2026-09-06, después del calendario real): con la LNB a 1,4 por semana, 3 por día la dejaba en +9/semana sólo
    jugando y la lata volvía a no ser decisión. A 2: LNB +2 sólo jugando y −18 con una sesión (una lata cada 2-3
    semanas), Federal +1, NBA −16 sólo jugando (la lata es rutina, y ahí la plata sobra). */
-const REGEN_DIA=2;         // la energía vuelve POR DÍA de descanso (b2b/giras, §2q): el
-                           // descanso típico (2-3 días) rinde como antes; el corto se siente
+const REGEN_DIA=3;         // §2z182: el fallback cuando la liga no dice; la base real es `LIGAS[liga].regen` (regenClub)
+const regenClub=()=>(C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].regen)||REGEN_DIA;
 const DIAS_PO=2;           // los playoffs corren cada 2 días (v0); §2z83: cada liga trae el suyo en `calendario.diasPO`
 const diasPO=()=>{ const cal=C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario; return (cal&&cal.diasPO)||DIAS_PO; };
 const ENERGIA_MINIMA=15;   // fundido: abajo de esto no salís
 /* La economía muerde desde la fase 4 (§2q): ahorrar COMPITE con entrenar. La lata sube,
    el pago afloja, y aparece el ENTRENADOR (entrenar cuesta menos energía). */
-const PRECIO_LATA=95;
+const PRECIO_LATA=60;   // §2z182: el piso bajó de 95 (la Federal a 40 % de la noche da 75)
 /* §2z16: LA LATA SUBE CON LA LIGA (su corte 2026-09-02: "le subiría el precio igual, si no
    vivís siempre con 100% de energía y es lo mismo que la nada. No tiene por qué ser realista
    ese mecanismo a nivel precio"): ~85% del pago base por partido de la liga, piso 95.
@@ -18900,7 +18932,11 @@ const precioLata=()=>{ const b=((typeof SUELDO_LIGA!=='undefined'&&C&&SUELDO_LIG
   /* §2z144 (su caza 2026-09-08: "el contrato paga 240 + 75 + 72: en la mayoría cobrás 400, no 200"): la base es
      la noche completa —partido + ganar + misión—, no sólo el primer número. LNB ★4: 205 → 330. */
   const ct=C&&C.contrato; const mio=ct?((ct.partido||0)+(ct.ganar||0)+(ct.mision||0)):0;
-  return Math.max(PRECIO_LATA, Math.round((mio||b)*0.85/5)*5); };
+  /* §2z182 (su corte 2026-09-10, a lo NSS: "en el primer nivel te ofrece latas bastante baratas para que entrenes
+     más y después se pone mucho más cerca del valor del sueldo"): la fracción es de la liga (`LIGAS[...].lata`:
+     0,4 · 0,6 · 0,85) y el piso baja a 60. Federal 75 · Argentina 175 · LNB como antes. */
+  const frac=(C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].lata)||0.85;
+  return Math.max(PRECIO_LATA, Math.round((mio||b)*frac/5)*5); };
 const PAGO_PARTIDO=110;
 const PAGO_VICTORIA=40;
 /* el amateur no cobra (HS/NCAA, flag en la ficha de LIGAS): el sueldo llega con el
@@ -18927,18 +18963,18 @@ const pagoDe=(ligaId,gano,J,misionOk)=>pagoDelContrato((C&&C.contrato)||{partido
 const ESCALERA={
   vehiculo:[
     {id:'moto',     precio:800,    regen:1, nom:L('LA MOTO','THE MOTORBIKE','A MOTO')},
-    {id:'auto',     precio:5000,   regen:2, nom:L('EL AUTO','THE CAR','O CARRO')},
-    {id:'autoLujo', precio:30000,  regen:3, nom:L('EL AUTO DE LUJO','THE LUXURY CAR','O CARRO DE LUXO')},
-    {id:'helicoptero', precio:250000, regen:5, nom:L('EL HELICÓPTERO','THE HELICOPTER','O HELICÓPTERO')}],   // el escalón NBA (su pedido)
+    {id:'auto',     precio:5000,   regen:2,  nom:L('EL AUTO','THE CAR','O CARRO')},
+    {id:'autoLujo', precio:30000,  regen:3,  nom:L('EL AUTO DE LUJO','THE LUXURY CAR','O CARRO DE LUXO')},
+    {id:'helicoptero', precio:250000, regen:4, nom:L('EL HELICÓPTERO','THE HELICOPTER','O HELICÓPTERO')}],   // el escalón NBA (su pedido)
   casa:[
-    {id:'depto',       precio:1500,   regen:2, nom:L('EL MONOAMBIENTE','THE STUDIO','A KITNET')},
-    {id:'deptoGrande', precio:7000,   regen:3, nom:L('EL DEPARTAMENTO','THE APARTMENT','O APARTAMENTO')},
-    {id:'casa',        precio:40000,  regen:5, nom:L('LA CASA','THE HOUSE','A CASA')},
-    {id:'mansion',     precio:200000, regen:8, nom:L('LA MANSIÓN','THE MANSION','A MANSÃO')}],
+    {id:'depto',       precio:1500,   regen:1, nom:L('EL MONOAMBIENTE','THE STUDIO','A KITNET')},
+    {id:'deptoGrande', precio:7000,   regen:2, nom:L('EL DEPARTAMENTO','THE APARTMENT','O APARTAMENTO')},
+    {id:'casa',        precio:40000,  regen:3, nom:L('LA CASA','THE HOUSE','A CASA')},
+    {id:'mansion',     precio:200000, regen:4, nom:L('LA MANSIÓN','THE MANSION','A MANSÃO')}],
   staff:[
     {id:'trainer',       precio:600,   sesion:true, nom:L('ENTRENADOR','TRAINER','TREINADOR')},
-    {id:'preparador',    precio:4000,  partido:3,   nom:L('PREPARADOR FÍSICO','STRENGTH COACH','PREPARADOR FÍSICO')},
-    {id:'nutricionista', precio:25000, regen:3,     nom:L('NUTRICIONISTA','NUTRITIONIST','NUTRICIONISTA')}],
+    {id:'preparador',    precio:4000,  partido:4,   nom:L('PREPARADOR FÍSICO','STRENGTH COACH','PREPARADOR FÍSICO')},
+    {id:'nutricionista', precio:25000, regen:2,     nom:L('NUTRICIONISTA','NUTRITIONIST','NUTRICIONISTA')}],
   lifestyle:[
     {id:'cadena',    precio:2000,    nom:L('LA CADENA DE ORO','THE GOLD CHAIN','O CORDÃO DE OURO')},
     {id:'reloj',     precio:8000,    nom:L('EL RELOJ','THE WATCH','O RELÓGIO')},
@@ -18953,11 +18989,11 @@ const tieneItem=(J,id)=>!!(J.mejoras&&J.mejoras[id])||(id==='trainer'&&!!(J.entr
 /* el mejor escalón que tenés de una cadena (las compras son en orden, así que es el último tuyo) */
 const mejorDe=(J,cadena)=>{ let m=null; for(const it of ESCALERA[cadena]) if(tieneItem(J,it.id)) m=it; return m; };
 const siguienteDe=(J,cadena)=>ESCALERA[cadena].find(it=>!tieneItem(J,it.id))||null;
-const regenDe=()=>{ const J=C.jugador; let r=REGEN_DIA;
+const regenDe=()=>{ const J=C.jugador; let r=regenClub();
   for(const k of ['vehiculo','casa','staff']){ const m=mejorDe(J,k); if(m&&m.regen) r+=m.regen; }
   return r; };
-/* el preparador físico le saca al partido (piso 2) */
-const descuentoPartido=()=>tieneItem(C.jugador,'preparador')?3:0;
+/* el preparador físico le saca al partido (piso 2); §2z182: lo que dice el ítem (−4: en la NBA son 14 por semana) */
+const descuentoPartido=()=>{ const it=ESCALERA.staff.find(i=>i.partido&&tieneItem(C.jugador,i.id)); return it?it.partido:0; };
 /* los minutos ya no son fijos: los decide el rol (01h, §2q — dos ventanas por temporada) */
 /* §2z12: los minutos son un CONTINUO guardado en la carrera; el rol se lee de ellos */
 const minutosDe=()=>C.jugador.minutos!==undefined?C.jugador.minutos:semillaMinutos(C.ligaId,C.jugador.rol||'titular');
@@ -21227,7 +21263,7 @@ function pintaEntrenar(){
        izquierda y el cupo, chico, a la derecha. */
     const cupo=$l('lobCupo'); cupo.classList.remove('cajon');
     cupo.innerHTML='<div class="escVolver"><button class="volverDrill" data-volver="1">'+t(L('◀ VOLVER','◀ BACK','◀ VOLTAR'))+'</button>'
-      +'<span class="cupoChico">'+cupoTxt+'</span></div>';
+      +'<span class="cupoChico">'+cupoTxt+(libres>0&&e.fase==='regular'?' · −'+costo+' '+RAYO:'')+'</span></div>';
     cupo.querySelector('[data-volver]').onclick=()=>{ escaleraAbierta=null; pintaLobby(); };   // pintaLobby, no pintaEntrenar: la MEDIA cuenta recién ahora, con el encabezado a la vista
     pintaEscalera(escaleraAbierta); return; }
   $l('lobCupo').classList.add('cajon');
@@ -21250,7 +21286,7 @@ function pintaEntrenar(){
       /* ⚠️ FÍSICO llevaba PRONTO y ahora lleva IR como todos (su pedido: *"pongamos mismo
          botón de IR y que no lleve a ningún lado — el único usuario somos nosotros"*). El
          drill del rebote sigue sin existir; lo que se fue es el cartel que lo anunciaba. */
-      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+'</button>'
+      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+' · −'+costo+RAYO+'</button>'
       +'</div>';
   }
   /* §2z149/§2z155: el botón entero va DEBAJO de los skills (su corte: "al ser todo grande debería ir abajo") */
@@ -21632,6 +21668,8 @@ $l('lobSalir').addEventListener('click',()=>{
   /* §2z39.65: el puntaje de referencia del relato — la liga, o el de la selección / el continental */
   dif.ptsRef=preAbierto.tipo==='seleccion'?PTS_REF_SELECCION:preAbierto.tipo==='americas'?PTS_REF_AMERICAS:(ligaDe().ptsRef||108);
   enPartido.minReal=dif.min;
+  /* §2z183: con qué salís a la cancha y lo que cuesta la noche, para la barra del reloj (07, fuera del cierre: por global) */
+  window.NRG_PARTIDO={ini:Math.round(C.jugador.energia),costo:costoJugar(dif.min,C.ligaId,enSel)};
   dif.cadaMin=CADA_MIN(!!C.intenso);   // §2z43: cuántos minutos tuyos por jugada
   enPartido.mision=preAbierto.mision||null;
   /* el reloj dice la verdad de la liga (§9.7): 12:00 NBA, 10:00 FIBA — presentación
@@ -21975,7 +22013,7 @@ function registrarResultado(){
      volver al vestuario, y el vestuario es el que abre la ceremonia — o sea que el diario te
      contaba la medalla antes de que la vieras. Acá se guarda y la dispara el SEGUIR del velo. */
   if(C.selCeremonia&&ult.seleccion){ C.selPrensa=ult; }
-  enPartido=null;
+  enPartido=null; window.NRG_PARTIDO=null;
   guardar();
   const volverAlLobby=()=>{ abrirLobby();
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
@@ -22007,7 +22045,7 @@ function abrirCuerpo(despues){
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   else if(p.fase==='playoffs'||(e&&e.fase==='playoffs')) dias=diasPO();
   const regen=regenDe();
-  const partes=[t(L('base','base','base'))+' +'+REGEN_DIA].concat(['vehiculo','casa','staff'].map(k=>{ const m=mejorDe(J,k); return m&&m.regen?t(m.nom).toLowerCase()+' +'+m.regen:null; }).filter(Boolean));
+  const partes=[t(L('club','club','clube'))+' +'+regenClub()].concat(['vehiculo','casa','staff'].map(k=>{ const m=mejorDe(J,k); return m&&m.regen?t(m.nom).toLowerCase()+' +'+m.regen:null; }).filter(Boolean));
   h+=dias!==null
     ? fila(t(L('Hasta el próximo','Until the next game','Até o próximo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+Math.min(100-p.despues,regen*dias)+' '+RAYO,'mas')
     : fila(t(L('Por día','Per day','Por dia')),'','+'+regen+' '+RAYO,'mas');

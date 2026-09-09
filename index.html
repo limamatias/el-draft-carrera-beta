@@ -19092,14 +19092,16 @@ function htmlAmericas(e,g){
   g=g||am.miGrupo;
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='';
-  /* §2z171: lo más nuevo arriba — la llave dibujada, después el grupo */
-  if(am.llave){
-    const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+='<div class="cajTag">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId);
-  }
-  h+='<div class="cajTag'+(am.llave?' bkSig':'')+'">'+t(AM_TXT.grupo)+' '+g+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+  /* §2z172 v2 (su corte: "los grupos abajo de los switches y el bracket abajo"): las pestañas eligen un grupo, así que
+     el grupo va pegado a ellas; la llave, que es de todos, debajo con su corte. (Reemplaza el "lo más nuevo arriba" de
+     §2z171, que valía contra la lista: la fase viva ya la muestra el vestuario.) */
+  h+='<div class="cajTag">'+t(AM_TXT.grupo)+' '+g+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
   tablaGrupoAM(am,g).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
+  if(am.llave){
+    const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
+    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId);
+  }
   return h;
 }
 

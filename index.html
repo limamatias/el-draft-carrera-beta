@@ -739,15 +739,19 @@
   #lobby .bkBox{position:absolute;width:100px;height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 7px}
   #lobby .bkBox.vos{border-color:var(--naranja)}
   #lobby .bkBox.pend{border-style:dashed;opacity:.55}
-  #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta2);font-variant-numeric:tabular-nums}
+  /* §2z171 v2 (su corte: "la letra del que pasa no se ve diferente del que se quedó, y la serie por jugarse tiene otro
+     tipo de letra: no se termina de ver viva"): tres estados y nada más — la serie VIVA en blanco los dos (está
+     pasando), el que PASÓ en blanco y negrita, el que SE QUEDÓ en gris y apagado. */
+  #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta);font-variant-numeric:tabular-nums}
   #lobby .bkRow .escudito{width:14px;height:14px;flex:none}
   #lobby .bkRow .sig{flex:1;white-space:nowrap}
   #lobby .bkRow .w{flex:none;min-width:14px;text-align:right}
-  #lobby .bkRow.gana{color:var(--tinta);font-weight:700}
-  #lobby .bkRow.pierde{opacity:.55}
-  #lobby .bkRow.yo:not(.pierde){color:var(--tinta)}
+  #lobby .bkRow.gana{font-weight:700}
+  #lobby .bkRow.pierde{color:var(--tinta2);opacity:.5}
+  #lobby .bkBox.pend .bkRow{color:var(--tinta2)}
   #lobby .bkLine{position:absolute;background:rgba(154,164,184,.4)}
-  #lobby .cajTag.bkSig{margin-top:6px}
+  /* §2z171 v2 (su corte: "debería haber algún corte entre la llave y el grupo, más con todo el espacio que tenemos") */
+  #lobby .cajTag.bkSig{margin-top:14px;padding-top:12px;border-top:1px solid rgba(154,164,184,.18)}
   #lobby .fix .r.amTit{color:var(--tinta2);font-weight:600;margin-top:8px;font-size:11px;letter-spacing:1.6px}   /* §12.25: VENTANA n como cabecera */
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */

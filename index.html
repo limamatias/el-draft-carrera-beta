@@ -731,6 +731,7 @@
   #lobby .fix .res.selAus{color:var(--tinta2);font-size:10px;letter-spacing:1px}
   #lobby .fix .nota.sinVos{color:var(--tinta2);font-size:9px;letter-spacing:1px;background:none}
   #lobby .tablita .r.amTit{color:var(--tinta);font-weight:600;margin-top:8px}
+  #lobby .tablita .r.amTit.nota .nom{white-space:normal;line-height:1.35}   /* 2026-09-09: la línea del ciclo envuelve, no se corta con puntos */
   /* §2z171 EL BRACKET: geometría fija (caja 100×40, 18 entre columnas), scroll a lo ancho si no entra */
   #lobby .bracket{overflow-x:auto;overflow-y:hidden;padding:4px 0 6px;margin:2px 0 4px}
   #lobby .bracket::-webkit-scrollbar{display:none}
@@ -4126,6 +4127,10 @@ function miProximo(estado) {
        negocia: la ventana FIBA se lleva tus dos fechas y, si adentro cae un continental,
        ése también lo juega el club sin vos. */
     const sel = proximoSeleccion(estado);
+    /* 2026-09-09: si la ventana FIBA comparte ancla con una del continental (chocaAm, 01r), el continental va primero:
+       su día es el de la fecha f+1, antes de la jornada 1 */
+    const amAntes = sel && sel.convocado && sel.ventana.chocaAm ? proximoAmericas(estado) : null;
+    if (amAntes && amAntes.ventana.f === sel.ventana.f) return amAntes;
     if (sel && sel.convocado) return sel;
     /* §2z27: el continental pendiente va ANTES de la fecha que sigue (es su ventana) */
     const am = proximoAmericas(estado);
@@ -4170,7 +4175,11 @@ function miProximo(estado) {
 
 /** Simula fechas enteras hasta dejar `fechaNro` como la próxima sin jugar (el "te
  *  salteás N fechas: se simulan" del pre-partido, y las fechas libres del camino). */
-function avanzarHastaFecha(estado, fechaNro) {
+function avanzarHastaFecha(estado, fechaNro, conAmericas) {
+  /* 2026-09-09: con el continental pendiente en la ventana f y la fecha f+1 en la semana siguiente, el while no jugaba nada
+     (fechaJugada ya era f) y PASAR LA SEMANA quedaba en un no-op que regalaba la regeneración de esos días cada vez que se
+     tocaba (medido: 64 % de las ventanas de grupo). Lo que dejás pasar lo juega el relato, como dice §2z27. */
+  if (conAmericas && estado.fase === 'regular' && estado.fechaJugada < fechaNro && estado.americas) avanzarAmericas(estado, estado.fechaJugada);   // sólo desde PASAR LA SEMANA (el al-día tras la selección no debe llevarse un continental que se ofrece)
   while (estado.fase === 'regular' && estado.fechaJugada < fechaNro - 1) jugarFecha(estado);
 }
 
@@ -5560,9 +5569,11 @@ function ctxCarta(u){
     /* §12: lo que una carta de selección puede leer */
     seleccion:!!(e.seleccion&&e.seleccion.convocado),        // te convocaron a las eliminatorias
     selVentana:!!(e.seleccion&&(e.seleccion.ventanas||[]).some(v=>v.conv)&&e.seleccion.idx>0&&!e.seleccion.fin),   // ya jugaste alguna (§12.21: por ventana)
-    selAfuera:!!(e.seleccion&&!e.seleccion.convocado&&e.seleccion.idx>0),   // se jugó sin vos
-    selCerca:!!(e.seleccion&&e.seleccion.motivo==='cerca'),
-    selClub:!!(e.seleccion&&e.seleccion.motivo==='club'),    // el club no te suelta (NBA/Euroliga)
+    /* 2026-09-09: la ÚLTIMA ventana que pasó, no la actual (mezclaba "se jugó sin vos" con el motivo de la que viene) */
+    selAfuera:!!(e.seleccion&&e.seleccion.idx>0&&e.seleccion.ventanas[e.seleccion.idx-1]&&e.seleccion.ventanas[e.seleccion.idx-1].conv===false),   // la última se jugó sin vos
+    selCerca:!!(e.seleccion&&e.seleccion.idx>0&&e.seleccion.ventanas[e.seleccion.idx-1]&&e.seleccion.ventanas[e.seleccion.idx-1].motivo==='cerca'),
+    selJugados:(($C().seleccion&&$C().seleccion.jugados)||0),   // partidos con la mayor en toda la carrera (el debut es jugados===0)
+    selMedallaHoy:!!(($C().seleccion&&$C().seleccion.torneos)||[]).some(x=>x.anio===$C().anio&&x.medalla),   // volviste con medalla ESTE receso
     selPase:!!(e.seleccion&&e.seleccion.pase),               // tu país clasificó al Mundial
     selTorneos:(($C().seleccion&&$C().seleccion.torneos)||[]).length,
     selMedallas:(($C().seleccion&&$C().seleccion.torneos)||[]).filter(x=>x.medalla).length,
@@ -5624,7 +5635,7 @@ const poolGeneral=()=>[].concat(typeof CARTAS_GENERAL!=='undefined'?CARTAS_GENER
   typeof CARTAS_VIDA!=='undefined'?CARTAS_VIDA:[]);      // §2z42.3: la plata tiene algo que hacer
 /* §2z46: las de EVENTO — salen cuando pasa el evento, con cupo propio, sin tocar el presupuesto de las graciosas */
 const poolEventos=()=>[].concat(typeof CARTAS_AMERICAS!=='undefined'?CARTAS_AMERICAS:[],typeof CARTAS_SELECCION!=='undefined'?CARTAS_SELECCION:[]);
-const poolReceso=()=>[].concat(typeof CARTAS_RECESO!=='undefined'?CARTAS_RECESO:[],
+const poolReceso=()=>[].concat(typeof CARTAS_RECESO!=='undefined'?CARTAS_RECESO:[],typeof CARTAS_SELECCION!=='undefined'?CARTAS_SELECCION.filter(c=>c.receso):[],   // 2026-09-09: la de la medalla vive en el receso
   typeof CARTAS_ESCALERA!=='undefined'?CARTAS_ESCALERA:[]);   // el ascenso y el descenso (receso, su corte 2026-09-02)
 
 /* ── los efectos: aplicar y nombrar ── */
@@ -5641,8 +5652,8 @@ function aplicarEfectos(ef){
     else J.skills[k]=Math.max(0,Math.min(100,(J.skills[k]||0)+ef.skills[k]));
   }
   if(ef.rel) aplicarDeltas(J,{dH:ef.rel.hinchada||0,dP:ef.rel.plantel||0,dD:ef.rel.dt||0}, salidaEnSel?relSelDe(J):undefined);   // §12.20: en el túnel de la selección, las suyas
-  if(ef.relSel) aplicarDeltas(J,{dH:ef.relSel.hinchada||0,dP:ef.relSel.plantel||0,dD:ef.relSel.dt||0}, relSelDe(J));   // §12.28: las de la selección, explícitas
-  if(ef.ventana&&typeof eleccionVentanaSel==='function') eleccionVentanaSel(ef.ventana);   // §12.28: ir o quedarse
+  if(ef.ventana&&dep.eleccionVentanaSel) dep.eleccionVentanaSel(ef.ventana);   // antes que los deltas: relSel nace con el gap (§12.20) y recién después cobra
+  if(ef.relSel) aplicarDeltas(J,{dH:ef.relSel.hinchada||0,dP:ef.relSel.plantel||0,dD:ef.relSel.dt||0}, relSelDe(J));   // §12.28: las de la selección, explícitas   // §12.28: ir o quedarse — ⚠️ clase 6: es privada del lobby, llega por dep (con `typeof` daba undefined en silencio y la decisión nunca se aplicaba, 2026-09-09)
   /* §2z40: el efecto sobre EL PARTIDO que viene — lo consume SALIR A LA CANCHA (18b) */
   if(ef.partido){ const P=$C().efectoSalida=$C().efectoSalida||{};
     if(ef.partido.fuerzaRival) P.fuerzaRival=(P.fuerzaRival||0)+ef.partido.fuerzaRival;
@@ -5872,7 +5883,7 @@ function cartaDeVentana(){
              pais+' te convoca para a próxima janela das eliminatórias ao Mundial '+anioM+t(donde)+'. O clube não para: se você for, duas rodadas são jogadas sem você.'),
     opciones:[
       { tipo:'segura', label:L('Ir con la selección','Go with the national team','Ir com a seleção'),
-        desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('El club juega dos fechas sin vos.','The club plays two rounds without you.','O clube joga duas rodadas sem você.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true}, verdePrimero:true }} ] },
+        desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('Dos partidos con tu país. El DT del club se entera por el gerente.','Two games with your country. The club coach hears it from the GM.','Dois jogos com seu país. O técnico do clube fica sabendo pelo gerente.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true}, verdePrimero:true }} ] },
       { tipo:'segura', label:L('Quedarme en el club','Stay with the club','Ficar no clube'),
         desenlaces:[ {p:100, remate:L('Te quedás','You stay','Você fica'), texto:L('La ventana se juega sin vos.','The window is played without you.','A janela é jogada sem você.'), ef:{ rel:{dt:3}, relSel:{dt:-5}, ventana:{n:v.n, ir:false}, verdePrimero:true }} ] },
     ] };
@@ -5971,7 +5982,7 @@ const CARTAS_PRENSA=[
        {p:40,remate:L('La pregunta de más','One question too many','A pergunta a mais'),texto:L('En la última te preguntan por el tiro que erraste faltando nueve segundos. Lo mirás y no te sale nada. Esa foto es la que sale.','The last one asks about the shot you missed with nine seconds left. You look at him and nothing comes out. That photo is the one that runs.','Na última perguntam do arremesso que você errou faltando nove segundos. Você olha e não sai nada. Essa foto é a que sai.'),ef:{rel:{hinchada:-5},energia:-8}}]}]},
 
  { id:'prensa_sel_afuera', repite:true, evento:true,
-   cuando:(c)=>c.u.seleccion&&c.u.seleccion.torneo&&!c.u.seleccion.medalla&&c.u.seleccion.puesto&&c.u.seleccion.puesto!=='cuarto',
+   cuando:(c)=>c.u.seleccion&&c.u.seleccion.torneo&&!c.u.seleccion.medalla&&c.u.seleccion.puesto&&c.u.seleccion.puesto!=='cuarto'&&c.u.seleccion.puesto!=='final',   // 2026-09-09: el preolímpico GANADO es puesto 'final' sin medalla, no una eliminación
    gancho:L('Se terminó, y antes de lo que decía cualquiera. El vuelo de vuelta es a la madrugada y la última pregunta es si este grupo tiene futuro.','It is over, and earlier than anyone said. The flight home is at dawn and the last question is whether this group has a future.','Acabou, e antes do que qualquer um dizia. O voo de volta é de madrugada e a última pergunta é se esse grupo tem futuro.'),
    opciones:[
      {tipo:'segura',label:L('"Este grupo tiene futuro"','"This group has a future"','"Esse grupo tem futuro"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y te lo creés a medias. Alcanza para el título de mañana.','You say it and half believe it. It is enough for tomorrow\'s headline.','Você diz e acredita pela metade. Dá para a manchete de amanhã.'),ef:{rel:{plantel:2}}}]},
@@ -5981,7 +5992,7 @@ const CARTAS_PRENSA=[
 
  { id:'prensa_sel_pase', repite:true, evento:true,
    cuando:(c)=>c.u.seleccion&&c.u.seleccion.cierraElim&&c.u.seleccion.pase,
-   gancho:L('Clasificados. Diez partidos en un año, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games in a year, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos num ano, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
+   gancho:L('Clasificados. Diez partidos en dos temporadas, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games over two seasons, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em duas temporadas, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
    opciones:[
      {tipo:'segura',label:L('Agradecer y devolverlo','Say thanks and hand it back','Agradecer e devolver'),desenlaces:[{p:100,remate:null,texto:L('Veinte segundos y se lo devolvés. El entrenador te lo agradece con la mano en el hombro.','Twenty seconds and you hand it back. The coach thanks you with a hand on your shoulder.','Vinte segundos e você devolve. O técnico agradece com a mão no seu ombro.'),ef:{rel:{dt:4}}}]},
      {tipo:'apuesta',label:L('Hablar de los que jugaron las ventanas','Talk about the ones who played the windows','Falar dos que jogaram as janelas'),desenlaces:[
@@ -9827,7 +9838,9 @@ function relSelDe(J, gap) {
   if (!J.relSel) { J.relSel = { ...RELSEL_NEW }; if (gap !== undefined && gap >= 3) J.relSel.dt = 45; }
   return J.relSel;
 }
+const torneoBarra = (torneo) => torneo === 'eurobasket' ? 'continental' : torneo === 'preolimpico' ? 'jjoo' : (torneo || 'ventana');   // 2026-09-09: rolSel caía a la barra de la VENTANA con el Eurobasket y el preolímpico
 function barraSel(torneo, pais) {
+  torneo = torneoBarra(torneo);
   const sel = SELECCIONES[pais]; if (!sel) return SEL_BARRA[torneo] || SEL_BARRA.ventana;
   const propia = (sel.barraB !== undefined && (torneo === 'ventana' || torneo === 'continental')) ? sel.barraB : sel.barra;
   return (SEL_BARRA[torneo] || SEL_BARRA.ventana) + propia;
@@ -9839,7 +9852,7 @@ function rolSel(J, pais, torneo, media) {
   return 'suplente';
 }
 const minutosSel = (J, pais, torneo, media) => MINUTOS_POR_ROL[rolSel(J, pais, torneo, media)];   // el que ya estuvo, sigue (copiado de allá: la selección es un grupo)
-const SEL_LIGAS_QUE_NO_LIBERAN = ['nba', 'euroliga'];
+const SEL_LIGAS_QUE_NO_LIBERAN = ['nba'];   // 2026-09-09: la Euroliga PARA por FIBA (calendario.fiba, §12.28) — estaba en las dos listas y salía la carta de "el club no para" cobrando −4 DT por fechas que no existían
 
 /** ¿Tu liga te suelta para las ventanas? */
 function liberaParaVentana(ligaId) { return SEL_LIGAS_QUE_NO_LIBERAN.indexOf(ligaId) < 0; }
@@ -9849,6 +9862,7 @@ function liberaParaVentana(ligaId) { return SEL_LIGAS_QUE_NO_LIBERAN.indexOf(lig
  * con la mayor. Devuelve {llamado, gap, cerca} — `cerca` es para el aviso de su línea 4.
  */
 function convocatoria(torneo, media, pais, yaEstuvo, rng, bono) {
+  torneo = torneoBarra(torneo);
   const sel = SELECCIONES[pais];
   if (!sel) return { llamado: false, gap: -99, cerca: false };
   /* el EQUIPO B: en las ventanas FIBA y en el continental, los países que mandan un equipo
@@ -9880,8 +9894,8 @@ function decidirVentanaSel(e, k) {
   const c = convocatoria('ventana', media, el.pais, antes, rngFor(e.semilla, 'seleccion', 'ventana', v.n), bonoDtSel(R));
   const libera = e.selLibera !== false;
   /* §12.28: en las ligas que no paran, si te llaman ELEGÍS (la carta de la ventana, 01k): queda pendiente */
-  if (e.selElige && c.llamado) { v.conv = false; v.eleccion = 'pendiente'; v.motivo = null; el.convocado = false; el.motivo = null; return; }
-  v.conv = libera && c.llamado;
+  if (e.selElige && c.llamado && v.receso !== 'verano') { v.conv = false; v.gap = c.gap; v.eleccion = 'pendiente'; v.motivo = null; el.convocado = false; el.motivo = null; return; }
+  v.conv = libera && c.llamado; v.gap = c.gap;   // el gap viaja: J.relSel nace con él (§12.20: DT 45 si entraste con margen ≥3)
   v.motivo = v.conv ? null : (libera ? (c.cerca ? 'cerca' : 'nivel') : 'club');
   if (v.conv && R && R.dt < 30) R.dt = 30;              // el que entra, entra con un piso
   if (!v.conv && R && R.dt < SEL_DT_PISO_OLVIDO) R.dt = Math.min(SEL_DT_PISO_OLVIDO, R.dt + SEL_DT_OLVIDO);   // el DT se olvida
@@ -9922,9 +9936,17 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
       for (const [md0] of VENTANAS_FIBA_EN_TEMPORADA.slice(0, cuantas)) {
         const d0 = diaDeTemporada(cal, md0);
         let f0 = null;
-        for (const f of libres) { if (diaDeFecha(semilla, f, ritmo) < d0) f0 = f; else break; }
+        /* 2026-09-09: la última fecha ANTES DE LA JORNADA 1 (d0+2), no antes del receso — la cadencia deja una fecha en el
+           día 1-2 de la semana FIBA (esReceso pide ≥5 días adentro) y el fixture, ordenado por día, la ponía arriba de una
+           jornada que ya habías jugado (medido: 33 de 60 ventanas en cinco ligas) */
+        /* ⚠️ sobre TODAS las fechas, ocupadas por el continental incluidas: si el ancla es también la de una ventana del
+           continental, las dos viven entre f y f+1 y el continental va primero (miProximo, 01e: su día es el de f+1) —
+           retroceder la nuestra dejaba una fecha del club entre la jornada 1 y el ancla (medido: 33 de 60). Y si una fecha
+           cae el mismo día que la jornada 1, la jornada se corre. */
+        for (let f = 2; f <= F - 3; f++) { if (diaDeFecha(semilla, f, ritmo) <= d0 + 2) f0 = f; else break; }
         if (f0 === null || out.some((v) => Math.abs(v.f - f0) < 3)) continue;
-        out.push({ f: f0, dias: [d0 + 2, d0 + 5], receso: true });
+        const choca = tomadas.has(f0), dJ1 = Math.max(d0 + 2, diaDeFecha(semilla, f0, ritmo) + (choca ? 2 : 1));
+        out.push({ f: f0, dias: [dJ1, dJ1 + 3], receso: true, chocaAm: choca });
       }
     }
     for (let i = 0; i < ideales.length && out.length < cuantas; i++) {
@@ -9949,9 +9971,10 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
     for (const [md0] of VENTANAS_FIBA_EN_TEMPORADA) {
       const d0 = diaDeTemporada(cal, md0);
       let f0 = null;
-      for (const f of libres) { if (diaDeFecha(semilla, f, ritmo) < d0) f0 = f; else break; }
+      for (let f = 2; f <= F - 3; f++) { if (diaDeFecha(semilla, f, ritmo) <= d0 + 2) f0 = f; else break; }
       if (f0 === null || out.some((v) => Math.abs(v.f - f0) < 3)) continue;
-      out.push({ n: 0, f: f0, dias: [d0 + 2, d0 + 5], receso: true });
+      const choca = tomadas.has(f0), dJ1 = Math.max(d0 + 2, diaDeFecha(semilla, f0, ritmo) + (choca ? 2 : 1));
+      out.push({ n: 0, f: f0, dias: [dJ1, dJ1 + 3], receso: true, chocaAm: choca });
     }
   }
   for (let i = 0; i < SEL_VENTANAS_FR.length && out.length < SEL_VENTANAS_FR.length; i++) {
@@ -10022,6 +10045,9 @@ function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal, parte
 function continuarEliminatorias(previo, F, ocupadas, ritmo, semillaCal) {
   const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo, 'B');
   if (!ventanas.length) return null;
+  /* 2026-09-09: las cuatro ventanas de la parte A no se tiran — viajan en `ventanasPrevias` (con su `conv`): las cuentan
+     el bono al Mundial, la tabla del país (que se veía vacía hasta decidir la V5) y el fixture de la selección */
+  previo.ventanasPrevias = (previo.ventanasPrevias || []).concat(previo.ventanas.map((v) => ({ ...v, pasada: true })));
   previo.ventanas = ventanas; previo.idx = 0; previo.convocado = false; previo.motivo = null; previo.fin = false;
   previo.avisoVentana = null; previo.parteListo = null;
   return previo;
@@ -10042,6 +10068,8 @@ function presimularEliminatorias(e, hasta) {
   for (let k = 0; k < 40; k++) { correr(k); const st = estado(); if (st.enJuego) { e.semilla = base; return; } if (vivoK === null && st.vivo) vivoK = k; }
   correr(vivoK === null ? 0 : vivoK); e.semilla = base;
 }
+/** Cuántas ventanas del ciclo jugaste (las de la parte A viajan en `ventanasPrevias`). */
+function ventanasJugadasSel(el) { return el ? (el.ventanasPrevias || []).concat(el.ventanas).filter((v) => v.conv).length : 0; }
 /** Las dos jornadas de la ventana `n` (n=1 → jornadas 1 y 2). */
 const jornadasDeVentana = (n) => [n * 2 - 1, n * 2];
 
@@ -10102,6 +10130,9 @@ function decidirVentanasQueLlegan(e, hastaF) {
   for (let k = el.idx; k < el.ventanas.length; k++) {
     const v = el.ventanas[k];
     if (v.conv !== undefined) continue;
+    /* 2026-09-09: las dos del receso tienen f=F y se decidían JUNTAS en la fecha F−1 (el.convocado quedaba con la de V4 y
+       decidía si te ofrecían la V3): se decide sólo la que está al frente, y con la temporada terminada */
+    if (v.receso === 'verano') { if (e.fase === 'terminada' && k === el.idx) decidirVentanaSel(e, k); break; }
     if (v.f - 1 <= hastaF) decidirVentanaSel(e, k); else break;
   }
 }
@@ -10114,6 +10145,10 @@ function avanzarSeleccion(e, hastaF, miJuego) {
     if (el.ventanas[el.idx].receso === 'verano' && e.fase !== 'terminada') break;   // §12.2 v2: las del receso esperan al receso
     for (const j of jornadasDeVentana(el.ventanas[el.idx].n)) { jugarJornadaSel(e, j, miJuego); miJuego = null; }
     el.idx++;
+    /* 2026-09-09: la que sigue se decide ANTES de jugarse (las del receso se deciden de a una): si es tuya, se ofrece */
+    decidirVentanasQueLlegan(e, hastaF);
+    const sig = el.ventanas[el.idx];
+    if (sig && sig.receso === 'verano' && el.convocado) break;
   }
   decidirVentanasQueLlegan(e, hastaF);   // §2z73: la que viene, si ya está a una semana
 }
@@ -10465,7 +10500,7 @@ function lineaTorneoSel(t) {
 /* ── LOS PREMIOS (su línea 7) ──────────────────────────────────────────────────────────────
    Colectivos: la medalla, con clave propia por torneo. Individuales: leen TU planilla del
    torneo y la de tu equipo — nunca un dado (la regla de §2r, la misma de los premios de liga). */
-const SEL_TORNEO_TXT = { continental: 'AmeriCup', eurobasket: 'Eurobasket', mundial: 'Mundial', jjoo: 'Juegos Olímpicos', preolimpico: 'Preolímpico' };
+const SEL_TORNEO_TXT = { continental: L('AmeriCup', 'AmeriCup', 'AmeriCup'), eurobasket: L('Eurobasket', 'EuroBasket', 'Eurobasket'), mundial: L('Mundial', 'World Cup', 'Mundial'), jjoo: L('Juegos Olímpicos', 'Olympic Games', 'Jogos Olímpicos'), preolimpico: L('Preolímpico', 'Olympic Qualifier', 'Pré-Olímpico') };   // 2026-09-09: traducido (la final del túnel decía "The Juegos Olímpicos final")
 
 function premiosSeleccion(t) {
   const out = [];
@@ -10487,7 +10522,7 @@ function premiosSeleccion(t) {
 }
 
 /** El nombre del torneo para la pantalla (con el país cuando hace falta). */
-function nombreTorneoSel(torneo) { return SEL_TORNEO_TXT[torneo] || torneo; }
+function nombreTorneoSel(torneo) { return SEL_TORNEO_TXT[torneo] ? t(SEL_TORNEO_TXT[torneo]) : torneo; }
 function nombreSel(id) { return (SELECCIONES[id] || { nombre: id }).nombre; }
 /* §2z31: el renglón del fixture no envuelve — ahí va el corto (sólo 'República Dominicana'
    lo necesita). El nombre entero sigue en la ceremonia, el parte, el palmarés y la card. */
@@ -10641,10 +10676,25 @@ function clasifAmericaDe(memoria) {
 function directosJJOO(clasifMundial) {
   return (clasifMundial || []).slice(0, SEL_JJOO_DIRECTOS_AM);
 }
-function campoPreolimpico(clasifMundial) {
+function campoPreolimpico(clasifMundial, pais) {
   const directos = directosJJOO(clasifMundial);
-  return SEL_CONTINENTAL.am.filter((id) => directos.indexOf(id) < 0)
-    .sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza).slice(0, 4);
+  /* 2026-09-09: tu país entra SIEMPRE si no es directo (antes eran los cuatro más fuertes y ocho de las doce jugables no
+     llegaban ni al preolímpico); los otros tres, por fuerza — como los OQT reales, que reparten a casi todo el continente */
+  const resto = SEL_CONTINENTAL.am.filter((id) => directos.indexOf(id) < 0 && id !== pais)
+    .sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
+  return (pais && directos.indexOf(pais) < 0 && SELECCIONES[pais] && SELECCIONES[pais].cont === 'am' ? [pais] : []).concat(resto).slice(0, 4);
+}
+/** Los cupos de América en los Juegos: los dos directos, el ganador del preolímpico, y uno más por fuerza entre los que
+ *  no jugaron el preolímpico (el que lo perdió, se quedó afuera: ése es el "casi"). */
+function cuposJJOOAm(clasifMundial, preo) {
+  const directos = directosJJOO(clasifMundial), out = directos.slice();
+  if (preo && preo.ganador && out.indexOf(preo.ganador) < 0) out.push(preo.ganador);
+  const fuera = new Set((preo && preo.campo) || []);
+  for (const id of SEL_CONTINENTAL.am.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza)) {
+    if (out.length >= SEL_JJOO_CUPOS_AM) break;
+    if (out.indexOf(id) < 0 && !fuera.has(id)) out.push(id);
+  }
+  return out.slice(0, SEL_JJOO_CUPOS_AM);
 }
 
 /** Hasta dónde llegó cada selección del torneo (0 = campeón). Sirve para saber quiénes son
@@ -10721,15 +10771,15 @@ function misJuegosTorneoSel(t) {
 function fechasDeSeleccion(e, torneo) {
   const out = [], el = e && e.seleccion;
   if (el) {
-    for (const v of el.ventanas) {
+    for (const v of (el.ventanasPrevias || []).concat(el.ventanas)) {   // las de la parte A (temporada pasada) primero
       jornadasDeVentana(v.n).forEach((j, k) => {
         const g = el.juegos.find((x) => x.j === j && (x.local === el.pais || x.visita === el.pais));
         if (!g) return;
         const local = g.local === el.pais;
-        out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1, dia: v.dias ? v.dias[k] : null,
+        out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1, dia: v.dias ? v.dias[k] : null, pasada: !!v.pasada,
           /* §12.22: una ventana que el motor todavía no decidió (conv undefined) NO es "sin vos" — es nada todavía;
              la fila la muestra sin marca. `false` es la única que dice SIN VOS. */
-          rival: local ? g.visita : g.local, local, jugaste: v.conv === undefined ? null : !!v.conv,   // §12.21: por ventana
+          rival: local ? g.visita : g.local, local, jugaste: (v.conv === undefined || v.eleccion === 'pendiente') ? null : !!v.conv,   // §12.21: por ventana · la elección pendiente tampoco es "sin vos" todavía
           res: g.jugado ? { ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita } : null });
       });
     }
@@ -10768,7 +10818,7 @@ const CARTAS_SALIDA=[
        {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y te tiemblan las manos. El DT lo ve desde el banco.','You read it on the big screen and your hands shake. The coach sees it from the bench.','Você lê no telão e as mãos tremem. O técnico vê do banco.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
  { id:'sal_final_sel', de:'salida', peso:300, repite:true, chance:0.95, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='seleccion'&&c.salida.final,
-   gancho:(c)=>L('La final del '+c.salida.competencia+' con la camiseta del país. Te preguntan qué le dirías al pibe que eras.','The '+c.salida.competencia+' final in the national shirt. They ask what you would tell the kid you were.','A final do '+c.salida.competencia+' com a camisa do país. Perguntam o que você diria para o garoto que era.'),
+   gancho:(c)=>L('La final. '+c.salida.competencia+', con la camiseta del país. Te preguntan qué le dirías al pibe que eras.','The final. '+c.salida.competencia+', in the national shirt. They ask what you would tell the kid you were.','A final. '+c.salida.competencia+', com a camisa do país. Perguntam o que você diria para o garoto que era.'),
    opciones:[
      {tipo:'segura',label:L('"Que disfrute"','"Enjoy it"','"Que aproveite"'),desenlaces:[{p:100,remate:null,texto:L('Sonreís, y por un segundo la final es un partido.','You smile, and for a second the final is just a game.','Você sorri, e por um segundo a final é só um jogo.'),ef:{rel:{hinchada:3}}}]},
      {tipo:'apuesta',label:L('"La vamos a traer"','"We are bringing it home"','"Vamos trazer"'),desenlaces:[
@@ -18696,7 +18746,7 @@ const ANIO_INICIO=2026;
    tiene que ser sostenible hasta en la NBA (4,3 partidos/semana → costo a tope ≤ 10), y
    entrenar al máximo (2 sesiones = 50) es lo que te manda a la lata. */
 const COSTO_JUGAR_BASE=3, COSTO_JUGAR_MIN=9;   // banco (12/40) ≈ 6 · titular (26/40) ≈ 9 · referencia (34/40) ≈ 11
-const costoJugar=(min,ligaId)=>{ const dur=LIGAS[ligaId].reloj*4/60;
+const costoJugar=(min,ligaId,fiba)=>{ const dur=(fiba?600:LIGAS[ligaId].reloj)*4/60;   // 2026-09-09: el partido de selección dura 40' también en la NBA
   return Math.max(2,Math.round(COSTO_JUGAR_BASE+COSTO_JUGAR_MIN*Math.min(1,(min||0)/dur))-descuentoPartido()); };
 /* §2z80 (su caza 2026-09-06: "la energía se gasta muy poco: terminar en 90 % después de cada partido no te lleva a
    comprar latita salvo que entrenes"): a 6 por día la semana devolvía 42 contra 12-32 de gasto según la liga, y a
@@ -19310,6 +19360,7 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
   if(!parte) return;
   const pais=J.nacionalidad||'ar', ocup=e.americas?e.americas.ventanas.map(v=>v.f):[];
   let el=null;
+  if(!beta&&parte==='B'&&selCarrera&&selCarrera.mundial&&selCarrera.mundial.anio===anio+1&&!(selCarrera.elimPendiente)) return;   // 2026-09-09: el ciclo ya cerró (save de antes de §12.2 v2): no se arma un segundo grupo
   const previo=!beta&&parte==='B'&&selCarrera&&selCarrera.elimPendiente;
   if(previo&&previo.pais===pais&&previo.juegos&&!previo.fin){ el=continuarEliminatorias(previo,e.fechasTotales,ocup,ligaId,e.semilla); }
   else el=crearEliminatorias(semilla+'-sel'+anio,pais,e.fechasTotales,ocup,ligaId,e.semilla,parte);   // §12.28: las ventanas con el calendario de la liga
@@ -19322,15 +19373,25 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
      lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
   /* §12.28: en las ligas que no paran (sin calendario.fiba, o las que no soltaban) ELEGÍS — nadie te retiene */
   const calL=LIGAS[ligaId]&&LIGAS[ligaId].calendario;
-  e.relSel=relSelDe(J); e.selLibera=true; e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
+  e.relSel=J.relSel||null; e.selLibera=true; e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
   decidirVentanasQueLlegan(e,e.fechaJugada||0);   // §2z73: la primera también se decide cuando llega
+  nacerRelSel(e);
+}
+/* §12.20 (2026-09-09: era código muerto — instalarSeleccion creaba relSel con DT 30 para todos antes de cualquier convocatoria):
+   J.relSel nace con la PRIMERA ventana que te convoca, con su gap (DT 45 si entraste con margen ≥3). Se llama al instalar
+   y en cada pintada del lobby, porque las ventanas también las decide el motor adentro de jugarFecha. */
+function nacerRelSel(e){
+  e=e||est(); const el=e&&e.seleccion; if(!el||!C||!C.jugador||C.jugador.relSel) return;
+  const v=(el.ventanasPrevias||[]).concat(el.ventanas).find(x=>x.conv);
+  if(v){ e.relSel=relSelDe(C.jugador,v.gap); }
 }
 
 /* §12.28: la decisión de la carta de la ventana — ir o quedarse */
 function eleccionVentanaSel(d){
   const e=est(); if(!e||!e.seleccion) return;
   const el=e.seleccion, v=el.ventanas.find(x=>x.n===d.n); if(!v||v.eleccion!=='pendiente') return;
-  v.eleccion=d.ir?'fui':'club'; v.conv=!!d.ir; el.convocado=!!d.ir; v.motivo=d.ir?null:'club';
+  v.eleccion=d.ir?'fui':'club'; v.conv=!!d.ir; el.convocado=!!d.ir; v.motivo=d.ir?null:'eleccion';   // 'eleccion': te quedaste vos, no te retuvo el club
+  nacerRelSel(e);
   if(d.ir&&e.relSel&&e.relSel.dt<30) e.relSel.dt=30;
   guardar();
 }
@@ -19411,7 +19472,7 @@ function filaGrupoSel(fila,pos,pasan,mio){
  */
 function htmlSeleccion(e){
   const el=e.seleccion, t2=C.selTorneo;
-  const elTuvo=!!(el&&((el.ventanas||[]).some(v=>v.conv)||el.idx));   // §12.21: alguna ventana tuya, o ya se jugó alguna
+  const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ocho previas)
   if(!elTuvo&&!t2) return '';
   const ban=banderaDe(C.jugador.nacionalidad||'ar',14);
   const tit=(x)=>'<div class="r amTit"><span class="pos">'+ban+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
@@ -19422,9 +19483,13 @@ function htmlSeleccion(e){
     tablaSel(el).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,SEL_ELIM_CLASIFICAN,el.pais); });
     /* §12.2 v2 (su corte: "si un torneo no se juega en la misma temporada, aclararlo"): el estado del ciclo */
     const parte=esBeta()?'B':parteElim(C.anio), aM=anioMundial();
-    if(!el.fin) h+='<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
+    /* 2026-09-09 (su captura: la línea decía "CIERRAN EN NOVIEMBRE" con las ventanas en enero-marzo, y se cortaba con puntos
+       suspensivos): el mes sale de la ÚLTIMA ventana de la temporada, y la línea envuelve (clase `nota`) */
+    const ultV=el.ventanas[el.ventanas.length-1], dUlt=ultV&&ultV.dias&&ultV.dias[1];
+    const mesUlt=dUlt?diaTxt(dUlt).split(' ').find(x=>isNaN(+x))||null:null;   // en inglés diaTxt da "NOV 29": el token que no es número
+    if(!el.fin) h+='<div class="r amTit nota"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
       ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE · EL MUNDIAL '+aM+', EN EL RECESO SIGUIENTE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON · WORLD CUP '+aM+' THE OFFSEASON AFTER','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA · O MUNDIAL '+aM+', NO RECESSO SEGUINTE'))
-      : t(L('CIERRAN EN NOVIEMBRE · EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','CLOSE IN NOVEMBER · WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','FECHAM EM NOVEMBRO · O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';
+      : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+' · '+t(L('EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';
   }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
@@ -19474,6 +19539,9 @@ function torneoRecesoDe(){
   const torneo=torneoDelReceso(C.anio,pais);
   if(!torneo) { C.selTorneoHecho=C.anio; return null; }
   if(!SELECCIONES[pais]) { C.selTorneoHecho=C.anio; return null; }
+  /* 2026-09-09: si la quinta la jugó el relato (no te convocaron, o te quedaste en el club), nadie anotaba el pase y el
+     que no clasificó entraba al Mundial por el relleno (el bug de §12.14 otra vez): se cierra acá, idempotente */
+  if(e.seleccion&&e.seleccion.fin&&!(mem.mundial&&mem.mundial.anio===C.anio+1)) cerrarEliminatoriasCarrera(e);
   const clasifAm=clasifAmericaDe({clasificados:(e.seleccion&&e.seleccion.clasificados)||mem.clasificados});
   /* §12: el que no pasó las eliminatorias de ESTE ciclo no juega el Mundial */
   const fuera=(mem.mundial&&mem.mundial.anio===C.anio+1&&!mem.mundial.pase)?mem.mundial.pais:null;
@@ -19481,14 +19549,22 @@ function torneoRecesoDe(){
   let cual=torneo;
   /* ⚠️ el preolímpico GANADO abre los Juegos en el mismo receso, y hay que ANOTARLO: sin la
      marca, la puerta se volvía a abrir sola y el torneo se repetía en bucle (2026-09-03) */
-  if(torneo==='jjoo'&&mem.preoGanado!==C.anio
-     &&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
-  const campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm):campoTorneo(cual,clasifAm,fuera);
+  /* 2026-09-09: los Juegos salían del top 4 por fuerza (ganabas el preolímpico con Uruguay y "no clasificó"): ahora los
+     cupos de América son los dos directos + el ganador del preolímpico + uno por fuerza (cuposJJOOAm), y el preolímpico
+     se juega UNA vez por ciclo (`mem.preo.anio`), lo hayas ganado o no */
+  const preoJugado=mem.preo&&mem.preo.anio===C.anio;
+  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  const campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais)
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
+    :campoTorneo(cual,clasifAm,fuera);
   if(campo.indexOf(pais)<0){ C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }
   /* §12.21 (su corte: "si jugaste eliminatorias o X parte de ellas, deberías ir al torneo"): tres ventanas jugadas
      este año te llevan casi seguro (+0,4); y el DT de la selección pesa como en las ventanas */
-  const jugadas=(e.seleccion&&e.seleccion.ventanas?e.seleccion.ventanas.filter(v=>v.conv).length:0);
-  const c=convocatoria(cual==='preolimpico'?'jjoo':cual==='eurobasket'?'continental':cual,miMedia(C.jugador),pais,!!mem.yaEstuvo,
+  const jugadas=ventanasJugadasSel(e.seleccion);   // 2026-09-09: las de la parte A también (viajan en ventanasPrevias)
+  /* §12.13: en la beta te convocan SIEMPRE — también al torneo (2026-09-09: el artificio vivía sólo en las ventanas, y con
+     media 43 contra barra 66 el Mundial que §12.2 v2 le promete a la beta no llegaba nunca) */
+  const c=esBeta()?{llamado:true,gap:0,cerca:false}
+    :convocatoria(cual==='preolimpico'?'jjoo':cual==='eurobasket'?'continental':cual,miMedia(C.jugador),pais,!!mem.yaEstuvo,
     rngFor(C.semilla,'seleccion','torneo',C.anio),(jugadas>=3?0.4:jugadas>=1?0.15:0)+bonoDtSel(C.jugador.relSel));
   if(c.llamado) relSelDe(C.jugador,c.gap);   // §12.20: la primera convocatoria abre tus relaciones con la selección
   if(!c.llamado){ C.selTorneoHecho=C.anio; C.selAviso={clave:c.cerca?'cerca':'nivel',torneo:cual,pais}; guardar(); return null; }
@@ -19514,7 +19590,7 @@ function proximoSelVerano(){
 /* §12.2 v2: el cierre del grupo anota el pase al Mundial del receso siguiente a la parte B */
 function cerrarEliminatoriasCarrera(e){
   const el=e.seleccion; if(!el||!el.fin) return;
-  memSel(); C.seleccion.yaEstuvo=C.seleccion.yaEstuvo||el.ventanas.some(v=>v.conv);
+  memSel(); C.seleccion.yaEstuvo=C.seleccion.yaEstuvo||ventanasJugadasSel(el)>0;
   C.seleccion.mundial={anio:anioMundial(),pase:!!el.pase,pais:el.pais};
 }
 function proximoSelTorneo(){
@@ -19533,7 +19609,7 @@ function cerrarTorneoReceso(){
   const mem=memSel();
   if(t.torneo==='mundial') mem.mundialTop=topAmericaSel(t);
   const gano=t.torneo==='preolimpico'&&t.campeon===t.pais;
-  if(gano) mem.preoGanado=C.anio;
+  if(t.torneo==='preolimpico') mem.preo={anio:C.anio,ganador:t.campeon,campo:(t.campo||[]).slice()};   // 2026-09-09: quién lo ganó y quiénes lo jugaron (cuposJJOOAm)
   /* el preolímpico no es un torneo del palmarés: es la puerta a los Juegos */
   if(t.torneo!=='preolimpico') mem.torneos.push({anio:C.anio,torneo:t.torneo,puesto:t.puesto,
     medalla:t.medalla||null,campeon:t.campeon,linea:lineaTorneoSel(t),pj:t.mis.length});
@@ -19576,7 +19652,7 @@ function armarParteVentana(e,n){
     return {rival:local?g.visita:g.local,local,mios:local?g.ptsLocal:g.ptsVisita,sus:local?g.ptsVisita:g.ptsLocal};
   }).filter(Boolean);
   const mias=e.misPartidos.filter(p=>p.sel&&jornadasDeVentana(n).indexOf(p.n)>=0);
-  const vN=el.ventanas[n-1]||{};   // §12.21: la ventana que se cerró, no la que viene
+  const vN=el.ventanas.find(v=>v.n===n)||{};   // §12.21: la ventana que se cerró, no la que viene — por NÚMERO: en la parte B el arreglo trae sólo la quinta y `[n-1]` daba undefined ("No te convocaron" con tus dos partidos arriba, 2026-09-09)
   C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una
     juegos:js,mias:mias.map(p=>({pts:p.pts,ast:p.ast,min:p.minutos,rating:p.rating})),
     tabla:tablaSel(el).map(f=>({id:f.id,pg:f.pg,pp:f.pp})),fin:!!el.fin,pase:!!el.pase};
@@ -19596,7 +19672,7 @@ function abrirParteVentana(p){
     : t(L('DOS DERROTAS','TWO LOSSES','DUAS DERROTAS'));
   tit.className=p.fin?(p.pase?'oro':'mal'):(g===2?'oro':g===1?'':'mal');
   $l('parteJuegos').innerHTML=p.juegos.map(x=>
-    '<div class="fila-item"><span class="desc">'+banderaDe(x.rival,15)+' '+(x.local?'vs ':'en ')+nombreSel(x.rival).toUpperCase()+'</span>'   // §2z73: la banderita del rival (su caza)
+    '<div class="fila-item"><span class="desc">'+banderaDe(x.rival,15)+' '+vsTxt(x.local)+nombreSel(x.rival).toUpperCase()+'</span>'   // §2z73: la banderita del rival (su caza)
     +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
   /* tu parte: la línea si jugaste, y si no, POR QUÉ no (su "tipo un «no fuiste convocado»") */
   const tuyo=$l('parteTuyo');
@@ -19606,6 +19682,8 @@ function abrirParteVentana(p){
   } else {
     tuyo.textContent=p.motivo==='club'
       ? t(L('Tu club no te soltó.','Your club did not release you.','Seu clube não te liberou.'))
+      : p.motivo==='eleccion'
+      ? t(L('Te quedaste en el club.','You stayed with the club.','Você ficou no clube.'))
       : p.motivo==='cerca'
       ? t(L('No te convocaron. Te miraron, pero todavía no.','No call-up. They watched you, but not yet.','Sem convocação. Te olharam, mas ainda não.'))
       : t(L('No te convocaron.','No call-up.','Você não foi convocado.'));
@@ -19789,7 +19867,8 @@ function htmlFixtureSeleccion(){
   /* §12.25: cada ventana con su cabecera (VENTANA 1 · 2 partidos), como los grupos en la tabla */
   let h='', vAct=null;
   for(const f of fs.filas){ const m=f.match(/data-ventana="(\d+)"/); const v=m?m[1]:null;
-    if(v&&v!==vAct){ vAct=v; h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(SEL_TXT.ventana)+' '+v+'</span></span></div>'; }
+    if(v&&v!==vAct){ vAct=v; const pas=/data-pasada="1"/.test(f);
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(SEL_TXT.ventana)+' '+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
     h+=f; }
   return h;
 }
@@ -19818,7 +19897,7 @@ function filasFixtureSeleccion(){
        marca el calendario del país se leería como si fuera tuyo */
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
     const mio=sinVos?'<span class="nota sinVos">'+t(L('SIN VOS','WITHOUT YOU','SEM VOCÊ'))+'</span>':'';
-    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'"><span class="f">'+ban+'</span>'
+    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
       +'<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nombreSelCorto(f.rival)+'</span>'+mio+'</span>'
       +'<span class="dia">'+etapa+'</span>'+res+'</div>');
   });
@@ -20329,8 +20408,10 @@ function filaTabla(fila,pos,k,n){
    avanzado, dos partidos de la selección jugados por el relato). Ahora todo salto se recorta en la
    fecha anterior a la ventana pendiente, si estás convocado: siempre llegás a ella y la jugás vos. */
 function ventanaSelPendiente(e){
-  const el=e&&e.seleccion; if(!el||!el.convocado||el.fin) return null;
-  return el.ventanas[el.idx]||null;
+  const el=e&&e.seleccion; if(!el||el.fin) return null;
+  const v=el.ventanas[el.idx]||null;
+  /* §12.28: la elección pendiente también frena — si no, pasar la semana atravesaba la ventana y la carta nunca salía */
+  return (v&&(el.convocado||v.eleccion==='pendiente'))?v:null;
 }
 const fechaRef=(prox)=>prox.tipo==='fecha'?prox.fecha:prox.tipo==='americas'&&prox.etapa==='grupo'?prox.ventana.f:null;   /* §12: la selección tampoco (no se pasa) */
 function proximaSemana(prox){
@@ -20354,7 +20435,7 @@ function pasarHasta(sig,alFinal){
   const e=est();
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,fechaRef(miProximo(e)||{tipo:'fecha',fecha:1})||1),est().ritmo);
   const antes=e.misPartidos.length;   // §2z91: lo que el relato juegue de acá en más es lo que el parte cuenta
-  avanzarHastaFecha(e,sig.fecha);
+  avanzarHastaFecha(e,sig.fecha,true);   // 2026-09-09: el continental pendiente lo juega el relato (antes quedaba en un no-op)
   const jugados=e.misPartidos.slice(antes);
   if(esBeta()) betaEvento('salteo',{hasta:sig.fecha});
   const dias=Math.max(1,sig.dia-diaAntes);
@@ -20536,6 +20617,7 @@ function coachear(){
   setTimeout(()=>document.addEventListener('pointerdown',cerrar,true),300);   // el toque que lo cierra sigue su camino: si fue la latita, se toma
 }
 function pintaLobby(){
+  nacerRelSel();   // §12.20: las relaciones con la selección nacen con la primera convocatoria, la decida quien la decida
   try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }
   setTimeout(()=>{ try{ coachear(); }catch(err){} },0);   // §2z59: después de pintar, con la caja ya medida   // §2z45: el corte y los avisos, antes de que cualquier panel los lea
   cerrarSinVos();
@@ -20591,7 +20673,7 @@ function pintaLobby(){
     +Math.round(fraccionExp(J.exp||0,J.nivel||1)*100)+'%"></i></span></span>';
 
   // El chip de la temporada
-  if(e.fase==='regular'&&prox&&prox.tipo==='seleccion'){
+  if(prox&&prox.tipo==='seleccion'){   // en la regular y en el receso (las ventanas de verano, §12.2 v2)
     /* §2y: sin "LA SELECCIÓN" delante — ELIMINATORIAS y MUNDIAL ya dicen de qué se trata, y
        con el prefijo el chip se partía en dos renglones (medido a 375) */
     $l('lobChip').innerHTML=anioTxt()+' · <b>'+selCuandoTxt(prox)+'</b>';   // §12
@@ -20991,7 +21073,7 @@ function pintaEntrenar(){
   $l('lobby').classList.toggle('plena',!!escaleraAbierta);
   /* "0/2" no es una frase (su caza 2026-09-02): sin sesiones, se dice */
   const cupoTxt=e.fase!=='regular'
-      ? t(L('En playoffs no se entrena.','No training in the playoffs.','Nos playoffs não se treina.'))   // §2z19: el contrato, no una aclaración
+      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('En playoffs no se entrena.','No training in the playoffs.','Nos playoffs não se treina.')))   // §2z19: el contrato, no una aclaración
       : libres<=0
       ? t(L('Esta semana no te quedan sesiones.','No sessions left this week.','Esta semana não restam sessões.'))
       : t(L('Esta semana te quedan <b>','This week you have <b>','Esta semana restam <b>'))+libres+'/'+SESIONES_POR_SEMANA+'</b>'
@@ -21117,6 +21199,7 @@ function entrenar(k,nivelPedido){
      selección, no en el gimnasio del club — y el mensaje lo dice con ese nombre */
   if(e.fase!=='regular'){ avisar(t(C.selTorneo
     ? L('Estás con la Selección: no hay gimnasio.','You are with the national team: no gym.','Você está com a Seleção: sem academia.')
+    : e.fase==='terminada'?L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')
     : L('En playoffs no se entrena.','No training in the playoffs.','Nos playoffs não se treina.'))); return; }   // §2z19
   if(sesionesRestantes(J,e.semilla,proximaFecha(),est().ritmo)<=0){
     avisar(t(L('Sin sesiones esta semana: jugá y volvé.','No sessions left this week: play on and come back.','Sem sessões esta semana: joga e volta.'))); return; }
@@ -21410,7 +21493,7 @@ $l('lobSalir').addEventListener('click',()=>{
   enPartido.mision=preAbierto.mision||null;
   /* el reloj dice la verdad de la liga (§9.7): 12:00 NBA, 10:00 FIBA — presentación
      sobre el guion, los beats se reparten igual */
-  RELOJ_CUARTO=ligaDe().reloj; MIN_CUARTO=RELOJ_CUARTO/60;
+  RELOJ_CUARTO=preAbierto.tipo==='seleccion'?600:ligaDe().reloj; MIN_CUARTO=RELOJ_CUARTO/60;   // 2026-09-09: la selección es FIBA aunque juegues en la NBA
   vestirCasacas(miClubEn(preAbierto),clubDe(preAbierto.rival),preAbierto.local);  // los colores reales (§12.23: los de tu país en la selección)
   pintarAjustes();
   $l('lobby').classList.add('oculto');
@@ -21600,7 +21683,7 @@ function priorizarCopa(cual){
   if(cual==='liga'){ e.fuerzas[mi]+=2; e.americas.fuerzas[mi]-=3; }
   else { e.americas.fuerzas[mi]+=3; e.fuerzas[mi]-=2; }
 }
-const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata,elimTxt,ordEn,anioMundial});   // §2z42: la plata pasa por la contabilidad · §12.28: la carta de la ventana lee el torneo
+const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata,elimTxt,ordEn,anioMundial,eleccionVentanaSel});   // §2z42: la plata pasa por la contabilidad · §12.28: la carta de la ventana lee el torneo
 /* §2z26: lo que LA PRENSA puede leer del partido que acabás de jugar. Se arma antes de soltar
    enPartido; la serie y la clave vienen del cierre que calculó el velo de fin. */
 function ultimoPartido(cierre,e){
@@ -21628,9 +21711,7 @@ function ultimoPartido(cierre,e){
        con la mayor en toda la carrera — el diario lo titula una vez y nunca más. */
     seleccion:enPartido&&enPartido.tipo==='seleccion'?(function(){
       const mem=C.seleccion||{}, cer=C.selCeremonia, el=e.seleccion;
-      const jugados=((el&&(el.ventanas||[]).some(v=>v.conv))?e.misPartidos.filter(p=>p.sel).length:0)   // §12.21
-        +((C.selTorneo&&C.selTorneo.mis.length)||0)
-        +(mem.torneos||[]).reduce((a,x)=>a+(x.pj||0),0);
+      const jugados=mem.jugados||0;   // 2026-09-09: el contador de la carrera (se incrementa al cerrar cada partido, abajo) — contar misPartidos de ESTA temporada hacía "debutar" de nuevo en la ventana 5 (clase 16)
       return {etapa:enPartido.etapa, torneo:enPartido.torneo||null, pais:C.jugador.nacionalidad||'ar',
         debut:jugados<=1,
         medalla:(cer&&cer.medalla)||null, puesto:(cer&&cer.puesto)||null,
@@ -21721,7 +21802,7 @@ function registrarResultado(){
      descansaste al salir a la cancha. Sumarlos después del costo, en la misma cuenta,
      te devolvía a 100 con el primer partido (día 6 × 6 = +36 contra 22 de costo) y con
      cualquier semana espaciada. Ahora: primero el descanso, TOPE 100, y recién el costo. */
-  J.energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-costoJugar(minutosJugados(),C.ligaId));
+  J.energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-costoJugar(minutosJugados(),C.ligaId,enPartido&&enPartido.tipo==='seleccion'));
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */

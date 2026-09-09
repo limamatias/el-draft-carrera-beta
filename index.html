@@ -4192,7 +4192,7 @@ function alDiaTrasSeleccion(estado) {
   if (!el || estado.fase !== 'regular') return;
   let hasta = 0;
   for (let k = 0; k < el.idx && k < el.ventanas.length; k++) {
-    if (el.ventanas[k].conv) hasta = Math.max(hasta, el.ventanas[k].f + 2);
+    if (el.ventanas[k].conv) hasta = Math.max(hasta, el.ventanas[k].receso ? el.ventanas[k].f : el.ventanas[k].f + 2);   // §12.28: en el receso el club no jugó
   }
   if (!hasta) return;
   const am = estado.americas && estado.americas.ventanas[estado.americas.idx];
@@ -5641,6 +5641,8 @@ function aplicarEfectos(ef){
     else J.skills[k]=Math.max(0,Math.min(100,(J.skills[k]||0)+ef.skills[k]));
   }
   if(ef.rel) aplicarDeltas(J,{dH:ef.rel.hinchada||0,dP:ef.rel.plantel||0,dD:ef.rel.dt||0}, salidaEnSel?relSelDe(J):undefined);   // §12.20: en el túnel de la selección, las suyas
+  if(ef.relSel) aplicarDeltas(J,{dH:ef.relSel.hinchada||0,dP:ef.relSel.plantel||0,dD:ef.relSel.dt||0}, relSelDe(J));   // §12.28: las de la selección, explícitas
+  if(ef.ventana&&typeof eleccionVentanaSel==='function') eleccionVentanaSel(ef.ventana);   // §12.28: ir o quedarse
   /* §2z40: el efecto sobre EL PARTIDO que viene — lo consume SALIR A LA CANCHA (18b) */
   if(ef.partido){ const P=$C().efectoSalida=$C().efectoSalida||{};
     if(ef.partido.fuerzaRival) P.fuerzaRival=(P.fuerzaRival||0)+ef.partido.fuerzaRival;
@@ -5657,6 +5659,7 @@ function pildorasDe(ef,sinPlata){
   const p=(v,lbl)=>out.push({txt:(v>0?'+':'−')+Math.abs(v)+(lbl?' '+lbl:''),ok:v>0});
   if(ef.skills) for(const k in ef.skills) p(ef.skills[k],t(SKILL_TXT[k]||L(k.toUpperCase())));
   if(ef.rel) for(const k in ef.rel) p(ef.rel[k],t(REL_TXT[k]||L(k.toUpperCase())));
+  if(ef.relSel) for(const k in ef.relSel) p(ef.relSel[k],t(REL_TXT[k]||L(k.toUpperCase()))+' '+t(L('SELECCIÓN','NT','SELEÇÃO')));   // §12.28
   if(ef.plataX&&!sinPlata){ const v=ef.plataX*pagoPartido(); out.push({txt:(v>0?'+':'−')+'$'+Math.abs(v),ok:v>0}); }
   if(ef.energia) p(ef.energia,'⚡');
   if(ef.latas) p(ef.latas,t(ef.latas===1||ef.latas===-1?L('LATA','CAN','LATA'):L('LATAS','CANS','LATAS')));
@@ -5838,8 +5841,25 @@ function cartaDeEvento(){
   s.eventosN=(s.eventosN||0)+1; s.ultimoEvento=e.fechaJugada; guardar();
   return c;
 }
+/* §12.28 LA CARTA DE LA VENTANA: en las ligas que no paran, te llaman y elegís. Sale al entrar al vestuario con la
+   ventana abierta y la elección pendiente; una por ventana. */
+function cartaDeVentana(){
+  const e=est(); if(!e||!$C()||e.fase!=='regular'||!e.seleccion||e.seleccion.fin) return null;
+  const el=e.seleccion, v=el.ventanas[el.idx];
+  if(!v||v.eleccion!=='pendiente'||v.f>e.fechaJugada) return null;
+  const pais=SELECCIONES[el.pais].nombre;
+  return { id:'sel_ventana_'+v.n, de:'seleccion', repite:true, fondo:'despacho', _ventana:v.n,
+    gancho:L(pais+' te llama para la ventana '+v.n+'. El club no para.', pais+' calls you up for window '+v.n+'. The club does not stop.', pais+' te convoca para a janela '+v.n+'. O clube não para.'),
+    opciones:[
+      { tipo:'segura', label:L('Ir con la selección','Go with the national team','Ir com a seleção'),
+        desenlaces:[ {p:100, remate:L('Te vas','You go','Você vai'), texto:L('El club juega dos fechas sin vos.','The club plays two rounds without you.','O clube joga duas rodadas sem você.'), ef:{ rel:{dt:-4}, relSel:{dt:5}, ventana:{n:v.n, ir:true} }} ] },
+      { tipo:'segura', label:L('Quedarme en el club','Stay with the club','Ficar no clube'),
+        desenlaces:[ {p:100, remate:L('Te quedás','You stay','Você fica'), texto:L('La ventana se juega sin vos.','The window is played without you.','A janela é jogada sem você.'), ef:{ rel:{dt:3}, relSel:{dt:-5}, ventana:{n:v.n, ir:false} }} ] },
+    ] };
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
+  { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO'))+' · '+t(L('VENTANA','WINDOW','JANELA'))+' '+cv._ventana,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
   if(ev){ const e=est(), club=clubDe(e.miClubId); mostrarCarta(ev,(club?club.nombre.toUpperCase():'')+' · '+t(L('FECHA','ROUND','RODADA'))+' '+e.fechaJugada,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
   const c=cartaPendiente(); if(!c) return false;
@@ -9834,6 +9854,8 @@ function decidirVentanaSel(e, k) {
   const R = e.relSel || null;
   const c = convocatoria('ventana', media, el.pais, antes, rngFor(e.semilla, 'seleccion', 'ventana', v.n), bonoDtSel(R));
   const libera = e.selLibera !== false;
+  /* §12.28: en las ligas que no paran, si te llaman ELEGÍS (la carta de la ventana, 01k): queda pendiente */
+  if (e.selElige && c.llamado) { v.conv = false; v.eleccion = 'pendiente'; v.motivo = null; el.convocado = false; el.motivo = null; return; }
   v.conv = libera && c.llamado;
   v.motivo = v.conv ? null : (libera ? (c.cerca ? 'cerca' : 'nivel') : 'club');
   if (v.conv && R && R.dt < 30) R.dt = 30;              // el que entra, entra con un piso
@@ -9860,12 +9882,24 @@ const SEL_ELIM_CLASIFICAN = 4;
  *  falta cinco (medido con el chequeador, 2026-09-03). Que una semana traiga un continental y
  *  dos eliminatorias es duro y es real — su corte de §2z27: "lo de muchos partidos en la semana
  *  es relativo, en la NBA son más" — y el continental de esa semana lo juega el club sin vos. */
-function ventanasSeleccion(F, ocupadas) {
+function ventanasSeleccion(F, ocupadas, semilla, ritmo) {
   const tomadas = new Set(ocupadas || []);
   const libres = [];
   for (let f = 2; f <= F - 3; f++) if (!tomadas.has(f)) libres.push(f);
   const out = [];
-  for (let i = 0; i < SEL_VENTANAS_FR.length; i++) {
+  /* §12.28 paso 1 (a): en las ligas que paran por FIBA, las ventanas de temporada van ADENTRO de la semana reservada
+     (VENTANAS_FIBA_EN_TEMPORADA, 01h): f = la última fecha antes del receso; las jornadas, el día 3 y el 6 del receso */
+  const cal = (semilla && ritmo && typeof calendarioDe === 'function') ? calendarioDe(ritmo) : null;
+  if (cal && cal.fiba) {
+    for (const [md0] of VENTANAS_FIBA_EN_TEMPORADA) {
+      const d0 = diaDeTemporada(cal, md0);
+      let f0 = null;
+      for (const f of libres) { if (diaDeFecha(semilla, f, ritmo) < d0) f0 = f; else break; }
+      if (f0 === null || out.some((v) => Math.abs(v.f - f0) < 3)) continue;
+      out.push({ n: 0, f: f0, dias: [d0 + 2, d0 + 5], receso: true });
+    }
+  }
+  for (let i = 0; i < SEL_VENTANAS_FR.length && out.length < SEL_VENTANAS_FR.length; i++) {
     const ideal = SEL_VENTANAS_FR[i] * F;
     let mejor = null, dist = Infinity;
     for (const f of libres) {
@@ -9874,7 +9908,9 @@ function ventanasSeleccion(F, ocupadas) {
       if (d < dist) { dist = d; mejor = f; }
     }
     if (mejor === null) continue;
-    out.push({ n: 0, f: mejor });
+    /* §12.28 paso 1 (b): las jornadas a TRES DÍAS, no al día de la fecha f+2 (hasta el paso 2) */
+    const d1 = semilla && ritmo ? diaDeFecha(semilla, mejor + 1, ritmo) : null;
+    out.push({ n: 0, f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false });
   }
   out.sort((a, b) => a.f - b.f);
   out.forEach((v, i) => { v.n = i + 1; });
@@ -9906,10 +9942,10 @@ function grupoEliminatorias(semilla, pais) {
 }
 
 /** Nace la eliminatoria de esta temporada (o null si tu país no tiene continental armado). */
-function crearEliminatorias(semilla, pais, F, ocupadas) {
+function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal) {
   const grupo = grupoEliminatorias(semilla, pais);
   if (!grupo) return null;
-  const ventanas = ventanasSeleccion(F, ocupadas);
+  const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo);   // §12.28: con el calendario de la liga, si lo hay
   if (!ventanas.length) return null;
   /* el calendario: ida y vuelta entre los seis = 30 partidos, 3 por jornada, 10 jornadas.
      Con 5 ventanas de 2 jornadas cada una entran las 10. Round robin por el método del círculo. */
@@ -10019,7 +10055,7 @@ function jugarJuegoSeleccion(e, miJuego) {
  *  antes de irte. Medido en el navegador: con {f, f+1} el club sólo perdía UNA fecha. */
 function fechasSalteadas(el) {
   const out = new Set();
-  if (el) for (const v of el.ventanas) if (v.conv) { out.add(v.f + 1); out.add(v.f + 2); }   // §12.21: por ventana
+  if (el) for (const v of el.ventanas) if (v.conv && !v.receso) { out.add(v.f + 1); out.add(v.f + 2); }   // §12.21: por ventana · §12.28: en el receso el club no juega
   return out;
 }
 
@@ -10566,7 +10602,7 @@ function misJuegosSeleccion(e) {
       const g = el.juegos.find((x) => x.j === j && (x.local === el.pais || x.visita === el.pais));
       if (!g) return;
       const local = g.local === el.pais;
-      out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1, jugaste: !!v.conv,
+      out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1, dia: v.dias ? v.dias[k] : null, jugaste: !!v.conv,
         rival: local ? g.visita : g.local, local,
         res: g.jugado ? { ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita } : null });
     });
@@ -10608,7 +10644,7 @@ function fechasDeSeleccion(e, torneo) {
         const g = el.juegos.find((x) => x.j === j && (x.local === el.pais || x.visita === el.pais));
         if (!g) return;
         const local = g.local === el.pais;
-        out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1,
+        out.push({ etapa: 'eliminatorias', ventana: v.n, n: j, f: v.f, off: k + 1, dia: v.dias ? v.dias[k] : null,
           /* §12.22: una ventana que el motor todavía no decidió (conv undefined) NO es "sin vos" — es nada todavía;
              la fila la muestra sin marca. `false` es la única que dice SIN VOS. */
           rival: local ? g.visita : g.local, local, jugaste: v.conv === undefined ? null : !!v.conv,   // §12.21: por ventana
@@ -19189,16 +19225,26 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
   if(!beta&&!hayEliminatorias(anio)) return;
   const pais=J.nacionalidad||'ar';
   const el=crearEliminatorias(semilla+'-sel'+anio,pais,e.fechasTotales,
-    e.americas?e.americas.ventanas.map(v=>v.f):[]);
+    e.americas?e.americas.ventanas.map(v=>v.f):[], ligaId, e.semilla);   // §12.28: las ventanas con el calendario de la liga
   if(!el) return;
   if(beta){ el.beta=true; el.convocado=true; el.motivo=null; e.seleccion=el; el.ventanas.forEach(v=>{ v.conv=true; v.motivo=null; }); return; }
   /* §12.21: la convocatoria es POR VENTANA y la decide el motor cuando cada ventana llega. La temporada
      lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
-  e.relSel=relSelDe(J); e.selLibera=liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
+  /* §12.28: en las ligas que no paran (sin calendario.fiba, o las que no soltaban) ELEGÍS — nadie te retiene */
+  const calL=LIGAS[ligaId]&&LIGAS[ligaId].calendario;
+  e.relSel=relSelDe(J); e.selLibera=true; e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
   e.seleccion=el;
   decidirVentanasQueLlegan(e,e.fechaJugada||0);   // §2z73: la primera también se decide cuando llega
 }
 
+/* §12.28: la decisión de la carta de la ventana — ir o quedarse */
+function eleccionVentanaSel(d){
+  const e=est(); if(!e||!e.seleccion) return;
+  const el=e.seleccion, v=el.ventanas.find(x=>x.n===d.n); if(!v||v.eleccion!=='pendiente') return;
+  v.eleccion=d.ir?'fui':'club'; v.conv=!!d.ir; el.convocado=!!d.ir; v.motivo=d.ir?null:'club';
+  if(d.ir&&e.relSel&&e.relSel.dt<30) e.relSel.dt=30;
+  guardar();
+}
 /** El renglón de la semana cuando la ventana se jugó sin vos (su línea 4). */
 function avisoSeleccion(e){
   /* §12.21 (su regla: "que te avise TE CONVOCARON sólo si no venías con la selección, o si te caés; el habitual no
@@ -19228,7 +19274,9 @@ function selPorqueTxt(prox,e){
     /* el puesto recién habla cuando hay partidos: la tabla vacía sale alfabética y MIENTE
        (la misma regla del puesto del club en el HUD) */
     const el=e.seleccion, fs=tablaSel(el), f=fs.findIndex(x=>x.id===el.pais)+1;
+    const v=prox.ventana, dia=v&&v.dias?v.dias[prox.jornada-(v.n*2-1)]:null;   // §12.28: el día de la jornada
     return t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+prox.total
+      +(dia?' · '+diaTxt(dia):'')
       +(f>0&&fs[f-1].pj>0?' · '+f+'° '+t(L('EN LA TABLA','IN THE TABLE','NA TABELA')):'');   // §12.25 (su caza: "ARGENTINA 3° está out of context")
   }
   if(prox.etapa==='grupo'||prox.etapa==='segunda') return t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+prox.total;
@@ -19650,7 +19698,7 @@ function filasFixtureSeleccion(){
        k de la ventana f cae el día de la fecha f+k del club, que es la que tu club juega sin vos
        (fechasSalteadas): el mismo día que el fixture del club marca CON LA SELECCIÓN. */
     const etapa=f.etapa==='eliminatorias'
-      ? diaTxt(diaDeFecha(e.semilla,f.f+f.off,e.ritmo))   // §12.25: "V1" sonaba a versión; la ventana es cabecera en el pleno
+      ? diaTxt(f.dia||diaDeFecha(e.semilla,f.f+f.off,e.ritmo))   // §12.25: "V1" sonaba a versión · §12.28: el día de la ventana, si lo tiene
       : selTorneoTxt(f.torneo)+' · '+t(SEL_TXT[f.etapa]||L(f.etapa));
     /* ⚠️ la fila DICE si jugaste vos: la selección juega aunque a vos no te llamen, y sin esta
        marca el calendario del país se leería como si fuera tuyo */

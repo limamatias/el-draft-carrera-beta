@@ -21263,7 +21263,7 @@ function pintaEntrenar(){
        izquierda y el cupo, chico, a la derecha. */
     const cupo=$l('lobCupo'); cupo.classList.remove('cajon');
     cupo.innerHTML='<div class="escVolver"><button class="volverDrill" data-volver="1">'+t(L('◀ VOLVER','◀ BACK','◀ VOLTAR'))+'</button>'
-      +'<span class="cupoChico">'+cupoTxt+(libres>0&&e.fase==='regular'?' · −'+costo+' '+RAYO:'')+'</span></div>';
+      +'<span class="cupoChico">'+cupoTxt+(libres>0&&e.fase==='regular'?' −'+costo+' '+RAYO:'')+'</span></div>';
     cupo.querySelector('[data-volver]').onclick=()=>{ escaleraAbierta=null; pintaLobby(); };   // pintaLobby, no pintaEntrenar: la MEDIA cuenta recién ahora, con el encabezado a la vista
     pintaEscalera(escaleraAbierta); return; }
   $l('lobCupo').classList.add('cajon');
@@ -21286,7 +21286,7 @@ function pintaEntrenar(){
       /* ⚠️ FÍSICO llevaba PRONTO y ahora lleva IR como todos (su pedido: *"pongamos mismo
          botón de IR y que no lleve a ningún lado — el único usuario somos nosotros"*). El
          drill del rebote sigue sin existir; lo que se fue es el cartel que lo anunciaba. */
-      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+' · −'+costo+RAYO+'</button>'
+      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+' −'+costo+RAYO+'</button>'
       +'</div>';
   }
   /* §2z149/§2z155: el botón entero va DEBAJO de los skills (su corte: "al ser todo grande debería ir abajo") */

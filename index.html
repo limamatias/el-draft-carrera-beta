@@ -19082,8 +19082,14 @@ function htmlBracket(rondas,esperadas,mi,opts){
   return h;
 }
 const formatoTxt=(mejorDe)=>mejorDe>1?t(L('AL MEJOR DE ','BEST OF ','MELHOR DE '))+mejorDe:t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'));
-function htmlAmericas(e){
+/* §2z172 (su pregunta 2026-09-08: "¿no deberíamos mostrar el resto de grupos? ¿cómo, sin que le saque el foco al
+   tuyo?"): con las MISMAS pestañas que la tabla usa para las zonas de una liga — A · B · C · D, la tuya elegida por
+   defecto, las otras a un toque. El bracket queda arriba siempre; abajo, el grupo que elegiste. El contrato
+   (PASAN 2 A CUARTOS) vale para todos; la condición de §2z163 sólo en el tuyo. */
+let grupoAmSel=null;
+function htmlAmericas(e,g){
   const am=e.americas; if(!am) return '';
+  g=g||am.miGrupo;
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='';
   /* §2z171: lo más nuevo arriba — la llave dibujada, después el grupo */
@@ -19091,9 +19097,9 @@ function htmlAmericas(e){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+='<div class="cajTag">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId);
   }
-  h+='<div class="cajTag'+(am.llave?' bkSig':'')+'">'+t(AM_TXT.grupo)+' '+am.miGrupo+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
-  tablaGrupoAM(am,am.miGrupo).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
-  { const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
+  h+='<div class="cajTag'+(am.llave?' bkSig':'')+'">'+t(AM_TXT.grupo)+' '+g+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+  tablaGrupoAM(am,g).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
+  if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   return h;
 }
 
@@ -20018,7 +20024,12 @@ function pintaTablaFull(){
   pintaSwitchSel('lobTablaSwitch');   // §12
   $l('lobTablaTit').textContent=(ladoSel==='sel'?t(SEL_TXT.seleccion):ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
   if(ladoSel==='sel'){ tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
-  if(ladoSel==='am'){ tabs.classList.add('oculto'); full.innerHTML=htmlAmericas(e); return; }   // §2z35: la del torneo, sola
+  if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto
+    const am=e.americas, g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
+    tabs.classList.remove('oculto'); tabs.classList.add('muchas');
+    tabs.innerHTML=AMERICAS_GRUPOS.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-grupo="'+x+'" tabindex="0">'+t(AM_TXT.grupo)+' '+x+'</div>').join('');
+    tabs.querySelectorAll('[data-grupo]').forEach(b=>b.addEventListener('click',()=>{ grupoAmSel=b.dataset.grupo; pintaTablaFull(); }));
+    full.innerHTML=htmlAmericas(e,g); return; }
   const k=cortesTabla(e);   // §2z44
   /* §2z171: en playoffs, la llave dibujada arriba de la tabla (sólo si es un árbol limpio: cada ronda la mitad de la
      anterior; el federal, con dos llaves y final, y el play-out siguen sin dibujo) */

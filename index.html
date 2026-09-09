@@ -4192,7 +4192,7 @@ function alDiaTrasSeleccion(estado) {
   if (!el || estado.fase !== 'regular') return;
   let hasta = 0;
   for (let k = 0; k < el.idx && k < el.ventanas.length; k++) {
-    if (el.ventanas[k].conv) hasta = Math.max(hasta, el.ventanas[k].receso ? el.ventanas[k].f : el.ventanas[k].f + 2);   // §12.28: en el receso el club no jugó
+    if (el.ventanas[k].conv && el.ventanas[k].receso !== 'verano') hasta = Math.max(hasta, el.ventanas[k].receso ? el.ventanas[k].f : el.ventanas[k].f + 2);   // §12.28: en el receso el club no jugó
   }
   if (!hasta) return;
   const am = estado.americas && estado.americas.ventanas[estado.americas.idx];
@@ -9792,11 +9792,16 @@ function torneoDelReceso(anio, pais) {
   if (y === 3) return 'mundial';
   /* ⚠️ el continental DEPENDE DE TU PAÍS: la AmeriCup y el Eurobasket son el mismo casillero del
      ciclo, y cuál te toca lo dice tu continente. Sin el país, América (el default de todo §12). */
-  if (y === 2) return (pais && SELECCIONES[pais] && SELECCIONES[pais].cont === 'eu') ? 'eurobasket' : 'continental';
+  /* §12.2 v2 (2026-09-08, su corte "año por año"): r=(anio+1)%4 → 2: eliminatorias parte A (dos ventanas en la
+     temporada, dos en el receso) · 3: parte B (la quinta cierra) + MUNDIAL en el receso · 0: JUEGOS/PREOLÍMPICO ·
+     1: CONTINENTAL. La AmeriCup era el año 2 y estaba un año corrida respecto de la realidad (2025 · 2029). */
+  if (y === 1) return (pais && SELECCIONES[pais] && SELECCIONES[pais].cont === 'eu') ? 'eurobasket' : 'continental';
   return null;
 }
-/** ¿Esta temporada trae las 5 ventanas de eliminatorias al Mundial? */
-function hayEliminatorias(anio) { return (anio + 1) % 4 === 2; }
+/** 'A' (nacen: dos ventanas en temporada y dos en el receso) · 'B' (la quinta cierra) · null */
+function parteElim(anio) { const y = (anio + 1) % 4; return y === 2 ? 'A' : y === 3 ? 'B' : null; }
+/** ¿Esta temporada trae eliminatorias al Mundial (parte A o B)? */
+function hayEliminatorias(anio) { return !!parteElim(anio); }
 
 /* ── LA CONVOCATORIA (§12.1, hueco 1) ──────────────────────────────────────────────────────
    Tu MEDIA contra la barra del torneo más la barra de tu país. La barra de la VENTANA es la
@@ -9902,11 +9907,41 @@ const SEL_ELIM_CLASIFICAN = 4;
  *  falta cinco (medido con el chequeador, 2026-09-03). Que una semana traiga un continental y
  *  dos eliminatorias es duro y es real — su corte de §2z27: "lo de muchos partidos en la semana
  *  es relativo, en la NBA son más" — y el continental de esa semana lo juega el club sin vos. */
-function ventanasSeleccion(F, ocupadas, semilla, ritmo) {
+const VENTANAS_VERANO = [[[6, 29], [7, 2]], [[8, 24], [8, 27]]];   // §12.2 v2: las dos del receso, con fecha real
+function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
   const tomadas = new Set(ocupadas || []);
   const libres = [];
   for (let f = 2; f <= F - 3; f++) if (!tomadas.has(f)) libres.push(f);
   const out = [];
+  /* §12.2 v2: parte A = dos en temporada (las semanas FIBA si la liga para; si no, al 25 y al 65 %) + dos del receso
+     (f=F: se ofrecen con la temporada terminada); parte B = una sola, la quinta, en noviembre */
+  if (parte === 'A' || parte === 'B') {
+    const cal = (semilla && ritmo && typeof calendarioDe === 'function') ? calendarioDe(ritmo) : null;
+    const cuantas = parte === 'A' ? 2 : 1, ideales = parte === 'A' ? [0.25, 0.65] : [0.25];
+    if (cal && cal.fiba) {
+      for (const [md0] of VENTANAS_FIBA_EN_TEMPORADA.slice(0, cuantas)) {
+        const d0 = diaDeTemporada(cal, md0);
+        let f0 = null;
+        for (const f of libres) { if (diaDeFecha(semilla, f, ritmo) < d0) f0 = f; else break; }
+        if (f0 === null || out.some((v) => Math.abs(v.f - f0) < 3)) continue;
+        out.push({ f: f0, dias: [d0 + 2, d0 + 5], receso: true });
+      }
+    }
+    for (let i = 0; i < ideales.length && out.length < cuantas; i++) {
+      const ideal = ideales[i] * F;
+      let mejor = null, dist = Infinity;
+      for (const f of libres) { if (out.some((v) => Math.abs(v.f - f) < 3)) continue; const d = Math.abs(f - ideal); if (d < dist) { dist = d; mejor = f; } }
+      if (mejor === null) continue;
+      const d1 = semilla && ritmo ? diaDeFecha(semilla, mejor + 1, ritmo) : null;
+      out.push({ f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false });
+    }
+    out.sort((a, b) => a.f - b.f);
+    if (parte === 'A') {
+      out.forEach((v, i) => { v.n = i + 1; });
+      for (const [md0, md1] of VENTANAS_VERANO) out.push({ n: out.length + 1, f: F, receso: 'verano', dias: cal ? [diaDeTemporada(cal, md0), diaDeTemporada(cal, md1)] : null });
+    } else out.forEach((v) => { v.n = 5; });
+    return out;
+  }
   /* §12.28 paso 1 (a): en las ligas que paran por FIBA, las ventanas de temporada van ADENTRO de la semana reservada
      (VENTANAS_FIBA_EN_TEMPORADA, 01h): f = la última fecha antes del receso; las jornadas, el día 3 y el 6 del receso */
   const cal = (semilla && ritmo && typeof calendarioDe === 'function') ? calendarioDe(ritmo) : null;
@@ -9962,10 +9997,10 @@ function grupoEliminatorias(semilla, pais) {
 }
 
 /** Nace la eliminatoria de esta temporada (o null si tu país no tiene continental armado). */
-function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal) {
+function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal, parte) {
   const grupo = grupoEliminatorias(semilla, pais);
   if (!grupo) return null;
-  const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo);   // §12.28: con el calendario de la liga, si lo hay
+  const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo, parte);   // §12.28: con el calendario de la liga, si lo hay
   if (!ventanas.length) return null;
   /* el calendario: ida y vuelta entre los seis = 30 partidos, 3 por jornada, 10 jornadas.
      Con 5 ventanas de 2 jornadas cada una entran las 10. Round robin por el método del círculo. */
@@ -9983,15 +10018,30 @@ function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal) {
   return { tipo: 'eliminatorias', pais, grupo, ventanas, juegos, idx: 0, jornada: 0, clasificados: null };
 }
 
+/** §12.2 v2: la parte B sobre el MISMO grupo que viajó de la parte A — sólo la quinta ventana, jornadas 9 y 10. */
+function continuarEliminatorias(previo, F, ocupadas, ritmo, semillaCal) {
+  const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo, 'B');
+  if (!ventanas.length) return null;
+  previo.ventanas = ventanas; previo.idx = 0; previo.convocado = false; previo.motivo = null; previo.fin = false;
+  previo.avisoVentana = null; previo.parteListo = null;
+  return previo;
+}
+/** §12.2 v2: las jornadas ya jugadas cuando la carrera entra a una parte B sin parte A (la beta, un save viejo). */
+function presimularEliminatorias(e, hasta) {
+  const el = e.seleccion; if (!el) return;
+  for (let j = 1; j <= (hasta || 8); j++) if (el.juegos.some((g) => g.j === j && !g.jugado)) jugarJornadaSel(e, j, null);
+}
 /** Las dos jornadas de la ventana `n` (n=1 → jornadas 1 y 2). */
 const jornadasDeVentana = (n) => [n * 2 - 1, n * 2];
 
 /** Tu próximo partido de eliminatorias, con la forma que la pantalla espera, o null. */
 function proximoSeleccion(e) {
   const el = e.seleccion;
-  if (!el || el.fin || e.fase !== 'regular') return null;
+  if (!el || el.fin) return null;
   const v = el.ventanas[el.idx];
-  if (!v || v.f > e.fechaJugada) return null;
+  /* §12.2 v2: las ventanas del receso se ofrecen con la temporada TERMINADA; las de temporada, en la regular */
+  if (!v || (v.receso === 'verano' ? e.fase !== 'terminada' : e.fase !== 'regular')) return null;
+  if (v.f > e.fechaJugada) return null;
   const js = jornadasDeVentana(v.n);
   const j = js.find((x) => el.juegos.some((g) => g.j === x && !g.jugado));
   if (!j) return null;
@@ -10050,6 +10100,7 @@ function avanzarSeleccion(e, hastaF, miJuego) {
   if (!el || el.fin) return;
   decidirVentanasQueLlegan(e, hastaF);
   while (el.idx < el.ventanas.length && el.ventanas[el.idx].f <= hastaF && !el.fin) {
+    if (el.ventanas[el.idx].receso === 'verano' && e.fase !== 'terminada') break;   // §12.2 v2: las del receso esperan al receso
     for (const j of jornadasDeVentana(el.ventanas[el.idx].n)) { jugarJornadaSel(e, j, miJuego); miJuego = null; }
     el.idx++;
   }
@@ -19211,8 +19262,8 @@ const selTorneoTxt=(k)=>t(SEL_TXT[k]||L(k));
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
    Mundial es el del año `anio+2` — y el año es justamente lo que la vuelve una historia con
    destino en vez de un trámite que se repite. */
-/* en la beta el año no sale del ciclo (no hay ciclo): es el Mundial que viene */
-const anioMundial=()=>esBeta()?C.anio+1:C.anio+2;
+/* §12.2 v2: en la parte A el Mundial es el de anio+2 (cierra la temporada que viene); en la parte B y en la beta, anio+1 */
+const anioMundial=()=>(!esBeta()&&parteElim(C.anio)==='A')?C.anio+2:C.anio+1;
 const elimTxt=()=>t(SEL_TXT.eliminatorias)+' '+t(L('AL MUNDIAL','TO THE WORLD CUP','AO MUNDIAL'))+' '+anioMundial();
 /* la BANDERA en la caja del escudo: una selección no se dibuja con un escudo de club */
 const selEscudo=(id,px)=>'<span class="escudoR svg selBan">'+banderaDe(id,px||46)+'</span>';
@@ -19242,18 +19293,25 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
      selección, la carrera todavía no es una beta (Dbeta se pone después, en `armarBeta`), así
      que preguntarle a `esBeta()` acá daba siempre false y la beta se quedaba sin selección. */
   const beta=esBetaAhora===undefined?esBeta():!!esBetaAhora;
-  if(!beta&&!hayEliminatorias(anio)) return;
-  const pais=J.nacionalidad||'ar';
-  const el=crearEliminatorias(semilla+'-sel'+anio,pais,e.fechasTotales,
-    e.americas?e.americas.ventanas.map(v=>v.f):[], ligaId, e.semilla);   // §12.28: las ventanas con el calendario de la liga
+  /* §12.2 v2: la beta cae en la parte B (su corte: "que la beta caiga en año que SE JUEGA TORNEO: las últimas fechas
+     de eliminatorias y el torneo al final"); la carrera, en lo que diga el ciclo */
+  const parte=beta?'B':parteElim(anio);
+  if(!parte) return;
+  const pais=J.nacionalidad||'ar', ocup=e.americas?e.americas.ventanas.map(v=>v.f):[];
+  let el=null;
+  const previo=!beta&&parte==='B'&&selCarrera&&selCarrera.elimPendiente;
+  if(previo&&previo.pais===pais&&previo.juegos&&!previo.fin){ el=continuarEliminatorias(previo,e.fechasTotales,ocup,ligaId,e.semilla); }
+  else el=crearEliminatorias(semilla+'-sel'+anio,pais,e.fechasTotales,ocup,ligaId,e.semilla,parte);   // §12.28: las ventanas con el calendario de la liga
+  if(selCarrera&&selCarrera.elimPendiente) delete selCarrera.elimPendiente;
   if(!el) return;
-  if(beta){ el.beta=true; el.convocado=true; el.motivo=null; e.seleccion=el; el.ventanas.forEach(v=>{ v.conv=true; v.motivo=null; }); return; }
+  e.seleccion=el;
+  if(parte==='B'&&!previo) presimularEliminatorias(e,8);   // sin parte A (la beta, un save viejo): las ocho jornadas ya jugadas
+  if(beta){ el.beta=true; el.convocado=true; el.motivo=null; el.ventanas.forEach(v=>{ v.conv=true; v.motivo=null; }); return; }
   /* §12.21: la convocatoria es POR VENTANA y la decide el motor cuando cada ventana llega. La temporada
      lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
   /* §12.28: en las ligas que no paran (sin calendario.fiba, o las que no soltaban) ELEGÍS — nadie te retiene */
   const calL=LIGAS[ligaId]&&LIGAS[ligaId].calendario;
   e.relSel=relSelDe(J); e.selLibera=true; e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
-  e.seleccion=el;
   decidirVentanasQueLlegan(e,e.fechaJugada||0);   // §2z73: la primera también se decide cuando llega
 }
 
@@ -19351,6 +19409,11 @@ function htmlSeleccion(e){
     h+=tit(elimTxt());
     /* de las eliminatorias pasan CUATRO al Mundial */
     tablaSel(el).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,SEL_ELIM_CLASIFICAN,el.pais); });
+    /* §12.2 v2 (su corte: "si un torneo no se juega en la misma temporada, aclararlo"): el estado del ciclo */
+    const parte=esBeta()?'B':parteElim(C.anio), aM=anioMundial();
+    if(!el.fin) h+='<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
+      ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE · EL MUNDIAL '+aM+', EN EL RECESO SIGUIENTE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON · WORLD CUP '+aM+' THE OFFSEASON AFTER','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA · O MUNDIAL '+aM+', NO RECESSO SEGUINTE'))
+      : t(L('CIERRAN EN NOVIEMBRE · EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','CLOSE IN NOVEMBER · WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','FECHAM EM NOVEMBRO · O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';
   }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
@@ -19392,7 +19455,8 @@ function memSel(){ if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]}; ret
 
 /** ¿Qué torneo te toca ahora en el receso? Lo crea la primera vez y lo devuelve después. */
 function torneoRecesoDe(){
-  const e=est(); if(!e||e.fase!=='terminada'||esBeta()) return null;   // §7.1: no viaja a la beta
+  const e=est(); if(!e||e.fase!=='terminada') return null;   // §12.2 v2: la beta cae en la parte B y juega el Mundial al final
+  if(proximoSelVerano()) return null;   // §12.2 v2: las ventanas del receso van antes que el torneo
   if(C.selTorneo) return C.selTorneo;
   if(C.selTorneoHecho===C.anio) return null;         // este receso ya se resolvió
   const mem=memSel(), pais=C.jugador.nacionalidad||'ar';
@@ -19423,6 +19487,25 @@ function torneoRecesoDe(){
 }
 
 /** Tu próximo partido del torneo del receso (con la forma que la pantalla espera). */
+/* §12.2 v2: las ventanas del receso (parte A): se ofrecen con la temporada terminada, antes del torneo y del mercado;
+   si no te convocan, se simulan solas */
+function proximoSelVerano(){
+  const e=est(); const el=e&&e.seleccion; if(!e||e.fase!=='terminada'||!el||el.fin) return null;
+  for(let k=0;k<8;k++){
+    const v=el.ventanas[el.idx]; if(!v||v.receso!=='verano') return null;
+    decidirVentanasQueLlegan(e,e.fechasTotales);
+    if(el.convocado){ const p=proximoSeleccion(e); if(p) return p; }
+    avanzarSeleccion(e,e.fechasTotales);   // sin vos (o ya cerrada): se juega y sigue
+    if(el.fin){ cerrarEliminatoriasCarrera(e); return null; }
+  }
+  return null;
+}
+/* §12.2 v2: el cierre del grupo anota el pase al Mundial del receso siguiente a la parte B */
+function cerrarEliminatoriasCarrera(e){
+  const el=e.seleccion; if(!el||!el.fin) return;
+  memSel(); C.seleccion.yaEstuvo=C.seleccion.yaEstuvo||el.ventanas.some(v=>v.conv);
+  C.seleccion.mundial={anio:anioMundial(),pase:!!el.pase,pais:el.pais};
+}
 function proximoSelTorneo(){
   const t=torneoRecesoDe(); if(!t) return null;
   const p=proximoTorneoSel(t);
@@ -19483,7 +19566,7 @@ function armarParteVentana(e,n){
   }).filter(Boolean);
   const mias=e.misPartidos.filter(p=>p.sel&&jornadasDeVentana(n).indexOf(p.n)>=0);
   const vN=el.ventanas[n-1]||{};   // §12.21: la ventana que se cerró, no la que viene
-  C.selParte={n,total:el.ventanas.length,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,
+  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una
     juegos:js,mias:mias.map(p=>({pts:p.pts,ast:p.ast,min:p.minutos,rating:p.rating})),
     tabla:tablaSel(el).map(f=>({id:f.id,pg:f.pg,pp:f.pp})),fin:!!el.fin,pase:!!el.pase};
 }
@@ -20450,7 +20533,7 @@ function pintaLobby(){
   pintaSecciones();
   /* §12: con la temporada cerrada, el próximo puede ser un partido del TORNEO DEL RECESO —
      si no, el panel de HOY quedaba vacío y el botón ofrecía un partido que no se veía */
-  const prox=miProximo(e)||(e.fase==='terminada'?proximoSelTorneo():null);
+  const prox=miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()):null);   // §12.2 v2: primero las ventanas del receso
   const calientes=e.fase==='regular'?elegirCalientes(e):[];
   const calPorFecha={}; for(const c of calientes) calPorFecha[c.fecha]=c;
   const mt=miTabla(e);
@@ -21600,7 +21683,7 @@ function registrarResultado(){
     C.seleccion.yaEstuvo=true;   // el que entró al grupo, se queda mientras el nivel le dé
     /* §12: el resultado de las eliminatorias VIAJA al receso siguiente — el Mundial es el del
        año anio+2, y si tu país no pasó, no lo juega (las diez eliminatorias tienen que servir) */
-    if(e.seleccion.fin) C.seleccion.mundial={anio:C.anio+2,pase:!!e.seleccion.pase,pais:e.seleccion.pais};
+    if(e.seleccion.fin) C.seleccion.mundial={anio:anioMundial(),pase:!!e.seleccion.pase,pais:e.seleccion.pais};   // §12.2 v2: el Mundial del receso que sigue
     if(e.seleccion.fin) amAviso=e.seleccion.pase
       ? {rot:t(SEL_TXT.eliminatorias),txt:t(L('¡CLASIFICAMOS AL MUNDIAL!','WE QUALIFIED FOR THE WORLD CUP!','CLASSIFICAMOS AO MUNDIAL!')),tono:'oro'}
       : {rot:t(SEL_TXT.eliminatorias),txt:t(L('AFUERA DEL MUNDIAL','OUT OF THE WORLD CUP','FORA DO MUNDIAL')),tono:'mal'};   // §2z169
@@ -21700,6 +21783,10 @@ function otraTemporada(destino){
   const clubBaja=!destino&&ligaDelClub&&LIGAS_ESCALERA.indexOf(ligaDelClub)>=0
     &&LIGAS_ESCALERA.indexOf(ligaAnterior)>LIGAS_ESCALERA.indexOf(ligaDelClub);
   const liga=ligaDe();
+  /* §12.2 v2: las eliminatorias de la parte A viajan a la temporada siguiente (parte B). Lo que quedó sin jugar del
+     receso se juega ahora, sin vos. */
+  { const eV=est(), selV=eV&&eV.seleccion;
+    if(selV&&!selV.fin&&parteElim(C.anio)==='A'){ avanzarSeleccion(eV,eV.fechasTotales); if(selV.fin) cerrarEliminatoriasCarrera(eV); else { memSel(); C.seleccion.elimPendiente=selV; } } }
   C.anio++;
   C.temporada=crearTemporada(C.semilla+'-t'+C.anio,clubesDeCarrera(C.ligaId),{
     miClubId:miClub,skills:C.jugador.skills,fechas:liga.fechas,
@@ -23101,6 +23188,9 @@ function armarBeta(c){
   if(cl) c.contrato=ofertaDe(J,c.ligaId,cl,null);   // el sueldo de un ★3, no de un ★1
   /* §7.1 + §12: la selección de la beta, forzada (su corte 2026-09-04). Va acá y no en
      `nuevaCarrera` porque recién ahora la carrera ES una beta. */
+  /* §12.2 v2: la beta cae en la parte B del ciclo (la ventana de noviembre cierra, el Mundial al final): el primer
+     año ≥ ANIO_INICIO con parteElim === 'B' */
+  while(parteElim(c.anio)!=='B') c.anio++;
   instalarSeleccion(c.temporada,J,c.ligaId,c.anio,c.semilla,null,true);
 }
 /* EL RESUMEN DE TEMPORADA (su corte: "es una pieza del juego, no de la beta"): al tocar el

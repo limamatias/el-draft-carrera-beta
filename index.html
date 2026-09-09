@@ -3032,7 +3032,10 @@ const LIGAS = {
     nombre: 'NBA', allstar: true, clubes: CLUBES_NBA, fechas: 82, zonas: ['este', 'oeste'], formato: 'nba',   // 2026-09-09: el fixture real por divisiones (4 · 4/3 · 2 = 82), con cruces de conferencia
     esc: 34, palancas: {}, ptsRef: 114, reloj: 720, ritmo: 'nba',
     // primera ronda/semis/finales de conferencia POR ZONA, la final es el único cruce
-    playoffs: { clasifican: 8, directos: 0, rondas: [
+    /* 2026-09-10 (su corte): el PLAY-IN real — 7 vs 8 y 9 vs 10 por conferencia a partido único; el ganador del primero es 7°,
+       el perdedor contra el ganador del segundo por el 8°; seis entran directo */
+    playoffs: { clasifican: 10, directos: 6, rondas: [
+      { nombre: 'playin', mejorDe: 1, porZona: true, vecinos: true }, { nombre: 'playin2', mejorDe: 1, porZona: true },
       { nombre: 'octavos', mejorDe: 7, porZona: true }, { nombre: 'cuartos', mejorDe: 7, porZona: true },
       { nombre: 'semifinal', mejorDe: 7, porZona: true }, { nombre: 'final', mejorDe: 7 },
     ] },
@@ -3361,22 +3364,42 @@ function armarFixtureNBA(rng, clubes) {
     pend[k] = []; for (let i = 0; i < n; i++) { pend[k].push(local === a ? { local: a, visita: b } : { local: b, visita: a }); local = local === a ? b : a; }
     resta[a] += n; resta[b] += n;
   }
-  const fixture = [];
+  const fixture = [], ids = clubes.map((c) => c.id), mitad = ids.length / 2;
   let quedan = Object.values(resta).reduce((x, y) => x + y, 0) / 2;
-  while (quedan > 0 && fixture.length < 120) {
-    const libres = new Set(clubes.map((c) => c.id)), partidos = [];
-    const orden = clubes.map((c) => c.id).sort((a, b) => resta[b] - resta[a] || rng.int(0, 1) * 2 - 1);
+  /* cada fecha: el apareo más LLENO entre varios intentos al azar (los que más deben primero) — con uno solo la cola
+     quedaba rala (84–85 fechas y la última con un partido; su caza 2026-09-10) */
+  const intento = () => {
+    const libres = new Set(ids), pares = [];
+    const orden = ids.slice().sort((a, b) => resta[b] - resta[a] || rng.int(0, 1) * 2 - 1);
     for (const t of orden) {
       if (!libres.has(t) || !resta[t]) continue;
       let mejor = null, val = -1;
       for (const o of libres) { if (o === t) continue; const k = key(t, o), p = pend[k]; if (!p || !p.length) continue;
-        const v = resta[o] * 10 + p.length + rng.int(0, 3); if (v > val) { val = v; mejor = o; } }
+        const v = resta[o] * 10 + p.length * 2 + rng.int(0, 5); if (v > val) { val = v; mejor = o; } }
       if (!mejor) continue;
-      const g = pend[key(t, mejor)].shift(); partidos.push(g); libres.delete(t); libres.delete(mejor); resta[t]--; resta[mejor]--; quedan--;
+      pares.push([t, mejor]); libres.delete(t); libres.delete(mejor);
     }
+    return pares;
+  };
+  while (quedan > 0 && fixture.length < 120) {
+    let pares = intento();
+    for (let k = 0; k < 24 && pares.length < mitad; k++) { const p2 = intento(); if (p2.length > pares.length) pares = p2; }
+    const partidos = [], libres = new Set(ids);
+    for (const [t, o] of pares) { const g = pend[key(t, o)].shift(); partidos.push(g); libres.delete(t); libres.delete(o); resta[t]--; resta[o]--; quedan--; }
     fixture.push({ nro: fixture.length + 1, partidos, libres: [...libres] });
   }
-  return fixture;
+  /* la cola: lo que quedó en fechas ralas se adelanta a una fecha donde los dos estaban libres */
+  for (let f = fixture.length - 1; f >= 0; f--) {
+    if (fixture[f].partidos.length >= mitad) continue;
+    for (const g of fixture[f].partidos.slice()) {
+      const dest = fixture.slice(0, f).find((x) => x.partidos.length < mitad && x.libres.includes(g.local) && x.libres.includes(g.visita));
+      if (!dest) continue;
+      dest.partidos.push(g); dest.libres = dest.libres.filter((id) => id !== g.local && id !== g.visita);
+      fixture[f].partidos.splice(fixture[f].partidos.indexOf(g), 1); fixture[f].libres.push(g.local, g.visita);
+    }
+  }
+  const fx = fixture.filter((x) => x.partidos.length); fx.forEach((x, i) => { x.nro = i + 1; });
+  return fx;
 }
 
 /* El fixture de UNA liga entera, con o sin zonas — lo usan la temporada real y la
@@ -3994,7 +4017,8 @@ function armarRonda(estado, listas, cruce) {
   } else {
     for (const ids of listas) {
       const o = ordenar(ids);
-      for (let i = 0; i < o.length / 2; i++) pares.push([o[i], o[o.length - 1 - i]]);
+      if (ronda.vecinos) { for (let i = 0; i + 1 < o.length; i += 2) pares.push([o[i], o[i + 1]]); }   // el play-in: 7 vs 8, 9 vs 10
+      else for (let i = 0; i < o.length / 2; i++) pares.push([o[i], o[o.length - 1 - i]]);
     }
   }
   po.series = pares.map(([x, y]) => ({
@@ -4076,7 +4100,24 @@ function cerrarRondaSiTermino(estado) {
   if (!po.series.every((s) => s.ganador)) return;
   if (po.def.formato === 'federal') return cerrarRondaFederal(estado);
   let vivos = po.series.filter((s) => !s.playout).map((s) => s.ganador);   // el play-out no clasifica a nadie
-  if (po.ronda === 0 && po.def.directos > 0) {
+  const rondaAct = po.def.rondas[po.ronda];
+  /* 2026-09-10 EL PLAY-IN (la NBA): tras 7v8 y 9v10, el ganador del primero espera como 7° y el perdedor juega contra el
+     ganador del segundo por el 8°; después de eso entran los seis directos de cada conferencia */
+  if (rondaAct && rondaAct.nombre === 'playin') {
+    po.esperan = []; const listas = [];
+    for (const z of estado.zonas) {
+      const sz = po.series.filter((s) => estado.zonaDe[s.alta] === z);
+      const A = sz.slice().sort((a, b) => po.siembra[a.alta] - po.siembra[b.alta])[0], Bq = sz.find((s) => s !== A);
+      po.esperan.push(A.ganador); po.siembra[A.ganador] = 7;
+      const perdA = A.ganador === A.alta ? A.baja : A.alta;
+      listas.push([perdA, Bq.ganador]);
+    }
+    po.ronda++; armarRonda(estado, listas); return;
+  }
+  if (rondaAct && rondaAct.nombre === 'playin2') {
+    for (const id of vivos) po.siembra[id] = 8;
+    vivos = [...Object.keys(po.siembra).filter((id) => po.siembra[id] <= po.def.directos), ...(po.esperan || []), ...vivos];
+  } else if (po.ronda === 0 && po.def.directos > 0) {
     // Los directos entran en la segunda ronda (por zona si las hay: los top-4 de cada una).
     vivos = [...Object.keys(po.siembra).filter((id) => po.siembra[id] <= po.def.directos), ...vivos];
   }
@@ -19313,7 +19354,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
   const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
-    const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
+    const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
     h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<92&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
       if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
@@ -20076,6 +20117,7 @@ function recordDe(id){
 const fPrefijo=()=>idioma()==='es'?'F':'R';
 const RONDA_TXT={  // los nombres que ya viajaron por El Draft (season.ts)
   reclasificacion:L('RECLASIFICACIÓN','PLAY-IN','REPESCAGEM'),
+  playin:L('PLAY-IN','PLAY-IN','PLAY-IN'), playin2:L('PLAY-IN · POR EL 8°','PLAY-IN · FOR 8TH','PLAY-IN · PELO 8º'),
   conferencia:L('PLAYOFF DE CONFERENCIA','CONFERENCE PLAYOFF','PLAYOFF DE CONFERÊNCIA'),  // §2z5: el nombre de la CAB
   octavos:L('OCTAVOS','ROUND OF 16','OITAVAS'),
   cuartos:L('CUARTOS','QUARTERFINALS','QUARTAS'),
@@ -20399,13 +20441,14 @@ function pintaTablaFull(){
     const def=e.playoffsDef, todas=(def&&def.rondas?def.rondas.map(r=>r.nombre):[]);
     /* §2z175 (su caza: "¿la reclasificación debería contar como llave pegada a la otra? se ve raro ese cuadro"): la
        fase previa va en su propio cuadro, en grilla y sin líneas; el árbol arranca en la ronda siguiente */
-    const previa=todas[0]==='reclasificacion'||todas[0]==='conferencia'?todas[0]:null;
-    const esperadas=previa?todas.slice(1):todas;
-    const serieDe=(nombre)=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)});
+    const previa=todas[0]==='reclasificacion'||todas[0]==='conferencia'||todas[0]==='playin'?todas[0]:null;
+    const esperadas=previa?todas.slice(previa==='playin'?2:1):todas;   // el play-in son dos rondas previas (7v8 · 9v10, y por el 8°)
+    const serieDe=(nombre)=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>(x.nombre===nombre||(nombre==='playin'&&x.nombre==='playin2'))&&!x.playout)});
     const rondas=esperadas.map(serieDe);
     if(def&&def.formato!=='federal'&&(rondas.some(r=>r.series.length)||previa)){
       const mbs=[...new Set(def.rondas.map(r=>r.mejorDe))], fin=def.rondas[def.rondas.length-1];
-      const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(def.rondas[0].mejorDe)+' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe);
+      const primera=def.rondas.find(r=>!['reclasificacion','playin','playin2','conferencia'].includes(r.nombre))||def.rondas[0];   // el formato del árbol, no el de la previa
+      const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(primera.mejorDe)+(primera.mejorDe!==fin.mejorDe?' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe):'');
       if(previa){ const bp=htmlBracket([serieDe(previa)],[previa],e.miClubId,{grilla:true});
         if(bp) bkLiga+='<div class="cajTag">'+t(RONDA_TXT[previa]||L(previa))+' · '+formatoTxt(def.rondas[0].mejorDe)+'</div>'+bp; }
       if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag'+(bkLiga?' bkSig':'')+'">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId);
@@ -20442,7 +20485,8 @@ function cortesTabla(e){
   const def=e.playoffsDef; if(!def||def.formato==='federal') return null;
   const copa=(!e.zonas&&AMERICAS_CUPOS[C.ligaId])||0;
   const dir=def.directos||0, cl=def.clasifican||0;
-  return {copa, dir, cl, playout:def.playout?2:0, salto:dir&&def.rondas&&def.rondas[1]?def.rondas[1].nombre:null};
+  const salto=dir&&def.rondas?(def.rondas.find(r=>r.nombre!=='reclasificacion'&&r.nombre!=='playin'&&r.nombre!=='playin2')||{}).nombre||null:null;   // la primera ronda después de la previa
+  return {copa, dir, cl, playout:def.playout?2:0, salto};
 }
 function claseCorte(k,pos,n){
   if(!k) return '';

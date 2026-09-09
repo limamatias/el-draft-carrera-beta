@@ -19053,6 +19053,16 @@ function filaGrupoAM(fila,pos,mio){
    los nombres de todas las rondas del torneo (las que faltan salen punteadas). */
 function htmlBracket(rondas,esperadas,mi,opts){
   opts=opts||{}; const unico=!!opts.unico;
+  /* §2z175: una FASE PREVIA sola (la reclasificación) se dibuja en grilla de dos columnas, sin líneas — no es una
+     columna del árbol, es la puerta al árbol */
+  if(opts.grilla&&esperadas.length===1){ const r=rondas.find(x=>x.nombre===esperadas[0]); const ss=(r&&r.series)||[]; if(!ss.length) return '';
+    const BW=100,BH=40,GX=18,GY=8, filas=Math.ceil(ss.length/2), W=Math.min(ss.length,2)*BW+(Math.min(ss.length,2)-1)*GX, H=filas*BH+(filas-1)*GY;
+    const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
+    let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
+    ss.forEach((s,i)=>{ const x=(i%2)*(BW+GX), top=Math.floor(i/2)*(BH+GY), mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
+      h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,s.ganAlta)+fila(s.baja,s.ganBaja)+'</div>'; });
+    return h+'</div></div>'; }
   const nCols=esperadas.length;
   /* §2z173: con cuatro columnas la caja se angosta para que entre en 375 (4·76 + 3·12 = 340); con cinco, scrollea */
   const BW=nCols>=4?76:100, GX=nCols>=4?12:18, BH=40, GY=8, TH=16;
@@ -20048,12 +20058,19 @@ function pintaTablaFull(){
   if(e.playoffs&&e.playoffs.seriesJugadas&&e.playoffs.seriesJugadas.length){
     /* §2z173: las rondas esperadas salen de la definición de la liga (reclasificación · octavos · cuartos · semifinal ·
        final, según la liga); la reclasificación con clasificados directos no es el doble de octavos y se une por cuerpo */
-    const def=e.playoffsDef, esperadas=(def&&def.rondas?def.rondas.map(r=>r.nombre):[]);
-    const rondas=esperadas.map(nombre=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)}));
-    if(def&&def.formato!=='federal'&&rondas.some(r=>r.series.length)){
+    const def=e.playoffsDef, todas=(def&&def.rondas?def.rondas.map(r=>r.nombre):[]);
+    /* §2z175 (su caza: "¿la reclasificación debería contar como llave pegada a la otra? se ve raro ese cuadro"): la
+       fase previa va en su propio cuadro, en grilla y sin líneas; el árbol arranca en la ronda siguiente */
+    const previa=todas[0]==='reclasificacion'||todas[0]==='conferencia'?todas[0]:null;
+    const esperadas=previa?todas.slice(1):todas;
+    const serieDe=(nombre)=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)});
+    const rondas=esperadas.map(serieDe);
+    if(def&&def.formato!=='federal'&&(rondas.some(r=>r.series.length)||previa)){
       const mbs=[...new Set(def.rondas.map(r=>r.mejorDe))], fin=def.rondas[def.rondas.length-1];
       const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(def.rondas[0].mejorDe)+' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe);
-      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId);
+      if(previa){ const bp=htmlBracket([serieDe(previa)],[previa],e.miClubId,{grilla:true});
+        if(bp) bkLiga+='<div class="cajTag">'+t(RONDA_TXT[previa]||L(previa))+' · '+formatoTxt(def.rondas[0].mejorDe)+'</div>'+bp; }
+      if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag'+(bkLiga?' bkSig':'')+'">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId);
     }
   }
   const PO='__po';

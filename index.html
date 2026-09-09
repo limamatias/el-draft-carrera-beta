@@ -10029,7 +10029,18 @@ function continuarEliminatorias(previo, F, ocupadas, ritmo, semillaCal) {
 /** §12.2 v2: las jornadas ya jugadas cuando la carrera entra a una parte B sin parte A (la beta, un save viejo). */
 function presimularEliminatorias(e, hasta) {
   const el = e.seleccion; if (!el) return;
-  for (let j = 1; j <= (hasta || 8); j++) if (el.juegos.some((g) => g.j === j && !g.jugado)) jugarJornadaSel(e, j, null);
+  hasta = hasta || 8;
+  /* su pregunta (2026-09-09): "¿la simulación te puede dejar en una temporada donde tu país ya está AFUERA del Mundial
+     cuando te toca jugar?" Podía. Se prueban semillas hasta que el país llega a la última ventana VIVO Y EN JUEGO —
+     tercero o cuarto—, así el partido decide; si ninguna lo deja ahí, la primera en la que sigue vivo (a dos
+     victorias del cuarto); si ninguna, la primera. Nada del resultado de la ventana se fuerza. */
+  const base = e.semilla, limpiar = () => { for (const g of el.juegos) if (g.j <= hasta) { g.jugado = false; g.ptsLocal = 0; g.ptsVisita = 0; } };
+  const correr = (k) => { limpiar(); e.semilla = base + (k ? '-pre' + k : ''); for (let j = 1; j <= hasta; j++) jugarJornadaSel(e, j, null); };
+  const estado = () => { const t = tablaSel(el), pos = t.findIndex((f) => f.id === el.pais), yo = t[pos], cuarto = t[SEL_ELIM_CLASIFICAN - 1];
+    return { enJuego: pos === 2 || pos === 3, vivo: pos < SEL_ELIM_CLASIFICAN || (cuarto.pg - yo.pg) <= 2 }; };
+  let vivoK = null;
+  for (let k = 0; k < 40; k++) { correr(k); const st = estado(); if (st.enJuego) { e.semilla = base; return; } if (vivoK === null && st.vivo) vivoK = k; }
+  correr(vivoK === null ? 0 : vivoK); e.semilla = base;
 }
 /** Las dos jornadas de la ventana `n` (n=1 → jornadas 1 y 2). */
 const jornadasDeVentana = (n) => [n * 2 - 1, n * 2];

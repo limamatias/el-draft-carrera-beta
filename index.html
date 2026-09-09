@@ -9347,6 +9347,27 @@ function tablaGrupoAM(am, g) {
   return tabla(res, am.grupos[g].map((id) => ({ id, nombre: id })));
 }
 
+/** §2z163: QUÉ NECESITÁS en tu último partido del grupo. Se decide con la MISMA tabla (desempates de 01e: ganados →
+ *  entre ellos → diferencia entre ellos → diferencia global → a favor → nombre), probando tu partido pendiente con cada
+ *  margen de −60 a +60. null si no es tu último partido o quedan otros sin jugar (ahí no hay cuenta honesta).
+ *  Devuelve {tipo:'seguro'|'afuera'|'margen', m}: con 'margen', pasás si tu diferencia en ese partido es ≥ m. */
+function condicionGrupoAM(am, mi, pasan) {
+  if (!am || am.fase !== 'grupo') return null;
+  const g = am.miGrupo, juegos = am.juegosGrupo.filter((j) => j.grupo === g);
+  const pend = juegos.filter((j) => !j.jugado);
+  if (pend.length !== 1 || (pend[0].local !== mi && pend[0].visita !== mi)) return null;
+  const j = pend[0], clubes = am.grupos[g].map((id) => ({ id, nombre: id }));
+  const pasaCon = (m) => {
+    const res = juegos.filter((x) => x.jugado).map((x) => ({ local: x.local, visita: x.visita, ptsLocal: x.ptsLocal, ptsVisita: x.ptsVisita }));
+    const mio = j.local === mi;
+    res.push({ local: j.local, visita: j.visita, ptsLocal: 100 + (mio ? m : -m), ptsVisita: 100 + (mio ? -m : m) });
+    return tabla(res, clubes).findIndex((f) => f.id === mi) < pasan;
+  };
+  if (pasaCon(-60)) return { tipo: 'seguro' };
+  for (let m = -59; m <= 60; m++) if (pasaCon(m)) return { tipo: 'margen', m };
+  return { tipo: 'afuera' };
+}
+
 function cerrarGruposAM(am, mi) {
   const pos = {};
   for (const g of AMERICAS_GRUPOS) pos[g] = tablaGrupoAM(am, g).map((f) => f.id);
@@ -18891,8 +18912,20 @@ function esClaveAmericas(e,p){
   const top=otros.reduce((a,b)=>((am.fuerzas[b]||0)>(am.fuerzas[a]||0)?b:a));
   return p.rival===top;
 }
+/* §2z163 (su pedido 2026-09-08 antes del último del grupo: "en ningún lugar me dicen que es el partido CLAVE donde se
+   determina si pasamos; tampoco «ganá por X» o «perdé hasta por X»"): la cuenta la hace la MISMA tabla con sus desempates
+   (condicionGrupoAM, 01p), y se escribe como regla del juego — es lo que cambia lo que creés que podés hacer. */
+function amCondicionTxt(){
+  const e=est(), c=e&&e.americas?condicionGrupoAM(e.americas,e.miClubId,AMERICAS_PASAN):null; if(!c) return '';
+  if(c.tipo==='seguro') return t(L('YA ESTÁS EN CUARTOS','YOU ARE THROUGH TO THE QUARTERFINALS','JÁ ESTÁ NAS QUARTAS'));
+  if(c.tipo==='afuera') return t(L('YA QUEDASTE AFUERA','YOU ARE ALREADY OUT','JÁ FICOU DE FORA'));
+  if(c.m<=0) return t(L('PASÁS PERDIENDO HASTA POR '+(-c.m),'THROUGH EVEN LOSING BY UP TO '+(-c.m),'PASSA PERDENDO POR ATÉ '+(-c.m)));
+  if(c.m===1) return t(L('PASÁS SI GANÁS','THROUGH IF YOU WIN','PASSA SE GANHAR'));
+  return t(L('PASÁS GANANDO POR '+c.m+' O MÁS','THROUGH IF YOU WIN BY '+c.m+' OR MORE','PASSA GANHANDO POR '+c.m+' OU MAIS'));
+}
 function amPorqueTxt(o){
-  if(o.etapa==='grupo') return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'');   // §2z82
+  if(o.etapa==='grupo'){ const cond=amCondicionTxt();
+    return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
@@ -18961,6 +18994,7 @@ function htmlAmericas(e){
   const tit=(x)=>'<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='<div class="cajTag">'+t(AM_TXT.grupo)+' '+am.miGrupo+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
   tablaGrupoAM(am,am.miGrupo).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
+  { const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   if(am.llave) for(const nombre of AMERICAS_RONDAS){
     const ss=am.llave.seriesJugadas.filter(x=>x.nombre===nombre); if(!ss.length) continue;
     h+=tit(t(AM_TXT[nombre]));

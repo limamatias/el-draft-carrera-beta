@@ -709,6 +709,14 @@
   #pasoJuegos .fila-item .desc .escudito{flex:none}
   /* ⚠️ la clase entera, no sólo la mía: el parte de la VENTANA (§12) ya pintaba <b class="g">/<b class="p">
      y nunca hubo regla — los marcadores de la selección salían en tinta como cualquier número. */
+  /* §2z181 el cuerpo y el bolsillo: la barra de energía con la marca de dónde estabas antes del partido */
+  .barraE{position:relative;height:10px;border-radius:5px;background:rgba(154,164,184,.22);overflow:hidden;margin:6px 0 10px}
+  .barraEIn{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--ok);transition:width .6s ease-out}
+  .barraEIn.baja{background:var(--naranja)} .barraEIn.mal{background:var(--mal)}
+  .barraEAntes{position:absolute;top:0;bottom:0;width:2px;background:var(--tinta)}
+  #cuerpoEnergia .fila-item small,#cuerpoPlata .fila-item small{color:var(--tinta2);font-size:11px;letter-spacing:1px;margin-left:6px}
+  #cuerpoEnergia .fila-item b.mas,#cuerpoPlata .fila-item b.mas{color:var(--ok)} #cuerpoEnergia .fila-item b.menos{color:var(--mal)}
+  #cuerpoTag2{margin-top:10px}
   #pasoJuegos .fila-item b.g,#parteJuegos b.g{color:var(--ok)}
   #pasoJuegos .fila-item b.p,#parteJuegos b.p{color:var(--mal)}
   /* §12 EL SWITCH CLUB ⇄ SELECCIÓN (su diseño, 2026-09-04): dos pestañas con el escudo de tu
@@ -2118,6 +2126,19 @@
     <button class="jugar ancho" id="pasoOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
   </div>
 </div>
+<!-- §2z181 EL CUERPO Y EL BOLSILLO (2026-09-10, su corte a lo NSS: "una pantalla más, post statline: cuánto bajó la
+     energía en el partido, cómo recuperás hasta el próximo, y lo que cobraste") -->
+<div id="cuerpoParte" class="veloB oculto">
+  <div class="caja selCaja">
+    <div id="cuerpoTag" class="cajTag"></div>
+    <h2 id="cuerpoTit"></h2>
+    <div class="barraE"><div class="barraEIn" id="cuerpoBarra"></div><div class="barraEAntes" id="cuerpoBarraAntes"></div></div>
+    <div id="cuerpoEnergia"></div>
+    <div id="cuerpoTag2" class="cajTag"></div>
+    <div id="cuerpoPlata"></div>
+    <button class="jugar ancho" id="cuerpoOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+  </div>
+</div>
 <!-- §12 LA CEREMONIA DE LA SELECCIÓN: lo que pasa cuando se te termina el torneo. Es el único
      lugar del juego donde el título no es de un club, y por eso tiene velo propio. -->
 <div id="selVelo" class="veloB oculto">
@@ -3028,7 +3049,7 @@ const LIGAS = {
     ] },
   },
   nba: {
-    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 21], regularHasta: [4, 12], playoffsHasta: [6, 20], diasPO: 4, recesos: [] },
+    /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 21], regularHasta: [4, 12], playoffsHasta: [6, 20], diasPO: 4, recesos: [[[2, 13], [2, 19]]] },   // 2026-09-10: la semana del All-Star
     nombre: 'NBA', allstar: true, clubes: CLUBES_NBA, fechas: 82, zonas: ['este', 'oeste'], formato: 'nba',   // 2026-09-09: el fixture real por divisiones (4 · 4/3 · 2 = 82), con cruces de conferencia
     esc: 34, palancas: {}, ptsRef: 114, reloj: 720, ritmo: 'nba',
     // primera ronda/semis/finales de conferencia POR ZONA, la final es el único cruce
@@ -3364,42 +3385,34 @@ function armarFixtureNBA(rng, clubes) {
     pend[k] = []; for (let i = 0; i < n; i++) { pend[k].push(local === a ? { local: a, visita: b } : { local: b, visita: a }); local = local === a ? b : a; }
     resta[a] += n; resta[b] += n;
   }
-  const fixture = [], ids = clubes.map((c) => c.id), mitad = ids.length / 2;
+  /* 2026-09-10 (su corte: *"tampoco quería 82 fechas exactas: en la NBA hay partidos casi todos los días; algo que
+     parezca realista sin un schedule overfiteado"*): cada FECHA es un DÍA. Se apunta a ~165 días de juego (el
+     calendario real, menos la semana del All-Star), 6–9 partidos por día, y cada equipo juega cuando le toca por
+     URGENCIA (lo que le falta contra los días que quedan), evitando el día seguido salvo que no le alcance. */
+  const fixture = [], ids = clubes.map((c) => c.id), DIAS = 165;
   let quedan = Object.values(resta).reduce((x, y) => x + y, 0) / 2;
-  /* cada fecha: el apareo más LLENO entre varios intentos al azar (los que más deben primero) — con uno solo la cola
-     quedaba rala (84–85 fechas y la última con un partido; su caza 2026-09-10) */
-  const intento = () => {
-    const libres = new Set(ids), pares = [];
-    const orden = ids.slice().sort((a, b) => resta[b] - resta[a] || rng.int(0, 1) * 2 - 1);
+  const ayer = new Set();
+  for (let d = 1; quedan > 0 && d < 260; d++) {
+    const diasRest = Math.max(1, DIAS - d + 1);
+    const meta = Math.max(4, Math.min(10, Math.round(quedan / diasRest) + rng.int(-1, 1)));
+    const urg = {}; for (const t of ids) urg[t] = resta[t] / diasRest + (ayer.has(t) ? -0.9 : 0) + rng.int(0, 20) / 100;
+    const orden = ids.filter((t) => resta[t] > 0).sort((a, b) => urg[b] - urg[a]);
+    const libres = new Set(ids), partidos = [], hoy = new Set();
     for (const t of orden) {
-      if (!libres.has(t) || !resta[t]) continue;
-      let mejor = null, val = -1;
-      for (const o of libres) { if (o === t) continue; const k = key(t, o), p = pend[k]; if (!p || !p.length) continue;
-        const v = resta[o] * 10 + p.length * 2 + rng.int(0, 5); if (v > val) { val = v; mejor = o; } }
+      if (partidos.length >= meta) break;
+      if (!libres.has(t)) continue;
+      if (ayer.has(t) && urg[t] < 0.2) continue;   // el día seguido, sólo si urge
+      let mejor = null, val = -Infinity;
+      for (const o of libres) { if (o === t || !resta[o]) continue; const k = key(t, o), p = pend[k]; if (!p || !p.length) continue;
+        const v = urg[o] * 10 + p.length + (ayer.has(o) ? -6 : 0); if (v > val) { val = v; mejor = o; } }
       if (!mejor) continue;
-      pares.push([t, mejor]); libres.delete(t); libres.delete(mejor);
+      const g = pend[key(t, mejor)].shift(); partidos.push(g); libres.delete(t); libres.delete(mejor); hoy.add(t); hoy.add(mejor);
+      resta[t]--; resta[mejor]--; quedan--;
     }
-    return pares;
-  };
-  while (quedan > 0 && fixture.length < 120) {
-    let pares = intento();
-    for (let k = 0; k < 24 && pares.length < mitad; k++) { const p2 = intento(); if (p2.length > pares.length) pares = p2; }
-    const partidos = [], libres = new Set(ids);
-    for (const [t, o] of pares) { const g = pend[key(t, o)].shift(); partidos.push(g); libres.delete(t); libres.delete(o); resta[t]--; resta[o]--; quedan--; }
     fixture.push({ nro: fixture.length + 1, partidos, libres: [...libres] });
+    ayer.clear(); for (const t of hoy) ayer.add(t);
   }
-  /* la cola: lo que quedó en fechas ralas se adelanta a una fecha donde los dos estaban libres */
-  for (let f = fixture.length - 1; f >= 0; f--) {
-    if (fixture[f].partidos.length >= mitad) continue;
-    for (const g of fixture[f].partidos.slice()) {
-      const dest = fixture.slice(0, f).find((x) => x.partidos.length < mitad && x.libres.includes(g.local) && x.libres.includes(g.visita));
-      if (!dest) continue;
-      dest.partidos.push(g); dest.libres = dest.libres.filter((id) => id !== g.local && id !== g.visita);
-      fixture[f].partidos.splice(fixture[f].partidos.indexOf(g), 1); fixture[f].libres.push(g.local, g.visita);
-    }
-  }
-  const fx = fixture.filter((x) => x.partidos.length); fx.forEach((x, i) => { x.nro = i + 1; });
-  return fx;
+  return fixture;
 }
 
 /* El fixture de UNA liga entera, con o sin zonas — lo usan la temporada real y la
@@ -4292,7 +4305,7 @@ function alDiaTrasSeleccion(estado) {
   if (!el || estado.fase !== 'regular') return;
   let hasta = 0;
   for (let k = 0; k < el.idx && k < el.ventanas.length; k++) {
-    if (el.ventanas[k].conv && el.ventanas[k].receso !== 'verano') hasta = Math.max(hasta, el.ventanas[k].receso ? el.ventanas[k].f : el.ventanas[k].f + 2);   // §12.28: en el receso el club no jugó
+    if (el.ventanas[k].conv && el.ventanas[k].receso !== 'verano') hasta = Math.max(hasta, el.ventanas[k].receso ? el.ventanas[k].f : el.ventanas[k].f + (el.ventanas[k].salteo || 2));   // §12.28: en el receso el club no jugó
   }
   if (!hasta) return;
   const am = estado.americas && estado.americas.ventanas[estado.americas.idx];
@@ -4769,6 +4782,13 @@ function patronDeSemana(semilla, w, ritmo) {
  * array se extiende perezoso; mismos labels de rng, mismos días que la versión O(n). */
 const _diasPorSemilla = {};
 function diaDeFecha(semilla, fecha, ritmo) {
+  /* 2026-09-10: en la NBA cada fecha ES un día (el fixture se reparte por días, 01e): día = fecha, salteando los recesos */
+  if (ritmo === 'nba') {
+    const cal = calendarioDe('nba'), recs = (cal && cal.recesos || []).map((r) => [diaDeTemporada(cal, r[0]), diaDeTemporada(cal, r[1])]);
+    let dia = 0, n = 0;
+    while (n < fecha) { dia++; if (!recs.some(([a, b]) => dia >= a && dia <= b)) n++; }
+    return dia;
+  }
   const clave = semilla + '|' + (ritmo || 'normal');
   const arr = _diasPorSemilla[clave] || (_diasPorSemilla[clave] = Object.assign([], { w: 0 }));
   while (arr.length < fecha) {
@@ -9945,8 +9965,8 @@ function barraSel(torneo, pais) {
 function rolSel(J, pais, torneo, media) {
   /* 2026-09-09 (su corte): en la beta el gap se da por cumplido — el rol lo decide el DT de la selección, que se gana jugando */
   const gap = J.dbeta !== undefined ? 10 : media - barraSel(torneo || 'ventana', pais), R = relSelDe(J);
-  if (gap >= 10 && R.dt >= 60) return 'referencia';
-  if (gap >= 4 && R.dt >= 40) return 'titular';
+  if (gap >= 10 && R.dt >= 65) return 'referencia';   // 2026-09-10 (su corte): 45 y 65 — con las cinco ventanas y el Mundial, referencia es para el que destaca
+  if (gap >= 4 && R.dt >= 45) return 'titular';
   return 'suplente';
 }
 const minutosSel = (J, pais, torneo, media) => MINUTOS_POR_ROL[rolSel(J, pais, torneo, media)];   // el que ya estuvo, sigue (copiado de allá: la selección es un grupo)
@@ -10056,7 +10076,7 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
       for (const f of libres) { if (out.some((v) => Math.abs(v.f - f) < 3)) continue; const d = Math.abs(f - ideal); if (d < dist) { dist = d; mejor = f; } }
       if (mejor === null) continue;
       const d1 = semilla && ritmo ? diaDeFecha(semilla, mejor + 1, ritmo) : null;
-      out.push({ f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false });
+      out.push({ f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false, salteo: ritmo === 'nba' ? 4 : 2 });   // 2026-09-10: en la NBA (fechas por día) se lleva los cuatro días
     }
     out.sort((a, b) => a.f - b.f);
     if (parte === 'A') {
@@ -10093,7 +10113,7 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
     if (mejor === null) continue;
     /* §12.28 paso 1 (b): las jornadas a TRES DÍAS, no al día de la fecha f+2 (hasta el paso 2) */
     const d1 = semilla && ritmo ? diaDeFecha(semilla, mejor + 1, ritmo) : null;
-    out.push({ n: 0, f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false });
+    out.push({ n: 0, f: mejor, dias: d1 ? [d1, d1 + 3] : null, receso: false, salteo: ritmo === 'nba' ? 4 : 2 });
   }
   out.sort((a, b) => a.f - b.f);
   out.forEach((v, i) => { v.n = i + 1; });
@@ -10278,7 +10298,7 @@ function jugarJuegoSeleccion(e, miJuego) {
  *  antes de irte. Medido en el navegador: con {f, f+1} el club sólo perdía UNA fecha. */
 function fechasSalteadas(el) {
   const out = new Set();
-  if (el) for (const v of el.ventanas) if (v.conv && !v.receso) { out.add(v.f + 1); out.add(v.f + 2); }   // §12.21: por ventana · §12.28: en el receso el club no juega
+  if (el) for (const v of el.ventanas) if (v.conv && !v.receso) { for (let i = 1; i <= (v.salteo || 2); i++) out.add(v.f + i); }   // §12.21: por ventana · §12.28: en el receso el club no juega
   return out;
 }
 
@@ -20114,7 +20134,11 @@ function recordDe(id){
   return f?('('+f.pg+'–'+f.pp+')'):'';
 }
 /* F de fecha sólo en castellano; en inglés y portugués la fecha es R de round/rodada */
-const fPrefijo=()=>idioma()==='es'?'F':'R';
+const fPrefijo=()=>esNBA()?(idioma()==='es'?'P':idioma()==='pt'?'J':'G'):idioma()==='es'?'F':'R';   // 2026-09-10: en la NBA la fecha es un día; la etiqueta es TU partido
+const esNBA=()=>!!(C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].formato==='nba');
+/* tu partido n (1..82) para una fecha (un día) de la NBA — la lista de tus fechas, numerada */
+let _numFecha=null;
+const numFecha=(fecha)=>{ if(!esNBA()) return fecha; const e=est(); if(!_numFecha||_numFecha.e!==e){ const m={}; let n=0; for(const f of e.fixture){ if(f.partidos.some(p=>p.local===e.miClubId||p.visita===e.miClubId)) m[f.nro]=++n; } _numFecha={e,m,total:n}; } return _numFecha.m[fecha]||fecha; };
 const RONDA_TXT={  // los nombres que ya viajaron por El Draft (season.ts)
   reclasificacion:L('RECLASIFICACIÓN','PLAY-IN','REPESCAGEM'),
   playin:L('PLAY-IN','PLAY-IN','PLAY-IN'), playin2:L('PLAY-IN · POR EL 8°','PLAY-IN · FOR 8TH','PLAY-IN · PELO 8º'),
@@ -20379,7 +20403,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      donde conviven liga y competencia"): del lado del globo la marca es el número del partido en su instancia (1–4 en el
      grupo, J1–J3 en una serie); el globo queda para la lista mezclada del club */
   const marca=f.sel?banderaDe(C.jugador.nacionalidad||'ar',14)
-    :f.am?(ladoAM?(f.etapa==='grupo'?String(f.n):'J'+f.n):icono('globo',14)):fPrefijo()+f.fecha;
+    :f.am?(ladoAM?(f.etapa==='grupo'?String(f.n):'J'+f.n):icono('globo',14)):fPrefijo()+numFecha(f.fecha);
   /* §2z88 (su caza 2026-09-06: "en el fixture de AMÉRICAS no está el país del equipo, que sí está en la tabla"):
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
@@ -20603,7 +20627,7 @@ function abrirPasoParte(jugados,despues){
   const paso=220;
   $l('pasoJuegos').innerHTML=filas.map((x,i)=>
     '<div class="fila-item" style="animation-delay:'+(i*paso)+'ms"><span class="desc">'
-    +(x.am?icono('globo',14):fPrefijo()+x.fecha)+' '+escudito(x.rival)+' '+vsTxt(x.local)+nomCorto(x.rival).toUpperCase()+'</span>'
+    +(x.am?icono('globo',14):fPrefijo()+numFecha(x.fecha))+' '+escudito(x.rival)+' '+vsTxt(x.local)+nomCorto(x.rival).toUpperCase()+'</span>'
     +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
   /* lo tuyo: el promedio de lo que el relato te anotó — y las fechas que no jugaste porque estabas
      con la selección se dicen aparte, que es justo lo que un 0 no explica (§2z91) */
@@ -20641,7 +20665,7 @@ function abrirPasarConfirm(sig,ref,alFinal){
                     :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
-  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+f.fecha)+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
+  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
   $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };
@@ -20806,7 +20830,7 @@ function pintaLobby(){
        el cupo de entrenar, y ahí SE DICE con la palabra entera ('esta semana te quedan');
        acá era una abreviatura que no explicaba nada y ocupaba lugar. */
     /* el DÍA va acá también (su pedido): el chip decía en qué fecha estás pero no cuándo se juega */
-    $l('lobChip').innerHTML=anioTxt()+' · '+t(L('FECHA','ROUND','RODADA'))+' <b>'+fChip+'/'+e.fechasTotales+'</b>'+
+    $l('lobChip').innerHTML=anioTxt()+' · '+(esNBA()?t(L('PARTIDO','GAME','JOGO'))+' <b>'+numFecha(fChip)+'/'+(_numFecha?_numFecha.total:82)+'</b>':t(L('FECHA','ROUND','RODADA'))+' <b>'+fChip+'/'+e.fechasTotales+'</b>')+
       ' · '+diaTxt(diaDeFecha(e.semilla,Math.max(1,fChip),est().ritmo));
   } else if(e.fase==='playoffs'){
     const r=e.playoffs.def.rondas[e.playoffs.ronda], sm=miSerie(e);
@@ -21501,7 +21525,7 @@ function abrirPre(objetivo){
     const prox=miProximo(e);
     const salteadas=prox&&objetivo.fecha>prox.fecha
       ? misFechas().filter(f=>!f.res&&f.fecha>=prox.fecha&&f.fecha<objetivo.fecha) : [];
-    const lista=salteadas.map(f=>f.am?t(L('Américas','Americas','Américas')):fPrefijo()+f.fecha);   // §2z111: "F10, F11 y F11" era el continental
+    const lista=salteadas.map(f=>f.am?t(L('Américas','Americas','Américas')):fPrefijo()+numFecha(f.fecha));   // §2z111: "F10, F11 y F11" era el continental
     const listaTxt=lista.length>1
       ? lista.slice(0,-1).join(', ')+t(L(' y ',' and ',' e '))+lista[lista.length-1]
       : lista.join('');
@@ -21919,7 +21943,13 @@ function registrarResultado(){
      descansaste al salir a la cancha. Sumarlos después del costo, en la misma cuenta,
      te devolvía a 100 con el primer partido (día 6 × 6 = +36 contra 22 de costo) y con
      cualquier semana espaciada. Ahora: primero el descanso, TOPE 100, y recién el costo. */
-  J.energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-costoJugar(minutosJugados(),C.ligaId,enPartido&&enPartido.tipo==='seleccion'));
+  { const eDesc=Math.min(100,J.energia+regenDe()*dias), costo=costoJugar(minutosJugados(),C.ligaId,enPartido&&enPartido.tipo==='seleccion');
+    J.energia=Math.max(0,eDesc-costo);
+    const con=(C&&C.contrato)||{partido:PAGO_PARTIDO,ganar:PAGO_VICTORIA}, gano=G.nos>G.riv, misOk=!!(cierre.mision&&cierre.mision.ok);
+    /* §2z181: lo que el velo del cuerpo y el bolsillo cuenta después de la statline (se arma acá, se abre en el circuito) */
+    C.cuerpo={antes:Math.round(eDesc),despues:Math.round(J.energia),costo,min:minutosJugados(),
+      pago:{partido:con.partido||0,ganar:gano?(con.ganar||0):0,mision:misOk?(con.mision||0):0},gano,misOk,
+      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):null,fase:faseAntes}; }
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
@@ -21954,7 +21984,46 @@ function registrarResultado(){
   if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,'',chicos);   // §2z169: la noticia grande, en su velo
   else chicos(); };
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
-  if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby();
+  const sigue=()=>{ if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby(); };
+  if(!abrirCuerpo(sigue)) sigue();   // §2z181: el cuerpo y el bolsillo, después de la statline y antes del diario
+}
+/* ══ §2z181 EL CUERPO Y EL BOLSILLO (2026-09-10, su corte: *"NSS te muestra cuánto baja en el partido y después, en una
+   pantalla post partido, cómo RECUPERÁS en base al descanso hasta tu próximo partido y las mejoras que tenés; energía +
+   sueldo en la misma"*; frames del video 1: "Your weekly update"). Un velo propio, después de la statline: la barra
+   con la marca de dónde estabas, lo que bajó en la cancha, lo que recuperás hasta el próximo partido (con lo tuyo
+   desglosado) y lo que cobraste esta noche. Entra sin scroll en 360×780: siete renglones, una barra y el botón. */
+function abrirCuerpo(despues){
+  const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
+  const J=C.jugador, e=est();
+  $l('cuerpoTag').textContent=t(L('ENERGÍA','ENERGY','ENERGIA'));
+  $l('cuerpoTit').textContent=p.despues+' %';
+  const bar=$l('cuerpoBarra'); bar.style.width=p.antes+'%'; bar.className='barraEIn'+(p.despues<25?' mal':p.despues<50?' baja':'');
+  $l('cuerpoBarraAntes').style.left=p.antes+'%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=p.despues+'%'; }));
+  const fila=(desc,sub,val,cls)=>'<div class="fila-item"><span class="desc">'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+cls+'">'+val+'</b></div>';
+  let h=fila(t(L('En la cancha','On the court','Em quadra')),p.min+"'",'−'+p.costo+' '+RAYO,'menos');
+  /* hasta el próximo partido: los días de descanso que vienen, con lo tuyo desglosado */
+  const prox=e?miProximo(e):null; let dias=null;
+  if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
+  else if(p.fase==='playoffs'||(e&&e.fase==='playoffs')) dias=diasPO();
+  const regen=regenDe();
+  const partes=[t(L('base','base','base'))+' +'+REGEN_DIA].concat(['vehiculo','casa','staff'].map(k=>{ const m=mejorDe(J,k); return m&&m.regen?t(m.nom).toLowerCase()+' +'+m.regen:null; }).filter(Boolean));
+  h+=dias!==null
+    ? fila(t(L('Hasta el próximo','Until the next game','Até o próximo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+Math.min(100-p.despues,regen*dias)+' '+RAYO,'mas')
+    : fila(t(L('Por día','Per day','Por dia')),'','+'+regen+' '+RAYO,'mas');
+  if(partes.length>1) h+='<div class="gancho" style="margin-top:2px">'+partes.join(' · ')+'</div>';
+  $l('cuerpoEnergia').innerHTML=h;
+  $l('cuerpoTag2').textContent=t(L('COBRASTE','YOU EARNED','VOCÊ RECEBEU'));
+  const total=p.pago.partido+p.pago.ganar+p.pago.mision;
+  let q=fila(t(L('Partido','Game','Jogo')),'','+'+fplata(p.pago.partido),'mas');
+  if(p.gano) q+=fila(t(L('Ganar','Win','Vitória')),'','+'+fplata(p.pago.ganar),'mas');
+  if(p.misOk) q+=fila(t(L('Misión','Mission','Missão')),'','+'+fplata(p.pago.mision),'mas');
+  q+=fila('<b>'+fplata(total)+'</b>',t(L('tenés','you have','você tem'))+' '+fplata(J.plata||0),'','');
+  $l('cuerpoPlata').innerHTML=q;
+  const v=$l('cuerpoParte'); v.classList.remove('oculto');
+  $l('cuerpoOk').onclick=()=>{ v.classList.add('oculto'); if(despues) despues(); };
+  verQueSeVe('cuerpoParte','EL CUERPO Y EL BOLSILLO');
+  return true;
 }
 const rolTxt=()=>({suplente:t(L('SUPLENTE','BENCH','RESERVA')),titular:t(L('TITULAR','STARTER','TITULAR')),referencia:t(L('LA REFERENCIA','THE GUY','A REFERÊNCIA'))})[C.jugador.rol||'titular'];
 function otraTemporada(destino){
@@ -23564,6 +23633,7 @@ function pantallaActual(){
      anotaba mal dónde te fuiste, y un banco que se guía por esto se escondía atrás de la carta
      (2026-09-04). Va primera porque tapa a todas. */
   if(v('carta')) return 'carta';
+  if(v('cuerpoParte')) return 'cuerpo';   // §2z181: el velo del cuerpo y el bolsillo tapa el fin (sin esto el mono lo veía como partido y jugaba por debajo)
   if(v('betaVelo')||v('resumenT')) return 'beta';
   if(v('lobby')) return v('fin')?'fin':'lobby';
   if(v('partidas')||v('creacion')) return 'alta';

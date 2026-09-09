@@ -5751,11 +5751,18 @@ function cartaDeSalida(o,seguir){
 }
 /* ── §2z42.3 LA PRENSA REGISTRA EL LUJO (su ok 2026-09-05): comprás algo de la cadena de lujo y sale la carta
    con tu compra adentro. Una sola carta, con el nombre del ítem en el gancho; repite (cada compra es noticia). ── */
-function cartaDeLujo(nombre,volver){
-  if(!$C()||cartaAbierta||typeof CARTA_LUJO==='undefined') return false;
-  const c={...CARTA_LUJO, gancho:CARTA_LUJO.gancho(nombre)};
-  mostrarCarta(c,t(L('LA PRENSA','THE PRESS','A IMPRENSA'))+' · '+t(L('LA FOTO','THE PHOTO','A FOTO')),volver);
+/* §2z162 (su corte 2026-09-08: "no debería ser la card EXACTAMENTE cuando comprás el ítem; debería sumarse al catálogo
+   de las que te pueden salir más adelante"): la compra se ANOTA, y la carta sale en el próximo momento de prensa
+   (cartaPendiente), con el rótulo de las demás. Una por compra, en orden. */
+function cartaDeLujo(nombre){
+  if(!$C()||typeof CARTA_LUJO==='undefined') return false;
+  const s=cartasEstado(); (s.lujoPend=s.lujoPend||[]).push(nombre); guardar();
   return true;
+}
+function cartaLujoPendiente(){
+  const s=cartasEstado(); if(!s.lujoPend||!s.lujoPend.length||typeof CARTA_LUJO==='undefined') return null;
+  const nombre=s.lujoPend.shift();
+  return {...CARTA_LUJO, gancho:CARTA_LUJO.gancho(nombre)};
 }
 /* ── los tres disparadores ── */
 /* al entrar al lobby y al pasar la semana: una fecha vencida sirve UNA carta; las demás vencidas
@@ -5767,7 +5774,7 @@ function cartaPendiente(){
   const due=s.fechas.filter(f=>f<=e.fechaJugada);
   if(!due.length) return null;
   s.fechas=s.fechas.filter(f=>f>e.fechaJugada);
-  const c=sortearCarta(poolGeneral(),ctxCarta(),rngFor($C().semilla,'carta',$C().anio,due[0]));
+  const c=cartaLujoPendiente()||sortearCarta(poolGeneral(),ctxCarta(),rngFor($C().semilla,'carta',$C().anio,due[0]));   // §2z162: la compra anotada sale primero
   guardar();
   return c;
 }
@@ -10752,7 +10759,8 @@ const CARTAS_VIDA=[
    lleva el nombre de lo que compraste. Repite: cada compra es noticia. Sin efecto en cancha (§2z16): lo que mueve
    es cómo te ven. */
 const CARTA_LUJO={ id:'prensa_lujo', de:'vida', repite:true, fondo:'despacho',
-  gancho:(nombre)=>t(L('Un fotógrafo te vio con '+nombre.toLowerCase()+'. Mañana sale en la tapa, con vos o sin vos.', 'A photographer caught you with '+nombre.toLowerCase()+'. It\'s on tomorrow\'s cover, with or without you.', 'Um fotógrafo te viu com '+nombre.toLowerCase()+'. Amanhã sai na capa, com ou sem você.')),
+  /* §2z162: devuelve el L() SIN traducir — mostrarCarta traduce; con t() acá, t(t(...)) daba undefined y la carta salía muda */
+  gancho:(nombre)=>L('Un fotógrafo te vio con '+nombre.toLowerCase()+'. Mañana sale en la tapa, con vos o sin vos.', 'A photographer caught you with '+nombre.toLowerCase()+'. It\'s on tomorrow\'s cover, with or without you.', 'Um fotógrafo te viu com '+nombre.toLowerCase()+'. Amanhã sai na capa, com ou sem você.'),
   opciones:[
     { tipo:'segura', label:L('Bajo perfil', 'Low profile', 'Discrição'),
       desenlaces:[ {p:100, remate:L('Sin foto', 'No picture', 'Sem foto'), texto:L('Sale la nota igual, chiquita, en la página 12.', 'The piece runs anyway, small, on page 12.', 'A nota sai mesmo assim, pequena, na página 12.'), ef:{}} ] },
@@ -21678,7 +21686,7 @@ function comprarItem(id){
   guardar(); pintaRecursos(); pintaSecciones();
   /* §2z42.3 (su ok: "la prensa registra el lujo"): comprás algo de LUJO y el diario lo titula — una carta con tu
      compra adentro, para posar o para el bajo perfil. Sólo el lujo: la moto no es noticia. */
-  if(ESCALERA.lifestyle.some(x=>x.id===id)&&CARTAS.cartaDeLujo) CARTAS.cartaDeLujo(t(it.nom),()=>pintaLobby());
+  if(ESCALERA.lifestyle.some(x=>x.id===id)&&CARTAS.cartaDeLujo) CARTAS.cartaDeLujo(t(it.nom));   // §2z162: se anota; sale en la próxima prensa
 }
 
 /* ══ LAS PARTIDAS: las tres ranuras (su pedido 2026-08-29) ═══════════════════════

@@ -23,6 +23,7 @@
   #marcador .lado{background:var(--chip);padding:4px 12px;font-size:25px;display:flex;gap:9px;
        align-items:baseline;min-width:98px;justify-content:space-between}   /* 98: tres cifras (108) no ensanchan el lado — medido 90→97 */
   #marcador .lado small{font-size:16px;font-weight:700;color:var(--tinta2);letter-spacing:1.5px}
+  #marcador .lado small.chica{font-size:11px;letter-spacing:.3px}   /* §2z185: "IND (Z)" entra sólo achicado (medido: a 12 px "IND (NQN)" pisaba los botones 4 px) */
   #marcador .reloj{background:#0a0e18;color:var(--naranja);padding:4px 11px;font-size:25px;display:flex;align-items:center;gap:6px}
   #marcador .reloj b{font-size:14px;color:var(--tinta2);letter-spacing:1px}
   /* §2z184: LA ENERGÍA EN LA CANCHA, con nombre. En el HUD un chip ⚡ + número a la derecha, a la altura del reloj de
@@ -335,6 +336,7 @@
   #feedMarcador .lado{background:var(--chip);padding:7px 15px;font-size:34px;display:flex;gap:10px;
        align-items:baseline;min-width:104px;justify-content:space-between}
   #feedMarcador .lado small{font-size:19px;font-weight:700;color:var(--tinta2);letter-spacing:1.5px}
+  #feedMarcador .lado small.chica{font-size:13px;letter-spacing:.3px}
   #feedMarcador .reloj{background:#0a0e18;color:var(--naranja);padding:7px 14px;font-size:34px;
                        display:flex;align-items:center;gap:8px}
   #feedMarcador .reloj b{font-size:16px;color:var(--tinta2)}
@@ -2468,7 +2470,7 @@ const CLUBES_FEDERAL = [
 /* metro_a · 9 */
   { id: 'CACY', sigla: 'CAZ', nombre: 'Caza y Pesca', ciudad: 'Don Torcuato', apodo: 'El Tiburón', color: '#005CAA', color2: '#00943C', fuerza: 45, rival: 'HACO', rivales: ['HACO'], zona: 'metro_a' },
   { id: 'EPRA', sigla: 'EST', nombre: 'Estudiantil Porteño', corto: 'Estudiantil', ciudad: 'Ramos Mejía', apodo: null, color: '#001F75', color2: '#BF0F23', fuerza: 40, rival: null, zona: 'metro_a' },
-  { id: 'IZAR', sigla: 'IZA', nombre: 'Independiente (Z)', corto: 'Indep. (Z)', ciudad: 'Zárate', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 39, rival: 'ZBAS', zona: 'metro_a' },
+  { id: 'IZAR', sigla: 'IND', nombre: 'Independiente (Z)', corto: 'Indep. (Z)', ciudad: 'Zárate', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 39, rival: 'ZBAS', zona: 'metro_a' },
   { id: 'JHMA', sigla: 'JOS', nombre: 'José Hernández', ciudad: 'Mataderos', apodo: null, color: '#004191', color2: '#F0D025', fuerza: 37, rival: null, zona: 'metro_a' },
   { id: 'PINO', sigla: 'PIN', nombre: 'Pinocho', ciudad: 'Buenos Aires', apodo: 'La Máquina Verde', color: '#04893A', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_a' },
   { id: 'CDSA', sigla: 'SAN', nombre: 'San Andrés', ciudad: 'San Andrés', apodo: 'Depor', color: '#1F6C36', color2: '#FFFFFF', fuerza: 32, rival: null, zona: 'metro_a' },
@@ -2487,7 +2489,7 @@ const CLUBES_FEDERAL = [
   { id: 'FEBR', sigla: 'FEB', nombre: '3 de Febrero', ciudad: 'San Andrés', apodo: 'El Trede', color: '#142A80', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_b' },
   /* metro_c · 8 */
   { id: 'CASA', sigla: 'PAD', nombre: 'Padua', ciudad: 'San Antonio de Padua', apodo: 'Tricolor', color: '#0A0B0D', color2: '#F8C200', fuerza: 40, rival: null, zona: 'metro_c' },
-  { id: 'GEIT', sigla: 'GII', nombre: 'Gimnasia (I)', ciudad: 'Ituzaingó', apodo: 'Lobo', color: '#FFFFFF', color2: '#006FA9', fuerza: 37, rival: null, zona: 'metro_c' },
+  { id: 'GEIT', sigla: 'GIM', nombre: 'Gimnasia (I)', ciudad: 'Ituzaingó', apodo: 'Lobo', color: '#FFFFFF', color2: '#006FA9', fuerza: 37, rival: null, zona: 'metro_c' },
   { id: 'MORO', sigla: 'MOR', nombre: 'Morón', ciudad: 'Castelar', apodo: 'El Gallo', color: '#D61A0F', color2: '#FFFFFF', fuerza: 34, rival: null, zona: 'metro_c' },
   { id: 'CLAR', sigla: 'CLA', nombre: 'Claridad', ciudad: 'Ciudadela', apodo: 'El Verde', color: '#027201', color2: '#FFFFFF', fuerza: 37, rival: null, zona: 'metro_c' },
   { id: 'DERQ', sigla: 'DER', nombre: 'Derqui', ciudad: 'Presidente Derqui', apodo: 'El Rojinegro', color: '#000000', color2: '#FE0000', fuerza: 43, rival: 'SPPI', rivales: ['SPPI'], zona: 'metro_c' },
@@ -2513,42 +2515,42 @@ const CLUBES_FEDERAL = [
   { id: 'UNJU', sigla: 'UNJ', nombre: 'Unión y Juventud', corto: 'Unión y Juv.', ciudad: 'Bandera', apodo: null, color: '#141414', color2: '#ECEDEE', fuerza: 43, rival: 'TOST', rivales: ['TOST'], zona: 'centro_b' },
   /* sudeste_a · 6 */
   { id: 'ALBS', sigla: 'ALB', nombre: 'All Boys', ciudad: 'Santa Rosa', apodo: 'El Auriazul', color: '#F2C300', color2: '#1B3B8B', fuerza: 40, rival: 'FEGP', rivales: ['FEGP', 'INGP'], zona: 'sudeste_a' },
-  { id: 'ESOL', sigla: 'ESO', nombre: 'Estudiantes (O)', ciudad: 'Olavarría', apodo: 'El Bataraz', color: '#FFFFFF', color2: '#111111', fuerza: 41, rival: 'RAOL', rivales: ['RAOL'], zona: 'sudeste_a' },
+  { id: 'ESOL', sigla: 'EST', nombre: 'Estudiantes (O)', ciudad: 'Olavarría', apodo: 'El Bataraz', color: '#FFFFFF', color2: '#111111', fuerza: 41, rival: 'RAOL', rivales: ['RAOL'], zona: 'sudeste_a' },
   { id: 'FEGP', sigla: 'FER', nombre: 'Ferro (GP)', ciudad: 'General Pico', apodo: 'El Verde', color: '#016525', color2: '#FFFFFF', fuerza: 44, rival: 'INGP', rivales: ['INGP', 'ALBS'], zona: 'sudeste_a' },
-  { id: 'INGP', sigla: 'IGP', nombre: 'Independiente (GP)', corto: 'Indep. (GP)', ciudad: 'General Pico', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'FEGP', rivales: ['FEGP', 'ALBS'], zona: 'sudeste_a' },
-  { id: 'INTA', sigla: 'INT', nombre: 'Independiente (T)', corto: 'Indep. (T)', ciudad: 'Tandil', apodo: 'El Rojinegro', color: '#C2162C', color2: '#000000', fuerza: 37, rival: null, zona: 'sudeste_a' },
+  { id: 'INGP', sigla: 'IND', nombre: 'Independiente (GP)', corto: 'Indep. (GP)', ciudad: 'General Pico', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'FEGP', rivales: ['FEGP', 'ALBS'], zona: 'sudeste_a' },
+  { id: 'INTA', sigla: 'IND', nombre: 'Independiente (T)', corto: 'Indep. (T)', ciudad: 'Tandil', apodo: 'El Rojinegro', color: '#C2162C', color2: '#000000', fuerza: 37, rival: null, zona: 'sudeste_a' },
   { id: 'RAOL', sigla: 'RAC', nombre: 'Racing (O)', ciudad: 'Olavarría', apodo: 'El Chaira', color: '#FFFFFF', color2: '#3E358E', fuerza: 37, rival: 'ESOL', rivales: ['ESOL'], zona: 'sudeste_a' },
   /* sudeste_b · 7 */
-  { id: 'ATLP', sigla: 'ATL', nombre: 'Atenas (LP)', ciudad: 'La Plata', apodo: 'El Griego', color: '#DB261F', color2: '#FFFFFF', fuerza: 37, rival: 'ESLP', rivales: ['ESLP'], zona: 'sudeste_b' },
+  { id: 'ATLP', sigla: 'ATE', nombre: 'Atenas (LP)', ciudad: 'La Plata', apodo: 'El Griego', color: '#DB261F', color2: '#FFFFFF', fuerza: 37, rival: 'ESLP', rivales: ['ESLP'], zona: 'sudeste_b' },
   { id: 'CAMP', sigla: 'CAM', nombre: 'Campana', ciudad: 'Campana', apodo: 'El Tricolor', color: '#1F2E48', color2: '#F9C32A', fuerza: 33, rival: null, zona: 'sudeste_b' },
   { id: 'ATPI', sigla: 'PIP', nombre: 'Atlético Pilar', ciudad: 'Pilar', apodo: 'El Rancho', color: '#B61423', color2: '#FFFFFF', fuerza: 35, rival: null, zona: 'sudeste_b' },
   { id: 'BESA', sigla: 'BEL', nombre: 'Belgrano (SN)', ciudad: 'San Nicolás de los Arroyos', apodo: 'El rojo de calle Pellegrini', color: '#FE0000', color2: '#FFCC00', fuerza: 45, rival: 'SOMI', rivales: ['SOMI'], zona: 'sudeste_b' },
   { id: 'SOMI', sigla: 'SOM', nombre: 'Somisa', ciudad: 'San Nicolás de los Arroyos', apodo: null, color: '#004A99', color2: '#0070B8', fuerza: 42, rival: 'BESA', rivales: ['BESA'], zona: 'sudeste_b' },
-  { id: 'ESLP', sigla: 'ELP', nombre: 'Estudiantes (LP)', ciudad: 'La Plata', apodo: 'El Pincha', color: '#D6202B', color2: '#FFFFFF', fuerza: 39, rival: 'ATLP', rivales: ['ATLP'], zona: 'sudeste_b' },
+  { id: 'ESLP', sigla: 'EST', nombre: 'Estudiantes (LP)', ciudad: 'La Plata', apodo: 'El Pincha', color: '#D6202B', color2: '#FFFFFF', fuerza: 39, rival: 'ATLP', rivales: ['ATLP'], zona: 'sudeste_b' },
   { id: 'SFER', sigla: 'SAF', nombre: 'San Fernando', ciudad: 'San Fernando', apodo: 'Sanfer', color: '#199A3D', color2: '#2F3C8A', fuerza: 33, rival: null, zona: 'sudeste_b' },
   /* litoral_a · 10 */
   { id: 'ECHA', sigla: 'ECH', nombre: 'Echagüe', ciudad: 'Paraná', apodo: 'el Negro', color: '#111111', color2: '#4FA3D1', fuerza: 39, rival: 'SION', rivales: ['SION'], zona: 'litoral_a' },
   { id: 'SION', sigla: 'SIO', nombre: 'Sionista', ciudad: 'Paraná', apodo: null, color: '#3B5BDA', color2: '#F8951D', fuerza: 41, rival: 'ECHA', rivales: ['ECHA'], zona: 'litoral_a' },
-  { id: 'GISA', sigla: 'GIS', nombre: 'Gimnasia (SF)', ciudad: 'Santa Fe', apodo: 'El Mensana', color: '#002782', color2: '#FFFFFF', fuerza: 36, rival: 'RIJR', rivales: ['RIJR'], zona: 'litoral_a' },
+  { id: 'GISA', sigla: 'GIM', nombre: 'Gimnasia (SF)', ciudad: 'Santa Fe', apodo: 'El Mensana', color: '#002782', color2: '#FFFFFF', fuerza: 36, rival: 'RIJR', rivales: ['RIJR'], zona: 'litoral_a' },
   { id: 'COLO', sigla: 'COL', nombre: 'Colón', ciudad: 'Santa Fe', apodo: 'El Sabalero', color: '#D62027', color2: '#111111', fuerza: 39, rival: null, zona: 'litoral_a' },
-  { id: 'ESCO', sigla: 'ESC', nombre: 'Estudiantes (C)', ciudad: 'Concordia', apodo: 'El Verde', color: '#0B6B35', color2: '#F26522', fuerza: 39, rival: null, zona: 'litoral_a' },
+  { id: 'ESCO', sigla: 'EST', nombre: 'Estudiantes (C)', ciudad: 'Concordia', apodo: 'El Verde', color: '#0B6B35', color2: '#F26522', fuerza: 39, rival: null, zona: 'litoral_a' },
   { id: 'QUIQ', sigla: 'QUI', nombre: 'Quique', ciudad: 'Paraná', apodo: 'El Decano', color: '#FFFFFF', color2: '#D82D13', fuerza: 35, rival: null, zona: 'litoral_a' },
   { id: 'RBOC', sigla: 'REC', nombre: 'Recreativo Bochas', corto: 'Rec. Bochas', ciudad: 'Paraná', apodo: 'El Bochas', color: '#D72519', color2: '#00923E', fuerza: 39, rival: 'SION', zona: 'litoral_a' },
   { id: 'RIJR', sigla: 'RIV', nombre: 'Rivadavia Juniors', corto: 'Rivadavia Jrs.', ciudad: 'Santa Fe', apodo: 'El Rojo', color: '#FE0002', color2: '#FFFFFF', fuerza: 41, rival: 'GISA', rivales: ['GISA'], zona: 'litoral_a' },
   { id: 'ARMO', sigla: 'ARM', nombre: 'La Armonía', ciudad: 'Colón', apodo: 'El Verde', color: '#003B00', color2: '#029802', fuerza: 36, rival: null, zona: 'litoral_a' },
-  { id: 'URSA', sigla: 'URS', nombre: 'Urquiza (SE)', ciudad: 'Santa Elena', apodo: 'El Naranja', color: '#FF6600', color2: '#000000', fuerza: 42, rival: null, zona: 'litoral_a' },
+  { id: 'URSA', sigla: 'URQ', nombre: 'Urquiza (SE)', ciudad: 'Santa Elena', apodo: 'El Naranja', color: '#FF6600', color2: '#000000', fuerza: 42, rival: null, zona: 'litoral_a' },
   /* litoral_b · 7 */
   { id: 'ARGE', sigla: 'ARG', nombre: 'Argentino (MJ)', ciudad: 'Marcos Juárez', apodo: 'Albirrojo', color: '#E3001B', color2: '#FFFFFF', fuerza: 35, rival: 'SAMA', rivales: ['SAMA'], zona: 'litoral_b' },
   { id: 'SAMA', sigla: 'SMA', nombre: 'San Martín (MJ)', ciudad: 'Marcos Juárez', apodo: 'El Gaucho', color: '#1DA0E8', color2: '#FFFFFF', fuerza: 36, rival: 'ARGE', rivales: ['ARGE'], zona: 'litoral_b' },
   { id: 'NAUT', sigla: 'NAU', nombre: 'Náutico Avellaneda', corto: 'Náutico', ciudad: 'Rosario', apodo: null, color: '#003F8E', color2: '#FFFFFF', fuerza: 35, rival: null, zona: 'litoral_b' },
-  { id: 'GERO', sigla: 'GIR', nombre: 'Gimnasia (R)', ciudad: 'Rosario', apodo: 'El Mensana', color: '#1E3067', color2: '#F7E809', fuerza: 36, rival: 'ROSC', zona: 'litoral_b' },
-  { id: 'OLVT', sigla: 'OVT', nombre: 'Olimpia (VT)', ciudad: 'Venado Tuerto', apodo: null, color: '#111111', color2: '#D6202B', fuerza: 46, rival: null, zona: 'litoral_b' },
+  { id: 'GERO', sigla: 'GIM', nombre: 'Gimnasia (R)', ciudad: 'Rosario', apodo: 'El Mensana', color: '#1E3067', color2: '#F7E809', fuerza: 36, rival: 'ROSC', zona: 'litoral_b' },
+  { id: 'OLVT', sigla: 'OLI', nombre: 'Olimpia (VT)', ciudad: 'Venado Tuerto', apodo: null, color: '#111111', color2: '#D6202B', fuerza: 46, rival: null, zona: 'litoral_b' },
   { id: 'ROSC', sigla: 'ROS', nombre: 'Rosario Central', ciudad: 'Rosario', apodo: 'El Canalla', color: '#F4C300', color2: '#153E8C', fuerza: 41, rival: 'GERO', zona: 'litoral_b' },
   { id: 'TEMP', sigla: 'TEM', nombre: 'Temperley (R)', ciudad: 'Rosario', apodo: 'El Negro', color: '#000000', color2: '#FFFFFF', fuerza: 44, rival: null, zona: 'litoral_b' },
   /* nea · 9 */
   { id: 'CAPR', sigla: 'CAP', nombre: 'CAPRI', ciudad: 'Posadas', apodo: null, color: '#182040', color2: '#C82008', fuerza: 38, rival: 'TOKI', rivales: ['TOKI'], zona: 'nea' },
   { id: 'CSYL', sigla: 'CUL', nombre: 'Cultural', ciudad: 'Santa Sylvina', apodo: null, color: '#FA0001', color2: '#FFFFFF', fuerza: 38, rival: 'HERC', rivales: ['HERC'], zona: 'nea' },
-  { id: 'SALO', sigla: 'SAL', nombre: 'San Lorenzo (MC)', corto: 'S. Lorenzo (MC)', ciudad: 'Monte Caseros', apodo: 'el Aurinegro', color: '#FFEB05', color2: '#191819', fuerza: 42, rival: null, zona: 'nea' },
+  { id: 'SALO', sigla: 'SLO', nombre: 'San Lorenzo (MC)', corto: 'S. Lorenzo (MC)', ciudad: 'Monte Caseros', apodo: 'el Aurinegro', color: '#FFEB05', color2: '#191819', fuerza: 42, rival: null, zona: 'nea' },
   { id: 'CORD', sigla: 'COR', nombre: 'Córdoba (Ctes)', ciudad: 'Corrientes', apodo: 'el Albirrojo', color: '#C33036', color2: '#FFFFFF', fuerza: 33, rival: null, zona: 'nea' },
   { id: 'HERC', sigla: 'HER', nombre: 'Hércules', ciudad: 'Charata', apodo: 'el Griego', color: '#0200A8', color2: '#F8171D', fuerza: 40, rival: 'CSYL', rivales: ['CSYL'], zona: 'nea' },
   { id: 'RERE', sigla: 'REG', nombre: 'Regatas (Rcia)', ciudad: 'Resistencia', apodo: 'el Remero', color: '#D41922', color2: '#FFFFFF', fuerza: 33, rival: 'HIRE', rivales: ['HIRE', 'DBOS'], zona: 'nea' },
@@ -2561,7 +2563,7 @@ const CLUBES_FEDERAL = [
   { id: 'JULI', sigla: 'JUL', nombre: '9 de Julio', ciudad: 'Salta', apodo: null, color: '#3C3C28', color2: '#F4E814', fuerza: 33, rival: null, zona: 'noa' },
   { id: 'CONC', sigla: 'CON', nombre: 'Concepción', ciudad: 'Banda del Río Salí', apodo: 'El León', color: '#07A9EF', color2: '#FFFFFF', fuerza: 40, rival: 'MISA', rivales: ['MISA'], zona: 'noa' },
   { id: 'MTMR', sigla: 'MON', nombre: 'Montmartre', ciudad: 'San Fernando del Valle de Catamarca', apodo: 'El Cuervo', color: '#000000', color2: '#FFC803', fuerza: 32, rival: 'REST', rivales: ['REST'], zona: 'noa' },
-  { id: 'BELG', sigla: 'BES', nombre: 'Belgrano (T)', ciudad: 'San Miguel de Tucumán', apodo: 'El Patriota', color: '#0402C0', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'noa' },
+  { id: 'BELG', sigla: 'BEL', nombre: 'Belgrano (T)', ciudad: 'San Miguel de Tucumán', apodo: 'El Patriota', color: '#0402C0', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'noa' },
   { id: 'CARM', sigla: 'CAR', nombre: 'El Carmen', ciudad: 'El Carmen', apodo: null, color: '#FFFFFF', color2: '#1E247E', fuerza: 45, rival: null, zona: 'noa' },
   { id: 'REST', sigla: 'RED', nombre: 'Red Star', ciudad: 'San Fernando del Valle de Catamarca', apodo: 'El Estrellado', color: '#DB0D19', color2: '#FFFFFF', fuerza: 37, rival: 'MTMR', rivales: ['MTMR'], zona: 'noa' },
   /* sur · 9 */
@@ -2570,7 +2572,7 @@ const CLUBES_FEDERAL = [
   { id: 'PLOT', sigla: 'PLO', nombre: 'Plottier', ciudad: 'Plottier', apodo: null, color: '#1B4FA0', color2: '#FFFFFF', fuerza: 40, rival: 'CEES', rivales: ['CEES'], zona: 'sur' },
   { id: 'DROC', sigla: 'ROC', nombre: 'Deportivo Roca', ciudad: 'General Roca', apodo: 'El Naranja', color: '#FE5200', color2: '#FFFFFF', fuerza: 33, rival: 'REGI', rivales: ['REGI'], zona: 'sur' },
   { id: 'BIGN', sigla: 'BIG', nombre: 'El Biguá (NQN)', ciudad: 'Neuquén', apodo: null, color: '#1FA045', color2: '#111111', fuerza: 39, rival: null, zona: 'sur' },
-  { id: 'INEQ', sigla: 'INQ', nombre: 'Independiente (NQN)', corto: 'Indep. (NQN)', ciudad: 'Neuquén', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'PACI', rivales: ['PACI'], zona: 'sur' },
+  { id: 'INEQ', sigla: 'IND', nombre: 'Independiente (NQN)', corto: 'Indep. (NQN)', ciudad: 'Neuquén', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'PACI', rivales: ['PACI'], zona: 'sur' },
   { id: 'PACI', sigla: 'PAC', nombre: 'Pacífico', ciudad: 'Neuquén', apodo: 'El Decano', color: '#F2C300', color2: '#111111', fuerza: 37, rival: 'INEQ', rivales: ['INEQ'], zona: 'sur' },
   { id: 'PERF', sigla: 'PER', nombre: 'Pérfora', ciudad: 'Plaza Huincul', apodo: 'El Verde', color: '#088E49', color2: '#FEC61E', fuerza: 45, rival: 'PETR', rivales: ['PETR'], zona: 'sur' },
   { id: 'PETR', sigla: 'PET', nombre: 'Petrolero', ciudad: 'Plaza Huincul', apodo: 'El Matador', color: '#E95F21', color2: '#111111', fuerza: 32, rival: 'PERF', rivales: ['PERF'], zona: 'sur' },
@@ -2652,7 +2654,7 @@ const CLUBES_ARGENTINA = [
   { id: 'CEIB', sigla: 'CEI', nombre: 'El Ceibo', ciudad: 'San Francisco', apodo: 'La Flor Nacional', color: '#C4242B', color2: '#3A4686', fuerza: 41, rival: 'SISI', rivales: ['SISI'], zona: 'norte' },
   { id: 'BJAR', sigla: 'BJA', nombre: 'Barrio Jardín', ciudad: 'San Miguel de Tucumán', apodo: null, color: '#C8102E', color2: '#1B7A3E', fuerza: 46, rival: null, zona: 'norte' },
   { id: 'BPAR', sigla: 'BPA', nombre: 'Barrio Parque', ciudad: 'Córdoba', apodo: 'El Verde', color: '#01A11B', color2: '#111111', fuerza: 49, rival: 'HIND', rivales: ['HIND'], zona: 'norte' },
-  { id: 'BMIT', sigla: 'BMI', nombre: 'Mitre (P)', ciudad: 'Posadas', apodo: 'El Auriazul', color: '#343C94', color2: '#F3E354', fuerza: 48, rival: null, zona: 'norte' },
+  { id: 'BMIT', sigla: 'MIT', nombre: 'Mitre (P)', ciudad: 'Posadas', apodo: 'El Auriazul', color: '#343C94', color2: '#F3E354', fuerza: 48, rival: null, zona: 'norte' },
   { id: 'BOCH', sigla: 'BOC', nombre: 'Bochas', ciudad: 'Colonia Caroya', apodo: null, color: '#00378C', color2: '#CF010C', fuerza: 45, rival: null, zona: 'norte' },
   { id: 'RIVA', sigla: 'RVA', nombre: 'Rivadavia (Mza)', ciudad: 'Rivadavia', apodo: 'El Naranja', color: '#134CA7', color2: '#DF842D', fuerza: 44, rival: null, zona: 'norte' },
   { id: 'COMU', sigla: 'COM', nombre: 'Comunicaciones', ciudad: 'Mercedes', apodo: 'Comu', color: '#FBE11C', color2: '#111111', fuerza: 48, rival: 'VSMA', rivales: ['VSMA'], zona: 'norte' },
@@ -2672,7 +2674,7 @@ const CLUBES_ARGENTINA = [
   { id: 'DNOR', sigla: 'DNO', nombre: 'Deportivo Norte', ciudad: 'Armstrong', apodo: 'Los Tigres', color: '#1BA1D0', color2: '#0171AF', fuerza: 42, rival: null, zona: 'sur' },
   { id: 'VIED', sigla: 'VIE', nombre: 'Deportivo Viedma', corto: 'Dep. Viedma', ciudad: 'Viedma', apodo: 'Depo', color: '#014F90', color2: '#FC1620', fuerza: 47, rival: null, zona: 'sur' },
   { id: 'GILP', sigla: 'GIM', nombre: 'Gimnasia (LP)', ciudad: 'La Plata', apodo: 'El Lobo', color: '#FFFFFF', color2: '#1F3D7A', fuerza: 50, rival: null, zona: 'sur' },
-  { id: 'LUCO', sigla: 'UNI', nombre: 'La Unión (C)', ciudad: 'Colón', apodo: 'El Rojo', color: '#BE0411', color2: '#FFFFFF', fuerza: 49, rival: 'ROCA', rivales: ['ROCA', 'CENT'], zona: 'sur' },
+  { id: 'LUCO', sigla: 'LAU', nombre: 'La Unión (C)', ciudad: 'Colón', apodo: 'El Rojo', color: '#BE0411', color2: '#FFFFFF', fuerza: 49, rival: 'ROCA', rivales: ['ROCA', 'CENT'], zona: 'sur' },
   { id: 'PICO', sigla: 'PIC', nombre: 'Pico FC', ciudad: 'General Pico', apodo: null, color: '#111111', color2: '#FFFFFF', fuerza: 51, rival: null, zona: 'sur' },
   { id: 'PROR', sigla: 'PRO', nombre: 'Provincial (R)', ciudad: 'Rosario', apodo: 'Provin', color: '#FE010C', color2: '#FFFFFF', fuerza: 51, rival: null, zona: 'sur' },
   { id: 'QUIL', sigla: 'QUI', nombre: 'Quilmes', ciudad: 'Mar del Plata', apodo: 'El Indio', color: '#FFFFFF', color2: '#D2232A', fuerza: 52, rival: 'UMDP', rivales: ['UMDP'], zona: 'sur' },
@@ -2680,8 +2682,8 @@ const CLUBES_ARGENTINA = [
   { id: 'RSAN', sigla: 'REG', nombre: 'Regatas (SN)', ciudad: 'San Nicolás', apodo: 'El Náutico', color: '#152B4E', color2: '#F26A21', fuerza: 49, rival: null, zona: 'sur' },
   { id: 'RIVE', sigla: 'RIV', nombre: 'River', ciudad: 'Buenos Aires', apodo: 'El Millonario', color: '#FFFFFF', color2: '#D6202B', fuerza: 51, rival: null, zona: 'sur' },
   { id: 'ROCA', sigla: 'ROC', nombre: 'Rocamora', ciudad: 'Concepción del Uruguay', apodo: 'El Rojo', color: '#DE1C1F', color2: '#FFFFFF', fuerza: 42, rival: 'LUCO', rivales: ['LUCO', 'CENT'], zona: 'sur' },
-  { id: 'UMDP', sigla: 'UMP', nombre: 'Unión (MDP)', ciudad: 'Mar del Plata', apodo: 'El Celeste', color: '#05ACDF', color2: '#FFFFFF', fuerza: 43, rival: 'QUIL', rivales: ['QUIL'], zona: 'sur' },
-  { id: 'UNSF', sigla: 'UNS', nombre: 'Unión (SF)', ciudad: 'Santa Fe', apodo: 'El Tatengue', color: '#FFFFFF', color2: '#D0202E', fuerza: 46, rival: null, zona: 'sur' },
+  { id: 'UMDP', sigla: 'UNI', nombre: 'Unión (MDP)', ciudad: 'Mar del Plata', apodo: 'El Celeste', color: '#05ACDF', color2: '#FFFFFF', fuerza: 43, rival: 'QUIL', rivales: ['QUIL'], zona: 'sur' },
+  { id: 'UNSF', sigla: 'UNI', nombre: 'Unión (SF)', ciudad: 'Santa Fe', apodo: 'El Tatengue', color: '#FFFFFF', color2: '#D0202E', fuerza: 46, rival: null, zona: 'sur' },
   { id: 'VMIT', sigla: 'VMI', nombre: 'Villa Mitre (BB)', ciudad: 'Bahía Blanca', apodo: 'Los Guerreros', color: '#1B7A3E', color2: '#111111', fuerza: 45, rival: null, zona: 'sur' },
 ];
 
@@ -19403,7 +19405,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
      columna del árbol, es la puerta al árbol */
   if(opts.grilla&&esperadas.length===1){ const r=rondas.find(x=>x.nombre===esperadas[0]); const ss=(r&&r.series)||[]; if(!ss.length) return '';
     const BW=92,BH=40,GX=12,GY=8, filas=Math.ceil(ss.length/2), W=Math.min(ss.length,2)*BW+(Math.min(ss.length,2)-1)*GX, H=filas*BH+(filas-1)*GY;
-    const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
+    const todos=ss.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]); const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
     let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
     ss.forEach((s,i)=>{ const x=(i%2)*(BW+GX), top=Math.floor(i/2)*(BH+GY), mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
       const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
@@ -19421,7 +19423,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
-  const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
+  const todos=cols.flatMap(col=>col.series.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)])); const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
     const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
@@ -20916,7 +20918,8 @@ function pintaLobby(){
     if(marc){
       const soyLocal=marc.local===miIdU;
       const mis=soyLocal?marc.ptsLocal:marc.ptsVisita, sus=soyLocal?marc.ptsVisita:marc.ptsLocal;
-      m='<b>'+clubDe(miIdU).sigla+' '+mis+'–'+sus+' '+clubDe(soyLocal?marc.visita:marc.local).sigla+'</b> — ';
+      { const a=clubDe(miIdU), b=clubDe(soyLocal?marc.visita:marc.local);
+        m='<b>'+siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt+'</b> — '; }   // §2z185
     }
     /* §2z39.66 (su caza: "¿siempre dice anoche?"): sí, decía. El lobby vive antes del próximo partido, así que el
        último puede ser de hace una semana. Ahora dice el DÍA en que se jugó; sin día (playoffs, selección), "Último". */
@@ -21629,6 +21632,14 @@ function abrirPre(objetivo){
   pintaRecursos();
   irLob('pre');
 }
+/* §2z185 (su corte 2026-09-10: "cuando juegan dos que tienen el mismo nombre, ahí les aplica la letra entre ()"): la sigla
+   es del NOMBRE (IND, EST, GIM…) y el paréntesis del nombre —Independiente (Z)— se le pega SÓLO cuando el otro club a la
+   vista tiene la misma sigla. Devuelve {txt, chica}: chica = va en cuerpo menor para entrar en el lado del marcador. */
+function siglaEntre(c,otros){
+  if(!c) return {txt:'',chica:false};
+  const choca=(otros||[]).some(o=>o&&o!==c&&o.sigla===c.sigla), par=(c.nombre||'').match(/\(([^)]+)\)/);
+  return choca&&par ? {txt:c.sigla+' ('+par[1]+')',chica:true} : {txt:c.sigla,chica:false};
+}
 function marcadorDeClubes(rivalId,miId){
   const e=est(); miId=miId||e.miClubId;   // §12.23: con la selección, tu país
   /* el marcador lleva la casaca RESUELTA del partido (su caza: si saliste con la
@@ -21636,17 +21647,17 @@ function marcadorDeClubes(rivalId,miId){
   /* los DOS colores del club (su pedido 2026-09-02: "que el marcador tenga los dos colores,
      no solo uno — Boca azul y amarillo"): el fondo es la casaca resuelta, y el segundo color
      va en una franja abajo y en la sigla (cuando contrasta con el fondo) */
-  const pinta=(ladoId,tagId,id,color,acento)=>{
+  const pinta=(ladoId,tagId,id,otroId,color,acento)=>{
     const c=clubDe(id), lado=$l(ladoId), col=color||c.color;
-    $l(tagId).textContent=c.sigla;
+    { const sg=siglaEntre(c,[clubDe(otroId)]); const tag=$l(tagId); tag.textContent=sg.txt; tag.classList.toggle('chica',sg.chica); }   // §2z185
     lado.style.background=col;
     lado.style.color=claro(col)?'#10151f':'var(--tinta)';
     lado.style.boxShadow=acento?'inset 0 -5px 0 '+acento:'';
     lado.querySelectorAll('small').forEach(x=>x.style.color=acento?acento:(claro(col)?'rgba(16,21,31,.72)':'var(--tinta2)'));
   };
   /* riv ya es la casaca resuelta sin sombrear (17): no hace falta un rivBase aparte */
-  pinta('sNosLado','sNosTag',miId,CASACAS.miBase,CASACAS.mio2); pinta('sRivLado','sRivTag',rivalId,CASACAS.riv,CASACAS.riv2);
-  pinta('fNosLado','fNosTag',miId,CASACAS.miBase,CASACAS.mio2); pinta('fRivLado','fRivTag',rivalId,CASACAS.riv,CASACAS.riv2);
+  pinta('sNosLado','sNosTag',miId,rivalId,CASACAS.miBase,CASACAS.mio2); pinta('sRivLado','sRivTag',rivalId,miId,CASACAS.riv,CASACAS.riv2);
+  pinta('fNosLado','fNosTag',miId,rivalId,CASACAS.miBase,CASACAS.mio2); pinta('fRivLado','fRivTag',rivalId,miId,CASACAS.riv,CASACAS.riv2);
 }
 let salidaLista=false;   // §2z40: la carta del túnel ya pasó (o no había)
 $l('lobSalir').addEventListener('click',()=>{

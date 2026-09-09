@@ -469,6 +469,7 @@
   #lobby .arq{font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--tinta2);
        background:var(--chip);border:1.5px solid var(--tinta2);padding:3px 8px;border-radius:99px;
        white-space:nowrap}
+  #lobby .arq.viva{color:var(--naranja);border-color:var(--naranja)}   /* §2z184 (su caza: "todoterreno en gris se siente apagado"): EN FORMACIÓN gris; con identidad, naranja */
   #lobby .linea2{display:flex;align-items:center;gap:7px;font-size:13px;color:#c3cbdb;
        letter-spacing:1px;text-shadow:0 1px 6px rgba(0,0,0,.9)}
   #lobby .linea2 b{color:var(--tinta);font-weight:600}
@@ -20834,7 +20835,8 @@ function pintaLobby(){
   eNom.style.fontSize = ape.length>8 ? '20px' : '';   // §2z11: 28 de base, 20 si no entra
   /* la bandera hace VISIBLE la nacionalidad: sin esto es un campo que se elige y no se ve
      en ningún lado, o sea una pregunta sin respuesta en pantalla */
-  document.querySelector('#lobby .arq').textContent=t(IDENTIDAD_TXT[(C.identidad&&C.identidad.id)||'formacion']);   // §2z29
+  { const idn=(C.identidad&&C.identidad.id)||'formacion', arq=document.querySelector('#lobby .arq');
+    arq.textContent=t(IDENTIDAD_TXT[idn]); arq.classList.toggle('viva',idn!=='formacion'); }   // §2z29 · §2z184: con identidad, la píldora se prende
   eNom.innerHTML='<span class="ban">'+banderaDe(J.nacionalidad,18)+'</span>'+esc(ape)+
     ' <span class="dorsal">#'+(J.dorsal===undefined?7:J.dorsal)+'</span>';
   numeroQueSube($l('lobMedia'),(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5,$l('lobMedia').closest('.mediaBox'));   // la media SUBE a la vista (El Draft)
@@ -21276,7 +21278,7 @@ function pintaEntrenar(){
        izquierda y el cupo, chico, a la derecha. */
     const cupo=$l('lobCupo'); cupo.classList.remove('cajon');
     cupo.innerHTML='<div class="escVolver"><button class="volverDrill" data-volver="1">'+t(L('◀ VOLVER','◀ BACK','◀ VOLTAR'))+'</button>'
-      +'<span class="cupoChico">'+cupoTxt+(libres>0&&e.fase==='regular'?' −'+costo+' '+RAYO:'')+'</span></div>';
+      +'<span class="cupoChico">'+cupoTxt+'</span></div>';
     cupo.querySelector('[data-volver]').onclick=()=>{ escaleraAbierta=null; pintaLobby(); };   // pintaLobby, no pintaEntrenar: la MEDIA cuenta recién ahora, con el encabezado a la vista
     pintaEscalera(escaleraAbierta); return; }
   $l('lobCupo').classList.add('cajon');
@@ -21299,7 +21301,7 @@ function pintaEntrenar(){
       /* ⚠️ FÍSICO llevaba PRONTO y ahora lleva IR como todos (su pedido: *"pongamos mismo
          botón de IR y que no lleve a ningún lado — el único usuario somos nosotros"*). El
          drill del rebote sigue sin existir; lo que se fue es el cartel que lo anunciaba. */
-      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+' −'+costo+RAYO+'</button>'
+      +'<button class="btn" data-drill="'+k+'">'+t(L('IR','GO','IR'))+'</button>'   // §2z184: sin el costo (su corte: "no tiene sentido")
       +'</div>';
   }
   /* §2z149/§2z155: el botón entero va DEBAJO de los skills (su corte: "al ser todo grande debería ir abajo") */

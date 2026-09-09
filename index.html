@@ -25,12 +25,20 @@
   #marcador .lado small{font-size:16px;font-weight:700;color:var(--tinta2);letter-spacing:1.5px}
   #marcador .reloj{background:#0a0e18;color:var(--naranja);padding:4px 11px;font-size:25px;display:flex;align-items:center;gap:6px}
   #marcador .reloj b{font-size:14px;color:var(--tinta2);letter-spacing:1px}
-  /* §2z183: LA ENERGÍA EN LA CANCHA — el borde de abajo del reloj es tu barra, bajando en vivo por minuto jugado.
-     Absoluta: no suma alto al HUD (04 lo mide para la cámara). Se esconde sin partido de carrera (gym, tutoriales). */
-  #marcador .reloj,#feedMarcador .reloj{position:relative}
-  .nrgReloj{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.1);display:none}
-  .nrgReloj i{display:block;height:100%;width:100%;background:var(--naranja);transition:width .25s linear}
-  .nrgReloj.viva{display:block}
+  /* §2z184: LA ENERGÍA EN LA CANCHA, con nombre. En el HUD un chip ⚡ + número a la derecha, a la altura del reloj de
+     posesión (absoluto: no suma alto al HUD, que 04 mide para la cámara). En el feed una barra de verdad debajo del
+     marcador. Los dos bajan en vivo. Sin partido de carrera (gym, tutoriales, banco) no existen. */
+  #hudNrg{position:absolute;right:10px;top:45px;display:none;align-items:center;gap:3px;font-size:17px;font-weight:700;
+          color:var(--tinta);font-variant-numeric:tabular-nums;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+  #hudNrg .rayo{width:9px;height:17px;vertical-align:0}
+  #hudNrg.viva{display:flex}
+  #feedNrg{display:none;align-items:center;gap:8px;width:100%;max-width:420px;margin-top:-4px;font-size:17px;font-weight:700;
+           color:var(--tinta);font-variant-numeric:tabular-nums}
+  #feedNrg.viva{display:flex}
+  #feedNrg .rayo{width:10px;height:19px;flex:none}
+  #feedNrg .pista{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}
+  #feedNrg .pista i{display:block;height:100%;border-radius:4px;background:var(--naranja);transition:width .25s linear}
+  #feedNrg b{min-width:3ch;text-align:right}
   /* el reloj mide lo mismo con 10:00 que con 9:59 (su caza 2026-09-02: "el marcador se
      achica al toque"): ancho fijo para cinco cifras, tabulares */
   #sReloj,#fReloj{display:inline-block;min-width:5.2ch;text-align:center}
@@ -921,9 +929,6 @@
   #lobby .contratoCab .quien{display:flex;flex-direction:column;gap:1px;min-width:0}
   #lobby .contratoCab b{font-size:13px;letter-spacing:.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .contratoCab small{font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
-  #lobby .eco{display:flex;justify-content:space-around;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(154,164,184,.14)}
-  #lobby .eco span{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
-  #lobby .eco b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
   #lobby .eco small{font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
   #lobby .fila-tienda .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}
   #lobby .fila-tienda .nom{font-weight:700;letter-spacing:.8px;white-space:nowrap;
@@ -1455,10 +1460,11 @@
 <div id="hud">
   <div id="marcador">
     <div class="lado" id="sNosLado"><small id="sNosTag" data-l-en="YOU" data-l-pt="VOCÊ">VOS</small><span id="sNos">0</span></div>
-    <div class="reloj"><b id="sCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="sReloj">12:00</span><span class="nrgReloj" id="sNrg"><i></i></span></div>
+    <div class="reloj"><b id="sCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="sReloj">12:00</span></div>
     <div class="lado" id="sRivLado"><span id="sRiv">0</span><small id="sRivTag" data-l-en="OPP" data-l-pt="RIV">RIV</small></div>
   </div>
   <div id="posClock"><i></i></div>
+  <div id="hudNrg"><svg class="rayo" viewBox="11 16 12 23" aria-label="energía"><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z"/></svg><b>100</b></div>
   <div id="sit"></div>
   <div id="relato"></div>
 </div>
@@ -1467,9 +1473,10 @@
 <div id="feed" class="oculto">
   <div id="feedMarcador">
     <div class="lado" id="fNosLado"><small id="fNosTag" data-l-en="YOU" data-l-pt="VOCÊ">VOS</small><span id="fNos">0</span></div>
-    <div class="reloj"><b id="fCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="fReloj">12:00</span><span class="nrgReloj" id="fNrg"><i></i></span></div>
+    <div class="reloj"><b id="fCuarto" data-l-en="Q1" data-l-pt="1Q">1C</b><span id="fReloj">12:00</span></div>
     <div class="lado" id="fRivLado"><span id="fRiv">0</span><small id="fRivTag" data-l-en="OPP" data-l-pt="RIV">RIV</small></div>
   </div>
+  <div id="feedNrg"><svg class="rayo" viewBox="11 16 12 23" aria-label="energía"><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z"/></svg><span class="pista"><i></i></span><b>100</b></div>
   <!-- la statline vive ACÁ, en el entre-jugadas (su pedido: en la cancha estás con el
        tiempo justo y sin espacio; el feed es donde mirás cómo venís) -->
   <div id="statline"></div>
@@ -12898,19 +12905,20 @@ let _mkTab='', _mkStat='';
 function cuartoTxt(){ const c=G.cuarto, o=G.ot||1;   // §2z138: G.cuarto queda en 5 en TODO suplementario — el número es G.ot
   /* §2z143 (su corte): OT también en castellano, como la LNB y la TV */
   return c>4 ? L(o>1?`${o}OT`:'OT', o>1?`${o}OT`:'OT', o>1?`${o}PR`:'PR')[idioma()] : L(`${c}C`,`Q${c}`,`${c}Q`)[idioma()]; }
-/* §2z183: la barra de energía del reloj. El lobby (18b) deja en `window.NRG_PARTIDO` con qué saliste y cuánto cuesta
+/* §2z184 (antes §2z183, la rayita del reloj que no se veía): la energía en la cancha. El lobby (18b) deja en `window.NRG_PARTIDO` con qué saliste y cuánto cuesta
    la noche entera (el mismo `costoJugar` del cierre); acá baja con el reloj: la fracción jugada del partido (los cuartos
    más el suplementario) por el costo. Sin global no hay barra (gym, tutoriales, el banco). */
 let _nrgTab='';
-function pintarNrgReloj(){
+function pintarNrg(){
   const N=window.NRG_PARTIDO, viva=!!(N&&!G.gym&&!G.tut);
   const total=4*RELOJ_CUARTO+(G.ot||0)*OT_SEG;
   const c=G.cuarto||1, jugado=!viva?0:Math.min(total,Math.max(0,c<=4?c*RELOJ_CUARTO-G.reloj:4*RELOJ_CUARTO+(c-4)*OT_SEG-G.reloj));
   const val=viva?Math.max(0,N.ini-N.costo*jugado/(4*RELOJ_CUARTO)):0;
   const tab=viva+'|'+Math.round(val*4);
   if(tab===_nrgTab) return; _nrgTab=tab;
-  for(const id of ['sNrg','fNrg']){ const el=document.getElementById(id); if(!el) continue;
-    el.classList.toggle('viva',viva); el.firstElementChild.style.width=val+'%'; }
+  const n=Math.round(val);
+  const h=document.getElementById('hudNrg'); if(h){ h.classList.toggle('viva',viva); h.lastElementChild.textContent=n; }
+  const f=document.getElementById('feedNrg'); if(f){ f.classList.toggle('viva',viva); f.querySelector('.pista i').style.width=val+'%'; f.lastElementChild.textContent=n; }
 }
 function marcador(){
   const t=Math.max(0,Math.ceil(G.reloj)), txt=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
@@ -12921,7 +12929,7 @@ function marcador(){
     $('#sCuarto').textContent=cuarto; $('#sReloj').textContent=txt;
     $('#fNos').textContent=G.nos; $('#fRiv').textContent=G.riv;
     $('#fCuarto').textContent=cuarto; $('#fReloj').textContent=txt; }
-  pintarNrgReloj();
+  pintarNrg();
   /* tu statline a la vista (pedido suyo 2026-08-22) — el HUD se mide del DOM, así que este
      renglón corre la cancha solo, en cualquier resolución */
   const stat=`<b>${apodo()}</b> · ${G.pts} PTS · ${G.ast} AST · ${G.aciertos}/${G.tiros}`+
@@ -22179,6 +22187,20 @@ const ICONO_TIENDA={
 /* §2z42.6 (su caza: "¿por qué latita no usa el mismo ícono que antes? No es una latita eso"): la lata es LA lata del HUD */
 const LATA_SVG='<svg class="icoT lata" viewBox="0 0 34 48" aria-hidden="true"><ellipse cx="17" cy="6.5" rx="11" ry="4" fill="#3a3325"/><path d="M6 8 C6 8 5 14 5 24 C5 34 6 42 6 42 C6 45 11 47 17 47 C23 47 28 45 28 42 C28 42 29 34 29 24 C29 14 28 8 28 8 C28 10.5 23 12 17 12 C11 12 6 10.5 6 8 Z" fill="#9aa4b8"/><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z" fill="#ff9633"/></svg>';   // el cuerpo claro: sobre el cajón oscuro la lata negra del HUD no se veía (su caza)
 const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="'+ICONO_TIENDA[k]+'"/></svg>';
+/* §2z184 (su corte 2026-09-10: *"en LO TUYO sigue sin entenderse nada, tanto ahí como en la tienda con el 1 → 2 y esas
+   cosas. NECESITAMOS UN REWORK SERIO"*): la energía tiene UNA unidad para el que juega —el número de la barra— y todo lo
+   demás se dice con PALABRAS. Cada ítem dice lo que hace en una frase; las cadenas que reemplazan dicen contra qué. Sin
+   "por día", sin flechas, sin tildes, sin la fila de +5/−23/−18. Los números viven en el motor y se ven donde pasan: la
+   barra del partido (07), el velo post partido (§2z181) y el gimnasio. */
+const sinArticulo=(n)=>n.replace(/^(EL|LA|LOS|LAS|THE|O|A|OS|AS)\s+/i,'').toLowerCase();
+function fraseItem(k,it,J){
+  if(it.sesion) return t(L('entrenar cansa menos','training tires you less','treinar cansa menos'));
+  if(it.partido) return t(L('los partidos cansan menos','games tire you less','os jogos cansam menos'));
+  if(!it.regen) return '';
+  const prev=(k==='vehiculo'||k==='casa')?ESCALERA[k][ESCALERA[k].indexOf(it)-1]:null;
+  const base=t(L('recuperás más rápido','you recover faster','você recupera mais rápido'));
+  return prev&&tieneItem(J,prev.id) ? base+' '+t(L('que con ','than with ','que com '))+sinArticulo(t(prev.nom)) : base;
+}
 function pintaTienda(){
   const J=C.jugador;
   const item=(cad,nom,efecto,precio,id,tenes,escalones,extra)=>
@@ -22188,26 +22210,11 @@ function pintaTienda(){
       '<span class="precio">'+(tenes?'':fplata(precio))+'</span>'+
       '<button class="btn" data-compra="'+id+'"'+(tenes?' disabled':'')+'>'+
         (tenes?t(L('TUYO','YOURS','SEU')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
-  /* §2z42.6 (su caza: "no termino de entender qué es cada puntito… no vi forma de que me diga «ya tenés la
-     moto»"): los puntos se fueron; lo que ya tenés va en PALABRAS en el renglón del efecto — "tenés la moto" */
-  /* …y sin prosa (su segunda vuelta: "tener la prosa ahí de «tenés X cosa» no me termina de cerrar"): un tilde y el
-     nombre pelado, sin artículo — "✓ moto" es un estado, no una frase */
-  const pelado=(n)=>n.replace(/^(EL|LA|LOS|LAS|THE|O|A|OS|AS)\s+/i,'').toLowerCase();
-  const tenes=(k)=>{ const m=mejorDe(J,k); return m?'<span class="tenes">✓ '+pelado(t(m.nom))+'</span>':''; };
-  const porDia=r=>'+'+r+' '+RAYO+' '+t(L('por día','per day','por dia'));
-  const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
-                    : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
-                    : it.regen ? porDia(it.regen) : '';
-  /* §2z165 (su caza 2026-09-08: "comprás algo y aparece abajo con el tildecito, nada más; no sabés cuánto te aporta lo
-     que ya compraste; ¿el nuevo acumula o reemplaza?"): (1) en las cadenas que REEMPLAZAN (vehículo, casa) el efecto
-     se escribe como flecha —"+1 → +2 ⚡ por día"—: el mismo número, más grande, es la respuesta; (2) en el staff, que
-     ACUMULA (cada uno hace otra cosa), lo tuyo va con su aporte en un renglón chico; (3) arriba, tu economía sumada. */
-  const efectoFila=(k,it)=>{ const m=mejorDe(J,k);
-    if(m&&m.regen&&it.regen&&m!==it) return '+'+m.regen+' → +'+it.regen+' '+RAYO+' '+t(L('por día','per day','por dia'));
-    return efectoDe(it); };
+  /* §2z184: lo que ya tenés vive en LO TUYO, no acá (su caza: "si ya tenemos las cosas que compraste en lo tuyo, ¿por qué
+     siguen con tilde en tienda?") */
   /* de cada cadena, el SIGUIENTE escalón; si la terminaste, el último dice TUYO */
   const fila=k=>{ const sig=siguienteDe(J,k); const it=sig||ESCALERA[k][ESCALERA[k].length-1];
-    return item(k,t(it.nom),efectoFila(k,it),it.precio,it.id,!sig,tenes(k)); };
+    return item(k,t(it.nom),fraseItem(k,it,J),it.precio,it.id,!sig,''); };
   $l('lobTienda').innerHTML=
     item('lata',t(L('LATITA','ENERGY CAN','LATINHA')),
       t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas,
@@ -22222,20 +22229,14 @@ function pintaTienda(){
    cadenas. Crece como lista, en su lugar. La vidriera no cambia. */
 function pintaTuyo(){
   const J=C.jugador, box=$l('lobTuyo'); if(!box) return;
-  const sesion=(J.entreno&&J.entreno.trainer)?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
-  const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
-                    : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
-                    : it.regen ? '+'+it.regen+' '+RAYO+' '+t(L('por día','per day','por dia')) : '';
-  let h='<div class="eco"><span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
-    +'<span><b>−'+costoJugar(minutosDe(),C.ligaId)+' '+RAYO+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
-    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span></div>';
-  let n=0;
+  /* §2z184: la lista de lo que tenés, cada cosa con lo que hace en una frase. Sin la fila de números. */
+  let h='', n=0;
   for(const k of ['staff','vehiculo','casa','lifestyle']){
     const m=mejorDe(J,k);
     for(const it of ESCALERA[k]){ if(!tieneItem(J,it.id)) continue; n++;
       const vale=(k==='staff'||k==='lifestyle')||it===m;   // en las cadenas que reemplazan, sólo el mejor aporta
       h+='<div class="fila-tienda cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span>'
-        +'<span class="txt"><span class="nom">'+t(it.nom)+'</span><span class="ef">'+(vale?efectoDe(it):'')+'</span></span></div>'; }
+        +'<span class="txt"><span class="nom">'+t(it.nom)+'</span><span class="ef">'+(vale?fraseItem(k,it,J):'')+'</span></span></div>'; }
   }
   if(!n) h+='<div class="fila-item"><span class="desc">'+t(L('Todavía nada','Nothing yet','Ainda nada'))+'</span></div>';
   box.innerHTML=h;

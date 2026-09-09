@@ -5417,7 +5417,8 @@ function ofertaDe(J, ligaId, club, notaProm) {
   const techo = TECHO_NIVEL[Math.max(1, Math.min(10, J.nivel || 1))];
   const piso = PISO_NIVEL[Math.max(1, Math.min(10, J.nivel || 1))];
   const ajuste = Math.min(techo, Math.max(piso, bruto)) / Math.max(1, bruto);
-  return { partido: r5(bruto * ajuste), ganar: r5(g * f * ajuste), mision: r5(bruto * ajuste * MISION_BONO) };
+  /* §2z161: el contrato recuerda con qué estrella se firmó — la renegociación sólo se ofrece por una estrella NUEVA */
+  return { partido: r5(bruto * ajuste), ganar: r5(g * f * ajuste), mision: r5(bruto * ajuste * MISION_BONO), nivel: J.nivel || 1 };
 }
 const pagoDelContrato = (contrato, gano, misionOk) =>
   (contrato.partido || 0) + (gano ? contrato.ganar || 0 : 0) + (misionOk ? contrato.mision || 0 : 0);
@@ -21243,7 +21244,9 @@ function registrarResultado(){
   const nivelAntes=J.nivel||1;
   J.nivel=nivelDeExp(J.exp);
   const subio=J.nivel>nivelAntes, bajo=J.nivel<nivelAntes;
-  if(subio) C.renegocia={nivel:J.nivel};   // §2z15: una renegociación por estrella; la siguiente la reemplaza
+  /* §2z161 (su caza 2026-09-08: "al subir a nivel 4 me hizo firmar de nuevo, cuando ya lo tenía porque había estado en
+     4 y bajé"): la renegociación es por estrella NUEVA — si el contrato ya se firmó con esa estrella o más, no hay oferta */
+  if(subio && !(C.contrato&&C.contrato.nivel>=J.nivel)) C.renegocia={nivel:J.nivel};   // §2z15: una renegociación por estrella; la siguiente la reemplaza
   /* el contrato de NSS (§5): la relación con el plantel COMPRA posesiones (pos la lee
      en el grifo). Asistir la levanta, el partido flojo la gasta — suave y acotada. */
   /* §2z12: las tres relaciones se mueven — hinchada por el resultado, plantel por tus

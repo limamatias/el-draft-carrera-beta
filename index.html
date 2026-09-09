@@ -915,6 +915,11 @@
   #lobby .fila-tienda .ico{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--tinta2)}
   #lobby .fila-tienda .icoT{width:20px;height:20px}
   #lobby .fila-tienda .icoT.lata{width:14px;height:20px}
+  /* ⚠️ .eco es de CONTRATO (COBRASTE · GASTASTE) — §2z184 la sacó creyendo que era sólo de LO TUYO y CONTRATO se rompió (su caza) */
+  #lobby .eco{display:flex;justify-content:space-around;gap:6px;margin-top:6px;padding-top:6px;border-top:1px solid rgba(154,164,184,.14)}
+  #lobby .eco span{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+  #lobby .eco b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  #lobby .eco small{font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
   #lobby .fila-tienda .ef .tenes{color:var(--tinta2);white-space:nowrap}
   #lobby .fila-tienda .ef .sep{font-style:normal;color:var(--tinta2);opacity:.6}
   #lobby .fila-tienda.cad-lata .ico{color:var(--naranja)}
@@ -22192,14 +22197,11 @@ const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24
    demás se dice con PALABRAS. Cada ítem dice lo que hace en una frase; las cadenas que reemplazan dicen contra qué. Sin
    "por día", sin flechas, sin tildes, sin la fila de +5/−23/−18. Los números viven en el motor y se ven donde pasan: la
    barra del partido (07), el velo post partido (§2z181) y el gimnasio. */
-const sinArticulo=(n)=>n.replace(/^(EL|LA|LOS|LAS|THE|O|A|OS|AS)\s+/i,'').toLowerCase();
 function fraseItem(k,it,J){
+  /* su corte 2026-09-10: "¿por qué comparamos contra el anterior? Es obvio que el auto va a recuperar más" — una frase, la misma */
   if(it.sesion) return t(L('entrenar cansa menos','training tires you less','treinar cansa menos'));
   if(it.partido) return t(L('los partidos cansan menos','games tire you less','os jogos cansam menos'));
-  if(!it.regen) return '';
-  const prev=(k==='vehiculo'||k==='casa')?ESCALERA[k][ESCALERA[k].indexOf(it)-1]:null;
-  const base=t(L('recuperás más rápido','you recover faster','você recupera mais rápido'));
-  return prev&&tieneItem(J,prev.id) ? base+' '+t(L('que con ','than with ','que com '))+sinArticulo(t(prev.nom)) : base;
+  return it.regen ? t(L('recuperás energía más rápido','you recover energy faster','você recupera energia mais rápido')) : '';
 }
 function pintaTienda(){
   const J=C.jugador;

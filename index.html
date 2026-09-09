@@ -20430,6 +20430,9 @@ function pintaLobby(){
     const dA=Math.max(0,Math.min(idxA-2,fam.length-5));
     $l('lobFix5').innerHTML=fam.slice(dA,dA+5).map(f=>filaFix(f,calPorFecha,proxKey)).join('');
     let tA=''; tablaGrupoAM(e.americas,e.americas.miGrupo).slice(0,5).forEach((f,i)=>{ tA+=filaGrupoAM(f,i+1,e.miClubId); });
+    /* §2z163 (su corte: "en la tabla, cuando vas a jugar el partido, tendría más sentido"): la condición del último del
+       grupo va también acá, debajo de la tabla corta del vestuario — el grupo tiene tres filas, hay lugar */
+    { const cond=amCondicionTxt(); if(cond) tA+='<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+cond+'</span></span></div>'; }
     $l('lobTabla5').innerHTML=tA;
   } else {
     const idxProx=prox&&(prox.tipo==='fecha'||prox.tipo==='americas')?fechas.findIndex(f=>f.key===proxKey):fechas.length-1;

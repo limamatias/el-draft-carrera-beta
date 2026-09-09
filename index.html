@@ -4370,10 +4370,12 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
   const base = jugador.dbeta !== undefined ? jugador.dbeta
     : 5 * (nivel - 1)                                  // tu carrera: el término que manda abajo
     + LIGAS[ligaId].esc;                               // la liga/competencia
-  const D = base
-    + 0.6 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))  // David vs Goliat, en las dos puntas
-    + (local ? 0 : 4);                                 // la visita aprieta (videos 10-12)
-  return Math.max(0, Math.min(60, D));
+  /* 2026-09-09 (su corte: "no debería tener TANTA diferencia; una dificultad 0 es un chiste"): el término del rival se acota
+     a [−6, +8] (en la NBA el abanico 36–70 daba ±20: Boston de local contra un débil era D 0 y Washington de visita a Boston 34)
+     y D nunca baja de la mitad de la base. La LNB (50–66) casi no lo siente: sólo recorta los extremos. */
+  const rivalT = Math.max(-6, Math.min(8, 0.6 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))));   // David vs Goliat, acotado
+  const D = base + rivalT + (local ? 0 : 4);           // la visita aprieta (videos 10-12)
+  return Math.max(0, Math.max(base * 0.5, Math.min(60, D)));
 }
 
 /* ══ §7.1 LA DIFICULTAD DINÁMICA DE LA BETA (2026-09-02, su veto: "nota promedio a favor, sube
@@ -5458,7 +5460,10 @@ const PISO_NIVEL = [0, 110, 126, 143, 160, 160, 160, 160, 160, 160, 160];
 function ofertaDe(J, ligaId, club, notaProm) {
   const [b, g] = SUELDO_LIGA[ligaId] || SUELDO_LIGA.federal;
   if (!b) return { partido: 0, ganar: 0, mision: 0 };
-  const fN = 1 + 0.15 * Math.max(-3, Math.min(3, (J.nivel || 1) - nivelEsperado(ligaId, club)));
+  /* 2026-09-09 (su corte: "el jugador tiene que cobrar en NBA lo que cobraría allá, así la escalera tiene sentido"): en la beta
+     el jugador es "bueno para la liga" (Dbeta), así que cobra A NIVEL y sin techo de estrella */
+  const enBeta = J.dbeta !== undefined;
+  const fN = enBeta ? 1 : 1 + 0.15 * Math.max(-3, Math.min(3, (J.nivel || 1) - nivelEsperado(ligaId, club)));
   /* ⚠️ y el ±35% ahora SE CUMPLE: la cuenta suponía abanicos angostos, pero la NCAA va de 23 a 68
      de fuerza (mediana 57) y la NBA de 36 a 70, así que el club más flojo terminaba en 0,15 — o
      sea cobrando el 15% de la base. De los 306 clubes sólo 12 se caían del rango (8 de la NCAA y
@@ -5475,7 +5480,7 @@ function ofertaDe(J, ligaId, club, notaProm) {
   const bruto = b * f;
   const techo = TECHO_NIVEL[Math.max(1, Math.min(10, J.nivel || 1))];
   const piso = PISO_NIVEL[Math.max(1, Math.min(10, J.nivel || 1))];
-  const ajuste = Math.min(techo, Math.max(piso, bruto)) / Math.max(1, bruto);
+  const ajuste = enBeta ? 1 : Math.min(techo, Math.max(piso, bruto)) / Math.max(1, bruto);
   /* §2z161: el contrato recuerda con qué estrella se firmó — la renegociación sólo se ofrece por una estrella NUEVA */
   return { partido: r5(bruto * ajuste), ganar: r5(g * f * ajuste), mision: r5(bruto * ajuste * MISION_BONO), nivel: J.nivel || 1 };
 }
@@ -9846,7 +9851,8 @@ function barraSel(torneo, pais) {
   return (SEL_BARRA[torneo] || SEL_BARRA.ventana) + propia;
 }
 function rolSel(J, pais, torneo, media) {
-  const gap = media - barraSel(torneo || 'ventana', pais), R = relSelDe(J);
+  /* 2026-09-09 (su corte): en la beta el gap se da por cumplido — el rol lo decide el DT de la selección, que se gana jugando */
+  const gap = J.dbeta !== undefined ? 10 : media - barraSel(torneo || 'ventana', pais), R = relSelDe(J);
   if (gap >= 10 && R.dt >= 60) return 'referencia';
   if (gap >= 4 && R.dt >= 40) return 'titular';
   return 'suplente';
@@ -9887,7 +9893,10 @@ function bonoDtSel(R) { return R ? Math.max(-0.2, Math.min(0.2, (R.dt - 40) / 10
 function decidirVentanaSel(e, k) {
   const el = e.seleccion; if (!el) return;
   const v = el.ventanas[k]; if (!v || v.conv !== undefined) return;
-  if (el.beta) { v.conv = true; v.motivo = null; el.convocado = true; el.motivo = null; return; }
+  if (el.beta) {
+    /* 2026-09-09 (su corte: "la carta debería salir igual"): en la beta te llaman siempre, pero en las ligas que no paran ELEGÍS */
+    if (e.selElige && v.receso !== 'verano') { v.conv = false; v.gap = 6; v.eleccion = 'pendiente'; v.motivo = null; el.convocado = false; el.motivo = null; return; }
+    v.conv = true; v.gap = 6; v.motivo = null; el.convocado = true; el.motivo = null; return; }
   const media = e.skills ? (e.skills.tiro + e.skills.manejo + e.skills.vision + e.skills.fisico + e.skills.defensa) / 5 : 0;
   const antes = k > 0 ? !!el.ventanas[k - 1].conv : !!e.selYaEstuvo;
   const R = e.relSel || null;
@@ -9960,7 +9969,11 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
     out.sort((a, b) => a.f - b.f);
     if (parte === 'A') {
       out.forEach((v, i) => { v.n = i + 1; });
-      for (const [md0, md1] of VENTANAS_VERANO) out.push({ n: out.length + 1, f: F, receso: 'verano', dias: cal ? [diaDeTemporada(cal, md0), diaDeTemporada(cal, md1)] : null });
+      /* 2026-09-09: si la postemporada de la liga pasa esas fechas (la Federal juega hasta julio), van después de la final */
+      const dFin = cal && cal.playoffsHasta ? diaDeTemporada(cal, cal.playoffsHasta) : 0;
+      VENTANAS_VERANO.forEach(([md0, md1], i) => { let d0 = cal ? diaDeTemporada(cal, md0) : null, d1 = cal ? diaDeTemporada(cal, md1) : null;
+        if (d0 !== null && d0 <= dFin) { d0 = dFin + 10 + 30 * i; d1 = d0 + 3; }
+        out.push({ n: out.length + 1, f: F, receso: 'verano', dias: d0 !== null ? [d0, d1] : null }); });
     } else out.forEach((v) => { v.n = 5; });
     return out;
   }
@@ -10053,7 +10066,7 @@ function continuarEliminatorias(previo, F, ocupadas, ritmo, semillaCal) {
   return previo;
 }
 /** §12.2 v2: las jornadas ya jugadas cuando la carrera entra a una parte B sin parte A (la beta, un save viejo). */
-function presimularEliminatorias(e, hasta) {
+function presimularEliminatorias(e, hasta, buscar) {
   const el = e.seleccion; if (!el) return;
   hasta = hasta || 8;
   /* su pregunta (2026-09-09): "¿la simulación te puede dejar en una temporada donde tu país ya está AFUERA del Mundial
@@ -10065,7 +10078,8 @@ function presimularEliminatorias(e, hasta) {
   const estado = () => { const t = tablaSel(el), pos = t.findIndex((f) => f.id === el.pais), yo = t[pos], cuarto = t[SEL_ELIM_CLASIFICAN - 1];
     return { enJuego: pos === 2 || pos === 3, vivo: pos < SEL_ELIM_CLASIFICAN || (cuarto.pg - yo.pg) <= 2 }; };
   let vivoK = null;
-  for (let k = 0; k < 40; k++) { correr(k); const st = estado(); if (st.enJuego) { e.semilla = base; return; } if (vivoK === null && st.vivo) vivoK = k; }
+  /* 2026-09-09: la búsqueda de semilla es de la beta (una vidriera); la carrera juega lo que salga */
+  for (let k = 0; k < (buscar ? 40 : 1); k++) { correr(k); const st = estado(); if (st.enJuego) { e.semilla = base; return; } if (vivoK === null && st.vivo) vivoK = k; }
   correr(vivoK === null ? 0 : vivoK); e.semilla = base;
 }
 /** Cuántas ventanas del ciclo jugaste (las de la parte A viajan en `ventanasPrevias`). */
@@ -10202,7 +10216,7 @@ const SEL_RONDAS = ['cuartos', 'semifinal', 'final'];
 /** El marcador de un partido de selecciones: el mismo dado, con el delta del continental. */
 function fuerzaSel(id, torneo) {
   const s = SELECCIONES[id];
-  return s.fuerza + (torneo === 'continental' && s.deltaCont ? s.deltaCont : 0);
+  return s.fuerza + ((torneo === 'continental' || torneo === 'eliminatorias') && s.deltaCont ? s.deltaCont : 0);   // 2026-09-09 (su corte): el equipo alternativo también en las ventanas, como la barra B
 }
 function marcadorSel(rng, local, visita, torneo) {
   let pl = puntosDe(rng, fuerzaSel(local, torneo), fuerzaSel(visita, torneo), 2);
@@ -19045,8 +19059,10 @@ function cargarCarrera(n){
        flag `beta` y el motor sorteó la ventana con media 43). Las ventanas que faltan pasan a convocado y el aviso
        de "te caíste" se borra. */
     if(c.beta&&c.temporada&&c.temporada.seleccion){ const el=c.temporada.seleccion;
-      if(!el.beta||el.ventanas.some((v,k)=>k>=el.idx&&v.conv!==true)){ el.beta=true; el.convocado=true; el.motivo=null; el.avisoVentana=null;
-        el.ventanas.forEach((v,k)=>{ if(k>=el.idx){ v.conv=true; v.motivo=null; } }); } }
+      const elige=(v)=>!!(c.temporada.selElige&&v.receso!=='verano');   // 2026-09-09: en la NBA la carta decide (no se pisa)
+      if(!el.beta||el.ventanas.some((v,k)=>k>=el.idx&&v.conv!==true&&!v.eleccion&&!elige(v))){ el.beta=true; el.motivo=null; el.avisoVentana=null;
+        el.ventanas.forEach((v,k)=>{ if(k>=el.idx&&!v.eleccion&&!elige(v)){ v.conv=true; v.motivo=null; } });
+        el.convocado=!!(el.ventanas[el.idx]&&el.ventanas[el.idx].conv); } }
     if(!c.jugador.entreno){ c.jugador.entreno=entrenoNuevo(); c.jugador.rol='titular'; }  // pre-fase 4
     if(c.jugador.minutos===undefined) c.jugador.minutos=semillaMinutos(c.ligaId,c.jugador.rol||'titular');   // pre-§2z12
     if(!c.contrato){ const cl=clubPorId(c.temporada.clubes,c.temporada.miClubId)||LIGAS[c.ligaId].clubes[0]; c.contrato=ofertaDe(c.jugador,c.ligaId,cl,null); }   // pre-§2z15
@@ -19072,7 +19088,7 @@ function cargarCarrera(n){
        lee por ventana (EQUIPO, CON LA SELECCIÓN, SIN VOS) la veía como nunca convocado. La decisión vieja valía para
        todas las ventanas de ese año: se copia a las que ya llegaron; las que faltan las decide el motor al llegar. */
     const selV=c.temporada&&c.temporada.seleccion;
-    if(selV&&selV.ventanas) selV.ventanas.forEach((v,k)=>{ if(v.conv===undefined&&(selV.beta||k<=(selV.idx||0))) v.conv=!!(selV.beta||selV.convocado); });
+    if(selV&&selV.ventanas) selV.ventanas.forEach((v,k)=>{ if(v.conv===undefined&&!v.eleccion&&(selV.beta||k<=(selV.idx||0))&&!(selV.beta&&c.temporada.selElige&&v.receso!=='verano')) v.conv=!!(selV.beta||selV.convocado); });
     if(!c.jugador.entreno.marca) c.jugador.entreno.marca={};
     if(!c.jugador.mejoras) c.jugador.mejoras={moto:false,depto:false};
     if(c.jugador.dorsal===undefined) c.jugador.dorsal=7;   // el 0 es dorsal legal
@@ -19367,13 +19383,18 @@ function instalarSeleccion(e,J,ligaId,anio,semilla,selCarrera,esBetaAhora){
   if(selCarrera&&selCarrera.elimPendiente) delete selCarrera.elimPendiente;
   if(!el) return;
   e.seleccion=el;
-  if(parte==='B'&&!previo) presimularEliminatorias(e,8);   // sin parte A (la beta, un save viejo): las ocho jornadas ya jugadas
-  if(beta){ el.beta=true; el.convocado=true; el.motivo=null; el.ventanas.forEach(v=>{ v.conv=true; v.motivo=null; }); return; }
-  /* §12.21: la convocatoria es POR VENTANA y la decide el motor cuando cada ventana llega. La temporada
-     lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
+  if(parte==='B'&&!previo) presimularEliminatorias(e,8,beta);   // sin parte A (la beta, un save viejo): las ocho jornadas ya jugadas
   /* §12.28: en las ligas que no paran (sin calendario.fiba, o las que no soltaban) ELEGÍS — nadie te retiene */
   const calL=LIGAS[ligaId]&&LIGAS[ligaId].calendario;
-  e.relSel=J.relSel||null; e.selLibera=true; e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId); e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
+  e.selElige=!(calL&&calL.fiba)||!liberaParaVentana(ligaId);
+  if(beta){ el.beta=true; e.selLibera=true; e.relSel=J.relSel||null;
+    /* 2026-09-09: la convocatoria forzada la decide el motor ventana por ventana (en la NBA queda PENDIENTE y sale la carta) */
+    el.ventanas.forEach(v=>{ if(v.receso==='verano'){ v.conv=true; v.motivo=null; } });
+    decidirVentanasQueLlegan(e,e.fechaJugada||0); if(el.ventanas[0]&&el.ventanas[0].conv===undefined) decidirVentanaSel(e,0);
+    nacerRelSel(e); return; }
+  /* §12.21: la convocatoria es POR VENTANA y la decide el motor cuando cada ventana llega. La temporada
+     lleva lo que hace falta: tus relaciones con la selección (referencia), si tu liga te suelta, si ya estuviste. */
+  e.relSel=J.relSel||null; e.selLibera=true; e.selYaEstuvo=!!(selCarrera&&selCarrera.yaEstuvo);
   decidirVentanasQueLlegan(e,e.fechaJugada||0);   // §2z73: la primera también se decide cuando llega
   nacerRelSel(e);
 }
@@ -20267,7 +20288,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+escudito(f.rival)+(f.am?banderita(f.rival):'')+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></span>'+
+    '<span class="q">'+(ladoAM?'':escudito(f.rival))+(f.am?banderita(f.rival):'')+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></span>'+   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
     '<span class="dia">'+(f.dia?diaTxt(f.dia):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */
@@ -21767,7 +21788,7 @@ function registrarResultado(){
     pasoTorneoSel(C.selTorneo,e,miJuego);
     if(!proximoTorneoSel(C.selTorneo)) cerrarTorneoReceso();
     const av=avisoTorneoSel();
-    if(av&&C.selAviso&&C.selAviso.clave==='jugado') amAviso={rot:t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),txt:av.txt,tono:av.tono};   // §2z169
+    /* 2026-09-09: sin titular — la CEREMONIA (§12.5) ya es el velo grande de ese resultado y salían los dos, uno encima del otro */
   } else if(enPartido&&enPartido.tipo==='seleccion'&&enPartido.etapa==='eliminatorias'){
     /* §12: la eliminatoria resuelve SU jornada (la tuya con tu resultado, las otras dos simuladas) */
     jugarJuegoSeleccion(e,miJuego);   // §2z88: al cerrar la ventana el motor pone al día las dos fechas del club
@@ -21776,9 +21797,7 @@ function registrarResultado(){
     /* §12: el resultado de las eliminatorias VIAJA al receso siguiente — el Mundial es el del
        año anio+2, y si tu país no pasó, no lo juega (las diez eliminatorias tienen que servir) */
     if(e.seleccion.fin) C.seleccion.mundial={anio:anioMundial(),pase:!!e.seleccion.pase,pais:e.seleccion.pais};   // §12.2 v2: el Mundial del receso que sigue
-    if(e.seleccion.fin) amAviso=e.seleccion.pase
-      ? {rot:t(SEL_TXT.eliminatorias),txt:t(L('¡CLASIFICAMOS AL MUNDIAL!','WE QUALIFIED FOR THE WORLD CUP!','CLASSIFICAMOS AO MUNDIAL!')),tono:'oro'}
-      : {rot:t(SEL_TXT.eliminatorias),txt:t(L('AFUERA DEL MUNDIAL','OUT OF THE WORLD CUP','FORA DO MUNDIAL')),tono:'mal'};   // §2z169
+    /* 2026-09-09: sin titular — el PARTE de la ventana ("¡CLASIFICAMOS AL MUNDIAL!" / "NOS QUEDAMOS AFUERA") ya lo dice */
   } else if(enPartido&&enPartido.tipo==='americas'){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
     const faseAM=e.americas.fase;
@@ -23288,7 +23307,7 @@ function armarBeta(c){
 /* EL RESUMEN DE TEMPORADA (su corte: "es una pieza del juego, no de la beta"): al tocar el
    botón del cierre, siempre. De ahí al mercado; en la beta, al gancho del juego completo. */
 function abrirResumenT(){
-  aplicarEscalera();   // §2z7/§2z28: el ascenso se premia con el mundo ya movido (idempotente, el mercado lo repite)
+  if(!esBeta()) aplicarEscalera();   // 2026-09-09: en la beta no hay mercado y simular tres ligas en seco era un colgón en el A32   // §2z7/§2z28: el ascenso se premia con el mundo ya movido (idempotente, el mercado lo repite)
   const e=est(), J=C.jugador, mt=miTabla(e), ml=e.miLinea, po=e.miLineaPO||lineaVacia();
   const club=clubDe(e.miClubId), premios=asegurarPremios();
   const jugados=(e.misPartidos||[]).filter(p=>p.jugado).length, pj=ml.pj+po.pj;

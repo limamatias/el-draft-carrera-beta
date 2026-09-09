@@ -646,7 +646,7 @@
   #lobby .fix .f{width:34px}
   /* el día en que se juega, donde antes iba "2d" y "✈ GIRA": dos partidos a dos días se
      ven solos en las fechas, sin etiqueta que lo nombre */
-  #lobby .fix .dia{flex:none;color:var(--tinta2);font-size:13px;letter-spacing:.5px;white-space:nowrap}
+  #lobby .fix .dia{flex:none;width:52px;text-align:right;color:var(--tinta2);font-size:13px;letter-spacing:.5px;white-space:nowrap;font-variant-numeric:tabular-nums}   /* §2z179: clase 3 — "26 SEP" y "5 OCT" bailaban */
   #lobby .fix .q{flex:1;display:flex;align-items:center;gap:7px;min-width:0}
   #lobby .fix .q .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* ⚠️ 64px alcanzaban para "98–91 · G" y NO para "109–112 · P": el marcador de tres
@@ -736,7 +736,7 @@
   #lobby .bracket::-webkit-scrollbar{display:none}
   #lobby .bkIn{position:relative;margin:0 auto}
   #lobby .bkTit{position:absolute;top:0;width:var(--bw,100px);text-align:center;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #lobby .bkBox{position:absolute;width:var(--bw,100px);height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 6px}
+  #lobby .bkBox{position:absolute;width:var(--bw,100px);height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 5px}
   #lobby .bkBox.vos{border-color:var(--naranja)}
   #lobby .bkBox.pend{border-style:dashed;opacity:.55}
   /* §2z171 v2 (su corte: "la letra del que pasa no se ve diferente del que se quedó, y la serie por jugarse tiene otro
@@ -19056,7 +19056,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
   /* §2z175: una FASE PREVIA sola (la reclasificación) se dibuja en grilla de dos columnas, sin líneas — no es una
      columna del árbol, es la puerta al árbol */
   if(opts.grilla&&esperadas.length===1){ const r=rondas.find(x=>x.nombre===esperadas[0]); const ss=(r&&r.series)||[]; if(!ss.length) return '';
-    const BW=100,BH=40,GX=18,GY=8, filas=Math.ceil(ss.length/2), W=Math.min(ss.length,2)*BW+(Math.min(ss.length,2)-1)*GX, H=filas*BH+(filas-1)*GY;
+    const BW=92,BH=40,GX=12,GY=8, filas=Math.ceil(ss.length/2), W=Math.min(ss.length,2)*BW+(Math.min(ss.length,2)-1)*GX, H=filas*BH+(filas-1)*GY;
     const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
     let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
     ss.forEach((s,i)=>{ const x=(i%2)*(BW+GX), top=Math.floor(i/2)*(BH+GY), mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
@@ -19065,7 +19065,10 @@ function htmlBracket(rondas,esperadas,mi,opts){
     return h+'</div></div>'; }
   const nCols=esperadas.length;
   /* §2z173: con cuatro columnas la caja se angosta para que entre en 375 (4·76 + 3·12 = 340); con cinco, scrollea */
-  const BW=nCols>=4?76:100, GX=nCols>=4?12:18, BH=40, GY=8, TH=16;
+  /* §2z176 (su captura: "el recuadrito de LA FINAL se corta por derecha"): su teléfono es de 360 px de CSS (el A32, la
+     referencia), y el cajón deja ~300 útiles. 3 columnas: 92 + 12 = 300; 4 columnas: 68 + 9 = 299. Nada depende del
+     dispositivo: se diseña para la cancha más angosta real. */
+  const BW=nCols>=4?68:92, GX=nCols>=4?9:12, BH=40, GY=8, TH=16;
   const cols=[]; for(const nombre of esperadas){ const r=rondas.find(x=>x.nombre===nombre); const prev=cols[cols.length-1];
     if(r&&r.series.length) cols.push({nombre,series:r.series});
     else if(prev){ const n=Math.max(1,Math.ceil(prev.series.length/2)); cols.push({nombre,series:Array.from({length:n},()=>null)}); } }
@@ -19075,8 +19078,8 @@ function htmlBracket(rondas,esperadas,mi,opts){
   const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
-    const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),conferencia:L('CONFER.','CONF.','CONFER.')}[col.nombre];   // §2z173: en 76 px no entra entero
-    h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<100&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
+    const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
+    h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<92&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
       if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
       const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
@@ -20030,7 +20033,23 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   const sel=ladoSel==='sel', am=ladoSel==='am';
   $l('lobFixTit').textContent=(sel?t(SEL_TXT.seleccion):am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
-  $l('lobFixFull').innerHTML=sel?htmlFixtureSeleccion():fechas.filter(f=>!am||f.am).map(f=>filaFix(f,calPorFecha,proxKey)).join('');
+  if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(); return; }
+  /* §2z177 (su caza 2026-09-08: "en la lista de partidos no se ve nunca por qué instancia jugás"): del lado del globo,
+     una cabecera por instancia — FASE DE GRUPOS · GRUPO A, CUARTOS · AL MEJOR DE 3, SEMIFINAL, LA FINAL */
+  const e=est(), am2=e.americas;
+  let h='', etapaAnt=null;
+  for(const f of fechas.filter(f=>!am||f.am)){
+    if(am&&f.etapa!==etapaAnt){ etapaAnt=f.etapa;
+      const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
+                                :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(AMERICAS_MEJOR_DE);
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+cab+'</span></span></div>'; }
+    h+=filaFix(f,calPorFecha,proxKey);
+  }
+  const box=$l('lobFixFull'); box.innerHTML=h;
+  /* §2z178 (su corte: "la lista del club te carga siempre desde el primero; debería cargar desde el próximo, o mostrando el
+     anterior"): el cajón arranca con el partido ANTERIOR arriba y el próximo debajo — lo que pasó y lo que viene */
+  const prox=box.querySelector('.r.prox'); if(prox){ const ancla=prox.previousElementSibling||prox;
+    requestAnimationFrame(()=>{ box.scrollTop=Math.max(0,ancla.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-4); }); }
 }
 
 /* el nombre COMPLETO en la tabla (su caza 2026-09-02: "Philadelphia 76ers, no 76ers"): en la

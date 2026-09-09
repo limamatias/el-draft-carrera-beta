@@ -19970,7 +19970,7 @@ function misFechas(){
   out.sort((a,b)=>diaOrd(a)-diaOrd(b)||a.fecha-b.fecha||(a.am?1:0)-(b.am?1:0)||(a.n||0)-(b.n||0));
   return out;
 }
-function filaFix(f,calPorFecha,proxFecha){
+function filaFix(f,calPorFecha,proxFecha,ladoAM){
   const e=est();
   /* la columna del resultado se arma en DOS partes (clase y texto) porque el 🔥 se le mete
      adentro — pegarlo con un replace sobre el markup es la clase 8 de CLAUDE.md */
@@ -20017,8 +20017,11 @@ function filaFix(f,calPorFecha,proxFecha){
      los equipos incluso si no son tan largos"): la nota por partido (§2z12) se fue del renglón — el
      nombre es lo que se lee acá; la nota vive en el parte del partido y en el promedio de la carrera */
   /* §12: la marca de la izquierda es la BANDERA de tu país, como el 🌎 es la del continental */
+  /* §2z180 (su corte 2026-09-08: "¿por qué iría el planeta en el menú de AMÉRICAS? Debería vivir sólo en la principal,
+     donde conviven liga y competencia"): del lado del globo la marca es el número del partido en su instancia (1–4 en el
+     grupo, J1–J3 en una serie); el globo queda para la lista mezclada del club */
   const marca=f.sel?banderaDe(C.jugador.nacionalidad||'ar',14)
-    :f.am?icono('globo',14):fPrefijo()+f.fecha;
+    :f.am?(ladoAM?(f.etapa==='grupo'?String(f.n):'J'+f.n):icono('globo',14)):fPrefijo()+f.fecha;
   /* §2z88 (su caza 2026-09-06: "en el fixture de AMÉRICAS no está el país del equipo, que sí está en la tabla"):
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
@@ -20043,7 +20046,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
       const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
                                 :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(AMERICAS_MEJOR_DE);
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+cab+'</span></span></div>'; }
-    h+=filaFix(f,calPorFecha,proxKey);
+    h+=filaFix(f,calPorFecha,proxKey,am);
   }
   const box=$l('lobFixFull'); box.innerHTML=h;
   /* §2z178 (su corte: "la lista del club te carga siempre desde el primero; debería cargar desde el próximo, o mostrando el

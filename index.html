@@ -735,8 +735,8 @@
   #lobby .bracket{overflow-x:auto;overflow-y:hidden;padding:4px 0 6px;margin:2px 0 4px}
   #lobby .bracket::-webkit-scrollbar{display:none}
   #lobby .bkIn{position:relative;margin:0 auto}
-  #lobby .bkTit{position:absolute;top:0;width:100px;text-align:center;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #lobby .bkBox{position:absolute;width:100px;height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 7px}
+  #lobby .bkTit{position:absolute;top:0;width:var(--bw,100px);text-align:center;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .bkBox{position:absolute;width:var(--bw,100px);height:40px;box-sizing:border-box;border:1px solid rgba(154,164,184,.3);border-radius:8px;background:rgba(20,27,44,.92);display:flex;flex-direction:column;justify-content:center;padding:0 6px}
   #lobby .bkBox.vos{border-color:var(--naranja)}
   #lobby .bkBox.pend{border-style:dashed;opacity:.55}
   /* §2z171 v2 (su corte: "la letra del que pasa no se ve diferente del que se quedó, y la serie por jugarse tiene otro
@@ -19053,29 +19053,37 @@ function filaGrupoAM(fila,pos,mio){
    los nombres de todas las rondas del torneo (las que faltan salen punteadas). */
 function htmlBracket(rondas,esperadas,mi,opts){
   opts=opts||{}; const unico=!!opts.unico;
-  const BW=100,BH=40,GX=18,GY=8,TH=16;
+  const nCols=esperadas.length;
+  /* §2z173: con cuatro columnas la caja se angosta para que entre en 375 (4·76 + 3·12 = 340); con cinco, scrollea */
+  const BW=nCols>=4?76:100, GX=nCols>=4?12:18, BH=40, GY=8, TH=16;
   const cols=[]; for(const nombre of esperadas){ const r=rondas.find(x=>x.nombre===nombre); const prev=cols[cols.length-1];
     if(r&&r.series.length) cols.push({nombre,series:r.series});
-    else if(prev){ const n=Math.max(1,Math.floor(prev.series.length/2)); cols.push({nombre,series:Array.from({length:n},()=>null)}); } }
+    else if(prev){ const n=Math.max(1,Math.ceil(prev.series.length/2)); cols.push({nombre,series:Array.from({length:n},()=>null)}); } }
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
   const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?c.sigla:String(id).toUpperCase().slice(0,3); };
-  let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px">';
+  let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
-    h+='<div class="bkTit" style="left:'+x+'px">'+t(RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
+    const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),conferencia:L('CONFER.','CONF.','CONFER.')}[col.nombre];   // §2z173: en 76 px no entra entero
+    h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<100&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
       if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
       const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
       const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
       const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;
       h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,gA)+fila(s.baja,gB)+'</div>'; });
-    /* las líneas: cada par de la columna anterior se une con su caja de ésta */
-    if(k>0&&cols[k-1].series.length===col.series.length*2){ const xp=(k-1)*(BW+GX)+BW, xm=xp+GX/2;
-      col.series.forEach((s,i)=>{ const y1=cy(k-1,2*i), y2=cy(k-1,2*i+1), y=cy(k,i);
-        h+='<div class="bkLine" style="left:'+xp+'px;top:'+y1+'px;width:'+(GX/2)+'px;height:1px"></div>'
-          +'<div class="bkLine" style="left:'+xp+'px;top:'+y2+'px;width:'+(GX/2)+'px;height:1px"></div>'
-          +'<div class="bkLine" style="left:'+xm+'px;top:'+y1+'px;width:1px;height:'+(y2-y1)+'px"></div>'
+    /* las líneas: cada par de la columna anterior se une con su caja de ésta. Si la ronda anterior tiene justo el
+       doble, por posición; si no (reclasificación con clasificados directos, byes), por CUERPO: la serie de acá se une
+       a las series de allá de donde salió uno de sus dos (§2z173) */
+    if(k>0){ const xp=(k-1)*(BW+GX)+BW, xm=xp+GX/2, prevS=cols[k-1].series, porPos=prevS.length===col.series.length*2;
+      col.series.forEach((s,i)=>{ const y=cy(k,i); let ys=[];
+        if(porPos) ys=[cy(k-1,2*i),cy(k-1,2*i+1)];
+        else if(s) prevS.forEach((ps,j)=>{ if(ps&&(ps.alta===s.alta||ps.baja===s.alta||ps.alta===s.baja||ps.baja===s.baja)) ys.push(cy(k-1,j)); });
+        if(!ys.length) return;
+        for(const yy of ys) h+='<div class="bkLine" style="left:'+xp+'px;top:'+yy+'px;width:'+(GX/2)+'px;height:1px"></div>';
+        const yMin=Math.min(y,...ys), yMax=Math.max(y,...ys);
+        h+='<div class="bkLine" style="left:'+xm+'px;top:'+yMin+'px;width:1px;height:'+Math.max(1,yMax-yMin)+'px"></div>'
           +'<div class="bkLine" style="left:'+xm+'px;top:'+y+'px;width:'+(GX/2)+'px;height:1px"></div>'; }); }
   });
   h+='</div></div>';
@@ -20037,14 +20045,14 @@ function pintaTablaFull(){
      anterior; el federal, con dos llaves y final, y el play-out siguen sin dibujo) */
   let bkLiga='';
   if(e.playoffs&&e.playoffs.seriesJugadas&&e.playoffs.seriesJugadas.length){
-    const orden=[]; for(const s of e.playoffs.seriesJugadas){ if(!s.playout&&!orden.includes(s.nombre)) orden.push(s.nombre); }
-    const rondas=orden.map(nombre=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)}));
-    const limpia=rondas.every((r,i)=>i===0||rondas[i-1].series.length===r.series.length*2);
-    const esperadas=orden.slice(); { let n=rondas[rondas.length-1].series.length; const faltan=['cuartos','semifinal','final'];
-      while(n>1&&limpia){ n=Math.floor(n/2); const nom=n===4?'cuartos':n===2?'semifinal':'final'; if(!esperadas.includes(nom)) esperadas.push(nom); } }
-    if(limpia&&e.playoffsDef&&e.playoffsDef.formato!=='federal'){
-      const mb=e.playoffs.seriesJugadas[0].mejorDe||1;
-      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+formatoTxt(mb)+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajTag bkSig">'+t(L('FASE REGULAR','REGULAR SEASON','FASE REGULAR'))+'</div>';
+    /* §2z173: las rondas esperadas salen de la definición de la liga (reclasificación · octavos · cuartos · semifinal ·
+       final, según la liga); la reclasificación con clasificados directos no es el doble de octavos y se une por cuerpo */
+    const def=e.playoffsDef, esperadas=(def&&def.rondas?def.rondas.map(r=>r.nombre):[]);
+    const rondas=esperadas.map(nombre=>({nombre,series:e.playoffs.seriesJugadas.filter(x=>x.nombre===nombre&&!x.playout)}));
+    if(def&&def.formato!=='federal'&&rondas.some(r=>r.series.length)){
+      const mbs=[...new Set(def.rondas.map(r=>r.mejorDe))], fin=def.rondas[def.rondas.length-1];
+      const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(def.rondas[0].mejorDe)+' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe);
+      bkLiga='<div class="cajTag">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajTag bkSig">'+t(L('FASE REGULAR','REGULAR SEASON','FASE REGULAR'))+'</div>';
     }
   }
   if(!e.zonas){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=bkLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }

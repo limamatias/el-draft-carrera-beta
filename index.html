@@ -441,7 +441,7 @@
   #lobby .nombre{font-size:28px;font-weight:700;letter-spacing:2px;
        text-shadow:0 2px 8px rgba(0,0,0,.9);line-height:1;text-transform:uppercase;
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #lobby .dorsal{font-size:clamp(17px,4.6vw,20px);font-weight:700;color:var(--naranja);   /* §2z151: naranja como en CARGAR PARTIDAS */
+  #lobby .dorsal{font-size:clamp(17px,4.6vw,20px);font-weight:700;color:var(--tinta);   /* §2z151 v2: blanco en todos lados (su corte) */
        letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,.9)}
   #lobby .idyt{flex:1;display:flex;align-items:center;gap:9px;min-width:0}
   #lobby .arq{font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--tinta2);
@@ -886,6 +886,11 @@
        font-size:13px;white-space:nowrap}
   /* ⚠️ ancho FIJO: con el precio adentro, el botón medía distinto en cada fila */
   #lobby .fila-tienda .btn{flex:none;width:74px;text-align:center;font-size:11px;padding:5px 0}
+  /* §2z165: lo que ya tenés del staff, con lo que aporta cada uno — un renglón chico debajo del efecto */
+  #lobby .fila-tienda .tuyos{color:var(--tinta2);font-size:10px;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .fila-tienda .tuyos .rayo{width:8px;height:8px}
+  /* §2z165: tu economía de energía arriba de la tienda — lo que te dan las compras, sumado */
+  #lobby .eco.tienda{margin-top:0;padding-top:2px;padding-bottom:6px;border-top:0;border-bottom:1px solid rgba(154,164,184,.14);margin-bottom:4px}
   /* ⚠️ LO TUYO envuelve en dos renglones apenas comprás cuatro cosas, y esos dos renglones son
      los que devolvían el scroll: va chico y sin interlineado de más (medido a 375×600). */
   #lobby .tuyo{margin-top:4px;font-size:10px;line-height:1.25;letter-spacing:.8px;color:var(--tinta2)}
@@ -1051,14 +1056,29 @@
        font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
   #introAjustes:active{border-color:var(--naranja);color:var(--naranja)}
   /* el popup de confirmación del lobby: la caja del sistema, sí-no y nada más */
-  #lobConfirm,#lobLataConfirm,#lobPasarConfirm{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
+  /* §2z164: el popup de la MEDIA — hermano de los de confirmar; cada skill con su barra en tres tramos */
+  #lobMediaPop .leyenda{display:flex;gap:12px;font-size:10px;letter-spacing:1.6px;font-weight:600;color:var(--tinta2)}
+  #lobMediaPop .leyenda span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  #lobMediaPop .leyenda .b::before,#lobMediaPop .seg .b{background:rgba(154,164,184,.55)}
+  #lobMediaPop .leyenda .e::before,#lobMediaPop .seg .e{background:var(--naranja)}
+  #lobMediaPop .leyenda .c::before,#lobMediaPop .seg .c{background:var(--ok)}
+  #lobMediaPop .lista{display:flex;flex-direction:column;gap:7px}
+  #lobMediaPop .r{display:flex;flex-direction:column;gap:3px}
+  #lobMediaPop .r .fila{display:flex;align-items:baseline;gap:8px;font-size:13px;letter-spacing:.5px}
+  #lobMediaPop .r .nom{font-weight:700;letter-spacing:1px;flex:1}
+  #lobMediaPop .r .nums{color:var(--tinta2);font-variant-numeric:tabular-nums;font-size:12px}
+  #lobMediaPop .r .tot{font-weight:700;font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+  #lobMediaPop .seg{display:flex;height:7px;border-radius:99px;overflow:hidden;background:#0a0e18}
+  #lobMediaPop .seg i{display:block;height:100%}
+  #lobby .mediaBox{cursor:pointer}
+  #lobConfirm,#lobLataConfirm,#lobPasarConfirm,#lobMediaPop{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
        display:flex;align-items:center;justify-content:center;padding:24px}
-  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
+  #lobConfirm .caja,#lobLataConfirm .caja,#lobPasarConfirm .caja,#lobMediaPop .caja{width:100%;max-width:340px;background:rgba(20,27,44,.97);
        border:1px solid rgba(255,150,51,.5);border-radius:14px;padding:16px;
        display:flex;flex-direction:column;gap:10px}
-  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
+  #lobConfirm .preg,#lobLataConfirm .preg,#lobPasarConfirm .preg,#lobMediaPop .preg{font-size:20px;font-weight:700;letter-spacing:.5px}
   #lobConfirm .nota2,#lobLataConfirm .nota2,#lobPasarConfirm .nota2{font-size:13px;color:var(--tinta2);letter-spacing:.5px}
-  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones{display:flex;gap:8px;margin-top:4px}
+  #lobConfirm .opciones,#lobLataConfirm .opciones,#lobPasarConfirm .opciones,#lobMediaPop .opciones{display:flex;gap:8px;margin-top:4px}
   /* §2z39.24: los partidos que juega el relato, un renglón cada uno, con escudo */
   #lobPasarConfirm .lista{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;letter-spacing:.5px}
   #lobPasarConfirm .lista .r{display:flex;align-items:center;gap:8px;min-width:0}
@@ -1362,7 +1382,7 @@
   .ranura .datos{flex:1;min-width:0}
   .ranura .apel{font-size:15px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ranura .apel .dorsal{color:var(--naranja);font-size:13px;margin-left:6px}
+  .ranura .apel .dorsal{color:var(--tinta);font-size:13px;margin-left:6px}   /* §2z151 v2 */
   /* la bandera: chica y delante del apellido, en la tarjeta y en el HUD del lobby */
   .ranura .apel .ban{margin-right:6px;display:inline-flex;align-items:center}
   #lobby .nombre .ban{margin-right:8px;display:inline-flex;align-items:center;vertical-align:2px}
@@ -1812,6 +1832,15 @@
     </div>
   </div>
   <!-- §2z39.24: PASAR LA SEMANA confirma con el mismo popup que SALIR; el contenido lo arma 18b -->
+  <!-- §2z164: de dónde viene cada skill (arranque · entreno · escenas) — se abre tocando la MEDIA -->
+  <div id="lobMediaPop" class="oculto">
+    <div class="caja">
+      <div class="preg" id="lobMediaPopTit"></div>
+      <div class="leyenda"><span class="b" data-l-en="START" data-l-pt="INÍCIO">ARRANQUE</span><span class="e" data-l-en="TRAINING" data-l-pt="TREINO">ENTRENO</span><span class="c" data-l-en="SCENES" data-l-pt="CENAS">ESCENAS</span></div>
+      <div class="lista" id="lobMediaPopLista"></div>
+      <div class="opciones"><button class="jugar principal" id="lobMediaPopOk" data-l-en="CLOSE" data-l-pt="FECHAR">CERRAR</button></div>
+    </div>
+  </div>
   <div id="lobPasarConfirm" class="oculto">
     <div class="caja">
       <div class="preg"></div>
@@ -20217,7 +20246,7 @@ function pintaLobby(){
      niveles — gris <60 · azul 60–69 · violeta 70–77 · naranja 78–84 · dorado ≥85 — con su paleta (--med-1..5). Los skills
      quedan con la suya (§2z122 v2): son dos cosas distintas y se ven distintas. */
   { const mb=$l('lobMedia').closest('.mediaBox'), mv=(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5;
-    if(mb){ const n=mv>=85?5:mv>=78?4:mv>=70?3:mv>=60?2:1; for(let i=1;i<=5;i++) mb.classList.toggle('med-'+i,i===n); } }
+    if(mb){ const n=mv>=85?5:mv>=78?4:mv>=70?3:mv>=60?2:1; for(let i=1;i<=5;i++) mb.classList.toggle('med-'+i,i===n); mb.onclick=abrirMediaPop; } }   // §2z164
   const eMio=escudito(e.miClubId);
   ponerEscudo('lobEscudo', eMio, 'escudito svg');
   $l('lobClub').textContent=clubDe(e.miClubId).nombre.toUpperCase()+' '+(mt.fila?('('+mt.fila.pg+'–'+mt.fila.pp+')'):'');
@@ -21499,12 +21528,32 @@ const ICONO_TIENDA={
 /* §2z42.6 (su caza: "¿por qué latita no usa el mismo ícono que antes? No es una latita eso"): la lata es LA lata del HUD */
 const LATA_SVG='<svg class="icoT lata" viewBox="0 0 34 48" aria-hidden="true"><ellipse cx="17" cy="6.5" rx="11" ry="4" fill="#3a3325"/><path d="M6 8 C6 8 5 14 5 24 C5 34 6 42 6 42 C6 45 11 47 17 47 C23 47 28 45 28 42 C28 42 29 34 29 24 C29 14 28 8 28 8 C28 10.5 23 12 17 12 C11 12 6 10.5 6 8 Z" fill="#9aa4b8"/><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z" fill="#ff9633"/></svg>';   // el cuerpo claro: sobre el cajón oscuro la lata negra del HUD no se veía (su caza)
 const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="'+ICONO_TIENDA[k]+'"/></svg>';
+/* §2z164 (su pregunta 2026-09-08: "en ningún lugar te decimos cuánto de tus skills viene de entrenar, cuánto era de
+   base y cuánto de escenas; podría salir si tocás en MEDIA"): tocás la MEDIA y cada skill se abre en sus tres tramos —
+   arranque (el arquetipo) · entreno (la escalera, con el óxido ya comido) · escenas (las cartas). Los mismos números
+   que suma recalcularSkill (01h): una sola fuente. */
+function abrirMediaPop(){
+  const J=C.jugador, en=J.entreno||{}, P=$l('lobMediaPop'); if(!P) return;
+  $l('lobMediaPopTit').textContent=t(L('MEDIA','RATING','MÉDIA'))+' '+Math.round(miMedia(J));
+  let h='';
+  for(const [k,nom] of SKILL_DEFS){
+    const tot=Math.round(J.skills[k]||0);
+    const esc=((en.escalera||{})[k]||[]).reduce((a,b)=>a+(b||0),0), car=(en.cartas||{})[k]||0;
+    const base=Math.max(0,tot-esc-car);   // = J.arranque[k] cuando existe; en un save viejo, lo que queda
+    const pc=(v)=>(tot>0?v/tot*100:0)+'%';
+    h+='<div class="r"><div class="fila"><span class="nom">'+t(nom)+'</span><span class="nums">'+base+(esc?' · +'+esc:'')+(car?' · +'+car:'')+'</span><span class="tot">'+tot+'</span></div>'
+      +'<span class="seg"><i class="b" style="width:'+pc(base)+'"></i><i class="e" style="width:'+pc(esc)+'"></i><i class="c" style="width:'+pc(car)+'"></i></span></div>';
+  }
+  $l('lobMediaPopLista').innerHTML=h;
+  P.classList.remove('oculto'); verQueSeVe('lobMediaPop','La media');
+  $l('lobMediaPopOk').onclick=()=>P.classList.add('oculto');
+}
 function pintaTienda(){
   const J=C.jugador;
-  const item=(cad,nom,efecto,precio,id,tenes,escalones)=>
+  const item=(cad,nom,efecto,precio,id,tenes,escalones,extra)=>
     '<div class="fila-tienda cad-'+cad+'">'+
       '<span class="ico">'+iconoTienda(cad)+'</span>'+
-      '<span class="txt"><span class="nom">'+nom+'</span><span class="ef">'+(efecto||'')+(efecto&&escalones?'<i class="sep">·</i>':'')+(escalones||'')+'</span></span>'+
+      '<span class="txt"><span class="nom">'+nom+'</span><span class="ef">'+(efecto||'')+(efecto&&escalones?'<i class="sep">·</i>':'')+(escalones||'')+'</span>'+(extra||'')+'</span>'+
       '<span class="precio">'+(tenes?'':fplata(precio))+'</span>'+
       '<button class="btn" data-compra="'+id+'"'+(tenes?' disabled':'')+'>'+
         (tenes?t(L('TUYO','YOURS','SEU')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
@@ -21518,10 +21567,23 @@ function pintaTienda(){
   const efectoDe=it=> it.sesion ? '−'+(ENERGIA_SESION-ENERGIA_SESION_TRAINER)+' '+RAYO+' '+t(L('por sesión','per session','por sessão'))
                     : it.partido ? '−'+it.partido+' '+RAYO+' '+t(L('por partido','per game','por jogo'))
                     : it.regen ? porDia(it.regen) : '';
+  /* §2z165 (su caza 2026-09-08: "comprás algo y aparece abajo con el tildecito, nada más; no sabés cuánto te aporta lo
+     que ya compraste; ¿el nuevo acumula o reemplaza?"): (1) en las cadenas que REEMPLAZAN (vehículo, casa) el efecto
+     se escribe como flecha —"+1 → +2 ⚡ por día"—: el mismo número, más grande, es la respuesta; (2) en el staff, que
+     ACUMULA (cada uno hace otra cosa), lo tuyo va con su aporte en un renglón chico; (3) arriba, tu economía sumada. */
+  const efectoFila=(k,it)=>{ const m=mejorDe(J,k);
+    if(m&&m.regen&&it.regen&&m!==it) return '+'+m.regen+' → +'+it.regen+' '+RAYO+' '+t(L('por día','per day','por dia'));
+    return efectoDe(it); };
+  const tuyosStaff=()=>{ const l=ESCALERA.staff.filter(it=>tieneItem(J,it.id)).map(it=>'✓ '+pelado(t(it.nom))+' '+efectoDe(it));
+    return l.length?'<span class="tuyos">'+l.join(' · ')+'</span>':''; };
   /* de cada cadena, el SIGUIENTE escalón; si la terminaste, el último dice TUYO */
   const fila=k=>{ const sig=siguienteDe(J,k); const it=sig||ESCALERA[k][ESCALERA[k].length-1];
-    return item(k,t(it.nom),efectoDe(it),it.precio,it.id,!sig,tenes(k)); };
-  $l('lobTienda').innerHTML=
+    return item(k,t(it.nom),efectoFila(k,it),it.precio,it.id,!sig,k==='staff'?'':tenes(k),k==='staff'?tuyosStaff():''); };
+  const e=est(), sesion=(J.entreno&&J.entreno.trainer)?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
+  const eco='<div class="eco tienda"><span><b>+'+regenDe()+' '+RAYO+'</b><small>'+t(L('POR DÍA','PER DAY','POR DIA'))+'</small></span>'
+    +'<span><b>−'+costoJugar(minutosDe(),C.ligaId)+' '+RAYO+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
+    +'<span><b>−'+sesion+' '+RAYO+'</b><small>'+t(L('SESIÓN','SESSION','SESSÃO'))+'</small></span></div>';
+  $l('lobTienda').innerHTML=eco+
     item('lata',t(L('LATITA','ENERGY CAN','LATINHA')),
       t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas,
       precioLata(),'lata',false)+

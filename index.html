@@ -221,10 +221,11 @@
   #cuerpoNota .puntuacion{opacity:1;animation:none} #cuerpoNota .puntuacion.sub{margin-top:10px}
   /* 2026-09-10 (su caza: "hay bastante aire y ENERGÍA/COBRASTE se ven extremadamente chicos"): el velo tiene lugar — los rótulos
      a 14 y las filas a 17, más aire entre bloques. Entra en 780 sin scroll: número 42 + barra + 7 filas de ~40 + botón ≈ 520. */
-  #cuerpoNota{gap:14px} #cuerpoNota .puntuacion .lbl{font-size:14px;letter-spacing:2.5px}
+  #cuerpoNota{gap:14px} #cuerpoNota .puntuacion .lbl{font-size:17px;letter-spacing:3px}   /* 2026-09-10: los rótulos seguían chicos (su caza) */
+  #cuerpoNota .barraExp{margin-bottom:8px}   /* aire entre la barra y la planilla (su caza) */
   #cuerpoNota .planilla .r{font-size:17px;padding:8px 0} #cuerpoNota .planilla .r small{font-size:13px}
   #cuerpoNota .planilla .r.nota{font-size:14px}
-  #cuerpoNota #cuerpoNum{font-size:42px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tinta)}
+  #cuerpoNota #cuerpoNum{font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tinta)}   /* 2026-09-10 (su caza: "el 87 está desproporcionado"): 42 → 34 */
   #cuerpoNota .barraExp{opacity:1;animation:none}
   #cuerpoNota #cuerpoBarraAntes{background:rgba(255,255,255,.28)}
   #cuerpoNota #cuerpoBarra{background:var(--ok);transition:width .55s cubic-bezier(.2,.8,.2,1)}
@@ -22346,7 +22347,7 @@ function abrirCuerpo(despues){
   const regen=regenDe();
   const rec=dias!==null?Math.min(100-p.despues,regen*dias):hastaPre?100-p.despues:0;
   const T1=350, T2=1100, T3=1700, PASO=140;
-  const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';
+  const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>· '+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';   // 2026-09-10 (su caza): el punto separa «hasta el 21 ENE · 2 días»
   let h=fila(t(L('Jugaste','You played','Você jogou')),p.min+"'",'−'+p.costo+' '+RAYO,'mal',T1);
   if(dias!==null){
     /* 2026-09-10 (sus cazas: "«descansás 1 día» sigue sin decir cuándo es ese descanso" · "«2 son de lo tuyo» no se entiende

@@ -4645,12 +4645,10 @@ function armarGrifo(dif, jugador, ligaId, rival, miClub, local) {
   dif.gat = D >= 38 ? 'tiempo' : 'toque';  // ⚠️ el umbral espera su mapeo de estrella 5+
   dif.dist = DIST_POR_ESTILO[estiloDe(rival.id)];
   Object.assign(dif, LIGAS[ligaId].palancas);  // lo que la liga prende por su cuenta (videos 10-11)
-  // tu lado: los skills agrandan TU ventana (0-100 → 0-10) y la ENERGÍA la achica —
-  // "llegás cansado: la ventana se te achica" (el vestuario lo promete desde la fase 2;
-  // acá se cumple). SOLO tu lado: el cansancio jamás endurece al rival. Suave: al
-  // mínimo jugable (15) perdés ~25% de ventana; de 85 para arriba estás entero.
-  const nrg = jugador.energia === undefined ? 100 : jugador.energia;
-  const frescura = 0.7 + 0.3 * Math.min(1, nrg / 85);
+  // tu lado: los skills agrandan TU ventana (0-100 → 0-10). §2z187: la ENERGÍA ya no la achica — pegaba en silencio
+  // (a 60 jugabas al 91 % sin ningún número a la vista: un dado escondido, contra la regla 1). Ahora pega en los
+  // MINUTOS de la noche (castigoEnergia, 01j), que tienen pantalla. La frescura queda en 1 para no tocar las curvas.
+  const frescura = 1;
   dif.tiro = Math.round(jugador.skills.tiro * frescura / 10);
   dif.vis = Math.round(jugador.skills.vision * frescura / 10);
   dif.man = Math.round(jugador.skills.manejo * frescura / 10);
@@ -5474,6 +5472,20 @@ const PASO_MINUTOS = 2;
 function pasoMinutos(actual, objetivo) {
   if (actual === undefined || actual === null) return objetivo;
   return actual + Math.max(-PASO_MINUTOS, Math.min(PASO_MINUTOS, objetivo - actual));
+}
+/* §2z187 (su corte 2026-09-10: "¿no debería afectarte a los minutos que te dan? Estás más cansado, jugás menos. Me cierra
+ * más que te afecte ahí que en cómo jugás"): LA ENERGÍA PEGA EN LOS MINUTOS DE LA NOCHE, Y SÓLO AHÍ. Entero de 70 para
+ * arriba; de ahí para abajo el DT te saca hasta 8 minutos a 15 (el mínimo para salir). No pasa por el continuo (el paso
+ * de 2 por partido): es el castigo de ESTA noche, así la latita lo levanta al instante. Números v0 para sus dedos. */
+const NRG_ENTERO = 70, NRG_PISO = 15, CASTIGO_MIN_MAX = 8;
+function castigoEnergia(nrg) {
+  const e = nrg === undefined ? 100 : nrg;
+  if (e >= NRG_ENTERO) return 0;
+  return Math.round(CASTIGO_MIN_MAX * Math.min(1, (NRG_ENTERO - e) / (NRG_ENTERO - NRG_PISO)));
+}
+function minutosDeNoche(min, nrg, ligaId) {
+  const p = minParamDe(ligaId);
+  return Math.max(p.piso, min - castigoEnergia(nrg));
 }
 /* el rol es una ETIQUETA que se lee de los minutos */
 function rolDeMinutos(ligaId, min) {
@@ -21240,6 +21252,7 @@ function tomarUna(desdeMini){
   else { avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   J.energia=100;   // la lata te deja SIEMPRE en 100 (su regla)
   guardar(); pintaRecursos(); pintaSecciones();
+  if(preAbierto&&$l('lv-pre')&&!$l('lv-pre').classList.contains('oculto')) abrirPre(preAbierto);   // §2z187: los minutos suben a la vista
 }
 $l('lobTomar').addEventListener('click',()=>tomarUna(false));
 $l('lobTomarMini').addEventListener('click',()=>tomarUna(true));
@@ -21632,7 +21645,11 @@ function abrirPre(objetivo){
   /* §2z12: LA MISIÓN DEL DT se anuncia acá — una por partido, a la medida de tus minutos */
   /* §2z39.64 (su caza: "esos 20 MIN no se entiende que son los que vas a jugar; no está bien ubicado"): los minutos
      son del DT — te los da él, y en el mismo renglón te pide la misión */
-  const minPre=objetivo.tipo==='seleccion'?minutosSelDe(objetivo):proximosMinutos(rc);
+  const minBase=objetivo.tipo==='seleccion'?minutosSelDe(objetivo):proximosMinutos(rc);
+  const minPre=minutosDeNoche(minBase,C.jugador.energia,objetivo.tipo==='seleccion'?'federal':C.ligaId);   // §2z187: la energía pega acá
+  /* §2z187 (su pedido: "hoy el DT te ve cansado y te va a dar menos minutos… si comprás, se va esa frase y ves cómo te
+     suben los minutos"): la frase sólo cuando el castigo existe; la latita está justo abajo y repinta el pre */
+  $l('lobCuerpo').textContent=minPre<minBase?t(L('Hoy el DT te ve cansado y te va a dar menos minutos.','The coach sees you tired today and will give you fewer minutes.','Hoje o técnico te vê cansado e vai te dar menos minutos.')):'';
   /* §2z144 (su caza 2026-09-08: "me piden 12 puntos en 20 minutos"): con la selección la misión se armaba con los
      minutos del CLUB (~32) y el DT mostraba los de la selección (20). La misión se calcula sobre los MISMOS minutos
      que se muestran. */
@@ -21699,10 +21716,10 @@ $l('lobSalir').addEventListener('click',()=>{
      testeo): el ROL pone la base y la relación con el PLANTEL la mueve ±3 — asistir te
      compra cancha (§5). La línea registra los minutos REALMENTE jugados. */
   /* §2z12: el continuo da un paso hacia el objetivo (nivel vs club + DT + plantel) y el rol se lee de ahí */
-  if(enSel){ dif.min=minutosSelDe(preAbierto); }   // §12.20: el rol de selección pone los minutos; los del club no se mueven
+  if(enSel){ dif.min=minutosDeNoche(minutosSelDe(preAbierto),C.jugador.energia,'federal'); }   // §12.20: el rol de selección pone los minutos; los del club no se mueven · §2z187: menos si llegás cansado
   else { C.jugador.minutos=proximosMinutos(clubDe(preAbierto.rival));
     C.jugador.rol=rolDeMinutos(C.ligaId,C.jugador.minutos);
-    dif.min=C.jugador.minutos; }
+    dif.min=minutosDeNoche(C.jugador.minutos,C.jugador.energia,C.ligaId); }   // §2z187: el castigo es de ESTA noche, el continuo no lo guarda
   /* §2z37: la fuerza del partido (mi club − rival, con el desgaste del año si lo hay) para el relato */
   { const e=est(), fz=(id)=>(e.fuerzas&&e.fuerzas[id]!==undefined)?e.fuerzas[id]:clubDe(id).fuerza;
     dif.fz=fz(miIdEn(preAbierto))-fz(preAbierto.rival)-(efS.fuerzaRival||0); }   // §2z40 · §12.23: la fuerza de tu país

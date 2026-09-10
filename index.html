@@ -218,7 +218,12 @@
      modelo (§2z184), y el total de lo cobrado es la última fila de la planilla, como una suma. */
   #cuerpoParte{z-index:41;background:rgba(8,11,19,.96)}
   #cuerpoNota{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,300px)}
-  #cuerpoNota .puntuacion{opacity:1;animation:none} #cuerpoNota .puntuacion.sub{margin-top:6px}
+  #cuerpoNota .puntuacion{opacity:1;animation:none} #cuerpoNota .puntuacion.sub{margin-top:10px}
+  /* 2026-09-10 (su caza: "hay bastante aire y ENERGÍA/COBRASTE se ven extremadamente chicos"): el velo tiene lugar — los rótulos
+     a 14 y las filas a 17, más aire entre bloques. Entra en 780 sin scroll: número 42 + barra + 7 filas de ~40 + botón ≈ 520. */
+  #cuerpoNota{gap:14px} #cuerpoNota .puntuacion .lbl{font-size:14px;letter-spacing:2.5px}
+  #cuerpoNota .planilla .r{font-size:17px;padding:8px 0} #cuerpoNota .planilla .r small{font-size:13px}
+  #cuerpoNota .planilla .r.nota{font-size:14px}
   #cuerpoNota #cuerpoNum{font-size:42px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tinta)}
   #cuerpoNota .barraExp{opacity:1;animation:none}
   #cuerpoNota #cuerpoBarraAntes{background:rgba(255,255,255,.28)}
@@ -21939,8 +21944,8 @@ terminar=function(){
   if(G.clutch) filas.push([t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')),'<span class="'+(G.clutch.anoto?'ok':'mal')+'">'+(G.clutch.anoto?'✓':'✗')+'</span>']);
   /* §2z74 (su pedido: "al final del partido no te dice cuánto cobraste"): la misma cuenta que paga el cierre
      (partido + ganar + misión, §2z15), como una fila más de la planilla. El amateur no cobra: sin fila. */
-  { const pago=pagoDe(C.ligaId,G.nos>G.riv,C.jugador,!!(mision&&mision.ok));
-    if(pago>0) filas.push([t(L('COBRASTE','YOU EARNED','VOCÊ RECEBEU')),'<span class="ok">'+fplata(pago)+'</span>']); }
+  /* 2026-09-10 (su caza: "lo que cobraste no tiene sentido acá si aparece en la siguiente pantalla"): la fila se fue — el
+     velo del cuerpo y el bolsillo (§2z186) la cuenta desglosada */
   /* §2z14: EL VEREDICTO — sólo cuando la nota opina (≥8 figura, <5 no estuviste); 1,5 s y
      recién después la planilla. NO se acumula en ningún lado (su corte). */
   const ver=document.getElementById('finVeredicto');
@@ -22267,8 +22272,14 @@ function abrirCuerpo(despues){
   const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';
   let h=fila(t(L('Jugaste','You played','Você jogou')),p.min+"'",'−'+p.costo+' '+RAYO,'mal',T1);
   if(dias!==null){
-    h+=fila(t(L('Descansás','You rest','Você descansa')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+rec+' '+RAYO,'ok',T2);
-    if(recTuyo>0) h+='<div class="r nota" style="animation-delay:'+(T2+PASO)+'ms"><span class="sub">'+recTuyo+' '+t(L('son de lo tuyo','come from what you own','vêm do que é seu'))+'</span></div>';
+    /* 2026-09-10 (sus cazas: "«descansás 1 día» sigue sin decir cuándo es ese descanso" · "«2 son de lo tuyo» no se entiende
+       nada"): el descanso dice HASTA QUÉ DÍA cuando lo sabe, y lo tuyo nombra QUÉ lo pone */
+    const diasTxt=dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias'));
+    const hasta=p.diaHoy!==null?diaTxt(p.diaHoy+dias):null;
+    h+=fila(hasta?t(L('Descansás hasta el ','You rest until ','Você descansa até '))+hasta:t(L('Descansás','You rest','Você descansa')),diasTxt,'+'+rec+' '+RAYO,'ok',T2);
+    if(recTuyo>0){ const J=C.jugador, cosas=['vehiculo','casa','staff'].map(k=>mejorDe(J,k)).filter(m=>m&&m.regen).map(m=>t(m.nom).toLowerCase());
+      const y=t(L(' y ',' and ',' e ')), quien=cosas.length>1?cosas.slice(0,-1).join(', ')+y+cosas[cosas.length-1]:cosas[0]||'';
+      h+='<div class="r nota" style="animation-delay:'+(T2+PASO)+'ms"><span class="sub">'+t(L(recTuyo+' de esos '+rec+' los pone'+(cosas.length>1?'n ':' ')+quien+'.',quien+' put'+(cosas.length>1?'':'s')+' in '+recTuyo+' of those '+rec+'.',quien+' põe'+(cosas.length>1?'m ':' ')+recTuyo+' desses '+rec+'.'))+'</span></div>'; }
   }
   else if(hastaPre) h+=fila(t(L('Descansás','You rest','Você descansa')),t(L('hasta la pretemporada','until preseason','até a pré-temporada')),'+'+rec+' '+RAYO,'ok',T2);
   $l('cuerpoEnergia').innerHTML=h;

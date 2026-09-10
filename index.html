@@ -3944,7 +3944,7 @@ function elegirCalientes(estado) {
       porque = `Se juega el ${puesto === 1 ? 'primer' : puesto + '.º'} puesto`;
       clave = 'puesto'; extra = { puesto };
     } else if (fuertes[fecha.nro]) {   // §2z93: el que no depende de la tabla — va último, la historia del momento gana
-      porque = fuertes[fecha.nro] === 1 ? 'El más fuerte de la liga' : 'De los más fuertes de la liga';
+      porque = fuertes[fecha.nro] === 1 ? 'El plantel más fuerte de la liga' : 'De los planteles más fuertes';   // 2026-09-10: es el plantel, no la tabla
       clave = 'fuerte'; extra = { topFz: fuertes[fecha.nro] };
     }
     primero = false;
@@ -20363,9 +20363,11 @@ function porqueTxt(c){
   if(c.clave==='puesto') return t(L('Se juega el '+(c.puesto===1?'primer':c.puesto+'.º')+' puesto',
     'Battle for '+c.puesto+ordEn(c.puesto)+' place','Vale o '+c.puesto+'º lugar'));
   /* §2z93: el caliente que no depende de la tabla — dice POR QUÉ es grande, que es la fuerza del rival */
+  /* 2026-09-10 (su caza: "Quimsa está 6.º y me dice «el más fuerte de la liga»"): la fuerza es del PLANTEL, no de la tabla —
+     el texto lo dice así y deja de discutir con la posición */
   if(c.clave==='fuerte') return c.topFz===1
-    ? t(L('El más fuerte de la liga','The strongest team in the league','O mais forte da liga'))
-    : t(L('De los más fuertes de la liga','One of the strongest in the league','Um dos mais fortes da liga'));
+    ? t(L('El plantel más fuerte de la liga','The strongest roster in the league','O elenco mais forte da liga'))
+    : t(L('De los planteles más fuertes','One of the strongest rosters','Um dos elencos mais fortes'));
   return '';
 }
 const vsTxt=(local)=>local?'vs ':t(L('en ','at ','em '));
@@ -21972,7 +21974,7 @@ terminar=function(){
       if(o.tipo==='seleccion'){
         const comp=o.etapa==='eliminatorias'?t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+' '+(o.ventana?o.ventana.n:'')
           :selTorneoTxt(o.torneo)+' · '+t(SEL_TXT[o.etapa]||L(o.etapa||''));
-        h=escuditoDe(clubDeSeleccion(pais))+'<span>'+comp+' · '+vsTxt(o.local)+nombreSelCorto(o.rival).toUpperCase()+'</span>';   // §2z97: la bandera ya dice de quién es
+        h=escuditoDe(clubDeSeleccion(pais))+'<span>'+comp+' · '+vsTxt(o.local)+nombreSelCorto(o.rival).toUpperCase()+'</span>'+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también
       } else {
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
         const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha
@@ -21980,7 +21982,7 @@ terminar=function(){
           :o.tipo==='americas'?t(AM_TXT.nombre):'';
         /* §2z97 (su caza: "salió cortado lo de abajo del score"): sin el nombre de tu club — el escudo ya dice de quién
            son los chips (§2z12.5), y "BOCA JUNIORS · LIGA DE LAS AMÉRICAS · vs FUERZA REGIA" no entraba en 375 */
-        h=escuditoDe(club)+'<span>'+(comp?comp+' · ':'')+vsTxt(o.local)+nomCorto(o.rival).toUpperCase()+'</span>';
+        h=escuditoDe(club)+'<span>'+(comp?comp+' · ':'')+vsTxt(o.local)+nomCorto(o.rival).toUpperCase()+'</span>'+escudito(o.rival);   // 2026-09-10 (su caza): el escudo del rival, al mismo tamaño
       }
       d.innerHTML=h; d.classList.remove('oculto'); } }
   /* §2z101: LA BARRA VA Y VUELVE. Se dibuja el tramo del nivel en que TERMINÁS: si perdiste la estrella, el tramo

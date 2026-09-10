@@ -17003,7 +17003,7 @@ function frame(now){
             G.posClock=G.posMax=dif.clk*1000; G.pasesPos=0;   // adentro arranca posesión de verdad: la cuenta de pases también
             const sit=$('#sit');
             if(dist(G.vos,aro())<R3()*0.55){
-              G.tipo='carril'; sit.textContent=t(L('CARRIL','OPEN LANE','CORREDOR')); sit.className='carril';
+              G.tipo='carril'; sit.textContent=t(L('VÍA LIBRE','OPEN LANE','CAMINHO LIVRE')); sit.className='carril';
               relato(t(L('Ya estás adentro: llevala — al aro definís.','You are already inbounds: take it — finish at the rim.','Você já está dentro: leva ela — no aro, finaliza.')),true);
             } else {
               G.tipo='decision'; sit.textContent=txtSit(); sit.className='';

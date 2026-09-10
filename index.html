@@ -1015,6 +1015,8 @@
   #lobby .statGrande .s b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
   #lobby .statGrande .s span{font-size:10.5px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600}
   #lobby .cajTag{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #lobby .cajTag.bkSig{color:var(--naranja)}   /* 2026-09-10 (su corte): LA LLAVE en naranja */
+  #lobby .cajNota{font-size:10px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:center;margin-top:6px}   /* 2026-09-10: la regla, chica y debajo */
   /* §2z74 (su caza: "cambian de altura entre BOCA y ARG, el escudo es muy grande al lado de LIGA NACIONAL"): el
      rótulo de VOS mide lo mismo de los dos lados — escudo y bandera en la misma caja de 16 px, centrados */
   #lobby .rotuloVos{display:flex;align-items:center;gap:6px;height:20px}
@@ -3818,7 +3820,12 @@ function anotarMiLinea(estado, fecha) {
   const rng = rngFor(estado.semilla, 'linea', fecha.nro);
   const minutos = rng.int(22, 34);
   const linea = lineaSimulada(rng, estado.skills, minutos, estado.forma);
-  estado.misPartidos.push({ fecha: fecha.nro, rival: mio.local === estado.miClubId ? mio.visita : mio.local, minutos, ...linea });
+  /* 2026-09-10 (su corte): los partidos que el relato juega por vos también tienen nota y cuentan para los premios —
+     la misma cuenta que el cierre (01g), sin tiros en la línea (la eficiencia vale cero) */
+  const res = estado.resultados.find((r) => r.fecha === fecha.nro && (r.local === estado.miClubId || r.visita === estado.miClubId));
+  const gano = !!res && ((res.local === estado.miClubId) ? res.ptsLocal > res.ptsVisita : res.ptsVisita > res.ptsLocal);
+  const rating = typeof ratingDe === 'function' ? ratingDe({ pts: linea.pts, ast: linea.ast, rob: linea.rob, tiros: 0, ac: 0, per: 0, esc: 1 }, gano) : undefined;
+  estado.misPartidos.push({ fecha: fecha.nro, rival: mio.local === estado.miClubId ? mio.visita : mio.local, minutos, ...linea, rating });
   sumarLinea(estado.miLinea, linea, minutos);
 }
 
@@ -3828,8 +3835,12 @@ function anotarMiLinea(estado, fecha) {
  * a ±20%. El modelo fino (mezcla de tiros, techo por rol, referencia boxscore.ts de
  * El Draft) viene después, en la fase de los simulados que aprenden tu mezcla (§2m.4).
  */
+/* 2026-09-10 (su corte: "si saltar te da menos que tus skills, no podés robar premios; y si sos tan bueno como para
+ * promediar mucho, te los merecés"): la línea que el relato juega por vos sale de los skills un 15 % abajo — jugar con
+ * los dedos siempre rinde más que saltar. Vale para la fecha, los playoffs, el continental y la selección. */
+const LINEA_SIMULADA_FACTOR = 0.85;
 function lineaSimulada(rng, skills, minutos, forma) {
-  const f = Math.max(0.8, Math.min(1.2, forma));
+  const f = Math.max(0.8, Math.min(1.2, forma)) * LINEA_SIMULADA_FACTOR;
   const pts = minutos * (0.2 + (skills.tiro / 100) * 0.55) * f * rng.noise(0.3);
   const ast = minutos * 0.14 * (skills.vision / 100) * f * rng.noise(0.35);
   const rob = minutos * 0.06 * (skills.defensa / 100) * f * rng.noise(0.4);
@@ -4449,7 +4460,7 @@ function campoPremios(estado, esc) {
 }
 /** Tu entrada en la carrera: la nota promedio de la regular, si jugaste lo suficiente. `null` si no corrés. */
 function miValorPremios(estado, jugador) {
-  const j = (estado.misPartidos || []).filter((p) => p.jugado && !p.po && !p.sel && !p.am && p.rating !== undefined);
+  const j = (estado.misPartidos || []).filter((p) => !p.po && !p.sel && !p.am && !p.conSeleccion && p.rating !== undefined);   // 2026-09-10 (su corte): los salteados también cuentan
   if (j.length < CARRERA_MVP.minPJ) return null;
   const min = j.reduce((s, p) => s + (p.minutos || 0), 0) / j.length;
   if (min < CARRERA_MVP.minMin) return null;
@@ -19652,12 +19663,16 @@ function htmlAmericas(e,g){
   /* §2z172 v2 (su corte: "los grupos abajo de los switches y el bracket abajo"): las pestañas eligen un grupo, así que
      el grupo va pegado a ellas; la llave, que es de todos, debajo con su corte. (Reemplaza el "lo más nuevo arriba" de
      §2z171, que valía contra la lista: la fase viva ya la muestra el vestuario.) */
-  h+='<div class="cajTag">'+t(AM_TXT.grupo)+' '+g+' · '+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+  /* 2026-09-10 (sus cazas: "el nombre del grupo arriba de la tablita duplica el switch; «pasan 2 a cuartos» va abajo y más
+     chico; lo mismo para lo que está al lado de LA LLAVE; y LA LLAVE en naranja"): la tabla arranca sin cabecera, la regla
+     va debajo como nota chica; la llave lleva su título solo y el formato como nota debajo */
   tablaGrupoAM(am,g).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
+  h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
   if(am.llave){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true});
+    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})
+      +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>';
   }
   return h;
 }
@@ -20858,7 +20873,11 @@ function pasarHasta(sig,alFinal){
   const jugados=e.misPartidos.slice(antes);
   if(esBeta()) betaEvento('salteo',{hasta:sig.fecha});
   const dias=Math.max(1,sig.dia-diaAntes);
-  C.jugador.energia=Math.min(100,C.jugador.energia+regenDe()*dias);
+  /* 2026-09-10 (su caza: "si paso la semana me dice +55; esos partidos se juegan con tu statline y no te sacan energía"): los
+     partidos que el relato juega por vos CUESTAN lo mismo que jugarlos, con sus minutos. Primero el descanso, tope 100,
+     después el costo, como en el cierre. */
+  const costoSalteo=jugados.filter(p=>!p.conSeleccion&&!p.sel).reduce((a,p)=>a+costoJugar(p.minutos||0,C.ligaId,false),0);
+  C.jugador.energia=Math.max(0,Math.min(100,C.jugador.energia+regenDe()*dias)-costoSalteo);
   guardar(); pintaLobby(); irLob('hoy');
   /* §12: pasar la semana también puede cerrar una ventana FIBA, y acá no se pasa por
      abrirLobby — sin esto el parte quedaba armado y no lo veías hasta el próximo partido */
@@ -20932,7 +20951,8 @@ function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "
   const fs=ref===null?[]:misFechas().filter(f=>!f.res&&f.fecha>=ref&&f.fecha<sig.fecha);
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,ref||1),e.ritmo);
   const dias=Math.max(1,sig.dia-diaAntes);
-  const J=C.jugador, energia=Math.min(100,J.energia+regenDe()*dias)-J.energia;
+  /* 2026-09-10: el neto — el descanso menos lo que cuestan los partidos que el relato juega por vos (a 28 minutos, el promedio) */
+  const J=C.jugador, energia=Math.max(0,Math.min(100,J.energia+regenDe()*dias)-fs.filter(f=>!f.conSel).length*costoJugar(28,C.ligaId,false))-J.energia;
   P.querySelector('.preg').textContent=destino?t(L('¿Saltar al clave?','Skip to the big one?','Pular pro jogo chave?')):t(L('¿Pasar hasta el ','Skip to ','Pular até '))+diaTxt(sig.dia)+'?';
   P.querySelector('.nota2').textContent=(fs.length
     /* §2z168 (su caza 2026-09-08: "está raro el wording: «el relato juega» y el botón de NO dice «No, juego»"): el
@@ -20940,7 +20960,7 @@ function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "
     ? (fs.length===1?t(L('Tu equipo juega este partido sin vos','Your team plays this game without you','Seu time joga este jogo sem você'))
                     :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
-    +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
+    +(Math.round(energia)!==0?' · '+(energia>0?'+':'−')+Math.abs(Math.round(energia))+' ⚡':'');
   P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('')
     +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+'<span class="nom">'+vsTxt(destino.local)+nomCorto(destino.rival)+' · '+diaTxt(sig.dia)+'</span><span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
   P.classList.remove('oculto');

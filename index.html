@@ -22263,11 +22263,14 @@ function abrirCuerpo(despues){
   const prox=e?miProximo(e):null; let dias=null;
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaAmericas(e,prox.ventana):diaSel(prox); if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   if(dias===null&&prox&&prox.tipo==='seleccion') dias=3;
-  if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))) dias=diasPO();
+  /* 2026-09-10 (su caza: "si se termina tu serie pero no la otra, ¿esos 5 días serían reales?"): en playoffs el próximo se
+     sabe SÓLO si tenés serie viva (cada paso son diasPO días). Si tu serie cerró y la ronda sigue, o te eliminaron, no hay
+     fila: la espera la cobra cerrarSinVos, día por día, cuando la ronda cierra. Mejor callar que inventar un número. */
+  if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))&&prox&&prox.tipo==='serie') dias=diasPO();
   /* 2026-09-10: después del último partido del torneo del receso lo que sigue es la pretemporada, y ahí volvés a 100 */
   const hastaPre=dias===null&&!!p.recesoSel&&!(prox&&prox.tipo==='seleccion');
-  const regen=regenDe(), extra=regen-regenClub();
-  const rec=dias!==null?Math.min(100-p.despues,regen*dias):hastaPre?100-p.despues:0, recTuyo=dias!==null?Math.min(rec,extra*dias):0;
+  const regen=regenDe();
+  const rec=dias!==null?Math.min(100-p.despues,regen*dias):hastaPre?100-p.despues:0;
   const T1=350, T2=1100, T3=1700, PASO=140;
   const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';
   let h=fila(t(L('Jugaste','You played','Você jogou')),p.min+"'",'−'+p.costo+' '+RAYO,'mal',T1);
@@ -22277,9 +22280,8 @@ function abrirCuerpo(despues){
     const diasTxt=dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias'));
     const hasta=p.diaHoy!==null?diaTxt(p.diaHoy+dias):null;
     h+=fila(hasta?t(L('Descansás hasta el ','You rest until ','Você descansa até '))+hasta:t(L('Descansás','You rest','Você descansa')),diasTxt,'+'+rec+' '+RAYO,'ok',T2);
-    if(recTuyo>0){ const J=C.jugador, cosas=['vehiculo','casa','staff'].map(k=>mejorDe(J,k)).filter(m=>m&&m.regen).map(m=>t(m.nom).toLowerCase());
-      const y=t(L(' y ',' and ',' e ')), quien=cosas.length>1?cosas.slice(0,-1).join(', ')+y+cosas[cosas.length-1]:cosas[0]||'';
-      h+='<div class="r nota" style="animation-delay:'+(T2+PASO)+'ms"><span class="sub">'+t(L(recTuyo+' de esos '+rec+' los pone'+(cosas.length>1?'n ':' ')+quien+'.',quien+' put'+(cosas.length>1?'':'s')+' in '+recTuyo+' of those '+rec+'.',quien+' põe'+(cosas.length>1?'m ':' ')+recTuyo+' desses '+rec+'.'))+'</span></div>'; }
+    /* 2026-09-10 (su corte: "son esas cosas que si tenemos que aclarar y ni así se entiende, capaz no mostrarlo"): la nota de
+       lo tuyo se fue — lo que cada compra hace ya lo dice LO TUYO */
   }
   else if(hastaPre) h+=fila(t(L('Descansás','You rest','Você descansa')),t(L('hasta la pretemporada','until preseason','até a pré-temporada')),'+'+rec+' '+RAYO,'ok',T2);
   $l('cuerpoEnergia').innerHTML=h;

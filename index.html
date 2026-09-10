@@ -797,6 +797,7 @@
      pasando), el que PASÓ en blanco y negrita, el que SE QUEDÓ en gris y apagado. */
   #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta);font-variant-numeric:tabular-nums}
   #lobby .bkRow .escudito{width:14px;height:14px;flex:none}
+  #lobby .bkRow .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden} #lobby .bkRow .banMini>*{width:100%;height:100%}   /* 2026-09-10: la bandera en la llave del continental */
   #lobby .bkRow .sig{flex:1;white-space:nowrap}
   #lobby .bkRow .w{flex:none;min-width:14px;text-align:right}
   #lobby .bkRow.gana{font-weight:700}
@@ -19585,7 +19586,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
       if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
       const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
-      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+(opts.banderas?banderita(id):'')+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';   // 2026-09-10: la bandera del país en la llave del continental (su pedido; medido: 14+5+15+5+21+5+14 = 79 de 82)
       const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;
       h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,gA)+fila(s.baja,gB)+'</div>'; });
     /* las líneas: cada par de la columna anterior se une con su caja de ésta. Si la ronda anterior tiene justo el
@@ -19623,7 +19624,7 @@ function htmlAmericas(e,g){
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   if(am.llave){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId);
+    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true});
   }
   return h;
 }

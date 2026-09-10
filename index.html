@@ -225,6 +225,7 @@
   #cuerpoNota #cuerpoBarra{background:var(--ok);transition:width .9s cubic-bezier(.2,.8,.2,1)}
   #cuerpoNota #cuerpoBarra.baja{background:var(--naranja)} #cuerpoNota #cuerpoBarra.mal{background:var(--mal)}
   #cuerpoNota .planilla .r.total{font-weight:700;color:var(--tinta);border-top:1px solid rgba(154,164,184,.3);margin-top:2px}
+  #cuerpoNota .planilla .r .sub{padding-left:14px;font-size:13px}
   #cuerpoNota .planilla .r small{font-size:12px;letter-spacing:.5px;color:var(--tinta2);margin-left:6px;font-weight:600}
   #finNota .planilla,#cuerpoNota .planilla{width:100%;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
        border-radius:12px;padding:4px 16px;text-align:left}
@@ -14962,7 +14963,9 @@ function dibujarGym(now){
   /* el reloj: barra arriba de la pista que se vacía — sólo en la escalera (en el sprint la
      liebre ES el reloj; su caza: "el tiempo de arriba pasa a no cumplir ninguna función") */
   if(g.tipo==='agil'){
-    const k=Math.max(0,1-(now-g.t0)/g.dur), bw=half*2;
+    /* su caza 2026-09-10: la barra se vaciaba ANTES del primer toque (t0 nace al armar la pantalla y el drill espera
+       `listo`): mientras esperás, el reloj está lleno */
+    const k=g.listo?1:Math.max(0,1-(now-g.t0)/g.dur), bw=half*2;
     ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(pT.x-half, pT.y-16, bw, 6);
     ctx.fillStyle=k<0.25?'#e06c5a':'#ff9633'; ctx.fillRect(pT.x-half, pT.y-16, bw*k, 6);
   }
@@ -22083,10 +22086,14 @@ function abrirCuerpo(despues){
   const prox=e?miProximo(e):null; let dias=null;
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   else if(p.fase==='playoffs'||(e&&e.fase==='playoffs')) dias=diasPO();
-  const regen=regenDe();
+  const regen=regenDe(), extra=regen-regenClub();   // lo tuyo: lo que suman tus compras sobre la base
+  const rec=dias!==null?Math.min(100-p.despues,regen*dias):regen;
   h+=dias!==null
-    ? fila(t(L('Hasta el próximo','Until the next game','Até o próximo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+Math.min(100-p.despues,regen*dias)+' '+RAYO,'ok')
-    : fila(t(L('Por día','Per day','Por dia')),'','+'+regen+' '+RAYO,'ok');
+    ? fila(t(L('Hasta el próximo partido','Until the next game','Até o próximo jogo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+rec+' '+RAYO,'ok')
+    : fila(t(L('Por día','Per day','Por dia')),'','+'+rec+' '+RAYO,'ok');
+  /* su pedido 2026-09-10: "en algún lugar está bueno que te diga «recuperaste esta energía por lo que compraste»" —
+     sólo lo comprado, sin la base ("no sé ni qué es el club") */
+  if(extra>0) h+=fila('<span class="sub">'+t(L('de lo tuyo','from what you own','do que é seu'))+'</span>','','+'+Math.min(rec,dias!==null?extra*dias:extra)+' '+RAYO,'ok');
   $l('cuerpoEnergia').innerHTML=h;
   const total=p.pago.partido+p.pago.ganar+p.pago.mision;
   let q=fila(t(L('Partido','Game','Jogo')),'','+'+fplata(p.pago.partido),'ok');

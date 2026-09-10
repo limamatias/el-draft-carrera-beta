@@ -12440,7 +12440,7 @@ function armarPosesion(){
        atrás de la pelota del circuito ANTERIOR, con los conos nuevos abajo). armarPosesion
        hereda el bote a propósito (la posesión heredada del avance lo necesita), pero un
        drill relanzado no hereda nada: se limpia acá. */
-    G.bola=null; G.boteo=null; G.flickIni=null; G.tDrive=0; G.levanto=false; G.carreraVos=null; G.rumbo=null; G.botes=0;
+    G.bola=null; G.boteo=null; G.flickIni=null; G.tDrive=0; G.levanto=false; G.carreraVos=null; G.rumbo=null;
     G.slalom.meta=G.slalom.conos[nConos-1].y-metaGap;
     G.camCentro=eje;
     /* EL RELOJ se arma acá: el total es cuántos conos entraron × el tiempo por cono que
@@ -12810,7 +12810,7 @@ function armarPosesion(){
   G.fase='espera'; G.drag=null; G.pend=null; G.pelota=null; G.pelotaEn=null; G.tiro=null; G.paseVivo=null; G.pasesPos=0; G.joy=null; G.joyMoviendo=false;
   G.sueltaFinal=false; G.devuelta=false;
   G.suelo=null; G.corre=null; G.mueve=null; G.toco=null; G.frenoEn=null; G.pendCorte=null; G.scr=null; G.levanto=false;
-  G.rumbo=null; G.botes=0;   // §2z192 · §2z193
+  G.rumbo=null;   // §2z192
   if(G.tipo!=='bloqueo') G.pantalla=null;
   G.medidor=null; G.barraFx=null; G.subida=null; G.corres=null;
   if(G.tipo!=='sacada'&&G.tipo!=='contra') G.corrida=null;
@@ -12948,9 +12948,9 @@ function armarPosesion(){
     G.fase='defiendo'; G.pelotaEn=G.defensa.portador;
     G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0; }
   else if(G.tipo==='bloqueo'){
-    veredicto(t(L('¡TE SUBEN UNA PANTALLA!','SCREEN COMING UP!','SOBE O CORTA-LUZ!')),'neu',1400);
+    veredicto(t(L('¡VIENE EL BLOQUEO!','SCREEN COMING!','VEM O CORTA-LUZ!')),'neu',1400);   // 2026-09-10 (su caza al wording de «te suben una pantalla»): la escena se llama BLOQUEO, el cartel también
     sit.textContent=t(L('BLOQUEO','SCREEN','CORTA-LUZ')); sit.className='carril';
-    explicar('bloqueo',t(L('Usá la pantalla: llevala por el lado del bloqueo — y mirá qué hace la defensa.','Use the screen: dribble off the pick — and read the defense.','Usa o corta-luz: quica pelo lado do bloqueio — e lê a defesa.')), false);
+    explicar('bloqueo',t(L('Usá el bloqueo: llevala por ese lado — y mirá qué hace la defensa.','Use the screen: dribble off the pick — and read the defense.','Usa o corta-luz: quica pelo lado do bloqueio — e lê a defesa.')), false);
     /* la coreografía entera vive en el FRAME (como el custodio del contra): nada de
        correr() encadenado ni timers que sobreviven al relanzo de la escena en el banco */
   }
@@ -13542,14 +13542,8 @@ c.addEventListener('pointermove',e=>{
       }
     }
   } else if(G.fase==='apunto'&&G.drag){ G.drag.x=P.x; G.drag.y=P.y; }
-  /* §2z193 (su pedido 2026-09-10: "si no dribbleás y arrastrás lejos debería darte el pase de parado"): en la contra, el
-     PRIMER arrastre que pasa de 0,26·W (el bote tope es 0,20·W: más largo no es bote) se vuelve la gomera en vivo, con el
-     mismo origen. El que pica ya salió con el arrastre (§2z50); el reloj de la contra sigue (re-armarlo es de frenar). */
-  else if(G.fase==='conduzco' && G.tipo==='contra' && dif.drive==='toques' && G.flickIni && !(G.botes||0) && !G.boteo
-          && Math.hypot(P.x-G.flickIni.x,P.y-G.flickIni.y)>W*0.26){
-    G.drag={x0:G.flickIni.x, y0:G.flickIni.y, x:P.x, y:P.y, t0:performance.now()-400};
-    G.bola=null; G.boteo=null; G.flickIni=null; G.tiro=null; G.levanto=true; G.fase='apunto';
-  }
+  /* §2z193 vivió una hora (2026-09-10): el primer arrastre largo de la contra se volvía la gomera, y jugándolo "me tomó el
+     pase mal" — el arrastre de bote también se pasa de largo. Volvió a como estaba: la gomera se pide frenando. */
 });
 c.addEventListener('pointerup',e=>{
   if(G.gym) return;
@@ -13585,7 +13579,7 @@ c.addEventListener('pointerup',e=>{
       const cB=clampMundoJugable(desde.x+dx/L*dToque, desde.y+dy/L*dToque);
       const tx=cB.x, ty=cB.y;
       G.boteo={x0:desde.x, y0:desde.y, x1:tx, y1:ty, t:0, dur:0.12+dToque/180};
-      G.rumbo={x:dx/L, y:dy/L}; G.botes=(G.botes||0)+1;   // §2z192: hacia dónde va tu último bote · §2z193: cuántos llevás
+      G.rumbo={x:dx/L, y:dy/L};   // §2z192: hacia dónde va tu último bote
       sfx('bote',0.6);
       if(!G.bola) G.bola={x:desde.x, y:desde.y};
       return;
@@ -14551,7 +14545,7 @@ function lanzar(zona){
           /* la corta EN el punto de caída: el vuelo va adonde apuntaste, siempre */
           vuelo(desde,{x:cae.x,y:cae.y},arco,dur,()=>{
             robaYSeVe(df,()=>{ veredicto(L('¡LA CORTÓ!','PICKED OFF!','CORTOU!')[idioma()],'mal');
-            perderPelota(L('El poste estaba tapado: te lo cortaron.','The post was covered: the pass got picked off.','O pivô estava coberto: cortaram o passe.')[idioma()],null,true); }); });
+            perderPelota(L('Estaba tapado y te lo cortaron.','He was covered and it got picked off.','Ele estava coberto e cortaram o passe.')[idioma()],null,true); }); });   // 2026-09-10 (su caza: «el poste estaba tapado» en un globo a uno del perímetro): el globo va a cualquiera
           return;
         }
         if(llega) chip(L('Te lo cerraron: recibe presionado.','They closed him down: he catches under pressure.','Fecharam nele: recebe pressionado.')[idioma()]);
@@ -17375,7 +17369,7 @@ function frame(now){
            sobreviven): la carrera contra los que vuelven es real — si cruzaste con
            ventaja, llegás antes. La cámara ya era suave acá (encuadrar(true) de la
            heredada, y el eje Y vive anclado al aro). */
-        const vivo={bola:G.bola, boteo:G.boteo, flickIni:G.flickIni, tDrive:G.tDrive, press:G.press, rumbo:G.rumbo, botes:G.botes};   // §2z192: el rumbo cruza con el bote
+        const vivo={bola:G.bola, boteo:G.boteo, flickIni:G.flickIni, tDrive:G.tDrive, press:G.press, rumbo:G.rumbo};   // §2z192: el rumbo cruza con el bote
         armarPosesion();
         Object.assign(G, vivo);
         G.fase='conduzco'; arrancaCorridaSiEspera();
@@ -19902,7 +19896,7 @@ function selPorqueTxt(prox,e){
     const v=prox.ventana, dia=v&&v.dias?v.dias[prox.jornada-(v.n*2-1)]:null;   // §12.28: el día de la jornada
     return t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+prox.total
       +(dia?' · '+diaTxt(dia):'')
-      +(f>0&&fs[f-1].pj>0?' · '+f+'° '+t(L('EN LA TABLA','IN THE TABLE','NA TABELA')):'');   // §12.25 (su caza: "ARGENTINA 3° está out of context")
+      +(f>0&&fs[f-1].pj>0?' · '+t(L('VAS','YOU ARE','VOCÊ VAI'))+' '+f+'°':'');   // §12.25 (su caza: "ARGENTINA 3° está out of context") · 2026-09-10 (su caza: "1° EN LA TABLA" debajo de «en ESTADOS UNIDOS» se leía como el puesto del rival): VAS 1°
   }
   if(prox.etapa==='grupo'||prox.etapa==='segunda') return t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+prox.total;
   return t(L('A PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'));

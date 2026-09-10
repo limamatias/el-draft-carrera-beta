@@ -7587,13 +7587,17 @@ const CARTAS_ARGENTINA_EXTRA=[
 const CARTAS_RECESO=[
 
  /* ── El verano del pibe (hasta los 31) ─────────────────────────────────────── */
- { id:'verano_gimnasio', de:'receso',
+ /* §2z197 (su caza 2026-09-10, viendo «Tres meses de kinesiólogo · +15 ⚡»: "¿sirve de algo pagar energía en ese contexto?
+   es mejor no pagar nada que pagar eso"): desde §2z181 la pretemporada te deja en 100, así que en el RECESO la energía no
+   vale ni para premiar ni para castigar. Las seguras del verano pagan +1 FÍSICO (llegás entero: un cuerpo), las deudas con
+   el cuerpo cuestan −2 FÍSICO, y «Este año no» de la clínica no paga nada — lo que él prefiere a un premio hueco. */
+{ id:'verano_gimnasio', de:'receso',
    peso:60, maxVeces:9, edadMax:31,
    fondo:'playground',
    gancho:L('Se terminó la temporada. Tenés tres meses y nadie te mira: lo que hagas con el verano lo vas a ver en octubre.', "Season's over. Three months and nobody's watching: what you do with the summer shows up in October.", 'Acabou a temporada. Você tem três meses e ninguém te olha: o que fizer no verão vai aparecer em outubro.'),
    opciones:[
      { tipo:'segura', label:L('Desaparecer tres meses', 'Disappear for three months', 'Sumir por três meses'), desenlaces:[
-         {p:100, remate:L('Como nuevo', 'Good as new', 'Como novo'), texto:L('Llegás entero y con la cabeza limpia.', 'You show up whole, head clear.', 'Você chega inteiro e com a cabeça limpa.'), ef:{ energia:15 }} ] },
+         {p:100, remate:L('Como nuevo', 'Good as new', 'Como novo'), texto:L('Llegás entero y con la cabeza limpia.', 'You show up whole, head clear.', 'Você chega inteiro e com a cabeça limpa.'), ef:{ skills:{fisico:1} }} ] },
      { tipo:'apuesta', label:L('Meterle al gimnasio', 'Hit the weight room', 'Pegar pesado na academia'), desenlaces:[
          {p:60, remate:L('Hecho un ropero', 'Built like a truck', 'Feito um armário'), texto:L('Volvés más fuerte. Te sacás gente de encima.', 'You come back stronger. You shake defenders off.', 'Você volta mais forte. Tira a marcação de cima.'), ef:{ skills:{fisico:3} }},
          {p:40, remate:L('Fierros de más', 'Too much iron', 'Ferro demais'), texto:L('Ganaste kilos y perdiste piernas: llegás pesado.', 'You gained muscle and lost your legs: you show up heavy.', 'Ganhou quilos e perdeu as pernas: chega pesado.'), ef:{ skills:{manejo:-2} }} ] },
@@ -7605,7 +7609,7 @@ const CARTAS_RECESO=[
    gancho:L('Se terminó la temporada. Tenés tres meses y nadie te mira: lo que hagas con el verano lo vas a ver en octubre.', "Season's over. Three months and nobody's watching: what you do with the summer shows up in October.", 'Acabou a temporada. Você tem três meses e ninguém te olha: o que fizer no verão vai aparecer em outubro.'),
    opciones:[
      { tipo:'segura', label:L('Desaparecer tres meses', 'Disappear for three months', 'Sumir por três meses'), desenlaces:[
-         {p:100, remate:L('Como nuevo', 'Good as new', 'Como novo'), texto:L('Llegás entero y con la cabeza limpia.', 'You show up whole, head clear.', 'Você chega inteiro e com a cabeça limpa.'), ef:{ energia:15 }} ] },
+         {p:100, remate:L('Como nuevo', 'Good as new', 'Como novo'), texto:L('Llegás entero y con la cabeza limpia.', 'You show up whole, head clear.', 'Você chega inteiro e com a cabeça limpa.'), ef:{ skills:{fisico:1} }} ] },
      { tipo:'apuesta', label:L('Tirar mil por día', 'A thousand shots a day', 'Mil arremessos por dia'), desenlaces:[
          {p:60, remate:L('Muñeca educada', 'Schooled wrist', 'Pulso calibrado'), texto:L('La mano queda caliente todo el año.', 'Your hand stays hot all year.', 'A mão fica quente o ano inteiro.'), ef:{ skills:{tiro:3} }},
          {p:40, remate:L('Estatua con puntería', 'Statue with a jumper', 'Estátua com mira'), texto:L('Tirás mejor parado, pero el verano se te fue en eso.', 'You shoot better standing still, but that ate your summer.', 'Você arremessa melhor parado, mas o verão foi todo nisso.'), ef:{ skills:{fisico:-2} }} ] },
@@ -7686,10 +7690,10 @@ const CARTAS_RECESO=[
    gancho:L('El kinesiólogo te muestra los números del año: cómo terminabas los partidos en abril comparado con octubre.', "The physio shows you this year's numbers: how you finished games in April versus October.", 'O fisioterapeuta te mostra os números do ano: como você terminava os jogos em abril comparado com outubro.'),
    opciones:[
      { tipo:'segura', label:L('Cambiar la alimentación y dormir en serio', 'Fix your diet and sleep for real', 'Mudar a alimentação e dormir de verdade'), desenlaces:[
-         {p:100, remate:L('Tanque lleno', 'Full tank', 'Tanque cheio'), texto:L('Terminás los partidos como los empezás.', 'You finish games the way you start them.', 'Você termina os jogos como começa.'), ef:{ energia:15 }} ] },
+         {p:100, remate:L('Tanque lleno', 'Full tank', 'Tanque cheio'), texto:L('Terminás los partidos como los empezás.', 'You finish games the way you start them.', 'Você termina os jogos como começa.'), ef:{ skills:{fisico:1} }} ] },
      { tipo:'apuesta', label:L('Dejar el cuerpo como está y meterle a la cancha', 'Leave the body alone and live on the court', 'Deixar o corpo como está e focar na quadra'), desenlaces:[
          {p:60, remate:L('Ganó la cancha', 'The court won', 'A quadra venceu'), texto:L('No cambiás nada de lo que venías haciendo y usás el verano en el gimnasio de tiro. La mano queda.', 'You change nothing and spend the summer in the shooting gym. The touch sticks.', 'Você não muda nada e passa o verão no ginásio de arremesso. A mão fica.'), ef:{ skills:{tiro:3} }},
-         {p:40, remate:L('Deuda con el cuerpo', 'Debt to the body', 'Dívida com o corpo'), texto:L('El cuerpo te pasa la factura en la mitad de la temporada.', 'The body sends the bill mid-season.', 'O corpo te passa a conta no meio da temporada.'), ef:{ energia:-20 }} ] },
+         {p:40, remate:L('Deuda con el cuerpo', 'Debt to the body', 'Dívida com o corpo'), texto:L('El cuerpo te pasa la factura en la mitad de la temporada.', 'The body sends the bill mid-season.', 'O corpo te passa a conta no meio da temporada.'), ef:{ skills:{fisico:-2} }} ] },
    ] },
 
  /* ── La clínica del club de barrio ─────────────────────────────────────────── */
@@ -7699,10 +7703,10 @@ const CARTAS_RECESO=[
    gancho:L('El club de tu barrio hace la clínica de verano y te invitan. No pagan nada y son dos semanas.', "Your neighborhood club runs its summer clinic and they invite you. No pay, and it's two weeks.", 'O clube do seu bairro faz a clínica de verão e te convida. Não pagam nada e são duas semanas.'),
    opciones:[
      { tipo:'segura', label:L('Este año no', 'Not this year', 'Este ano não'), desenlaces:[
-         {p:100, remate:null, texto:L('Entrenás en paz. Nadie te lo reprocha, todavía.', 'You train in peace. Nobody holds it against you, yet.', 'Você treina em paz. Ninguém te cobra, ainda.'), ef:{ energia:10 }} ] },
+         {p:100, remate:null, texto:L('Entrenás en paz. Nadie te lo reprocha, todavía.', 'You train in peace. Nobody holds it against you, yet.', 'Você treina em paz. Ninguém te cobra, ainda.'), ef:{ }} ] },
      { tipo:'apuesta', label:L('Ir igual', 'Go anyway', 'Ir mesmo assim'), desenlaces:[
          {p:75, remate:L('Ídolo de barrio', 'Neighborhood hero', 'Ídolo do bairro'), texto:L('Doscientos pibes con tu nombre en la espalda.', 'Two hundred kids with your name on their backs.', 'Duzentos garotos com o seu nome nas costas.'), ef:{ rel:{hinchada:5} }},
-         {p:25, remate:L('Cariño con factura', 'Love with a price tag', 'Carinho que sai caro'), texto:L('Te doblás el tobillo en un picado con los chicos y llegás rengo a la pretemporada.', 'You roll an ankle playing pickup with the kids and limp into preseason.', 'Você torce o tornozelo num rachão com os garotos e chega mancando na pré-temporada.'), ef:{ skills:{fisico:-1}, energia:-15 }} ] },
+         {p:25, remate:L('Cariño con factura', 'Love with a price tag', 'Carinho que sai caro'), texto:L('Te doblás el tobillo en un picado con los chicos y llegás rengo a la pretemporada.', 'You roll an ankle playing pickup with the kids and limp into preseason.', 'Você torce o tornozelo num rachão com os garotos e chega mancando na pré-temporada.'), ef:{ skills:{fisico:-2} }} ] },
    ] },
 
  /* ── El último verano (32 en adelante) ─────────────────────────────────────── */
@@ -7712,7 +7716,7 @@ const CARTAS_RECESO=[
    gancho:L('Se terminó la temporada y el cuerpo tardó tres semanas en dejar de dolerte. El verano ya no es para crecer: es para llegar entero a octubre.', "Season's over and it took three weeks for the aches to stop. Summer isn't for growing anymore: it's for reaching October in one piece.", 'Acabou a temporada e o corpo levou três semanas para parar de doer. O verão já não é para crescer: é para chegar inteiro a outubro.'),
    opciones:[
      { tipo:'segura', label:L('Tres meses de kinesiólogo', 'Three months with the physio', 'Três meses de fisioterapeuta'), desenlaces:[
-         {p:100, remate:L('Madrugar paga', 'Early mornings pay off', 'Madrugar compensa'), texto:L('Te levantás a las seis todo el verano para hacer ejercicios que no le mostrás a nadie. Llegás entero.', "You're up at six all summer doing exercises nobody ever sees. You arrive in one piece.", 'Você acorda às seis o verão inteiro para fazer exercícios que ninguém vê. Chega inteiro.'), ef:{ energia:15 }} ] },
+         {p:100, remate:L('Madrugar paga', 'Early mornings pay off', 'Madrugar compensa'), texto:L('Te levantás a las seis todo el verano para hacer ejercicios que no le mostrás a nadie. Llegás entero.', "You're up at six all summer doing exercises nobody ever sees. You arrive in one piece.", 'Você acorda às seis o verão inteiro para fazer exercícios que ninguém vê. Chega inteiro.'), ef:{ skills:{fisico:1} }} ] },
      { tipo:'apuesta', label:L('Desaparecer tres meses', 'Disappear for three months', 'Sumir por três meses'), desenlaces:[
          {p:60, remate:L('Vacaciones de verdad', 'A real vacation', 'Férias de verdade'), texto:L('No tocás una pelota. Volvés con la cabeza fresca, que a esta altura es la mitad del partido.', "You don't touch a ball. You come back with a fresh head, and at this point that's half the game.", 'Você não toca numa bola. Volta com a cabeça fresca, que a essa altura é metade do jogo.'), ef:{ skills:{vision:3} }},
          {p:40, remate:L('Te dormiste', 'Caught napping', 'Você dormiu no ponto'), texto:L('Volvés tarde de todo y la pretemporada te pasa por arriba.', 'You come back late to everything and preseason runs you over.', 'Você volta atrasado em tudo e a pré-temporada te atropela.'), ef:{ minutos:-3 }} ] },

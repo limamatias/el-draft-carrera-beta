@@ -9518,14 +9518,27 @@ const AMERICAS_DESGASTE = 2;   // al club, en su liga, el año que juega los dos
  * el 44 %, cuartos ~55 %, semis ~70 %, final ~90 % — todo termina antes de los playoffs de la
  * liga (la BCLA real define en abril; la LNB en mayo). Tres ventanas por ronda porque la serie
  * es al mejor de 3: cada ventana juega UN juego de cada serie viva. */
+/* 2026-09-10 (su ok, con el formato real de la BCL Americas 2025-26 delante): cuartos al mejor de 3 con localía 1-2 (el
+ * juego 1 en la cancha del peor sembrado, el 2 y el 3 en la del mejor), y un FINAL FOUR en una sola sede: semis a partido
+ * único y la final al día siguiente. La sede es el semifinalista de más fuerza. Del tercer puesto no se juega. Nueve
+ * ventanas: 4 de grupo, 3 de cuartos, la semi y la final — la final comparte la fecha ancla de la semi y cae al día
+ * siguiente (ventanasAmericas). Las partidas que ya venían con las 13 ventanas viejas y semis empezadas siguen como
+ * estaban (reanclarAmericas no las toca). */
 const AMERICAS_VENTANAS = [
   ['grupo', 0.20], ['grupo', 0.28], ['grupo', 0.36], ['grupo', 0.44],
   ['cuartos', 0.55], ['cuartos', 0.58], ['cuartos', 0.61],
-  ['semifinal', 0.70], ['semifinal', 0.73], ['semifinal', 0.76],
-  ['final', 0.88], ['final', 0.91], ['final', 0.94],
+  ['semifinal', 0.80], ['final', 0.80],
 ];
 const AMERICAS_RONDAS = ['cuartos', 'semifinal', 'final'];
-const AMERICAS_MEJOR_DE = 3;
+const AMERICAS_MEJOR_DE = 3;   // los cuartos
+const AMERICAS_MEJOR_DE_RONDA = { cuartos: 3, semifinal: 1, final: 1 };
+const mejorDeAM = (ronda) => AMERICAS_MEJOR_DE_RONDA[ronda] || AMERICAS_MEJOR_DE;
+/* la localía de un juego: al mejor de 3 es 1-2 (el 1 en la del peor sembrado); a partido único, la sede del Final Four
+   si es de uno de los dos, y si no el mejor sembrado (sólo para el dado del local) */
+function localDeJuegoAM(am, s, nro) {
+  if (s.mejorDe === 1) { const sede = am && am.llave && am.llave.sede; return sede === s.alta || sede === s.baja ? sede : s.alta; }
+  return nro === 1 ? s.baja : s.alta;
+}
 const AMERICAS_GRUPOS = ['A', 'B', 'C', 'D'];
 
 /** Las ventanas concretas para una liga de F fechas: {etapa, n, f} con f distintos y ≤ F−2
@@ -9568,8 +9581,11 @@ function ventanasAmericas(F, semilla, ritmo, desde) {
   for (const v of out) cont[v.etapa] = (cont[v.etapa] || 0) + 1;
   for (const [etapa, fr] of AMERICAS_VENTANAS.slice(out.length)) {
     let f = Math.round(fr * F);
-    if (f <= ult) f = ult + 1;
-    f = fechaConAire(F, f, semilla, ritmo, AMERICAS_VENTANAS.length - out.length - 1, ult);
+    if (etapa === 'final' && out.length && out[out.length - 1].etapa === 'semifinal') f = ult;   // el Final Four: misma fecha ancla que la semi
+    else {
+      if (f <= ult) f = ult + 1;
+      f = fechaConAire(F, f, semilla, ritmo, AMERICAS_VENTANAS.length - out.length - 1, ult);
+    }
     ult = f;
     cont[etapa] = (cont[etapa] || 0) + 1;
     /* el día: el medio del hueco (hueco 4 → +2: liga · descanso · continental · descanso · liga; hueco 2 → +1, el único
@@ -9583,18 +9599,24 @@ function ventanasAmericas(F, semilla, ritmo, desde) {
      que la liga; con esto, cero en 60 semillas por liga. */
   const desdeI = desde ? desde.hechas.length : 0;
   if (semilla && typeof diaDeFecha === 'function') for (let i = out.length - 1; i >= desdeI; i--) {
-    const v = out[i], techo = i < out.length - 1 ? out[i + 1].f - 1 : v.f, piso = desde ? desde.ult : 0;   // las jugadas no se mueven: ninguna nueva baja de la última jugada
+    const v = out[i]; if (v.etapa === 'final') continue;   // la final va con la semi
+    const sig = out.slice(i + 1).find((w) => w.etapa !== 'final');
+    const techo = sig ? sig.f - 1 : v.f, piso = desde ? desde.ult : 0;   // las jugadas no se mueven: ninguna nueva baja de la última jugada
+    const minH = v.etapa === 'semifinal' ? 3 : 2;   // la semi necesita dos días libres: ella y la final
     let k = Math.min(v.f, techo);
-    while (k > piso && huecoDe(F, k, semilla, ritmo) < 2) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
+    while (k > piso && huecoDe(F, k, semilla, ritmo) < minH) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
     if (k > piso) v.f = k;
   }
-  for (let i = desdeI; i < out.length; i++) { const v = out[i], h = huecoDe(F, v.f, semilla, ritmo); if (semilla && h > 0) v.dia = diaDeFecha(semilla, v.f, ritmo) + Math.max(1, Math.ceil(h / 2)); }
+  for (let i = desdeI; i < out.length; i++) { const v = out[i];
+    if (v.etapa === 'final' && i > 0 && out[i - 1].etapa === 'semifinal') { v.f = out[i - 1].f; if (out[i - 1].dia) v.dia = out[i - 1].dia + 1; continue; }
+    const h = huecoDe(F, v.f, semilla, ritmo); if (semilla && h > 0) v.dia = diaDeFecha(semilla, v.f, ritmo) + (v.etapa === 'semifinal' ? (h >= 5 ? 2 : 1) : Math.max(1, Math.ceil(h / 2))); }   // la semi: con hueco de 5 entra descanso · semi · final · descanso
   if (out[out.length - 1].f > F - 2) throw new Error('la Liga de las Américas no entra en ' + F + ' fechas');
   return out;
 }
 /* las partidas que ya venían: las ventanas por jugar se re-anclan con la regla nueva; las jugadas quedan */
 function reanclarAmericas(am, F, semilla, ritmo) {
   if (!am || am.fase === 'terminado' || !semilla) return false;
+  if (am.ventanas.length !== AMERICAS_VENTANAS.length && am.idx >= 7) return false;   // 2026-09-10: las 13 viejas con semis al mejor de 3 ya armadas, como estaban
   const hechas = am.ventanas.slice(0, am.idx), ult = hechas.length ? hechas[hechas.length - 1].f : 0;
   const nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult });
   const cambio = nuevas.some((v, i) => !am.ventanas[i] || am.ventanas[i].f !== v.f || am.ventanas[i].dia !== v.dia);
@@ -9699,9 +9721,9 @@ function proximoAmericas(e) {
     return { tipo: 'americas', etapa: 'grupo', ventana: v, rival: local ? j.visita : j.local, local, juego: v.n, grupo: am.miGrupo };
   }
   const s = j.serie;
-  const localId = altaEsLocal(s.mejorDe, j.nro) ? s.alta : s.baja;
-  return { tipo: 'americas', etapa: s.nombre, ventana: v, serie: s, juego: j.nro,
-    rival: s.alta === e.miClubId ? s.baja : s.alta, local: localId === e.miClubId };
+  const localId = localDeJuegoAM(am, s, j.nro), sede = s.mejorDe === 1 ? (am.llave.sede || null) : null;
+  return { tipo: 'americas', etapa: s.nombre, ventana: v, serie: s, juego: j.nro, sede,
+    rival: s.alta === e.miClubId ? s.baja : s.alta, local: sede ? sede === e.miClubId : localId === e.miClubId };
 }
 
 /* un partido simulado con el dado de la fecha (01e): sin empates */
@@ -9756,7 +9778,7 @@ function cerrarGruposAM(am, mi) {
   for (const g of AMERICAS_GRUPOS) pos[g] = tablaGrupoAM(am, g).map((f) => f.id);
   /* cuartos: A1-B2 · C1-D2 · B1-A2 · D1-C2 (las semis cruzan 0 con 1 y 2 con 3) */
   const cruces = [['A', 'B'], ['C', 'D'], ['B', 'A'], ['D', 'C']];
-  const series = cruces.map(([x, y]) => ({ ronda: 0, nombre: 'cuartos', alta: pos[x][0], baja: pos[y][1], mejorDe: AMERICAS_MEJOR_DE, ganAlta: 0, ganBaja: 0, juegos: [], ganador: null }));
+  const series = cruces.map(([x, y]) => ({ ronda: 0, nombre: 'cuartos', alta: pos[x][0], baja: pos[y][1], mejorDe: mejorDeAM('cuartos'), ganAlta: 0, ganBaja: 0, juegos: [], ganador: null }));
   am.llave = { ronda: 0, series, seriesJugadas: series.slice() };
   am.fase = 'llave';
   if (!series.some((s) => s.alta === mi || s.baja === mi)) { am.eliminado = true; am.miFase = 'grupo'; }
@@ -9778,9 +9800,10 @@ function cerrarRondaAM(am, mi) {
   for (let i = 0; i < vivos.length; i += 2) {
     /* el sembrado alto es el que tiene más fuerza (a falta de tabla común entre grupos) */
     const [p, q] = am.fuerzas[vivos[i]] >= am.fuerzas[vivos[i + 1]] ? [vivos[i], vivos[i + 1]] : [vivos[i + 1], vivos[i]];
-    series.push({ ronda: ll.ronda, nombre, alta: p, baja: q, mejorDe: AMERICAS_MEJOR_DE, ganAlta: 0, ganBaja: 0, juegos: [], ganador: null });
+    series.push({ ronda: ll.ronda, nombre, alta: p, baja: q, mejorDe: mejorDeAM(nombre), ganAlta: 0, ganBaja: 0, juegos: [], ganador: null });
   }
   ll.series = series; ll.seriesJugadas.push(...series);
+  if (nombre === 'semifinal') ll.sede = vivos.slice().sort((a, b) => am.fuerzas[b] - am.fuerzas[a])[0];   // el Final Four: la sede es el semifinalista de más fuerza
   if (!am.eliminado) am.miFase = nombre;
 }
 
@@ -9805,11 +9828,11 @@ function jugarVentanaAM(e, v, miJuego) {
     if (v.n === 4) cerrarGruposAM(am, mi);
     return;
   }
-  const meta = Math.ceil(AMERICAS_MEJOR_DE / 2);
   for (const s of am.llave.series) {
     if (s.ganador || s.nombre !== v.etapa) continue;
+    const meta = Math.ceil(s.mejorDe / 2);
     const nro = s.juegos.length + 1;
-    const local = altaEsLocal(s.mejorDe, nro) ? s.alta : s.baja;
+    const local = localDeJuegoAM(am, s, nro);
     const visita = local === s.alta ? s.baja : s.alta;
     const mio = s.alta === mi || s.baja === mi;
     let pl, pv;
@@ -9827,7 +9850,7 @@ function jugarVentanaAM(e, v, miJuego) {
       if (s.ganador && s.ganador !== mi) { am.eliminado = true; am.miFase = s.nombre === 'final' ? 'final' : s.nombre; }
     }
   }
-  if (v.n === 3) cerrarRondaAM(am, mi);
+  if (!am.ventanas.some((w) => w.etapa === v.etapa && w.n > v.n)) cerrarRondaAM(am, mi);   // la última ventana de la ronda la cierra
 }
 
 /**
@@ -9881,7 +9904,7 @@ function misJuegosAM(e) {
     if (!s.ganador) {
       const seguros = Math.ceil(s.mejorDe / 2) - Math.max(s.ganAlta || 0, s.ganBaja || 0);
       for (let nro = s.juegos.length + 1; nro <= s.mejorDe; nro++) {
-        const localId = altaEsLocal(s.mejorDe, nro) ? s.alta : s.baja;
+        const localId = localDeJuegoAM(am, s, nro);
         out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), dia: dDe(s.nombre, nro), rival: s.alta === mi ? s.baja : s.alta, local: localId === mi, res: null, serie: s,
           siHaceFalta: nro > s.juegos.length + seguros });
       }
@@ -19624,7 +19647,7 @@ function htmlAmericas(e,g){
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   if(am.llave){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(AMERICAS_MEJOR_DE)+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true});
+    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true});
   }
   return h;
 }
@@ -20640,7 +20663,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   for(const f of fechas.filter(f=>!am||f.am)){
     if(am&&f.etapa!==etapaAnt){ etapaAnt=f.etapa;
       const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
-                                :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(AMERICAS_MEJOR_DE);
+                                :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(mejorDeAM(f.etapa));
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+cab+'</span></span></div>'; }
     h+=filaFix(f,calPorFecha,proxKey,am);
   }
@@ -21772,7 +21795,7 @@ function abrirPre(objetivo){
   /* §12.24: en las eliminatorias la selección juega en SU sede de esa jornada (rotan); en un torneo nadie es local */
   const ciudadSel=objetivo.tipo==='seleccion'&&objetivo.etapa==='eliminatorias'
     ? ciudadSelEn(e.seleccion, objetivo.local?(C.jugador.nacionalidad||'ar'):objetivo.rival, objetivo.jornada) : null;
-  const ciudadPre=(ciudadSel||((objetivo.local?miClubEn(objetivo):rc)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase();
+  const ciudadPre=(ciudadSel||((objetivo.local?miClubEn(objetivo):objetivo.sede?clubDe(objetivo.sede):rc)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase();   // 2026-09-10: el Final Four se juega en la sede
   $l('lobPreCiudad').textContent=ciudadPre?(objetivo.local?t(L('EN CASA','HOME','EM CASA'))+' · ':'')+ciudadPre:'';
   if(objetivo.tipo==='fecha'){
     $l('lobPreFecha').textContent=t(L('FECHA','ROUND','RODADA'))+' '+objetivo.fecha+t(L(' DE ',' OF ',' DE '))+e.fechasTotales;   // §2z39.64: los minutos van con el DT
@@ -22169,6 +22192,7 @@ function registrarResultado(){
          moverRelaciones(J,{gano:G.nos>G.riv,clave:esClave,local:!!enPartido.local,ast:miJuego.linea.ast,rating,mision:cierre.mision},relDestino); }
   const antes=e.fechaJugada;
   let amAviso=null;   // §2z27: lo que el continental te dice al volver al vestuario
+  const diaUltAMPrevio=e.americas&&e.americas.ultimoDia||0;   // 2026-09-10: el día del continental ANTERIOR (ultimoDia se pisa abajo con el de hoy)
   let dbetaAviso=null;   // §2z105: el escalón de la beta, anunciado
   if(enPartido&&enPartido.tipo==='fecha'){
     avanzarHastaFecha(e,enPartido.fecha);
@@ -22207,7 +22231,7 @@ function registrarResultado(){
      continental va en el medio del hueco de su ventana (2026-09-10, `v.dia`), y la fecha que sigue descuenta esos días. */
   const diaUltAM=e.americas&&e.americas.ultimoDia||0;
   const dias=enPartido.tipo==='seleccion' ? 3
-    : enPartido.tipo==='americas' ? Math.max(1,diaAmericas(e,enPartido.ventana)-diaDeFecha(e.semilla,enPartido.ventana.f,e.ritmo))
+    : enPartido.tipo==='americas' ? Math.max(1,diaAmericas(e,enPartido.ventana)-Math.max(diaDeFecha(e.semilla,enPartido.ventana.f,e.ritmo),diaUltAMPrevio))   // la final del Final Four: 1 día después de la semi
     : faseAntes==='regular'&&antes<e.fechaJugada
     ? Math.max(1,diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)-Math.max(antes>0?diaDeFecha(e.semilla,antes,est().ritmo):0,diaUltAM))
     : diasPO();
@@ -22223,7 +22247,7 @@ function registrarResultado(){
     /* §2z181: lo que el velo del cuerpo y el bolsillo cuenta después de la statline (se arma acá, se abre en el circuito) */
     C.cuerpo={antes:Math.round(eDesc),despues:Math.round(J.energia),costo,min:minutosJugados(),
       pago:{partido:con.partido||0,ganar:gano?(con.ganar||0):0,mision:misOk?(con.mision||0):0},gano,misOk,
-      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):diaSel(enPartido),fase:faseAntes,
+      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):enPartido.tipo==='americas'?diaAmericas(e,enPartido.ventana):diaSel(enPartido),fase:faseAntes,
       recesoSel:enPartido.tipo==='seleccion'&&enPartido.etapa!=='eliminatorias'}; }
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol

@@ -12440,7 +12440,7 @@ function armarPosesion(){
        atrás de la pelota del circuito ANTERIOR, con los conos nuevos abajo). armarPosesion
        hereda el bote a propósito (la posesión heredada del avance lo necesita), pero un
        drill relanzado no hereda nada: se limpia acá. */
-    G.bola=null; G.boteo=null; G.flickIni=null; G.tDrive=0; G.levanto=false; G.carreraVos=null;
+    G.bola=null; G.boteo=null; G.flickIni=null; G.tDrive=0; G.levanto=false; G.carreraVos=null; G.rumbo=null; G.botes=0;
     G.slalom.meta=G.slalom.conos[nConos-1].y-metaGap;
     G.camCentro=eje;
     /* EL RELOJ se arma acá: el total es cuántos conos entraron × el tiempo por cono que
@@ -12810,6 +12810,7 @@ function armarPosesion(){
   G.fase='espera'; G.drag=null; G.pend=null; G.pelota=null; G.pelotaEn=null; G.tiro=null; G.paseVivo=null; G.pasesPos=0; G.joy=null; G.joyMoviendo=false;
   G.sueltaFinal=false; G.devuelta=false;
   G.suelo=null; G.corre=null; G.mueve=null; G.toco=null; G.frenoEn=null; G.pendCorte=null; G.scr=null; G.levanto=false;
+  G.rumbo=null; G.botes=0;   // §2z192 · §2z193
   if(G.tipo!=='bloqueo') G.pantalla=null;
   G.medidor=null; G.barraFx=null; G.subida=null; G.corres=null;
   if(G.tipo!=='sacada'&&G.tipo!=='contra') G.corrida=null;
@@ -13541,6 +13542,14 @@ c.addEventListener('pointermove',e=>{
       }
     }
   } else if(G.fase==='apunto'&&G.drag){ G.drag.x=P.x; G.drag.y=P.y; }
+  /* §2z193 (su pedido 2026-09-10: "si no dribbleás y arrastrás lejos debería darte el pase de parado"): en la contra, el
+     PRIMER arrastre que pasa de 0,26·W (el bote tope es 0,20·W: más largo no es bote) se vuelve la gomera en vivo, con el
+     mismo origen. El que pica ya salió con el arrastre (§2z50); el reloj de la contra sigue (re-armarlo es de frenar). */
+  else if(G.fase==='conduzco' && G.tipo==='contra' && dif.drive==='toques' && G.flickIni && !(G.botes||0) && !G.boteo
+          && Math.hypot(P.x-G.flickIni.x,P.y-G.flickIni.y)>W*0.26){
+    G.drag={x0:G.flickIni.x, y0:G.flickIni.y, x:P.x, y:P.y, t0:performance.now()-400};
+    G.bola=null; G.boteo=null; G.flickIni=null; G.tiro=null; G.levanto=true; G.fase='apunto';
+  }
 });
 c.addEventListener('pointerup',e=>{
   if(G.gym) return;
@@ -13576,6 +13585,7 @@ c.addEventListener('pointerup',e=>{
       const cB=clampMundoJugable(desde.x+dx/L*dToque, desde.y+dy/L*dToque);
       const tx=cB.x, ty=cB.y;
       G.boteo={x0:desde.x, y0:desde.y, x1:tx, y1:ty, t:0, dur:0.12+dToque/180};
+      G.rumbo={x:dx/L, y:dy/L}; G.botes=(G.botes||0)+1;   // §2z192: hacia dónde va tu último bote · §2z193: cuántos llevás
       sfx('bote',0.6);
       if(!G.bola) G.bola={x:desde.x, y:desde.y};
       return;
@@ -17334,7 +17344,10 @@ function frame(now){
       /* el SLALOM del drill de manejo: compuertas, conos y frenos viven en su paso (06) */
       if(G.tipo==='slalom'&&G.slalom&&!G.slalom.fin) pasoSlalom();
       /* a toques, llegar al círculo con la pelota dominada DEFINE solo */
+      /* §2z192 (su caza 2026-09-10: la bandeja se gatillaba pasando de costado): el último empujón tiene que APUNTAR al
+         aro (a menos de 60°); sin rumbo conocido, como siempre. El toque seco adentro sigue definiendo sin mirar esto. */
       if(dif.drive==='toques' && G.tipo!=='avance' && G.tipo!=='slalom' && dist(G.vos,aro())<R3()*0.34
+         && (!G.rumbo || ((aro().x-G.vos.x)*G.rumbo.x+(aro().y-G.vos.y)*G.rumbo.y)/Math.max(1,dist(G.vos,aro()))>=0.5)
          && !(G.esDrill && window.drillEsVision && window.drillEsVision())   // §2z39.16: en el drill de visión llegar al aro no define
          && (!G.bola || dist(G.bola,G.vos)<40)){
         juntar();
@@ -17362,7 +17375,7 @@ function frame(now){
            sobreviven): la carrera contra los que vuelven es real — si cruzaste con
            ventaja, llegás antes. La cámara ya era suave acá (encuadrar(true) de la
            heredada, y el eje Y vive anclado al aro). */
-        const vivo={bola:G.bola, boteo:G.boteo, flickIni:G.flickIni, tDrive:G.tDrive, press:G.press};
+        const vivo={bola:G.bola, boteo:G.boteo, flickIni:G.flickIni, tDrive:G.tDrive, press:G.press, rumbo:G.rumbo, botes:G.botes};   // §2z192: el rumbo cruza con el bote
         armarPosesion();
         Object.assign(G, vivo);
         G.fase='conduzco'; arrancaCorridaSiEspera();

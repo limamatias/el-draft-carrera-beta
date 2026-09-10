@@ -5642,6 +5642,11 @@ function misionMeta(m) {
   if (m.meta === 0) return t(misionNombre(m));
   return m.meta + ' ' + t(misionNombre(m));
 }
+/* la planilla del cierre tiene 300 px: la mixta va corta ("9 PTS · ≤1 PÉRD"); las demás, como siempre */
+function misionMetaCorta(m) {
+  if (m.tipo !== 'mixta') return misionMeta(m);
+  return m.partes.map((p) => (p.tipo === 'perdidas' ? '≤' : '') + p.meta + ' ' + t(MISION_CORTA[p.tipo])).join(' · ');
+}
 /* el renglón del HUD, indexado por idioma (ahí `t` es otra cosa): nombre + cómo venís */
 function misionHud(m, G) {
   const id = idioma();
@@ -19464,6 +19469,11 @@ function cargarCarrera(n){
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
     if(c.temporada&&c.temporada.americas) reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo);   // 2026-09-10: las ventanas por jugar, con aire
+    /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
+       pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
+       fecha f+1 y la 2 tres días después. Las del receso ya los traen. */
+    if(c.temporada&&c.temporada.seleccion&&Array.isArray(c.temporada.seleccion.ventanas)) for(const v of c.temporada.seleccion.ventanas){
+      if(!v.dias&&!v.receso&&v.f){ const d1=diaDeFecha(c.temporada.semilla,v.f+1,c.temporada.ritmo); v.dias=[d1,d1+3]; } }
     /* §2z73: EN LA BETA TE CONVOCAN SIEMPRE, también en las partidas que ya venían (su caza: una beta con 8,8 contra
        Estados Unidos y "esta vez no te llamaron" a la segunda ventana — la selección de esa partida no llevaba el
        flag `beta` y el motor sorteó la ventana con media 43). Las ventanas que faltan pasan a convocado y el aviso
@@ -20337,7 +20347,7 @@ function filasFixtureSeleccion(){
        k de la ventana f cae el día de la fecha f+k del club, que es la que tu club juega sin vos
        (fechasSalteadas): el mismo día que el fixture del club marca CON LA SELECCIÓN. */
     const etapa=f.etapa==='eliminatorias'
-      ? diaTxt(f.dia||diaDeFecha(e.semilla,f.f+f.off,e.ritmo))   // §12.25: "V1" sonaba a versión · §12.28: el día de la ventana, si lo tiene
+      ? diaTxt(f.dia||diaDeFecha(e.semilla,f.f+1,e.ritmo)+(f.off-1)*3)   // §12.25: "V1" sonaba a versión · §12.28: el día de la ventana · 2026-09-10 (su caza: "vs México y en Panamá back to back, es vuelo"): sin `dias`, la segunda jornada va 3 días después, no el día de la fecha pegada del club
       : selTorneoTxt(f.torneo)+' · '+t(SEL_TXT[f.etapa]||L(f.etapa));
     /* ⚠️ la fila DICE si jugaste vos: la selección juega aunque a vos no te llamen, y sin esta
        marca el calendario del país se leería como si fuera tuyo */
@@ -22093,7 +22103,7 @@ terminar=function(){
   if(G.tapas) filas.push([t(L('TAPAS','BLOCKS','TOCOS')),G.tapas]);
   /* RACHA se fue de la planilla (su caza 2026-09-02: "no se entiende qué es y no aporta") */
   if(G.sub) filas.push([t(L('TE SACARON','BENCHED','TE TIRARAM')),'<span class="mal">'+G.sub+'</span>']);
-  if(mision) filas.push([t(L('MISIÓN','MISSION','MISSÃO'))+' · '+misionMeta(mision),'<span class="'+(mision.ok?'ok':'mal')+'">'+(mision.ok?'✓':'✗')+'</span>']);
+  if(mision) filas.push([t(L('MISIÓN','MISSION','MISSÃO'))+' · '+misionMetaCorta(mision),'<span class="'+(mision.ok?'ok':'mal')+'">'+(mision.ok?'✓':'✗')+'</span>']);
   /* §2z99: la última fue tuya — un hecho de la noche, como la misión */
   if(G.clutch) filas.push([t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')),'<span class="'+(G.clutch.anoto?'ok':'mal')+'">'+(G.clutch.anoto?'✓':'✗')+'</span>']);
   /* §2z74 (su pedido: "al final del partido no te dice cuánto cobraste"): la misma cuenta que paga el cierre

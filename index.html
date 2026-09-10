@@ -19859,8 +19859,8 @@ function htmlSeleccion(e){
     const ultV=el.ventanas[el.ventanas.length-1], dUlt=ultV&&ultV.dias&&ultV.dias[1];
     const mesUlt=dUlt?diaTxt(dUlt).split(' ').find(x=>isNaN(+x))||null:null;   // en inglés diaTxt da "NOV 29": el token que no es número
     if(!el.fin) h+='<div class="r amTit nota"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
-      ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA'))+'<br>'+t(L('EL MUNDIAL '+aM+', EN EL RECESO SIGUIENTE','WORLD CUP '+aM+' THE OFFSEASON AFTER','O MUNDIAL '+aM+', NO RECESSO SEGUINTE'))
-      : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
+      ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA'))+'<br>'+t(L('EL MUNDIAL '+aM+', AL TERMINAR LA TEMPORADA SIGUIENTE','WORLD CUP '+aM+' ONCE NEXT SEASON ENDS','O MUNDIAL '+aM+', AO TERMINAR A PRÓXIMA TEMPORADA'))
+      : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+', CUANDO TERMINE LA TEMPORADA CON TU CLUB','WORLD CUP '+aM+' ONCE YOUR CLUB SEASON ENDS','O MUNDIAL '+aM+', QUANDO TERMINAR A TEMPORADA COM SEU CLUBE')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
   }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */

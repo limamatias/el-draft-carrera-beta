@@ -713,7 +713,7 @@
   .coach .x{position:absolute;right:6px;top:6px;background:transparent;border:0;color:var(--tinta2);font-size:20px;padding:8px 10px;font-family:inherit}
   #lobby .hudBeta{position:absolute;top:6px;right:10px;font-size:11px;   /* 2026-09-10 (su caza): al borde del contenido, alineado con MEDIA (el cajón tiene 10 px de padding) */letter-spacing:1.6px;font-weight:700;
        color:var(--naranja);border:1px solid rgba(255,150,51,.55);border-radius:7px;padding:3px 7px;
-       cursor:pointer;user-select:none;z-index:3}
+       cursor:pointer;user-select:none;z-index:3;text-align:center;box-sizing:border-box}   /* el ancho lo pone el lobby: el de MEDIA */
   #lobby .hudBeta.oculto{display:none}
   /* la cruz de un velo: cerrar sin decidir nada (su pedido: "un pop up que se cierra con cruz") */
   .veloB .veloX{position:absolute;top:8px;right:10px;font-size:18px;line-height:1;color:var(--tinta2);
@@ -22290,7 +22290,9 @@ function pintaSecciones(){
   /* §2z71: en la beta hay una sola temporada — VER COMPLETO sería una puerta a lo que ya ves */
   const bVC=$l('lobVerCarrera'); if(bVC) bVC.classList.toggle('oculto',esBeta());
   $l('lobCarreraTit').textContent=t(L('TU CARRERA','YOUR CAREER','SUA CARREIRA'));
-  const chip=$l('lobBetaChip'); if(chip) chip.classList.toggle('oculto',!esBeta());   // §7.1
+  const chip=$l('lobBetaChip'); if(chip){ chip.classList.toggle('oculto',!esBeta());   // §7.1
+    /* su corte 2026-09-10: el chip con el MISMO ancho que la caja de MEDIA (que mide por contenido e idioma), centrado sobre ella */
+    const mb=document.querySelector('#lobby .mediaBox'); if(esBeta()&&mb&&mb.offsetWidth) chip.style.width=mb.offsetWidth+'px'; }
   pintaEntrenar();
   pintaRelaciones();
   pintaTienda(); pintaTuyo();

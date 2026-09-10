@@ -21145,7 +21145,9 @@ function pintaLobby(){
   const enSelHoy=!!(prox&&prox.tipo==='seleccion');
   const mp=(e.misPartidos||[]).filter(p=>!!p.sel===enSelHoy&&!p.conSeleccion);
   const ml=mp.reduce((a,p)=>({pj:a.pj+1,pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),min:a.min+(p.minutos||0)}),{pj:0,pts:0,ast:0,min:0});
-  const marcaProm=enSelHoy?escuditoDe(clubDeSeleccion(C.jugador.nacionalidad||'ar')):escudito(e.miClubId);   // §12.26: de quién es el promedio (el CSS del goteo lo pone en línea)
+  /* §12.26: de quién es el promedio. 2026-09-10 (su caza: "el escudo al lado de PROMEDIÁS sobrecarga con los dos de arriba"): el
+     del club se va — el renglón de arriba ya lo lleva dos veces; la bandera queda sólo con la selección, donde sí distingue */
+  const marcaProm=enSelHoy?escuditoDe(clubDeSeleccion(C.jugador.nacionalidad||'ar')):'';
   $l('lobGoteo2').innerHTML=ml.pj
     ? marcaProm+t(L('Promediás','You average','Sua média:'))+' <b>'+fdec(ml.pts/ml.pj)+' PTS · '+fdec(ml.ast/ml.pj)+' AST</b>'+t(L(' en ',' in ',' em '))+Math.round(ml.min/ml.pj)+' min'
     : '';

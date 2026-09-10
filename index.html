@@ -19952,6 +19952,10 @@ const selTorneoTxt=(k)=>t(SEL_TXT[k]||L(k));
 /* 2026-09-10 (su caza: "en el fixture de la selección no dice en ningún lugar qué competencia es"): el título de las plenas del
    lado de la bandera nombra la competencia —el torneo del receso o las eliminatorias—, no «LA SELECCIÓN» */
 const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):elimTxt();   // 2026-09-10 (su pedido): con el Mundial y su sede, en todos lados
+/* 2026-09-11 (lo destapó el arnés de capturas arreglado, clase 9): las plenas del lado de la bandera sumaban el año de la
+   temporada a un título que YA trae el año del Mundial — «MUNDIAL FRANCIA 2031 · 2029». El torneo del receso no trae año, así
+   que ahí sí va el de la temporada. */
+const tituloSelConAnio=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo)+' · '+anioTxt():elimTxt();
 /* ⚠️ LAS ELIMINATORIAS SON A ALGO, Y ESE ALGO SE DICE (su caza 2026-09-04: *"debería decir en
    cómo salió el partido sin ser convocado que es eliminatorias de qué torneo, sino es
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
@@ -20953,7 +20957,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   ultimoFix=[fechas,calPorFecha,proxKey];
   pintaSwitchSel('lobFixSwitch');
   const sel=ladoSel==='sel', am=ladoSel==='am';
-  $l('lobFixTit').textContent=(sel?tituloSel():am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
+  $l('lobFixTit').textContent=sel?tituloSelConAnio():(am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
   $l('lobFixFull').classList.toggle('ladoAm',am);   // 2026-09-10 (su caza): del lado del globo la marca es «1» o «J2», la columna de 34 px sobraba y le robaba al nombre
   if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(); return; }
@@ -20995,7 +20999,7 @@ let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tu
 function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
   pintaSwitchSel('lobTablaSwitch');   // §12
-  $l('lobTablaTit').textContent=(ladoSel==='sel'?tituloSel():ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
+  $l('lobTablaTit').textContent=ladoSel==='sel'?tituloSelConAnio():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
   if(ladoSel==='sel'){ tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto
     const am=e.americas, g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;

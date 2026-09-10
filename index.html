@@ -845,7 +845,7 @@
   #lobby .fecha-pre{font-size:13px;letter-spacing:2px;color:var(--tinta);font-weight:600;
        background:rgba(20,27,44,.82);
        border-radius:99px;padding:6px 16px;font-variant-numeric:tabular-nums;
-       white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}   /* §2z39.63: una píldora es UN renglón; si no entra, corta — nunca parte la cabecera */
+       white-space:normal;text-align:center;line-height:1.25;min-width:0}   /* §2z39.63 decía «una píldora es UN renglón»; su corte 2026-09-10 para ésta: «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» envuelve en las chicas — es una pantalla intermedia con aire vertical de sobra, no compite con nada */
   #lobby .preTop .volver{flex:none}
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
@@ -11147,6 +11147,9 @@ const SEL_CIUDAD_ANFITRION = { qa: 'Doha', ee: 'Tallin', in: 'Ahmedabad', id: 'Y
   de: 'Berlín', ca: 'Toronto', br: 'São Paulo', es: 'Madrid', fr: 'París', cl: 'Santiago', do: 'Santo Domingo', mx: 'Ciudad de México',
   ar: 'Buenos Aires', pr: 'San Juan', co: 'Bogotá', uy: 'Montevideo', ve: 'Caracas', pl: 'Katowice', rs: 'Belgrado', lt: 'Kaunas',
   lv: 'Riga', fi: 'Helsinki', cz: 'Praga', gr: 'Atenas', si: 'Liubliana', ph: 'Manila', us: 'Los Ángeles' };
+/* el país de un anfitrión que no está en el padrón (para «MUNDIAL CATAR 2027») */
+const SEL_PAIS_ANFITRION = { qa: 'Catar', ee: 'Estonia', in: 'India', id: 'Indonesia' };
+function nombreAnfitrion(id) { return (SELECCIONES[id] && SELECCIONES[id].nombre) || SEL_PAIS_ANFITRION[id] || id; }
 function ciudadAnfitrion(id, k) {
   if (!k && SEL_CIUDAD_ANFITRION[id]) return SEL_CIUDAD_ANFITRION[id];
   const c = (SEL_SEDES[id] && SEL_SEDES[id].length) ? SEL_SEDES[id] : [SEL_CIUDAD_ANFITRION[id] || id];
@@ -19956,7 +19959,9 @@ const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):t(SEL_TXT.el
    destino en vez de un trámite que se repite. */
 /* §12.2 v2: en la parte A el Mundial es el de anio+2 (cierra la temporada que viene); en la parte B y en la beta, anio+1 */
 const anioMundial=()=>(!esBeta()&&parteElim(C.anio)==='A')?C.anio+2:C.anio+1;
-const elimTxt=()=>t(SEL_TXT.eliminatorias)+' '+t(L('AL MUNDIAL','TO THE WORLD CUP','AO MUNDIAL'))+' '+anioMundial();
+/* 2026-09-10 (su pedido: "¿no debería decir, donde entre, «eliminatorias Mundial Catar 2027»?"): el destino con su sede (§2z194) */
+const mundialTxt=()=>{ const a=anfitrionSel('mundial',anioMundial(),C.semilla); return t(L('MUNDIAL','WORLD CUP','MUNDIAL'))+' '+nombreAnfitrion(a.final).toUpperCase()+' '+anioMundial(); };
+const elimTxt=()=>t(SEL_TXT.eliminatorias)+' · '+mundialTxt();
 /* la BANDERA en la caja del escudo: una selección no se dibuja con un escudo de club */
 const selEscudo=(id,px)=>'<span class="escudoR svg selBan">'+banderaDe(id,px||46)+'</span>';
 
@@ -20324,10 +20329,10 @@ function abrirParteVentana(p){
     tuyo.textContent=p.motivo==='club'
       ? t(L('Tu club no te soltó.','Your club did not release you.','Seu clube não te liberou.'))
       : p.motivo==='eleccion'
-      ? t(L('Te quedaste en el club.','You stayed with the club.','Você ficou no clube.'))
+      ? t(L('Jugaron sin vos: te quedaste en el club.','They played without you: you stayed with the club.','Jogaram sem você: você ficou no clube.'))
       : p.motivo==='cerca'
       ? t(L('No te convocaron. Te miraron, pero todavía no.','No call-up. They watched you, but not yet.','Sem convocação. Te olharam, mas ainda não.'))
-      : t(L('No te convocaron.','No call-up.','Você não foi convocado.'));
+      : t(L('Jugaron sin vos: no te convocaron.','They played without you: no call-up.','Jogaram sem você: não foi convocado.'));   // 2026-09-10 (su caza: «No te convocaron» solo, entre los resultados y la tabla, no se entendía fuera de contexto)
   }
   /* dónde quedó el grupo: cuatro pasan */
   const pos=(p.tabla||[]).findIndex(f=>f.id===p.pais)+1;
@@ -22130,7 +22135,7 @@ function abrirPre(objetivo){
     /* §2z39.63 (su captura: "ELIMINATORIAS AL MUNDIAL 2027 · VENTANA 1" partía la píldora en dos renglones y
        separaba el VOLVER): la píldora dice ELIMINATORIAS · VENTANA n — a qué Mundial ya lo dice el lobby */
     $l('lobPreFecha').textContent=objetivo.etapa==='eliminatorias'
-      ? t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+' '+objetivo.ventana.n
+      ? elimTxt()+' · '+t(SEL_TXT.ventana)+' '+objetivo.ventana.n   // 2026-09-10 (su pedido): «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» — en las chicas envuelve (su corte: pantalla intermedia, con aire)
       : selCuandoTxt(objetivo);
     $l('lobPrePorque').textContent=selPorqueTxt(objetivo,e);   // §12.20/§2z39.64: los minutos de TU rol van con el DT
     /* "Tu club juega sin vos." vivía acá (su caza: "en la prepartido no tiene sentido") — lo dice el fixture */

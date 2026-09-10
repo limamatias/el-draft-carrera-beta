@@ -20800,8 +20800,13 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   /* §2z177 (su caza 2026-09-08: "en la lista de partidos no se ve nunca por qué instancia jugás"): del lado del globo,
      una cabecera por instancia — FASE DE GRUPOS · GRUPO A, CUARTOS · AL MEJOR DE 3, SEMIFINAL, LA FINAL */
   const e=est(), am2=e.americas;
+  /* 2026-09-10 (su caza: "estoy en la ventana de eliminatorias, toco FIXTURE, paso a BOC desde el switch y me abre desde
+     la F1"): con el próximo en la selección, ninguna fila del club es «prox» y el scroll de §2z178 no tiene dónde
+     apoyarse. El respaldo es el primer partido de este lado sin resultado — el que viene, aunque no sea el próximo. */
+  const filas=fechas.filter(f=>!am||f.am);
+  if(!filas.some(f=>f.key===proxKey)){ const n=filas.find(f=>!f.res); if(n) proxKey=n.key; }
   let h='', etapaAnt=null;
-  for(const f of fechas.filter(f=>!am||f.am)){
+  for(const f of filas){
     if(am&&f.etapa!==etapaAnt){ etapaAnt=f.etapa;
       const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
                                 :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(mejorDeAM(f.etapa));

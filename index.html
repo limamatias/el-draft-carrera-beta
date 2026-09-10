@@ -4567,8 +4567,11 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
   /* 2026-09-09 (su corte: "no debería tener TANTA diferencia; una dificultad 0 es un chiste"): el término del rival se acota
      a [−6, +8] (en la NBA el abanico 36–70 daba ±20: Boston de local contra un débil era D 0 y Washington de visita a Boston 34)
      y D nunca baja de la mitad de la base. La LNB (50–66) casi no lo siente: sólo recorta los extremos. */
-  const rivalT = Math.max(-6, Math.min(8, 0.6 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))));   // David vs Goliat, acotado
-  const D = base + rivalT + (local ? 0 : 4);           // la visita aprieta (videos 10-12)
+  /* §2z194 (2026-09-10, medido con él: USA con los 88 en el Mundial más una «visita» sorteada daban Dbeta+12, y con la Dbeta
+     en el techo de la LNB cruzaba el 38 donde el cierre deja de esperar tu toque): el rival de SELECCIÓN se acota a +6, y
+     la cancha NEUTRAL (nadie es local) paga +2 en vez de los +4 de la visita. */
+  const rivalT = Math.max(-6, Math.min(rival.seleccion ? 6 : 8, 0.6 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))));   // David vs Goliat, acotado
+  const D = base + rivalT + (local === true ? 0 : local === 'neutral' ? 2 : 4);           // la visita aprieta (videos 10-12); la neutral, la mitad
   return Math.max(0, Math.max(base * 0.5, Math.min(60, D)));
 }
 
@@ -4721,7 +4724,7 @@ function scoutingDe(jugador, ligaId, rival, miClub, local) {
   const delta = rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza);
   if (delta >= 6) out.push({ clave: 'rival_duro' });
   else if (delta <= -6) out.push({ clave: 'rival_blando' });
-  if (!local) out.push({ clave: 'visitante' });
+  if (!local) out.push({ clave: 'visitante' });   // §2z194: en cancha neutral `local` es 'neutral' (truthy): no es visita
   if (scoreDelPartido(jugador, ligaId, rival, miClub, local) >= 38) out.push({ clave: 'cierre_solo' });
   return out;
 }
@@ -6084,7 +6087,7 @@ document.getElementById('cartaSeguir').onclick=function(){
 let salidaEnSel=false;
 function salidaDe(o){
   const e=est(), mi=e.miClubId, club=clubDe(mi);
-  const s={tipo:o.tipo, local:!!o.local, etapa:o.etapa||null, juego:o.juego||null, debutSel:false, clasico:false, clave:false, decisivo:false, barrida:false, final:false};
+  const s={tipo:o.tipo, local:!!o.local, neutral:!!o.neutral, anfitrion:!!o.anfitrion, ciudad:o.ciudad||null, etapa:o.etapa||null, juego:o.juego||null, debutSel:false, clasico:false, clave:false, decisivo:false, barrida:false, final:false};   // §2z194: neutral · anfitrión
   s.debutSel=o.tipo==='seleccion'&&!(($C().seleccion&&$C().seleccion.jugados)||0);
   s.clasico=o.tipo==='fecha'&&sonClasico(club,clubDe(o.rival));   // §2z41
   s.clave=!!(o.porqueCal||(o.tipo==='fecha'&&typeof elegirCalientes==='function'&&elegirCalientes(e).find(c=>c.fecha===o.fecha)));
@@ -6093,7 +6096,7 @@ function salidaDe(o){
   if(o.tipo==='seleccion') s.final=o.etapa==='final';
   /* §2z40.1 (su pedido: "el clásico contra [rival]", "la final de [competencia]"): nombres para la prosa */
   const rc=clubDe(o.rival); s.rival=rc?(rc.corto||rc.nombre):'';
-  s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');
+  s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?t(L('la Liga de las Américas','the Americas League','a Liga das Américas')):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
   return s;
 }
 function cartaDeSalida(o,seguir){
@@ -9814,14 +9817,16 @@ function proximoAmericas(e) {
   }
   const s = j.serie;
   const localId = localDeJuegoAM(am, s, j.nro), sede = s.mejorDe === 1 ? (am.llave.sede || null) : null;
+  const rivalF = s.alta === e.miClubId ? s.baja : s.alta;
+  /* §2z194 (su pedido: "lo mismo debería aplicar al Final Four"): la sede es local, el que la enfrenta visita, la otra semi es neutral */
   return { tipo: 'americas', etapa: s.nombre, ventana: v, serie: s, juego: j.nro, sede,
-    rival: s.alta === e.miClubId ? s.baja : s.alta, local: sede ? sede === e.miClubId : localId === e.miClubId };
+    rival: rivalF, local: sede ? sede === e.miClubId : localId === e.miClubId, neutral: !!sede && sede !== e.miClubId && sede !== rivalF, anfitrion: !!sede && sede === e.miClubId };
 }
 
 /* un partido simulado con el dado de la fecha (01e): sin empates */
-function simularJuegoAM(rng, am, local, visita) {
-  let pl = puntosDe(rng, am.fuerzas[local], am.fuerzas[visita], 2);
-  let pv = puntosDe(rng, am.fuerzas[visita], am.fuerzas[local], 0);
+function simularJuegoAM(rng, am, local, visita, neutral) {
+  let pl = puntosDe(rng, am.fuerzas[local], am.fuerzas[visita], neutral ? 1 : 2);   // §2z194: en el Final Four sin la sede en cancha, 1 y 1
+  let pv = puntosDe(rng, am.fuerzas[visita], am.fuerzas[local], neutral ? 1 : 0);
   while (pl === pv) { pl += rng.int(4, 12); pv += rng.int(4, 12); }
   return [pl, pv];
 }
@@ -9931,7 +9936,7 @@ function jugarVentanaAM(e, v, miJuego) {
     if (mio && miJuego) {
       pl = local === mi ? miJuego.ptsNos : miJuego.ptsRiv;
       pv = local === mi ? miJuego.ptsRiv : miJuego.ptsNos;
-    } else [pl, pv] = simularJuegoAM(rng, am, local, visita);
+    } else [pl, pv] = simularJuegoAM(rng, am, local, visita, s.mejorDe === 1 && !!am.llave.sede && am.llave.sede !== s.alta && am.llave.sede !== s.baja);   // §2z194
     s.juegos.push({ juego: nro, local, visita, ptsLocal: pl, ptsVisita: pv });
     const ganoLocal = pl > pv;
     if ((ganoLocal ? local : visita) === s.alta) s.ganAlta++; else s.ganBaja++;
@@ -9997,7 +10002,8 @@ function misJuegosAM(e) {
       const seguros = Math.ceil(s.mejorDe / 2) - Math.max(s.ganAlta || 0, s.ganBaja || 0);
       for (let nro = s.juegos.length + 1; nro <= s.mejorDe; nro++) {
         const localId = localDeJuegoAM(am, s, nro);
-        out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), dia: dDe(s.nombre, nro), rival: s.alta === mi ? s.baja : s.alta, local: localId === mi, res: null, serie: s,
+        const sedeF = s.mejorDe === 1 ? (am.llave.sede || null) : null, rivalF = s.alta === mi ? s.baja : s.alta;
+        out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), dia: dDe(s.nombre, nro), rival: rivalF, local: localId === mi, neutral: !!sedeF && sedeF !== mi && sedeF !== rivalF, res: null, serie: s,   // §2z194
           siHaceFalta: nro > s.juegos.length + seguros });
       }
     }
@@ -10619,9 +10625,12 @@ function fuerzaSel(id, torneo) {
   const s = SELECCIONES[id];
   return s.fuerza + ((torneo === 'continental' || torneo === 'eliminatorias') && s.deltaCont ? s.deltaCont : 0);   // 2026-09-09 (su corte): el equipo alternativo también en las ventanas, como la barra B
 }
-function marcadorSel(rng, local, visita, torneo) {
-  let pl = puntosDe(rng, fuerzaSel(local, torneo), fuerzaSel(visita, torneo), 2);
-  let pv = puntosDe(rng, fuerzaSel(visita, torneo), fuerzaSel(local, torneo), 0);
+function marcadorSel(rng, local, visita, torneo, sedeId) {
+  /* §2z194: en un torneo la localía es la SEDE — el anfitrión suma 2, el que lo enfrenta 0, y en cancha neutral 1 y 1 */
+  const la = sedeId === undefined ? 2 : sedeId === local ? 2 : sedeId === visita ? 0 : 1;
+  const lv = sedeId === undefined ? 0 : sedeId === visita ? 2 : sedeId === local ? 0 : 1;
+  let pl = puntosDe(rng, fuerzaSel(local, torneo), fuerzaSel(visita, torneo), la);
+  let pv = puntosDe(rng, fuerzaSel(visita, torneo), fuerzaSel(local, torneo), lv);
   while (pl === pv) { pl += rng.int(4, 12); pv += rng.int(4, 12); }
   return [pl, pv];
 }
@@ -10664,12 +10673,13 @@ function campoTorneo(torneo, clasifAm, fuera) {
 }
 
 /** Nace el torneo. `pais` es el tuyo (puede no estar en el campo: entonces no hay torneo). */
-function crearTorneoSel(semilla, torneo, pais, campo) {
+function crearTorneoSel(semilla, torneo, pais, campo, anio) {
   const F = SEL_FORMATOS[torneo];
   if (!F || campo.indexOf(pais) < 0) return null;
   const rng = rngFor(semilla, 'seleccion', 'torneo', torneo);
   const t = { tipo: 'torneo', torneo, pais, campo: campo.slice(), fase: F.porGrupo ? 'grupo' : 'llave',
-    grupos: {}, juegos: [], llave: null, idx: 0, miFase: null, medalla: null, campeon: null, mis: [] };
+    grupos: {}, juegos: [], llave: null, idx: 0, miFase: null, medalla: null, campeon: null, mis: [], anio: anio || 0 };
+  sedeDeTorneo(t);   // §2z194: la sede nace con el torneo
   if (!F.porGrupo) {
     /* el preolímpico: semis cruzadas por fuerza y la final */
     const o = campo.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
@@ -10711,15 +10721,18 @@ function proximoTorneoSel(t) {
     const seg = t.fase === 'segunda';
     const g = t.juegos.find((x) => x.mio && !x.jugado && !!x.segunda === seg);
     if (!g) return null;
-    const local = g.local === t.pais;
-    return { tipo: 'seleccion', etapa: seg ? 'segunda' : 'grupo', torneo: t.torneo,
+    const rival = g.local === t.pais ? g.visita : g.local, etapa = seg ? 'segunda' : 'grupo';
+    /* §2z194: la localía la dice la SEDE, no el orden del sorteo */
+    const loc = localiaSel(t, etapa, seg ? t.miGrupo2 : t.miGrupo, rival), sd = sedeDe(t, etapa, seg ? t.miGrupo2 : t.miGrupo);
+    return { tipo: 'seleccion', etapa, torneo: t.torneo,
       grupo: seg ? t.miGrupo2 : t.miGrupo, juego: seg ? g.mio - t.jornadas : g.mio,
-      total: seg ? t.jornadas2 : t.jornadas, rival: local ? g.visita : g.local, local };
+      total: seg ? t.jornadas2 : t.jornadas, rival, local: loc === 'local', neutral: loc === 'neutral', sedeId: sd.id, ciudad: sd.ciudad, anfitrion: loc === 'local' };
   }
   const s = t.llave.series.find((x) => !x.jugado && (x.alta === t.pais || x.baja === t.pais));
   if (!s) return null;
-  return { tipo: 'seleccion', etapa: s.nombre, torneo: t.torneo,
-    rival: s.alta === t.pais ? s.baja : s.alta, local: s.alta === t.pais };
+  { const rival = s.alta === t.pais ? s.baja : s.alta, loc = localiaSel(t, s.nombre, null, rival), sd = sedeDe(t, s.nombre, null);
+    return { tipo: 'seleccion', etapa: s.nombre, torneo: t.torneo,
+      rival, local: loc === 'local', neutral: loc === 'neutral', sedeId: sd.id, ciudad: sd.ciudad, anfitrion: loc === 'local' }; }
 }
 
 /** Resuelve el siguiente paso del torneo: tu partido (con `miJuego`) y todos los de su ronda. */
@@ -10747,7 +10760,7 @@ function pasoTorneoSel(t, e, miJuego) {
         const soyLocal = g.local === t.pais;
         g.ptsLocal = soyLocal ? miJuego.ptsNos : miJuego.ptsRiv;
         g.ptsVisita = soyLocal ? miJuego.ptsRiv : miJuego.ptsNos;
-      } else [g.ptsLocal, g.ptsVisita] = marcadorSel(rng, g.local, g.visita, t.torneo);
+      } else [g.ptsLocal, g.ptsVisita] = marcadorSel(rng, g.local, g.visita, t.torneo, sedeDe(t, seg ? 'segunda' : 'grupo', g.grupo).id);
       g.jugado = true;
       if (mio) anotarTorneoSel(t, e, seg ? 'segunda' : 'grupo', g.local === t.pais ? g.visita : g.local, miJuego, rng);
     }
@@ -10758,7 +10771,7 @@ function pasoTorneoSel(t, e, miJuego) {
     if (!t.juegos.some((g) => g.mio && !g.jugado && dela(g))) {
       for (const g of t.juegos) {
         if (g.jugado || !dela(g)) continue;
-        [g.ptsLocal, g.ptsVisita] = marcadorSel(rng, g.local, g.visita, t.torneo);
+        [g.ptsLocal, g.ptsVisita] = marcadorSel(rng, g.local, g.visita, t.torneo, sedeDe(t, seg ? 'segunda' : 'grupo', g.grupo).id);
         g.jugado = true;
       }
     }
@@ -10779,7 +10792,7 @@ function pasoTorneoSel(t, e, miJuego) {
        "cómo viene la selección"). Una pieza que no se muestra no se revisa. */
     const soyAlta = s.alta === t.pais;
     if (mio && miJuego) { pl = soyAlta ? miJuego.ptsNos : miJuego.ptsRiv; pv = soyAlta ? miJuego.ptsRiv : miJuego.ptsNos; }
-    else [pl, pv] = marcadorSel(rng, s.alta, s.baja, t.torneo);
+    else [pl, pv] = marcadorSel(rng, s.alta, s.baja, t.torneo, sedeDe(t, s.nombre, null).id);
     s.ptsAlta = pl; s.ptsBaja = pv; s.jugado = true;
     s.ganador = pl > pv ? s.alta : s.baja;
     s.perdedor = pl > pv ? s.baja : s.alta;
@@ -11052,6 +11065,69 @@ const SEL_SEDES = {
   cv: ['Praia', 'Mindelo'],
   kr: ['Wonju', 'Goyang', 'Seúl'],
 };
+/* ══ §2z194 LAS SEDES DE LOS TORNEOS (2026-09-10, su caza jugando: la localía de un partido de torneo salía del orden del
+   sorteo y el grifo cobraba +4 la mitad de las veces "en un lugar indefinido, o peor, erróneo"; su pedido: research de las
+   sedes reales y, para el resto, anfitriones inventados plausibles). Lo real vive acá con su año (research/SEDES-SELECCION.md);
+   lo demás sale del pool, determinista por año. Cancha neutral es neutral: sólo el anfitrión juega de local. ══ */
+const SEL_ANFITRIONES = {
+  mundial: { 2027: { ids: ['qa'], final: 'qa', ciudades: { qa: ['Doha'] }, ciudadFinal: 'Doha' },
+             2031: { ids: ['fr'], final: 'fr', ciudades: { fr: ['Lille', 'Lyon'] }, ciudadFinal: 'París' } },
+  jjoo: { 2028: { ids: ['us'], final: 'us', ciudades: { us: ['Los Ángeles'] }, ciudadFinal: 'Los Ángeles' },
+          2032: { ids: ['au'], final: 'au', ciudades: { au: ['Brisbane', 'Cairns'] }, ciudadFinal: 'Brisbane' } },
+  eurobasket: { 2029: { ids: ['es', 'gr', 'si', 'ee'], final: 'es', ciudades: { es: ['Madrid'], gr: ['Atenas'], si: ['Liubliana'], ee: ['Tallin'] }, ciudadFinal: 'Madrid' } },
+};
+const SEL_ANFITRIONES_POOL = {
+  continental: { n: 1, ids: ['ar', 'br', 'mx', 'pr', 'ca', 'do', 've', 'uy', 'co', 'cl'] },
+  eurobasket: { n: 2, ids: ['de', 'tr', 'it', 'fr', 'lt', 'pl', 'rs', 'lv', 'fi', 'cz'] },
+  mundial: { n: 1, ids: ['de', 'jp', 'es', 'au', 'ca', 'br', 'tr', 'it'] },
+  jjoo: { n: 1, ids: ['in', 'qa', 'de', 'id'] },
+  preolimpico: { n: 4, ids: ['es', 'lv', 'gr', 'pr', 'lt', 'de', 'ca', 'fi'] },
+};
+/* la ciudad de un anfitrión que no está en el padrón de selecciones (o su primera sede si está) */
+const SEL_CIUDAD_ANFITRION = { qa: 'Doha', ee: 'Tallin', in: 'Ahmedabad', id: 'Yakarta' };
+function ciudadAnfitrion(id, k) {
+  const c = (SEL_SEDES[id] && SEL_SEDES[id].length) ? SEL_SEDES[id] : [SEL_CIUDAD_ANFITRION[id] || id];
+  return c[(k || 0) % c.length];
+}
+/** La sede de un torneo en un año: la real si está anunciada; si no, del pool, sin repetir el anfitrión de la edición anterior. */
+function anfitrionSel(torneo, anio) {
+  const real = SEL_ANFITRIONES[torneo] && SEL_ANFITRIONES[torneo][anio];
+  if (real) return { ...real, real: true };
+  const pool = SEL_ANFITRIONES_POOL[torneo] || SEL_ANFITRIONES_POOL.continental;
+  const rng = rngFor('sedes', torneo, anio || 0);
+  const ids = pool.ids.slice(); for (let i = ids.length - 1; i > 0; i--) { const j = rng.int(0, i); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+  const eleg = ids.slice(0, pool.n);
+  const ciudades = {}; eleg.forEach((id) => { ciudades[id] = [ciudadAnfitrion(id, 0)]; });
+  return { ids: eleg, final: eleg[0], ciudades, ciudadFinal: ciudadAnfitrion(eleg[0], 0), real: false };
+}
+/** La sede del torneo `t` (se calcula una vez; las partidas viejas la reciben al pedirla). */
+function sedeDeTorneo(t) {
+  if (!t.sede) t.sede = anfitrionSel(t.torneo, t.anio || 0);
+  return t.sede;
+}
+/** Dónde se juega tu partido de la etapa: {id, ciudad}. En el grupo, el anfitrión que cayó en tu grupo (vos, si sos
+ *  anfitrión: FIBA pone a cada anfitrión en casa); si en tu grupo no hay ninguno, uno de los anfitriones por letra.
+ *  De la segunda fase en adelante, la sede de la fase final. */
+function sedeDe(t, etapa, grupo) {
+  const s = sedeDeTorneo(t);
+  if (etapa === 'grupo' && grupo && t.grupos && t.grupos[grupo]) {
+    const h = t.grupos[grupo].find((x) => s.ids.indexOf(x) >= 0);
+    const gi = SEL_LETRAS.indexOf(grupo); const id = h || s.ids[Math.max(0, gi) % s.ids.length];
+    const cs = (s.ciudades && s.ciudades[id]) || [ciudadAnfitrion(id, 0)];
+    return { id, ciudad: cs[Math.max(0, gi) % cs.length] };
+  }
+  if (etapa === 'semifinal' && t.torneo === 'preolimpico') {   // cuatro preolímpicos: el tuyo es el de tu sede
+    const id = s.ids.indexOf(t.pais) >= 0 ? t.pais : s.ids[Math.abs(hashStr(t.pais)) % s.ids.length];
+    return { id, ciudad: ((s.ciudades && s.ciudades[id]) || [ciudadAnfitrion(id, 0)])[0] };
+  }
+  return { id: s.final, ciudad: s.ciudadFinal || ciudadAnfitrion(s.final, 0) };
+}
+function hashStr(x) { let h = 0; for (const ch of String(x)) h = (h * 31 + ch.charCodeAt(0)) | 0; return h; }
+/** 'local' · 'visita' · 'neutral' para tu partido contra `rival` en esa etapa. */
+function localiaSel(t, etapa, grupo, rival) {
+  const sd = sedeDe(t, etapa, grupo);
+  return sd.id === t.pais ? 'local' : sd.id === rival ? 'visita' : 'neutral';
+}
 /** La ciudad donde `id` juega de local la jornada `j` de estas eliminatorias: su k-ésimo partido de casa va a su
  *  k-ésima sede. Null si no hay eliminatorias o el país no tiene sedes cargadas. */
 function ciudadSelEn(el, id, j) {
@@ -11202,15 +11278,17 @@ function fechasDeSeleccion(e, torneo) {
   if (torneo) {
     for (const g of torneo.juegos || []) {
       if (g.local !== torneo.pais && g.visita !== torneo.pais) continue;
-      const local = g.local === torneo.pais;
-      out.push({ etapa: 'grupo', torneo: torneo.torneo, n: g.mio || 0, rival: local ? g.visita : g.local,
-        local, jugaste: true, res: g.jugado ? { ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita } : null });
+      const local = g.local === torneo.pais, rivalG = local ? g.visita : g.local;
+      const locG = localiaSel(torneo, g.segunda ? 'segunda' : 'grupo', g.grupo, rivalG);   // §2z194
+      out.push({ etapa: 'grupo', torneo: torneo.torneo, n: g.mio || 0, rival: rivalG,
+        local: locG === 'local', neutral: locG === 'neutral', puntosMios: local, jugaste: true, res: g.jugado ? { ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita } : null });
     }
     if (torneo.llave) for (const s of torneo.llave.jugadas) {
       if (s.alta !== torneo.pais && s.baja !== torneo.pais) continue;
-      const local = s.alta === torneo.pais;
-      out.push({ etapa: s.nombre, torneo: torneo.torneo, n: 0, rival: local ? s.baja : s.alta,
-        local, jugaste: true, res: s.jugado ? { ptsLocal: s.ptsAlta, ptsVisita: s.ptsBaja } : null });
+      const local = s.alta === torneo.pais, rivalS = local ? s.baja : s.alta;
+      const locS = localiaSel(torneo, s.nombre, null, rivalS);   // §2z194
+      out.push({ etapa: s.nombre, torneo: torneo.torneo, n: 0, rival: rivalS,
+        local: locS === 'local', neutral: locS === 'neutral', puntosMios: local, jugaste: true, res: s.jugado ? { ptsLocal: s.ptsAlta, ptsVisita: s.ptsBaja } : null });
     }
   }
   return out;
@@ -11231,6 +11309,18 @@ const CARTAS_SALIDA=[
      {tipo:'apuesta',label:L('"Vine a quedarme"','"I came to stay"','"Vim para ficar"'),desenlaces:[
        {p:55,remate:L('La camiseta pesa bien','The shirt fits','A camisa cai bem'),texto:L('La frase sale en el estadio antes de la entrada en calor. La primera pelota te la dan a vos.','The line is up on the big screen before warm-ups. The first ball goes to you.','A frase aparece no telão antes do aquecimento. A primeira bola vai para você.'),ef:{rel:{hinchada:4},partido:{fuego:1}}},
        {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y te tiemblan las manos. El DT lo ve desde el banco.','You read it on the big screen and your hands shake. The coach sees it from the bench.','Você lê no telão e as mãos tremem. O técnico vê do banco.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
+ /* §2z194 (su pedido 2026-09-10: "si sos de la selección local, o del club donde se juega el Final Four, una card que te
+    avise y te haga decidir algo — declarar sobre la presión de jugar de local, o el apoyo de la gente"): sale cuando el
+    torneo es EN TU CASA (selección anfitriona, o tu club es la sede del Final Four). La ventaja de local ya está en el
+    grifo (0 contra +2/+4); la carta la agranda o te la come. */
+ { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.6, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.anfitrion&&(c.salida.tipo==='seleccion'||c.salida.tipo==='americas'),
+   gancho:(c)=>L('Torneo en casa: '+c.salida.competencia+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. La sala de prensa está llena y todos preguntan lo mismo: "¿Pesa jugar de local?"','Home tournament: '+c.salida.competencia+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The press room is packed and everyone asks the same thing: "Does playing at home weigh on you?"','Torneio em casa: '+c.salida.competencia+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. A sala de imprensa está cheia e todos perguntam a mesma coisa: "Pesa jogar em casa?"'),
+   opciones:[
+     {tipo:'segura',label:L('"La gente empuja"','"The crowd carries us"','"A torcida empurra"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y lo creés. En la entrada en calor el estadio ya canta.','You say it and you believe it. By warm-ups the arena is already singing.','Você diz e acredita. No aquecimento o ginásio já canta.'),ef:{rel:{hinchada:3},partido:{fuerzaRival:-2}}}]},
+     {tipo:'apuesta',label:L('"Acá no nos gana nadie"','"Nobody beats us here"','"Aqui ninguém ganha da gente"'),desenlaces:[
+       {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{rel:{hinchada:5},partido:{fuerzaRival:-4,fuego:1}}},
+       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y el rival la pegó en su vestuario. Salen a callarte.','You read it on the big screen and the other team taped it in their locker room. They come out to shut you up.','Você lê no telão e o rival colou no vestiário. Eles saem para te calar.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
  { id:'sal_final_sel', de:'salida', peso:300, repite:true, chance:0.95, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='seleccion'&&c.salida.final,
    gancho:(c)=>L('La final. '+c.salida.competencia+', con la camiseta del país. Te preguntan qué le dirías al pibe que eras.','The final. '+c.salida.competencia+', in the national shirt. They ask what you would tell the kid you were.','A final. '+c.salida.competencia+', com a camisa do país. Perguntam o que você diria para o garoto que era.'),
@@ -11256,7 +11346,7 @@ const CARTAS_SALIDA=[
        {p:60,remate:L('La gente lo compró','The crowd bought it','A torcida comprou'),texto:L('Cantan tu nombre desde el túnel. Arrancás en ritmo.','They chant your name from the tunnel. You start in rhythm.','Cantam seu nome desde o túnel. Você começa no ritmo.'),ef:{rel:{hinchada:4},partido:{fuego:1}}},
        {p:40,remate:L('Les llegó la frase','The line reached them','A frase chegou lá'),texto:L('Al rival le llegó la frase. Salen a matar.','The line got to the other side. They come out for blood.','A frase chegou ao rival. Eles saem para matar.'),ef:{partido:{fuerzaRival:4}}}]}]},
  { id:'sal_decisivo_visita', de:'salida', peso:200, repite:true, chance:0.45, fondo:'tunel',
-   cuando:(c)=>c.salida&&c.salida.decisivo&&!c.salida.local,
+   cuando:(c)=>c.salida&&c.salida.decisivo&&!c.salida.local&&!c.salida.neutral,   // §2z194: «en su cancha» no vale en cancha neutral
    gancho:(c)=>L('El decisivo contra '+c.salida.rival+', en su cancha. Te preguntan si el ambiente pesa.','The decider against '+c.salida.rival+', on their floor. They ask if the atmosphere weighs on you.','O decisivo contra '+c.salida.rival+', na casa deles. Perguntam se o clima pesa.'),
    opciones:[
      {tipo:'segura',label:L('"Nos gusta el silencio"','"We like the silence"','"Gostamos do silêncio"'),desenlaces:[{p:100,remate:null,texto:L('El plantel se ríe en el túnel. Salen enteros.','The squad laughs in the tunnel. They walk out whole.','O elenco ri no túnel. Saem inteiros.'),ef:{rel:{plantel:2}}}]},
@@ -20055,7 +20145,7 @@ function torneoRecesoDe(){
     rngFor(C.semilla,'seleccion','torneo',C.anio),(jugadas>=3?0.4:jugadas>=1?0.15:0)+bonoDtSel(C.jugador.relSel));
   if(c.llamado) relSelDe(C.jugador,c.gap);   // §12.20: la primera convocatoria abre tus relaciones con la selección
   if(!c.llamado){ C.selTorneoHecho=C.anio; C.selAviso={clave:c.cerca?'cerca':'nivel',torneo:cual,pais}; guardar(); return null; }
-  C.selTorneo=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo);
+  C.selTorneo=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1);   // §2z194: el año del torneo elige la sede
   mem.yaEstuvo=true; guardar();
   return C.selTorneo;
 }
@@ -20159,7 +20249,7 @@ function abrirParteVentana(p){
     : t(L('DOS DERROTAS','TWO LOSSES','DUAS DERROTAS'));
   tit.className=p.fin?(p.pase?'oro':'mal'):(g===2?'oro':g===1?'':'mal');
   $l('parteJuegos').innerHTML=p.juegos.map(x=>
-    '<div class="fila-item"><span class="desc">'+banderaDe(x.rival,15)+' '+vsTxt(x.local)+nombreSel(x.rival).toUpperCase()+'</span>'   // §2z73: la banderita del rival (su caza)
+    '<div class="fila-item"><span class="desc">'+banderaDe(x.rival,15)+' '+vsTxt(x.local,x.neutral)+nombreSel(x.rival).toUpperCase()+'</span>'   // §2z73: la banderita del rival (su caza)
     +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
   /* tu parte: la línea si jugaste, y si no, POR QUÉ no (su "tipo un «no fuiste convocado»") */
   const tuyo=$l('parteTuyo');
@@ -20371,7 +20461,8 @@ function filasFixtureSeleccion(){
     const esProx=i===idxProx;
     let res='<span class="res">'+(esProx?t(L('PRÓX','NEXT','PRÓX')):'—')+'</span>';
     if(f.res){
-      const mis=f.local?f.res.ptsLocal:f.res.ptsVisita, sus=f.local?f.res.ptsVisita:f.res.ptsLocal;
+      const lado=f.puntosMios!==undefined?f.puntosMios:f.local;   // §2z194: en el torneo `local` ya no dice de qué lado del marcador estás
+      const mis=lado?f.res.ptsLocal:f.res.ptsVisita, sus=lado?f.res.ptsVisita:f.res.ptsLocal;
       const g=mis>sus;
       res='<span class="res '+(g?'g':'p')+'">'+f.res.ptsLocal+'–'+f.res.ptsVisita+' · '+(g?t(L('G','W','V')):t(L('P','L','D')))+'</span>';
     }
@@ -20387,7 +20478,7 @@ function filasFixtureSeleccion(){
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
     const mio=sinVos?'<span class="nota sinVos">'+t(L('SIN VOS','WITHOUT YOU','SEM VOCÊ'))+'</span>':'';
     filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
-      +'<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nombreSelCorto(f.rival)+'</span>'+mio+'</span>'
+      +'<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local,f.neutral)+nombreSelCorto(f.rival)+'</span>'+mio+'</span>'
       +'<span class="dia">'+etapa+'</span>'+res+'</div>');
   });
   return {filas,idxProx};
@@ -20524,7 +20615,7 @@ function porqueTxt(c){
     : t(L('De los planteles más fuertes','One of the strongest rosters','Um dos elencos mais fortes'));
   return '';
 }
-const vsTxt=(local)=>local?'vs ':t(L('en ','at ','em '));
+const vsTxt=(local,neutral)=>local||neutral?'vs ':t(L('en ','at ','em '));   // §2z194: en cancha neutral es «vs», no «en»
 /* ⚠️ EL CALENDARIO DE VERDAD. `diaDeFecha` (01h) devuelve un número de día desde el
    arranque, que es lo que el motor necesita, y lo que la pantalla necesita es un día del
    almanaque. La temporada arranca el 1 de OCTUBRE del año de la carrera (el calendario
@@ -21351,13 +21442,13 @@ function pintaLobby(){
       /* §12: la selección — la competencia arriba, contra quién en el medio, y abajo dónde
          estás parado (la fecha de la eliminatoria y tu puesto en la tabla) */
       $l('lobHoyCuando').textContent=selCuandoTxt(prox);
-      $l('lobHoyRival').textContent=vsTxt(prox.local)+rc.nombre.toUpperCase();
+      $l('lobHoyRival').textContent=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase();
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=selPorqueTxt(prox,e);
     } else if(prox.tipo==='americas'){
       /* §2z27: el continental — la competencia y la etapa arriba, el grupo o la serie abajo */
       $l('lobHoyCuando').textContent=t(AM_TXT.nombre)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
-      $l('lobHoyRival').textContent=vsTxt(prox.local)+rc.nombre.toUpperCase();
+      $l('lobHoyRival').textContent=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase();
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=amPorqueTxt(prox);
     } else {
@@ -21365,7 +21456,7 @@ function pintaLobby(){
       /* medido 2026-09-02: a 11px con 2px de espaciado entran 266; con "AL MEJOR DE n" acá
          POR LA PERMANENCIA (272) y PLAYOFF DE CONFERENCIA (297) se partían. Va en la serie. */
       $l('lobHoyCuando').textContent=t(RONDA_TXT[s.nombre]||L(s.nombre))+' · '+t(L('JUEGO','GAME','JOGO'))+' '+prox.juego;
-      $l('lobHoyRival').textContent=vsTxt(prox.local)+rc.nombre.toUpperCase();
+      $l('lobHoyRival').textContent=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase();
       const miGan=s.alta===e.miClubId?s.ganAlta:s.ganBaja, riGan=s.alta===e.miClubId?s.ganBaja:s.ganAlta;
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
@@ -21944,14 +22035,14 @@ function abrirPre(objetivo){
   preAbierto=objetivo;
   const e=est(), rc=clubDe(objetivo.rival);
   const pe=ponerEscudo('lobPreEscudo', escudito(objetivo.rival), 'escudoR svg'); pe.style.width='';pe.style.height='';
-  $l('lobPreRival').textContent=vsTxt(objetivo.local)+rc.nombre.toUpperCase();
+  $l('lobPreRival').textContent=vsTxt(objetivo.local,objetivo.neutral)+rc.nombre.toUpperCase();
   /* la ciudad donde se juega: la del rival si vas de visitante, la tuya si sos local (su pedido: "le da más entidad") */
   /* de local dice EN CASA (su caza: "¿José Hernández en Ramos Mejía?" — bajo el nombre del rival, la ciudad
      tuya se leía como la de él); de visitante, sólo la ciudad */
   /* §12.24: en las eliminatorias la selección juega en SU sede de esa jornada (rotan); en un torneo nadie es local */
   const ciudadSel=objetivo.tipo==='seleccion'&&objetivo.etapa==='eliminatorias'
     ? ciudadSelEn(e.seleccion, objetivo.local?(C.jugador.nacionalidad||'ar'):objetivo.rival, objetivo.jornada) : null;
-  const ciudadPre=(ciudadSel||((objetivo.local?miClubEn(objetivo):objetivo.sede?clubDe(objetivo.sede):rc)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase();   // 2026-09-10: el Final Four se juega en la sede
+  const ciudadPre=(ciudadSel||objetivo.ciudad||((objetivo.local?miClubEn(objetivo):objetivo.sede?clubDe(objetivo.sede):rc)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase();   // 2026-09-10: el Final Four se juega en la sede · §2z194: el torneo de selección, en la suya
   $l('lobPreCiudad').textContent=ciudadPre?(objetivo.local?t(L('EN CASA','HOME','EM CASA'))+' · ':'')+ciudadPre:'';
   if(objetivo.tipo==='fecha'){
     $l('lobPreFecha').textContent=t(L('FECHA','ROUND','RODADA'))+' '+objetivo.fecha+t(L(' DE ',' OF ',' DE '))+e.fechasTotales;   // §2z39.64: los minutos van con el DT
@@ -22012,7 +22103,7 @@ function abrirPre(objetivo){
     :'po'+objetivo.serie.nombre+objetivo.juego,minPre,CADA_MIN(!!C.intenso),objetivo.tipo!=='fecha');   // §2z43: la misión escala con las jugadas · §2z141: en la fecha común no siempre hay
   $l('lobPreMision').innerHTML='<span class="dt">DT</span><span class="txt"><small>'+t(L('EL DT TE DA ','THE COACH GIVES YOU ','O TÉCNICO TE DÁ '))+minPre
     +(objetivo.mision?t(L(' MIN Y TE PIDE',' MIN AND WANTS',' MIN E PEDE'))+'</small><b>'+misionMeta(objetivo.mision)+'</b>':' MIN</small>')+'</span>';   // §2z141: sin misión, sólo los minutos
-  $l('lobPreScout').innerHTML=scoutingDe(C.jugador,C.ligaId,rc,miClubEn(objetivo),objetivo.local)
+  $l('lobPreScout').innerHTML=scoutingDe(C.jugador,C.ligaId,rc,miClubEn(objetivo),objetivo.neutral?'neutral':objetivo.local)
     .map(s=>SCOUT_TXT[s.clave]?'▸ '+t(SCOUT_TXT[s.clave]):'').join('<br>');
   pintaRecursos();
   irLob('pre');
@@ -22061,7 +22152,7 @@ $l('lobSalir').addEventListener('click',()=>{
   const enSel=preAbierto.tipo==='seleccion';
   const jugadorGrifo=enSel?{...C.jugador,relaciones:relSelDe(C.jugador)}:C.jugador;
   const rivalBase=clubDe(preAbierto.rival), rivalGrifo=efS.fuerzaRival?{...rivalBase,fuerza:rivalBase.fuerza+efS.fuerzaRival}:rivalBase;   // §2z40: esa noche el rival sale a matar o afloja
-  const gInfo=armarGrifo(dif,jugadorGrifo,C.ligaId,rivalGrifo,miClubEn(preAbierto),preAbierto.local);   // §12.23
+  const gInfo=armarGrifo(dif,jugadorGrifo,C.ligaId,rivalGrifo,miClubEn(preAbierto),preAbierto.neutral?'neutral':preAbierto.local);   // §12.23 · §2z194: la cancha neutral
   /* §2z79: en la beta el score es tu propia Dbeta más el rival y la visita; el bono de contexto de la nota (±1) no
      puede pagar tu propia rampa —a Dbeta 20 regalaba +0,96 en cada nota—: se le resta y se centra en el 8 neutro. */
   enPartido.contexto=esBeta()?gInfo.D-(C.jugador.dbeta||0)+8:gInfo.D-5*((C.jugador.nivel||1)-1);  // la parte del score que no es tu nivel

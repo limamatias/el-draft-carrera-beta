@@ -313,6 +313,7 @@
   #carta .pildoras{display:flex;flex-wrap:wrap;gap:6px}
   #carta .pil{padding:5px 11px;border-radius:999px;background:var(--chip);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--tinta2)}
   #carta .pil.ok{color:var(--ok)} #carta .pil.mal{color:var(--mal)}
+  #carta .pil.skill{font-size:16px;padding:6px 14px;border:1px solid rgba(125,208,135,.5)} #carta .rama i.skill{font-size:15px}   /* 2026-09-10: el skill se ve más que la relación */
   #carta .seguir{font-family:inherit;font-weight:700;letter-spacing:1.5px;border:0;border-radius:12px;min-height:48px;width:100%;
                  font-size:20px;color:#10151f;background:var(--naranja);margin-top:8px;padding:0 16px}
   #carta .seguir:focus-visible{outline:3px solid var(--tinta)}
@@ -5678,6 +5679,7 @@ const REL_TXT={dt:L('DT','COACH','TÉCNICO'),plantel:L('PLANTEL','TEAM','ELENCO'
 const PRESUPUESTO_PISO=4;   // cartas de presupuesto por temporada: round(fechas/4), piso 4 (Federal 4-5 · LNB 9-10)
 const PRESUPUESTO_TOPE=14;  // y tope 14 (su corte: la NBA a 21 por año se comía el catálogo en dos temporadas y media)
 const REPITE_ANIOS=3;       // una carta ya vista vuelve a ser elegible a los 3 años, con la mitad de peso (su idea: "si jugaste todas es porque jugaste casi todos los partidos, no te vas a acordar")
+const PESO_SKILL=1.4, PESO_SIN_SKILL=0.7;   // 2026-09-10: el mazo inclinado al skill (ver sortearCarta)
 const PRENSA_CADA=2;        // nunca dos partidos seguidos con prensa
 /* §2z46 (su caza 2026-09-05: "alguien que tiene una buena carrera se consume todas las cards en eventos que no
    eligió y no le aparece ninguna de las graciosas"): la prensa YA NO SALTEA la próxima random (era `saltarProxima`),
@@ -5785,7 +5787,10 @@ function cartaElegible(c,ctx,s){
 function sortearCarta(pool,ctx,rng){
   const s=cartasEstado(), cand=pool.filter(c=>cartaElegible(c,ctx,s));
   if(!cand.length) return null;
-  const pesoDe=(c)=>(c.peso||100)*(!c.repite&&(s.vistas[c.id]||0)>=(c.maxVeces||1)?0.5:1);   // la repetida pesa la mitad
+  /* 2026-09-10 (su caza: a mitad de la LNB no había visto skill; medido en la beta, 53 % por carta de fecha): las que
+     tienen skill en el dado pesan ×1,4 y las de puras relaciones ×0,7 — el mazo pasa a ~70 % de skill. Una perilla. */
+  const conSkill=(c)=>(c.opciones||[]).some(o=>o.tipo==='apuesta'&&(o.desenlaces||[]).some(d=>d.ef&&d.ef.skills&&Object.values(d.ef.skills).some(v=>v>0)));
+  const pesoDe=(c)=>(c.peso||100)*(!c.repite&&(s.vistas[c.id]||0)>=(c.maxVeces||1)?0.5:1)*(conSkill(c)?PESO_SKILL:PESO_SIN_SKILL);   // la repetida pesa la mitad
   const total=cand.reduce((a,c)=>a+pesoDe(c),0);
   let r=rng.next()*total;
   for(const c of cand){ r-=pesoDe(c); if(r<=0) return c; }
@@ -5841,8 +5846,8 @@ function aplicarEfectos(ef){
 /* [{txt,ok}] — lo que la caja y las píldoras muestran; el orden es el del presupuesto (§2z26) */
 function pildorasDe(ef,sinPlata){
   const out=[]; ef=ef||{};
-  const p=(v,lbl)=>out.push({txt:(v>0?'+':'−')+Math.abs(v)+(lbl?' '+lbl:''),ok:v>0});
-  if(ef.skills) for(const k in ef.skills) p(ef.skills[k],t(SKILL_TXT[k]||L(k.toUpperCase())));
+  const p=(v,lbl,skill)=>out.push({txt:(v>0?'+':'−')+Math.abs(v)+(lbl?' '+lbl:''),ok:v>0,skill:!!skill});
+  if(ef.skills) for(const k in ef.skills) p(ef.skills[k],t(SKILL_TXT[k]||L(k.toUpperCase())),true);   // 2026-09-10: la píldora de skill se ve más grande (su corte)
   if(ef.rel) for(const k in ef.rel) p(ef.rel[k],t(REL_TXT[k]||L(k.toUpperCase())));
   if(ef.relSel) for(const k in ef.relSel) p(ef.relSel[k],t(REL_TXT[k]||L(k.toUpperCase()))+' '+t(L('SELECCIÓN','NT','SELEÇÃO')));   // §12.28
   if(ef.plataX&&!sinPlata){ const v=ef.plataX*pagoPartido(); out.push({txt:(v>0?'+':'−')+'$'+Math.abs(v),ok:v>0}); }
@@ -5874,7 +5879,7 @@ function lineaEfectos(o){
   return o.desenlaces.map(d=>{
     const ps=pildorasDe(d.ef,!!comun);
     const tono=!ps.length?'neutro':ps.every(p=>p.ok)?'ok':ps.every(p=>!p.ok)?'mal':'neutro';
-    const txt=ps.length?ps.map(p=>'<i class="'+(p.ok?'ok':'mal')+'">'+p.txt+'</i>').join('<em>·</em>'):'<i class="nada">'+t(L('sin cambios','no change','sem mudanças'))+'</i>';
+    const txt=ps.length?ps.map(p=>'<i class="'+(p.ok?'ok':'mal')+(p.skill?' skill':'')+'">'+p.txt+'</i>').join('<em>·</em>'):'<i class="nada">'+t(L('sin cambios','no change','sem mudanças'))+'</i>';
     return '<span class="rama '+tono+' conBarra" style="--w:'+d.p+'%"><b class="p">'+d.p+'%</b><span class="tags">'+txt+'</span></span>';
   }).join('');
 }
@@ -5931,7 +5936,7 @@ function elegirCarta(i){
   document.getElementById('cartaTexto').textContent=t(d.texto);
   const ps=pildorasDe(d.ef);
   document.getElementById('cartaPildoras').innerHTML=ps.length
-    ? ps.map(p=>'<span class="pil '+(p.ok?'ok':'mal')+'">'+p.txt+'</span>').join('')
+    ? ps.map(p=>'<span class="pil '+(p.ok?'ok':'mal')+(p.skill?' skill':'')+'">'+p.txt+'</span>').join('')
     : '<span class="pil">'+t(L('SIN CAMBIOS','NO CHANGE','SEM MUDANÇAS'))+'</span>';
   document.getElementById('cartaDesenlace').classList.remove('oculto');
   };
@@ -6229,6 +6234,25 @@ const CARTAS_PRENSA=[
      {tipo:'apuesta',label:L('"Que miren los números"','"Look at the numbers"','"Que olhem os números"'),desenlaces:[
        {p:50,remate:L('Tenías razón','You had a point','Você tinha razão'),texto:L('Un periodista arma el cuadro comparativo y lo publica. La hinchada lo comparte todo el día.','A journalist builds the comparison chart and publishes it. The fans share it all day.','Um jornalista monta a tabela comparativa e publica. A torcida compartilha o dia inteiro.'),ef:{rel:{hinchada:8}}},
        {p:50,remate:L('Llorón','Sore loser','Chorão'),texto:L('El titular es "Se queja". Tu propio DT dice que "las listas no se discuten".','The headline is "He complains". Your own coach says "lists are not up for debate".','A manchete é "Reclama". Seu próprio técnico diz que "listas não se discutem".'),ef:{rel:{dt:-2,hinchada:-1}}}]}]},
+
+ /* 2026-09-10 (su caza en la beta: "voy por mitad de la LNB y no recuerdo ninguna de skill"; la prensa era puro
+    relaciones: 4 efectos de skill contra 85): dos preguntas de prensa cuyo dado toca un skill */
+ { id:'prensa_mostra_el_tiro', repite:true,
+   cuando:(c)=>c.u.pts>=12&&c.u.gano,
+   gancho:L('Metiste puntos y ganaron. Un cronista te pregunta si el tiro es tu arma, y te pide que se lo muestres ahí, en el aro vacío, con la cámara prendida.','You scored and you won. A reporter asks if the shot is your weapon, and asks you to show him right there, at the empty rim, camera on.','Você pontuou e venceram. Um cronista pergunta se o arremesso é sua arma, e pede pra você mostrar ali, no aro vazio, com a câmera ligada.'),
+   opciones:[
+     {tipo:'segura',label:L('"Mañana, en el entrenamiento"','"Tomorrow, at practice"','"Amanhã, no treino"'),desenlaces:[{p:100,remate:null,texto:L('Se ríe y apaga la cámara. La nota sale igual, con la foto de siempre.','He laughs and turns the camera off. The piece runs anyway, with the usual photo.','Ele ri e desliga a câmera. A matéria sai igual, com a foto de sempre.'),ef:{rel:{hinchada:3}}}]},
+     {tipo:'apuesta',label:L('Agarrar la pelota','Grab the ball','Pegar a bola'),desenlaces:[
+       {p:60,remate:L('Cinco de cinco','Five for five','Cinco de cinco'),texto:L('Sin calentar, en zapatillas de calle. El video da la vuelta al club antes de que llegues a tu casa.','No warm-up, in street shoes. The clip makes the rounds at the club before you get home.','Sem aquecer, de tênis de rua. O vídeo roda o clube antes de você chegar em casa.'),ef:{skills:{tiro:2},rel:{hinchada:4}}},
+       {p:40,remate:L('Te fuiste corto','You came up short','Ficou curto'),texto:L('Dos de cinco, y la segunda ni tocó el aro. El video también da la vuelta.','Two of five, and the second one did not even hit rim. That clip makes the rounds too.','Dois de cinco, e o segundo nem tocou no aro. Esse vídeo também roda.'),ef:{rel:{hinchada:-6}}}]}]},
+ { id:'prensa_el_pizarron', repite:true,
+   cuando:(c)=>c.u.ast>=5,
+   gancho:L('Cinco asistencias. Te preguntan si ves la cancha distinto, y hay un pizarrón en la sala de prensa.','Five assists. They ask if you see the floor differently, and there is a whiteboard in the press room.','Cinco assistências. Perguntam se você vê a quadra diferente, e tem um quadro na sala de imprensa.'),
+   opciones:[
+     {tipo:'segura',label:L('"Es el sistema del DT"','"It is the coach\'s system"','"É o sistema do técnico"'),desenlaces:[{p:100,remate:null,texto:L('El DT lee la nota a la mañana. No dice nada, pero te saluda primero.','The coach reads the piece in the morning. Says nothing, but greets you first.','O técnico lê a matéria de manhã. Não diz nada, mas te cumprimenta primeiro.'),ef:{rel:{dt:3}}}]},
+     {tipo:'apuesta',label:L('Dibujar la jugada','Draw the play','Desenhar a jogada'),desenlaces:[
+       {p:60,remate:L('Clase magistral','Master class','Aula magistral'),texto:L('Tres minutos de marcador, con los cortes y el porqué de cada uno. Dos compañeros te piden que se lo expliques de nuevo en el vestuario.','Three minutes of marker, with the cuts and the why of each. Two teammates ask you to walk them through it again in the locker room.','Três minutos de caneta, com os cortes e o porquê de cada um. Dois companheiros pedem pra você explicar de novo no vestiário.'),ef:{skills:{vision:2},rel:{plantel:3}}},
+       {p:40,remate:L('El DT se lo tomó personal','The coach took it personally','O técnico levou pro pessoal'),texto:L('Era SU jugada, y la contaste vos. Al otro día la sacó del sistema.','It was HIS play, and you told it. The next day he took it out of the system.','Era a jogada DELE, e você contou. No dia seguinte ele tirou do sistema.'),ef:{rel:{dt:-6}}}]}]},
  { id:'prensa_top3', repite:true,
    cuando:(c)=>c.u.aviso==='top3',
    gancho:L('Un diario te tiene tercero en la carrera al MVP. Te preguntan si mirás esas listas.','A paper has you third in the MVP race. They ask if you look at those lists.','Um jornal te tem em terceiro na corrida ao MVP. Perguntam se você olha essas listas.'),

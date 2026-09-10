@@ -199,6 +199,15 @@
   #titular .linea{max-width:30ch;line-height:1.3}
   #titular .linea:empty{display:none}
   #titular button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
+  /* §2z196: el velo del retiro habla el idioma del titular */
+  #retiro{z-index:46;background:rgba(8,11,19,.96)}
+  #retiro .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #retiro h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch;color:#f2c94c}
+  #retiro .linea{max-width:30ch;line-height:1.35}
+  #retiro .linea.honor{color:#f2c94c;font-size:17px}
+  #retiro .linea:empty{display:none}
+  #retiro button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
+  #retiro button.secundario{background:transparent;color:var(--tinta);border:1.5px solid rgba(255,150,51,.6);margin-top:0}
   /* §2z12.5 el renglón de DÓNDE jugaste, entre el marcador y la planilla */
   #fin .donde{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:-6px;font-size:11px;letter-spacing:2px;
        color:var(--tinta2);font-weight:600;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1623,6 +1632,15 @@
 <div id="finVeredicto" class="oculto"><b id="finVeredictoTxt"></b></div>
 <!-- §2z169: EL TITULAR — la noticia grande de la carrera (Mundial, ascenso, descenso, beca, NEW BOSS, el torneo de la
      selección) en un velo con SEGUIR, nunca en el toast (su corte: "es algo IMPORTANTE en una carrera que dura mucho") -->
+<!-- §2z196 EL RETIRO: el cierre de la carrera, con la forma del titular -->
+<div class="velo oculto" id="retiro">
+  <div class="rotulo" id="retiroRot"></div>
+  <h1 id="retiroTxt" class="oro"></h1>
+  <div class="linea" id="retiroLinea"></div>
+  <div class="linea honor" id="retiroHonor"></div>
+  <button id="retiroOk"></button>
+  <button class="secundario" id="retiroSeguir" data-l-en="ONE MORE YEAR" data-l-pt="MAIS UM ANO">SIGO UN AÑO MÁS</button>
+</div>
 <div class="velo oculto" id="titular">
   <div class="rotulo" id="titularRot"></div>
   <h1 id="titularTxt"></h1>
@@ -2268,6 +2286,7 @@
            profesional) y cada una se nombra. Fuera del ciclo amateur esta no se muestra. -->
       <button class="jugar secundario ancho oculto" id="mercadoPro"></button>
       <button class="jugar secundario ancho" id="mercadoQuedo"></button>
+      <button class="jugar secundario ancho oculto" id="mercadoRetiro" data-l-en="RETIRE" data-l-pt="ME APOSENTAR">RETIRARME</button>   <!-- §2z196: desde los 33 -->
     </div>
     <div id="mercadoLista" class="oculto">
       <div id="mercadoVolver" tabindex="0">◂ <span data-l-en="BACK" data-l-pt="VOLTAR">VOLVER</span></div>
@@ -5210,9 +5229,36 @@ function recalcularSkill(jugador, skillKey) {
   const base = (jugador.arranque || {})[skillKey] || 0;
   const esc = (en.escalera || {})[skillKey] || [];
   const cartas = (en.cartas || {})[skillKey] || 0;
-  jugador.skills[skillKey] = Math.min(SKILL_TECHO,
-    base + esc.reduce((a, b) => a + (b || 0), 0) + cartas);
+  const declive = (jugador.declive || {})[skillKey] || 0;   // §2z196: los años restan, y restan acá también
+  jugador.skills[skillKey] = Math.max(1, Math.min(SKILL_TECHO,
+    base + esc.reduce((a, b) => a + (b || 0), 0) + cartas - declive));
 }
+/* ══ §2z196 EL DECLIVE (2026-09-10, su corte: "está perfecto que sea así: declive desde los 31-32, retiro hasta los 40").
+   Cada temporada NUEVA, a partir de la edad que dice la tabla, el cuerpo cobra: el físico primero, después el manejo y
+   la defensa, al final todo. Es un término propio (`jugador.declive`) que recalcularSkill resta — entrenar lo frena
+   (la escalera sigue sumando), no lo para. Devuelve lo que restó esta vez, para que la pantalla lo diga (regla 1). ══ */
+const DECLIVE = [
+  { desde: 31, resta: { fisico: 3 } },
+  { desde: 34, resta: { fisico: 4, manejo: 1, defensa: 1 } },
+  { desde: 37, resta: { fisico: 5, manejo: 2, defensa: 2, tiro: 1, vision: 1 } },
+];
+function aplicarDeclive(jugador) {
+  const edad = jugador.edad || 0;
+  let tramo = null; for (const d of DECLIVE) if (edad >= d.desde) tramo = d;
+  if (!tramo) return null;
+  jugador.declive = jugador.declive || {};
+  const resto = {};
+  for (const k in tramo.resta) {
+    const d = Math.min(tramo.resta[k], Math.max(0, (jugador.skills[k] || 0) - 1));   // nunca por debajo de 1
+    if (!d) continue;
+    jugador.declive[k] = (jugador.declive[k] || 0) + d;
+    jugador.skills[k] = Math.max(1, (jugador.skills[k] || 0) - d);   // directo también: en la beta los skills no nacen de la escalera
+    resto[k] = d;
+  }
+  return Object.keys(resto).length ? resto : null;
+}
+/* el retiro: desde `opcion` podés colgarlas en el mercado; a `forzado`, o sin una sola oferta desde `opcion`, te las cuelga el juego */
+const RETIRO = { opcion: 33, forzado: 40 };
 
 /* Rendiste un nivel: el nivel guarda tu MEJOR marca (re-rendir nunca resta; ganás sólo
  * el delta). Devuelve {subio, desbloqueo}. */
@@ -10683,7 +10729,7 @@ function crearTorneoSel(semilla, torneo, pais, campo, anio) {
   if (!F || campo.indexOf(pais) < 0) return null;
   const rng = rngFor(semilla, 'seleccion', 'torneo', torneo);
   const t = { tipo: 'torneo', torneo, pais, campo: campo.slice(), fase: F.porGrupo ? 'grupo' : 'llave',
-    grupos: {}, juegos: [], llave: null, idx: 0, miFase: null, medalla: null, campeon: null, mis: [], anio: anio || 0 };
+    grupos: {}, juegos: [], llave: null, idx: 0, miFase: null, medalla: null, campeon: null, mis: [], anio: anio || 0, semilla: String(semilla || '').replace(/-sel\d+$/, '') };
   sedeDeTorneo(t);   // §2z194: la sede nace con el torneo
   if (!F.porGrupo) {
     /* el preolímpico: semis cruzadas por fuerza y la final */
@@ -11103,11 +11149,11 @@ function ciudadAnfitrion(id, k) {
   return c[(k || 0) % c.length];
 }
 /** La sede de un torneo en un año: la real si está anunciada; si no, la ronda del pool (una barajada fija, por edición). */
-function anfitrionSel(torneo, anio) {
+function anfitrionSel(torneo, anio, semilla) {
   const real = SEL_ANFITRIONES[torneo] && SEL_ANFITRIONES[torneo][anio];
   if (real) return { ...real, real: true };
   const pool = SEL_ANFITRIONES_POOL[torneo] || SEL_ANFITRIONES_POOL.continental;
-  const rng = rngFor('sedes', torneo, 'ronda');
+  const rng = rngFor('sedes', semilla || '', torneo, 'ronda');   // su corte: la ronda se baraja por CARRERA — dos partidas no ven las mismas sedes
   const ids = pool.ids.slice(); for (let i = ids.length - 1; i > 0; i--) { const j = rng.int(0, i); [ids[i], ids[j]] = [ids[j], ids[i]]; }
   const k = Math.max(0, Math.round(((anio || pool.desde) - pool.desde) / 4)) * pool.n;
   const eleg = []; for (let i = 0; i < pool.n; i++) eleg.push(ids[(k + i) % ids.length]);
@@ -11116,7 +11162,7 @@ function anfitrionSel(torneo, anio) {
 }
 /** La sede del torneo `t` (se calcula una vez; las partidas viejas la reciben al pedirla). */
 function sedeDeTorneo(t) {
-  if (!t.sede) t.sede = anfitrionSel(t.torneo, t.anio || 0);
+  if (!t.sede) t.sede = anfitrionSel(t.torneo, t.anio || 0, t.semilla || '');
   return t.sede;
 }
 /** Dónde se juega tu partido de la etapa: {id, ciudad}. En el grupo, el anfitrión que cayó en tu grupo (vos, si sos
@@ -22612,7 +22658,7 @@ function otraTemporada(destino){
   const notaPromAnterior=notaPromedio(est().misPartidos);   // §2z15
   /* §2z29 EL HISTORIAL: la temporada que cierra queda guardada entera (liga, club, la línea regular
      y la de playoffs) — el dato de carrera que hasta hoy se tiraba al dar vuelta la página */
-  (C.historial=C.historial||[]).push({anio:C.anio,ligaId:C.ligaId,club:est().miClubId,liga:{...est().miLinea},po:{...est().miLineaPO},nota:notaPromAnterior||null});
+  (C.historial=C.historial||[]).push({anio:C.anio,ligaId:C.ligaId,club:est().miClubId,liga:{...est().miLinea},po:{...est().miLineaPO},nota:notaPromAnterior||null,campeon:!!(est().playoffs&&est().playoffs.campeon===est().miClubId)});   // §2z196: el título queda anotado (para el cierre de carrera)
   guardarTablaFinal();   // §2z27: la puerta del continental del año que viene
   /* la VENTANA DE FIN DE TEMPORADA (§2q) evalúa el rol antes de dar vuelta la página,
      y los timers del entrenamiento se reinician con el calendario nuevo */
@@ -22657,6 +22703,7 @@ function otraTemporada(destino){
   C.selAviso=null; C.selTorneo=null;   // §12: el receso quedó atrás
   instalarSeleccion(C.temporada,C.jugador,C.ligaId,C.anio,C.semilla,C.seleccion);   // §12
   C.jugador.edad++;
+  const declive=aplicarDeclive(C.jugador);   // §2z196: los años cobran al dar vuelta la página
   /* §2z15: UNA temporada siempre — al firmar (club nuevo) o al quedarte, el contrato es la
      oferta de ese club con tus números de hoy; la nota promedio es la de la temporada que cerró */
   C.contrato=ofertaDe(C.jugador,C.ligaId,clubDe(miClub),notaPromAnterior);
@@ -22665,11 +22712,42 @@ function otraTemporada(destino){
   pintaLobby(); irLob('hoy');
   /* §2z169: las noticias del receso van al TITULAR, no al toast */
   const rotM=t(L('EL MERCADO','THE MARKET','O MERCADO'));
-  if(destino&&destino.draftPick){ /* §2z13: la escena ya lo dijo */ }
-  else if(destino&&destino.beca) mostrarTitular(rotM,t(L('BECA','SCHOLARSHIP','BOLSA')),'oro',t(L('Un año de college en ','A college year at ','Um ano de college em '))+destino.club.nombre.toUpperCase());
-  else if(destino) mostrarTitular(rotM,'NEW BOSS','ok',t(L('Nadie te conoce todavía.','Nobody knows you yet.','Ninguém te conhece ainda.')));
-  else if(clubSube) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('¡ASCENDEMOS!','PROMOTED!','SUBIMOS!')),'oro',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase());
-  else if(clubBaja) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('DESCENDEMOS','RELEGATED','CAÍMOS')),'mal',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase());
+  /* §2z196: lo que los años te sacaron se DICE (regla 1) — después del titular del mercado si lo hubo */
+  const despues=declive?()=>mostrarTitular(t(L('LOS AÑOS','THE YEARS','OS ANOS')),
+      Object.keys(declive).map(k=>'−'+declive[k]+' '+t(SKILL_TXT_LOB[k]||L(k,k,k))).join(' · '),'mal',
+      t(L('A los '+C.jugador.edad+' el cuerpo cobra. Entrenar lo frena, no lo para.','At '+C.jugador.edad+' the body collects. Training slows it, it does not stop it.','Aos '+C.jugador.edad+' o corpo cobra. Treinar freia, não para.'))):null;
+  if(destino&&destino.draftPick){ /* §2z13: la escena ya lo dijo */ if(despues) despues(); }
+  else if(destino&&destino.beca) mostrarTitular(rotM,t(L('BECA','SCHOLARSHIP','BOLSA')),'oro',t(L('Un año de college en ','A college year at ','Um ano de college em '))+destino.club.nombre.toUpperCase(),despues);
+  else if(destino) mostrarTitular(rotM,'NEW BOSS','ok',t(L('Nadie te conoce todavía.','Nobody knows you yet.','Ninguém te conhece ainda.')),despues);
+  else if(clubSube) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('¡ASCENDEMOS!','PROMOTED!','SUBIMOS!')),'oro',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase(),despues);
+  else if(clubBaja) mostrarTitular(t(L('EL CLUB','THE CLUB','O CLUBE')),t(L('DESCENDEMOS','RELEGATED','CAÍMOS')),'mal',t(L('Ahora jugás la ','You now play in the ','Agora você joga a '))+liga.nombre.toUpperCase(),despues);
+  else if(despues) despues();
+}
+const SKILL_TXT_LOB={tiro:L('TIRO','SHOT','ARREMESSO'),manejo:L('MANEJO','HANDLE','CONTROLE'),vision:L('VISIÓN','VISION','VISÃO'),defensa:L('DEFENSA','DEFENSE','DEFESA'),fisico:L('FÍSICO','ATHLETICISM','FÍSICO')};
+/* ══ §2z196 EL RETIRO. Desde los 33 el mercado ofrece colgarlas; a los 40, o desde los 33 sin una sola oferta, te las
+   cuelga el juego. El velo cierra la carrera con los números de toda la vida y los honores; la partida queda RETIRADA
+   en la ranura (se puede volver a mirar, no a jugar). ══ */
+function retirarse(forzado){
+  const J=C.jugador, hist=C.historial||[], e=est();
+  const pj=hist.reduce((a,h)=>a+(h.liga.pj||0)+(h.po?h.po.pj||0:0),0), pts=hist.reduce((a,h)=>a+(h.liga.pts||0)+(h.po?h.po.pts||0:0),0);
+  const titulos=hist.filter(h=>h.campeon).length, premios=(C.palmares||[]).length;
+  const meds=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.medalla);
+  const porClub={}; hist.forEach(h=>{ porClub[h.club]=(porClub[h.club]||0)+1; });
+  const casa=Object.keys(porClub).sort((a,b)=>porClub[b]-porClub[a])[0];
+  const camiseta=casa&&porClub[casa]>=6&&clubDe(casa);
+  $l('retiroRot').textContent=(forzado?t(L('SE TERMINÓ','IT IS OVER','ACABOU')):t(L('COLGÁS LAS ZAPATILLAS','YOU HANG THEM UP','PENDURA AS CHUTEIRAS')))+' · '+J.edad+' '+t(L('AÑOS','YEARS OLD','ANOS'));
+  $l('retiroTxt').textContent=esc(J.apellido).toUpperCase();
+  $l('retiroLinea').innerHTML=hist.length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))+' · '+pj+' PJ · '+pts+' PTS'
+    +(titulos?'<br>'+titulos+' '+t(titulos===1?L('TÍTULO','TITLE','TÍTULO'):L('TÍTULOS','TITLES','TÍTULOS')):'')
+    +(premios?' · '+premios+' '+t(premios===1?L('PREMIO','AWARD','PRÊMIO'):L('PREMIOS','AWARDS','PRÊMIOS')):'')
+    +(meds.length?'<br>'+meds.map(m=>t(SEL_TXT[m.medalla])+' · '+selTorneoTxt(m.torneo)).join(' · '):'');
+  $l('retiroHonor').textContent=camiseta?t(L(camiseta.nombre+' retira tu camiseta: la #'+J.dorsal+' no la usa nadie más.',camiseta.nombre+' retires your jersey: nobody wears #'+J.dorsal+' again.',camiseta.nombre+' aposenta sua camisa: ninguém mais usa a #'+J.dorsal+'.')):'';
+  $l('retiroSeguir').classList.toggle('oculto',!!forzado||!!C.retirado);
+  $l('retiroOk').textContent=C.retirado?t(L('VOLVER','BACK','VOLTAR')):t(L('ME RETIRO','I RETIRE','ME APOSENTO'));
+  $l('mercado').classList.add('oculto');
+  const v=$l('retiro'); v.classList.remove('oculto'); verQueSeVe('retiro','El retiro');
+  $l('retiroOk').onclick=()=>{ if(!C.retirado){ C.retirado={anio:C.anio,edad:J.edad}; guardar(); } v.classList.add('oculto'); $l('lobby').classList.add('oculto'); abrirPartidas(); };
+  $l('retiroSeguir').onclick=()=>{ v.classList.add('oculto'); $l('mercado').classList.remove('oculto'); };
 }
 
 function abrirLobby(){
@@ -23103,7 +23181,8 @@ function pintaPartidas(){
            con dos partidas parecidas no las distinguís"): la segunda línea es DÓNDE está la partida — el año como lo
            muestra el lobby (la Federal "2026", el resto "2026/27") y la fecha que viene, o playoffs, o terminada. */
         '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
-          const donde=e.fase==='playoffs'?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
+          const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
+            :e.fase==='playoffs'?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
             :e.fase==='terminada'?t(L('TEMPORADA TERMINADA','SEASON OVER','TEMPORADA ENCERRADA'))
             :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
           return anioL+' · '+donde; })()+'</div>'+
@@ -23127,6 +23206,7 @@ function seguirPartida(n){
   if(!c) return;
   ranura=n; C=c; guardar();          // guardar de entrada deja escritas las migraciones
   $l('partidas').classList.add('oculto');
+  if(C.retirado){ retirarse(true); return; }   // §2z196: una carrera retirada se mira, no se juega
   abrirLobby();
 }
 function pedirBorrar(n){
@@ -23773,7 +23853,10 @@ function abrirMercado(){
      lista larga ya tiene su patrón (el alta con los 97). */
   mercadoOfertas=[...becasDe(J,C.ligaId),
                   ...poolMercado(J,C.ligaId,e.miClubId,clubesDeCarrera)];
+  /* §2z196: a los 40, o desde los 33 sin una oferta, el juego te cuelga las zapatillas */
+  if(J.edad>=RETIRO.forzado||(J.edad>=RETIRO.opcion&&!mercadoOfertas.length)){ $l('mercado').classList.remove('oculto'); retirarse(true); return; }
   if(!mercadoOfertas.length){ otraTemporada(null); return; }
+  $l('mercadoRetiro').classList.toggle('oculto',J.edad<RETIRO.opcion); $l('mercadoPortada').appendChild($l('mercadoRetiro'));   // última puerta de la portada
   mercadoSel=null; mercadoBusca=''; mercadoAbiertos=null; $l('mercadoBuscar').value='';
   $l('mercadoPortada').classList.remove('oculto'); $l('mercadoLista').classList.add('oculto');
   /* sin "también podés quedarte": el botón de abajo YA lo dice (ley de no aclarar) */
@@ -23936,6 +24019,7 @@ $l('mercadoFirmar').onclick=()=>{
   otraTemporada(mercadoOfertas[mercadoSel]);
 };
 $l('mercadoQuedo').onclick=()=>{ $l('mercado').classList.add('oculto'); otraTemporada(null); };
+$l('mercadoRetiro').onclick=()=>retirarse(false);   // §2z196
 
 /* ── el enganche con el juego: la portada abre la carrera, el final vuelve a ella ── */
 /* JUGAR ya no entra a la última carrera: abre LAS PARTIDAS y ahí elegís (o creás). Es

@@ -19951,7 +19951,7 @@ const SEL_TXT={
 const selTorneoTxt=(k)=>t(SEL_TXT[k]||L(k));
 /* 2026-09-10 (su caza: "en el fixture de la selección no dice en ningún lugar qué competencia es"): el título de las plenas del
    lado de la bandera nombra la competencia —el torneo del receso o las eliminatorias—, no «LA SELECCIÓN» */
-const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):t(SEL_TXT.eliminatorias);
+const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):elimTxt();   // 2026-09-10 (su pedido): con el Mundial y su sede, en todos lados
 /* ⚠️ LAS ELIMINATORIAS SON A ALGO, Y ESE ALGO SE DICE (su caza 2026-09-04: *"debería decir en
    cómo salió el partido sin ser convocado que es eliminatorias de qué torneo, sino es
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
@@ -20058,7 +20058,7 @@ function avisoSeleccion(e){
 /** El chip y el renglón del próximo, cuando el próximo es de la selección. */
 function selCuandoTxt(prox){
   /* en el chip va corto (no entra en un renglón); el nombre entero va en el PRE y en el parte */
-  if(prox.etapa==='eliminatorias') return t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+' '+prox.ventana.n;
+  if(prox.etapa==='eliminatorias') return elimTxt()+' · '+t(SEL_TXT.ventana)+' '+prox.ventana.n;   // 2026-09-10: «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» (el chip de arriba, el HOY y el pre)
   if(prox.etapa==='grupo') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.grupo)+' '+prox.grupo;
   if(prox.etapa==='segunda') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.segunda)+' '+prox.grupo;
   return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT[prox.etapa]||L(prox.etapa));
@@ -22471,7 +22471,7 @@ function ultimoPartido(cierre,e){
     })():null,
     /* §12: el rótulo de la prensa se arma ACÁ (los textos viven adentro de este cierre) */
     rotulo:enPartido&&enPartido.tipo==='seleccion'
-      ? (enPartido.torneo?selTorneoTxt(enPartido.torneo):t(SEL_TXT.eliminatorias)) : null};
+      ? (enPartido.torneo?selTorneoTxt(enPartido.torneo):elimTxt()) : null};   // 2026-09-10: la prensa también dice a qué Mundial
 }
 /* ── el circuito: del final del partido de canvas, de vuelta al vestuario ── */
 function registrarResultado(){

@@ -1163,6 +1163,7 @@
   #lobPasarConfirm .lista .r .f{color:var(--tinta2);font-size:12px;flex:none;min-width:34px}
   #lobPasarConfirm .lista .r.clave{color:var(--naranja);margin-top:4px;padding-top:8px;border-top:1px solid rgba(154,164,184,.22)}   /* 2026-09-10: el clave al que saltás, aparte de los que se saltean */
   #lobPasarConfirm .lista .r.clave .f{color:var(--naranja)}
+  #lobPasarConfirm .lista .r.clave .fuego{flex:none;margin-left:auto;font-size:14px}
   /* fase 5: la creación de jugador y el mercado — overlays de sistema, hermanos del
      popup de confirmación pero de pantalla completa y con lista scrolleable */
   /* ⚠️ La creación NO es una caja centrada como el mercado: es una pantalla de alto completo
@@ -20867,7 +20868,7 @@ function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
   P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('')
-    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+'<span class="nom">'+vsTxt(destino.local)+nomCorto(destino.rival)+' · '+diaTxt(sig.dia)+'</span></div>':'');
+    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+'<span class="nom">'+vsTxt(destino.local)+nomCorto(destino.rival)+' · '+diaTxt(sig.dia)+'</span><span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
   $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };

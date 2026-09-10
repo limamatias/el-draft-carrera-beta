@@ -924,13 +924,16 @@
   #lobby .acc span{font-size:11px;font-weight:600;letter-spacing:1px}
   #lobby .fila-skill{display:flex;align-items:center;gap:10px;padding:4px 0}
   #lobby .fila-skill .nom{width:84px;font-size:15px;font-weight:600;letter-spacing:1.5px}
-  #lobby .fila-skill .barraNrg{height:9px}
   /* §2z89 LA NOTA DEL ÓXIDO NO PUEDE SER UN RENGLÓN (su caza 2026-09-06: *"apareció scroll y es sólo una
      stat de las 5"*). Medido: la caja de ENTRENAR tiene 308 px y el contenido sin notas 296 — DOCE de
      sobra; una nota como renglón pesa 22, y cinco 110. Nunca iba a entrar. La columna de la barra tiene
      la altura del botón (28) y la barra sólo 9: la nota vive en ese aire, y el renglón no crece un píxel. */
-  #lobby .fila-skill .barraCol{flex:1;min-width:0;height:28px;display:flex;flex-direction:column;justify-content:center;gap:3px}
-  #lobby .fila-skill .oxi{font-size:10px;line-height:1;letter-spacing:.5px;color:var(--naranja);
+  /* 2026-09-10 (su caza: "que cambien de tamaño para que entre la frase está terrible; que no cambie nunca"): la barra
+     heredaba flex:1 de .barraNrg y llenaba los 28 px cuando no había nota, y se achicaba a 9 cuando aparecía. Ahora mide
+     SIEMPRE 16 px, arriba de la columna, y la nota vive en el aire de abajo, posicionada, sin tocar la barra. */
+  #lobby .fila-skill .barraCol{flex:1;min-width:0;height:28px;position:relative;display:block}
+  #lobby .fila-skill .barraNrg{flex:none;height:16px;margin-top:2px}
+  #lobby .fila-skill .oxi{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1;letter-spacing:.5px;color:var(--naranja);
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-skill .barraNrg i{background:linear-gradient(90deg,#e0b13f,var(--naranja))}
   /* §2z122 v2 (su caza: "el dorado parece más amarillo que el naranja, que parece más dorado; no se siente que

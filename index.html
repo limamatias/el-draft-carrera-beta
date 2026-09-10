@@ -4621,6 +4621,11 @@ const DIST_POR_ESTILO = { carril: 70, arriba: 25, mixto: 45 };
  * la escalera de estrellas y la Dbeta quedan como estaban. Sin tiros en la línea (arnés, saves
  * viejos) la eficiencia vale cero. */
 const RATING_PISO_TIRO = 0.45;
+/* 2026-09-10 (su caza en la beta: 7 pts · 6 ast · 3/5 · 1 pérdida, ganado = 9,1 "me suena raro"): la asistencia valía 0,6
+ * —lo mismo que 4,3 puntos— y seis asistencias pesaban más que el triple de los puntos. Con su ok baja a 0,35 (≈2,5
+ * puntos: dos creados y algo por el pase). Ese partido pasa a 7,6; la referencia "20 pts 8/12 4 ast = 10" queda en 9,3.
+ * Y las TAPAS entran, como los robos (0,5): no sumaban nada. */
+const RATING_AST = 0.35, RATING_TAPA = 0.5;
 /* §2z43.1 (su regla 2026-09-05: *"si terminás 3/6 en el normal es como un 6/12 en el otro, a términos de
  * puntaje y de premios; y siempre se toma tu resultado en base a en qué modo jugaste, porque podés cambiar
  * durante la temporada"*): la línea trae `esc` —el factor de jugadas del ritmo en que se jugó ESE partido
@@ -4630,7 +4635,7 @@ function ratingDe(linea, gano, contexto) {
   const k = linea.esc || 1;
   const tiros = (linea.tiros || 0) / k, ac = (linea.ac || 0) / k, per = (linea.per || 0) / k;
   let r = 4 + (linea.pts / k) * 0.14 + 0.5 * (ac - RATING_PISO_TIRO * tiros)
-        + (linea.ast / k) * 0.6 + ((linea.pt || 0) / k) * 0.22 - per * 0.4 + ((linea.rob || 0) / k) * 0.5 + (gano ? 0.7 : 0)
+        + (linea.ast / k) * RATING_AST + ((linea.pt || 0) / k) * 0.22 - per * 0.4 + ((linea.rob || 0) / k) * 0.5 + ((linea.tap || 0) / k) * RATING_TAPA + (gano ? 0.7 : 0)
         - ((linea.md || 0) / k) * 0.15;   // §2z51: el desmarque flojo (devolución robada / tiro forzado del pasador) resta poco
   /* §2z39.41 (su caza 2026-09-04): `pt` es el pase que terminó en tiro del compañero y NO entró (1; 1,5 si estaba
      solo) — 0,22 / 0,33 por cada uno, contra 0,6 de la asistencia: pasarla bien no es neutro */
@@ -21980,7 +21985,7 @@ terminar=function(){
   const caja=document.getElementById('finNota');
   if(!enPartido||!C){ caja.classList.add('oculto'); document.getElementById('finVeredicto').classList.add('oculto'); const fd=document.getElementById('finDonde'); if(fd) fd.classList.add('oculto'); document.getElementById('finLinea').classList.remove('oculto'); document.getElementById('cFin').classList.remove('oculto'); return; }
   const J=C.jugador, gano=G.nos>G.riv;
-  const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
+  const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tap:G.tapas||0,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // 2026-09-10: las tapas entran a la nota   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
   let rating=ratingDe(linea,gano,enPartido.contexto);
   /* §2z99: la última es tuya y pesa — medio punto en cada sentido (la metiste / no entró) */
   if(G.clutch) rating=Math.max(0,Math.min(10,Math.round((rating+(G.clutch.anoto?0.5:-0.5))*10)/10));

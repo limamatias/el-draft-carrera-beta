@@ -1002,6 +1002,8 @@
   #lobby .fila-dato{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0}
   #lobby .fila-dato .k{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
   #lobby .fila-dato .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+  #lobby .cupoLinea{font-size:15px;color:var(--tinta);letter-spacing:.5px;text-align:center;padding:4px 0 2px;text-shadow:0 1px 6px rgba(0,0,0,.9)}   /* 2026-09-10: el cupo sin cajón */
+  #lobby .cupoLinea b{color:var(--naranja)}
   #lobby .fila-item{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:15px}
   #lobby .fila-item .desc{flex:1;color:var(--tinta2)} #lobby .fila-item .desc b{color:var(--tinta)}
   /* ⚠️ La lista de prefijos es LA regla, igual que en .jugar: un .btn que cae fuera de
@@ -21545,13 +21547,15 @@ function pintaEntrenar(){
     /* VOLVER FUERA DEL CAJÓN (su caza 2026-09-02: "el botón fuera del contenedor, no en una
        fila nueva adentro"): la fila del cupo deja de ser cajón y lleva el botón a la
        izquierda y el cupo, chico, a la derecha. */
-    const cupo=$l('lobCupo'); cupo.classList.remove('cajon');
+    const cupo=$l('lobCupo'); cupo.classList.remove('cajon'); cupo.classList.remove('cupoLinea');
     cupo.innerHTML='<div class="escVolver"><button class="volverDrill" data-volver="1">'+t(L('◀ VOLVER','◀ BACK','◀ VOLTAR'))+'</button>'
       +'<span class="cupoChico">'+cupoTxt+'</span></div>';
     cupo.querySelector('[data-volver]').onclick=()=>{ escaleraAbierta=null; pintaLobby(); };   // pintaLobby, no pintaEntrenar: la MEDIA cuenta recién ahora, con el encabezado a la vista
     pintaEscalera(escaleraAbierta); return; }
-  $l('lobCupo').classList.add('cajon');
-  $l('lobCupo').innerHTML='<div class="fila-item"><span class="desc">'+cupoTxt+'</span></div>';
+  /* 2026-09-10 (su caza: "¿«esta semana no te quedan sesiones» tiene que vivir en un contenedor gigante? la letra en blanco y
+     listo"): sin cajón — una línea centrada, en blanco con sombra, como el goteo del vestuario */
+  $l('lobCupo').classList.remove('cajon'); $l('lobCupo').classList.add('cupoLinea');
+  $l('lobCupo').innerHTML=cupoTxt;
   /* §7.1 la segunda puerta de los tutoriales (18c): SIEMPRE, arriba de los drills — es del juego, no de la beta */
   /* §2z149 (su caza 2026-09-08: "¿por qué CÓMO SE JUEGA no es el botón, en vez de un título y un botoncito naranja en
      la otra punta?"): el renglón tiene UNA acción, así que el renglón es el botón. Mismo alto (28) que las filas. */

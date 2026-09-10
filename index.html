@@ -22083,7 +22083,8 @@ function registrarResultado(){
     /* §2z181: lo que el velo del cuerpo y el bolsillo cuenta después de la statline (se arma acá, se abre en el circuito) */
     C.cuerpo={antes:Math.round(eDesc),despues:Math.round(J.energia),costo,min:minutosJugados(),
       pago:{partido:con.partido||0,ganar:gano?(con.ganar||0):0,mision:misOk?(con.mision||0):0},gano,misOk,
-      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):diaSel(enPartido),fase:faseAntes}; }
+      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):diaSel(enPartido),fase:faseAntes,
+      recesoSel:enPartido.tipo==='seleccion'&&enPartido.etapa!=='eliminatorias'}; }
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
@@ -22145,8 +22146,10 @@ function abrirCuerpo(despues){
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:diaSel(prox); if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   if(dias===null&&prox&&prox.tipo==='seleccion') dias=3;
   if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))) dias=diasPO();
+  /* 2026-09-10: después del último partido del torneo del receso lo que sigue es la pretemporada, y ahí volvés a 100 */
+  const hastaPre=dias===null&&!!p.recesoSel&&!(prox&&prox.tipo==='seleccion');
   const regen=regenDe(), extra=regen-regenClub();
-  const rec=dias!==null?Math.min(100-p.despues,regen*dias):0, recTuyo=dias!==null?Math.min(rec,extra*dias):0;
+  const rec=dias!==null?Math.min(100-p.despues,regen*dias):hastaPre?100-p.despues:0, recTuyo=dias!==null?Math.min(rec,extra*dias):0;
   const T1=350, T2=1100, T3=1700, PASO=140;
   const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';
   let h=fila(t(L('Jugaste','You played','Você jogou')),p.min+"'",'−'+p.costo+' '+RAYO,'mal',T1);
@@ -22154,9 +22157,10 @@ function abrirCuerpo(despues){
     h+=fila(t(L('Descansás','You rest','Você descansa')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+rec+' '+RAYO,'ok',T2);
     if(recTuyo>0) h+='<div class="r nota" style="animation-delay:'+(T2+PASO)+'ms"><span class="sub">'+recTuyo+' '+t(L('son de lo tuyo','come from what you own','vêm do que é seu'))+'</span></div>';
   }
+  else if(hastaPre) h+=fila(t(L('Descansás','You rest','Você descansa')),t(L('hasta la pretemporada','until preseason','até a pré-temporada')),'+'+rec+' '+RAYO,'ok',T2);
   $l('cuerpoEnergia').innerHTML=h;
   setTimeout(()=>pinta(p.despues),T1);
-  if(dias!==null) setTimeout(()=>pinta(Math.min(100,p.despues+rec)),T2);
+  if(dias!==null||hastaPre) setTimeout(()=>pinta(Math.min(100,p.despues+rec)),T2);
   const total=p.pago.partido+p.pago.ganar+p.pago.mision; let n=0;
   const plata=(desc,val,cls)=>fila(desc,'',fplata(val),cls,T3+(n++)*PASO);
   let q=plata(t(L('Partido','Game','Jogo')),p.pago.partido,'');
@@ -22210,6 +22214,7 @@ function otraTemporada(destino){
   { const eV=est(), selV=eV&&eV.seleccion;
     if(selV&&!selV.fin&&parteElim(C.anio)==='A'){ avanzarSeleccion(eV,eV.fechasTotales); if(selV.fin) cerrarEliminatoriasCarrera(eV); else { memSel(); C.seleccion.elimPendiente=selV; } } }
   C.anio++;
+  C.jugador.energia=100;   // 2026-09-10 (su pregunta: "¿no recuperás energía en el receso?"): la pretemporada son semanas — arrancás entero
   C.temporada=crearTemporada(C.semilla+'-t'+C.anio,clubesDeCarrera(C.ligaId),{
     miClubId:miClub,skills:C.jugador.skills,fechas:liga.fechas,
     playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,

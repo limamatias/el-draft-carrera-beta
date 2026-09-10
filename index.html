@@ -21622,7 +21622,7 @@ function pintaEscalera(k){
     if(cerrado){ html+='<button disabled style="font-family:inherit;background:#141b2c;color:#e9ecf3;border-radius:10px;'
       +'border:1px solid rgba(255,255,255,.08);padding:7px 0 5px;opacity:.22"><div style="font-size:16px;font-weight:700">'+n+'</div>'
       +'<div style="font-size:12px;letter-spacing:1px">🔒</div></button>'; continue; }
-    const borde=n===sug&&jugable?'border:1px solid #f2c94c':'border:1px solid rgba(255,255,255,.14)';
+    const borde=n===abierto&&jugable?'border:1px solid #f2c94c':'border:1px solid rgba(255,255,255,.14)';   // 2026-09-10 (su caza: "resalta el 3 porque estoy 2/3, y puedo jugar el 5"): el resaltado es el MEJOR disponible
     html+='<button data-nivel="'+n+'" '+(jugable?'':'disabled')
       +' style="font-family:inherit;background:#141b2c;color:#e9ecf3;border-radius:10px;'
       +borde+';padding:7px 0 5px;cursor:pointer;opacity:'+(jugable?1:0.33)+'">'
@@ -21769,7 +21769,9 @@ function finDrill(anoto){
   else { drillT.intentos++; }
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null;
   estrellasDrill();
-  if(gano){ setTimeout(cerrarDrill,1500); return; }
+  /* 2026-09-10 (su caza: "en el drill de pase, cuando das el pase bueno deberíamos ver cómo el jugador tira y mete; hoy corta muy
+     rápido"): en visión el cierre espera 3 s en vez de 1,5 — la bandeja del que cortó y el aro se ven enteros */
+  if(gano){ setTimeout(cerrarDrill,drillT.k==='vision'?3000:1500); return; }
   if(drillT.intentos<3){ relato(t(L('Otra vez.','Again.','De novo.')),false); setTimeout(lanzarIntentoDrill,1300); return; }
   drillT.estrellas=0; setTimeout(cerrarDrill,1500);
 }

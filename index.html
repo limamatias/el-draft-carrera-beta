@@ -5588,7 +5588,16 @@ const factorHinchada = (J) => 0.8 + J.relaciones.hinchada / 250;
 
 /* ── La misión del DT: una por partido, sorteada con la semilla, a la medida de tus minutos
  * (el partido reparte nInt = min/3 posesiones: no se pide lo que el guion no da). */
-const MISIONES = ['puntos', 'asistencias', 'triples', 'robos', 'perdidas', 'racha'];
+const MISIONES = ['puntos', 'asistencias', 'triples', 'robos', 'perdidas', 'racha', 'perdidas4', 'pedidas', 'sinPedir', 'porcentaje', 'mixta', 'mixta'];
+/* 2026-09-10 (su caza: "sigo pensando que hay pocas misiones de DT"; su elección de la lista): cinco nuevas, sin tocar el
+ * partido — miden lo que el motor ya cuenta o cómo usás el juego:
+ *   perdidas4  · sin pérdidas en el último cuarto (una situada: el motor sabe el cuarto)
+ *   pedidas    · pedila y resolvé 2 (la pedida que termina en puntos o asistencia)
+ *   sinPedir   · jugá sin pedirla (el trade-off: cumplís, pero con menos chances)
+ *   porcentaje · 50 % de tiro, con 4 tiros como mínimo (sin mínimo 1/1 cumple)
+ *   mixta      · dos condiciones de una — sin rol, que el jugador es todo junto (su corte): 10 pts y ≤1 pérdida,
+ *                5 ast y 2 triples, 10 pts y 1 robo, 5 ast y ≤1 pérdida. Entra dos veces al sorteo (tiene cuatro caras). */
+const MIXTAS = [['puntos', 'perdidas'], ['asistencias', 'triples'], ['puntos', 'robos'], ['asistencias', 'perdidas']];
 /* §2z141 (su caza 2026-09-07: "las misiones son muy repetitivas… capaz no siempre debería haber misión"): en una fecha
  * común el DT pide algo 6 de cada 10 veces; los partidos que importan (playoffs, continental, selección) siempre traen
  * una. Y entra la RACHA: 3 seguidas (el fuego del partido, `fuegoMax`). */
@@ -5598,10 +5607,18 @@ function misionDe(semilla, clave, minutos, cadaMin, siempre) {
   const rng = rngFor(semilla, 'mision', clave);
   if (!siempre && rng.chance(P_SIN_MISION)) return null;
   const tipo = rng.pick(MISIONES);
-  const meta = { puntos: Math.max(6, Math.round(nInt * 1.1)), asistencias: Math.max(2, Math.round(nInt / 4)),
-                 triples: Math.max(1, Math.round(nInt / 5)), robos: 1, perdidas: 2, racha: 3 }[tipo];
-  return { tipo, meta };
+  const metas = { puntos: Math.max(6, Math.round(nInt * 1.1)), asistencias: Math.max(2, Math.round(nInt / 4)),
+                  triples: Math.max(1, Math.round(nInt / 5)), robos: 1, perdidas: 2, racha: 3,
+                  perdidas4: 0, pedidas: 2, sinPedir: 0, porcentaje: 50 };
+  if (tipo === 'mixta') {
+    const par = rng.pick(MIXTAS);
+    /* en la mixta cada parte pide un poco menos que sola, y la pérdida se aprieta a 1 */
+    const metaDe = (k) => k === 'perdidas' ? 1 : Math.max(k === 'puntos' ? 6 : 1, Math.round(metas[k] * 0.85));
+    return { tipo, meta: 0, partes: par.map((k) => ({ tipo: k, meta: metaDe(k) })) };
+  }
+  return { tipo, meta: metas[tipo] };
 }
+const PORCENTAJE_MIN_TIROS = 4;
 /* [singular, plural] — "1 ROBO", "2 TRIPLES" */
 const MISION_TXT = {
   puntos: [L('PUNTO', 'POINT', 'PONTO'), L('PUNTOS', 'POINTS', 'PONTOS')],
@@ -5610,18 +5627,45 @@ const MISION_TXT = {
   robos: [L('ROBO O TAPA', 'STEAL OR BLOCK', 'ROUBO OU TOCO'), L('ROBOS O TAPAS', 'STEALS OR BLOCKS', 'ROUBOS OU TOCOS')],   // §2z39.30: cuenta las dos
   perdidas: [L('PÉRDIDA COMO MÁXIMO', 'TURNOVER AT MOST', 'PERDA NO MÁXIMO'), L('PÉRDIDAS COMO MÁXIMO', 'TURNOVERS AT MOST', 'PERDAS NO MÁXIMO')],
   racha: [L('SEGUIDA', 'IN A ROW', 'SEGUIDA'), L('SEGUIDAS', 'IN A ROW', 'SEGUIDAS')],   // §2z141: "3 SEGUIDAS"
+  perdidas4: [L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO'), L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO')],
+  pedidas: [L('PEDIDA RESUELTA', 'CALLED PLAY CONVERTED', 'PEDIDA RESOLVIDA'), L('PEDIDAS RESUELTAS', 'CALLED PLAYS CONVERTED', 'PEDIDAS RESOLVIDAS')],
+  sinPedir: [L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA'), L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA')],
+  porcentaje: [L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO'), L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO')],
 };
+/* la mixta, corta para el HUD: "10 PTS · ≤1 PÉRD" */
+const MISION_CORTA = { puntos: L('PTS', 'PTS', 'PTS'), asistencias: L('AST', 'AST', 'AST'), triples: L('TRIPLES', 'THREES', 'TRÊS'), robos: L('ROB', 'STL', 'ROUB'), perdidas: L('PÉRD', 'TO', 'PERD') };
 /* el nombre sin traducir (el HUD del partido lo indexa por idioma: ahí `t` es otra cosa) */
-const misionNombre = (m) => MISION_TXT[m.tipo][m.meta === 1 ? 0 : 1];
-const misionMeta = (m) => m.meta + ' ' + t(misionNombre(m));
+const misionNombre = (m) => MISION_TXT[m.tipo] ? MISION_TXT[m.tipo][m.meta === 1 ? 0 : 1] : L(m.tipo, m.tipo, m.tipo);
+/* el enunciado entero (pre, cierre): "12 PUNTOS" · "SIN PEDIRLA" · "50 % DE TIRO" · "10 PUNTOS Y 1 PÉRDIDA COMO MÁXIMO" */
+function misionMeta(m) {
+  if (m.tipo === 'mixta') return m.partes.map(misionMeta).join(t(L(' Y ', ' AND ', ' E ')));
+  if (m.meta === 0) return t(misionNombre(m));
+  return m.meta + ' ' + t(misionNombre(m));
+}
+/* el renglón del HUD, indexado por idioma (ahí `t` es otra cosa): nombre + cómo venís */
+function misionHud(m, G) {
+  const id = idioma();
+  if (m.tipo === 'mixta') return m.partes.map((p) => (p.tipo === 'perdidas' ? '≤' : '') + p.meta + ' ' + MISION_CORTA[p.tipo][id]).join(' · ')
+    + ' <b>' + m.partes.map((p) => misionValor(p, G) + '/' + p.meta).join(' · ') + '</b>';
+  if (m.tipo === 'porcentaje') return m.meta + ' ' + misionNombre(m)[id] + ' <b>' + (G.aciertos || 0) + '/' + (G.tiros || 0) + '</b>';
+  if (m.meta === 0) return misionNombre(m)[id] + ' <b>' + (misionCumplida(m, G) ? '✓' : '✗') + '</b>';
+  return misionNombre(m)[id] + ' <b>' + misionValor(m, G) + '/' + m.meta + '</b>';
+}
+/* ¿se puede dar por CUMPLIDA antes de la chicharra? Las de "al menos N", sí; las de tope y el porcentaje se pierden hasta el final */
+const misionCerrable = (m) => m.tipo === 'mixta' ? m.partes.every(misionCerrable) : !['perdidas', 'perdidas4', 'sinPedir', 'porcentaje'].includes(m.tipo);
 function misionValor(m, G) {
   /* §2z39.30 (su corte: "la misión de UN ROBO es un montón; debería ser «robo o tapa»"): la clave sigue
      siendo `robos` (las carreras guardadas la tienen), pero cuenta robos + tapas */
-  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: (G.robos || 0) + (G.tapas || 0), perdidas: G.perdidas, racha: G.fuegoMax || 0 }[m.tipo] || 0;
+  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: (G.robos || 0) + (G.tapas || 0), perdidas: G.perdidas, racha: G.fuegoMax || 0,
+           perdidas4: G.perdidasQ4 || 0, pedidas: G.pedidasResueltas || 0, sinPedir: G.pedidasUsadas || 0,
+           porcentaje: (G.tiros || 0) >= PORCENTAJE_MIN_TIROS ? Math.round(100 * (G.aciertos || 0) / G.tiros) : 0 }[m.tipo] || 0;
 }
 function misionCumplida(m, G) {
+  if (m.tipo === 'mixta') return m.partes.every((p) => misionCumplida(p, G));
   const v = misionValor(m, G);
-  return m.tipo === 'perdidas' ? v <= m.meta : v >= m.meta;
+  if (m.tipo === 'perdidas' || m.tipo === 'perdidas4' || m.tipo === 'sinPedir') return v <= m.meta;
+  if (m.tipo === 'porcentaje') return (G.tiros || 0) >= PORCENTAJE_MIN_TIROS && v >= m.meta;
+  return v >= m.meta;
 }
 const MISION_BONUS_NOTA = 0;   // §2z39.61: la misión no toca la nota (queda la constante por los saves/arnés)
 
@@ -11675,7 +11719,7 @@ const G = {
   nos:0, riv:0, cuarto:1, reloj:RELOJ_CUARTO,
   pts:0, ast:0, ptsAsist:0, tiros:0, aciertos:0, triples:0, tiros3:0,
   ftm:0, fta:0, libres:null,
-  fuego:0, fuegoMax:0, fuegoRegalo:0, pedidas:3,
+  fuego:0, fuegoMax:0, fuegoRegalo:0, pedidas:3, pedidasUsadas:0, pedidasResueltas:0, perdidasQ4:0, enPedida:false,
   posClock:0, posMax:9000,
   vos:{x:0,y:0}, comps:[], defs:[], marca:null,
   drag:null, pend:null, dedo:null, tiro:null, pelota:null, pelotaEn:null,
@@ -13148,9 +13192,9 @@ function marcador(){
     /* CUMPLIDA, SE DICE (su caza 2026-09-02: "queda 10/9 — debería decir algo tipo MISIÓN
        COMPLETADA"). Sólo para las de "al menos N": la de pérdidas se puede perder hasta la
        chicharra, así que esa sigue mostrando el contador. */
-    (G.mision?`<br><span class="mision">`+(G.mision.tipo!=='perdidas'&&misionCumplida(G.mision,G)
+    (G.mision?`<br><span class="mision">`+(misionCerrable(G.mision)&&misionCumplida(G.mision,G)
       ? L('MISIÓN CUMPLIDA','MISSION COMPLETE','MISSÃO CUMPRIDA')[idioma()]+` <b>✓</b>`
-      : L('MISIÓN','MISSION','MISSÃO')[idioma()]+` · ${misionNombre(G.mision)[idioma()]} <b>${misionValor(G.mision,G)}/${G.mision.meta}</b>`)+`</span>`:``);
+      : L('MISIÓN','MISSION','MISSÃO')[idioma()]+` · `+misionHud(G.mision,G))+`</span>`:``);   // 2026-09-10: las cinco misiones nuevas tienen su renglón (01j)
   if(stat!==_mkStat){ _mkStat=stat; $('#statline').innerHTML=stat; }
 }
 function flash(j){ G.flashJ={j, hasta:performance.now()+1000}; }
@@ -15705,7 +15749,7 @@ function vuelo(desde,hasta,arco,durS,alLlegar,fuego){
    el pase y creo que me contó la pérdida") — y el cierre no dice "la perdiste". */
 function perderPelota(txt,titulo,sinV,ajena){
   if(titulo) veredicto(titulo,'mal');
-  if(!ajena) G.perdidas=(G.perdidas||0)+1;   // la planilla no perdona (su caza 2026-08-28)
+  if(!ajena){ G.perdidas=(G.perdidas||0)+1; if((G.cuarto||1)>=4) G.perdidasQ4=(G.perdidasQ4||0)+1; }   // la planilla no perdona (su caza 2026-08-28) · 2026-09-10: la misión del último cuarto
   G.suelo=null; G.corre=null; G.pelotaEn=null; G.paseVivo=null;
   apagaFuego(); aprende('robo');
   relato(txt,false); finPosesion(false,ajena?t(L('Se perdió en la devolución.','Lost on the return pass.','Perdeu-se na devolução.'))
@@ -15952,7 +15996,7 @@ $('#btnPedila').onclick=()=>{
   const relojYa = G.relojAnim ? Math.min(G.reloj, G.relojAnim.b) : G.reloj;
   /* los dos casos de ruido murieron con el botón apagado: si igual llegan, silencio */
   if(pedilaSinSentido()) return;
-  G.pedidas--; G.pidio=true; G.pedidaEnCuarto=true;
+  G.pedidas--; G.pidio=true; G.pedidaEnCuarto=true; G.pedidasUsadas=(G.pedidasUsadas||0)+1;   // 2026-09-10: la misión SIN PEDIRLA
   /* la pedida llega EN LA PRÓXIMA BAJADA (8-25s de reloj), no en el minuto que el guion
      tenía agendado (su caza: "te la dan al minuto y medio siempre") */
   g.beats.splice(g.i,0,{t:'jugada', pedida:true, hasta: Math.max(2, Math.round(relojYa - rnd(8,25)))});
@@ -16115,6 +16159,7 @@ function siguienteBeat(){
     /* EL TIPO SE SORTEA ACÁ, NO EN LA CANCHA (§2z2): el renglón tiene que poder decir la
        verdad, y hasta ahora se escribía 1,2s antes de que el tipo existiera. */
     if(!b.tipo && !b.final && !b.heredada && !b.drill && !b.slalom) b.tipo=sortearTipo(!!b.pedida || !!b.fuego);
+    G.enPedida=!!b.pedida;   // 2026-09-10: la misión de las pedidas resueltas lee esto al cerrar la posesión
     const anunciar=()=>{
     fila(b.final ? ((G.riv-G.nos)===3 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE EMPATA.','LAST SHOT IS YOURS — THE THREE TIES IT.','A ÚLTIMA É SUA — O TRIPLO EMPATA.'))
                     : (G.riv-G.nos)===2 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE LO GANA.','LAST SHOT IS YOURS — THE THREE WINS IT.','A ÚLTIMA É SUA — O TRIPLO VENCE.'))
@@ -16149,6 +16194,7 @@ $('#btnSeguir').onclick=()=>{
 /* al cerrar TU posesión: el resultado entra al feed y el guion sigue */
 function finPosesion(anoto, resumen){
   if(G.fase==='fin'||G.fase==='feed') return;
+  if(G.enPedida){ if(anoto) G.pedidasResueltas=(G.pedidasResueltas||0)+1; G.enPedida=false; }   // 2026-09-10: la pedida que terminó en algo
   if(G.esFinal){ tensionParar(); sfx('chicharra',0.9); }   // LA ÚLTIMA muere con la bocina
   /* §2z99 (su caza 2026-09-07: "erré el triple para empatar… esa jugada CLUTCH tiene que generar algo"): el motor
      sabía cuál era la última pero no guardaba qué hiciste con ella. Queda escrito para el cierre (la nota, la
@@ -16230,7 +16276,7 @@ function terminar(){
 }
 function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
-    triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
+    triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
     intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});
   G.duelo=nuevoDuelo();

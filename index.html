@@ -12948,9 +12948,12 @@ function armarPosesion(){
     G.fase='defiendo'; G.pelotaEn=G.defensa.portador;
     G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0; }
   else if(G.tipo==='bloqueo'){
-    veredicto(t(L('¡VIENE EL BLOQUEO!','SCREEN COMING!','VEM O CORTA-LUZ!')),'neu',1400);   // 2026-09-10 (su caza al wording de «te suben una pantalla»): la escena se llama BLOQUEO, el cartel también
-    sit.textContent=t(L('BLOQUEO','SCREEN','CORTA-LUZ')); sit.className='carril';
-    explicar('bloqueo',t(L('Usá el bloqueo: llevala por ese lado — y mirá qué hace la defensa.','Use the screen: dribble off the pick — and read the defense.','Usa o corta-luz: quica pelo lado do bloqueio — e lê a defesa.')), false);
+    /* 2026-09-10 (su duda sobre «te suben una pantalla»: "no sé si se entiende o es vocabulario interno"; su elección): UNA
+       palabra en todo el juego, CORTINA — la que dicen los relatores acá y la que ya usaba la defensa. Y el texto de la
+       primera vez explica la MECÁNICA, no la palabra: es lo que le cambia a alguien lo que cree que puede hacer. */
+    veredicto(t(L('¡TE PONEN UNA CORTINA!','SCREEN COMING!','VEM O CORTA-LUZ!')),'neu',1400);
+    sit.textContent=t(L('CORTINA','SCREEN','CORTA-LUZ')); sit.className='carril';
+    explicar('bloqueo',t(L('Tu grandote le tapa el paso a tu marca: llevala por su lado y mirá qué hace la defensa.','Your big blocks your defender\'s path: dribble off his side and read the defense.','Seu pivô fecha o caminho do seu marcador: quica pelo lado dele e lê a defesa.')), false);
     /* la coreografía entera vive en el FRAME (como el custodio del contra): nada de
        correr() encadenado ni timers que sobreviven al relanzo de la escena en el banco */
   }
@@ -15797,7 +15800,7 @@ const GOL_NOS=[t(L('Corta al aro y se la dejan servida.','Cuts to the rim for th
 const GOL_RIV=[t(L('El base rival entra y la deja.','Their point guard drives and drops it in.','O armador deles entra e deixa.')),
                t(L('Se la bajan al pivot: dos abajo.','They dump it to the big: two inside.','Baixam pro pivô deles: dois por baixo.')),
                t(L('Triple del alero rival.','Three from their wing.','Triplo do ala deles.')),
-               t(L('Sale de un bloqueo y la clava.','Comes off a screen and buries it.','Sai do bloqueio e crava.')),
+               t(L('Sale de una cortina y la clava.','Comes off a screen and buries it.','Sai do corta-luz e crava.')),
                t(L('Le hacen falta y mete los dos.','Gets fouled and hits both.','Sofre a falta e acerta os dois.'))];
 const SECO=[t(L('Minutos secos: nadie mete nada.','Dry minutes: nobody scores.','Minutos secos: ninguém acerta nada.')),
             t(L('Todo tiro, cero canasta.','Plenty of shots, zero buckets.','Só arremesso, zero cesta.')),

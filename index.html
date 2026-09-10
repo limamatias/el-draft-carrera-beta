@@ -2504,7 +2504,7 @@ const CLUBES_FEDERAL = [
   { id: 'EPRA', sigla: 'EST', nombre: 'Estudiantil Porteño', corto: 'Estudiantil', ciudad: 'Ramos Mejía', apodo: null, color: '#001F75', color2: '#BF0F23', fuerza: 40, rival: null, zona: 'metro_a' },
   { id: 'IZAR', sigla: 'IND', nombre: 'Independiente (Z)', corto: 'Indep. (Z)', ciudad: 'Zárate', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 39, rival: 'ZBAS', zona: 'metro_a' },
   { id: 'JHMA', sigla: 'JOS', nombre: 'José Hernández', ciudad: 'Mataderos', apodo: null, color: '#004191', color2: '#F0D025', fuerza: 37, rival: null, zona: 'metro_a' },
-  { id: 'PINO', sigla: 'PIN', nombre: 'Pinocho', ciudad: 'Buenos Aires', apodo: 'La Máquina Verde', color: '#04893A', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_a' },
+  { id: 'PINO', sigla: 'PIN', nombre: 'Pinocho', ciudad: 'Villa Urquiza', apodo: 'La Máquina Verde', color: '#04893A', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_a' },
   { id: 'CDSA', sigla: 'SAN', nombre: 'San Andrés', ciudad: 'San Andrés', apodo: 'Depor', color: '#1F6C36', color2: '#FFFFFF', fuerza: 32, rival: null, zona: 'metro_a' },
   { id: 'CASM', sigla: 'SAM', nombre: 'San Miguel', ciudad: 'San Miguel', apodo: 'Trueno Verde', color: '#00923F', color2: '#FFFFFF', fuerza: 33, rival: null, zona: 'metro_a' },
   { id: 'ESCB', sigla: 'ESB', nombre: 'Escobar', ciudad: 'Belén de Escobar', apodo: 'El Albiceleste', color: '#7CC0E5', color2: '#FFFFFF', fuerza: 42, rival: null, zona: 'metro_a' },
@@ -2652,10 +2652,12 @@ const VECINDARIO_FEDERAL = {
 
 /** Liga Nacional (primera división) · 19 clubes — la vacante de Unión SF no se cubrió,
  * igual que en El Draft (es lo que pasó de verdad). */
+/* 2026-09-10 (su corte): los clubes de Capital llevan el BARRIO, como ya hacían los del Federal (Mataderos, Versailles,
+   Villa del Parque, Agronomía) — «Buenos Aires» no distinguía nada dentro del AMBA. Obras y River comparten Núñez. */
 const CLUBES_NACIONAL = [
-  { id: 'BOCA', sigla: 'BOC', nombre: 'Boca Juniors', ciudad: 'Buenos Aires', apodo: 'El Xeneize', color: '#103F79', color2: '#F3B229', fuerza: 66, rival: 'SLOR', rivales: ['SLOR'] },
-  { id: 'SLOR', sigla: 'SLO', nombre: 'San Lorenzo', ciudad: 'Buenos Aires', apodo: 'El Ciclón', color: '#283B56', color2: '#EC1E2A', fuerza: 57, rival: 'BOCA', rivales: ['BOCA', 'FERR'] },
-  { id: 'OBRA', sigla: 'OBR', nombre: 'Obras Basket', ciudad: 'Buenos Aires', apodo: 'Los Tacheros', color: '#111111', color2: '#FFEB00', fuerza: 58, rival: 'FERR', rivales: ['FERR'] },
+  { id: 'BOCA', sigla: 'BOC', nombre: 'Boca Juniors', ciudad: 'La Boca', apodo: 'El Xeneize', color: '#103F79', color2: '#F3B229', fuerza: 66, rival: 'SLOR', rivales: ['SLOR'] },
+  { id: 'SLOR', sigla: 'SLO', nombre: 'San Lorenzo', ciudad: 'Boedo', apodo: 'El Ciclón', color: '#283B56', color2: '#EC1E2A', fuerza: 57, rival: 'BOCA', rivales: ['BOCA', 'FERR'] },
+  { id: 'OBRA', sigla: 'OBR', nombre: 'Obras Basket', ciudad: 'Núñez', apodo: 'Los Tacheros', color: '#111111', color2: '#FFEB00', fuerza: 58, rival: 'FERR', rivales: ['FERR'] },
   { id: 'QUIM', sigla: 'QUI', nombre: 'Quimsa', ciudad: 'Santiago del Estero', apodo: 'La Fusión', color: '#22336B', color2: '#E8264F', fuerza: 64, rival: 'OLIM', rivales: ['OLIM'] },
   { id: 'INST', sigla: 'INS', nombre: 'Instituto', ciudad: 'Córdoba', apodo: 'La Gloria', color: '#C8102E', color2: '#FFFFFF', fuerza: 58, rival: 'ATEN', rivales: ['ATEN'] },
   { id: 'ATEN', sigla: 'ATE', nombre: 'Atenas', ciudad: 'Córdoba', apodo: 'El Griego', color: '#31993F', color2: '#FFFFFF', fuerza: 61, rival: 'INST', rivales: ['INST', 'FERR'] },
@@ -2663,7 +2665,7 @@ const CLUBES_NACIONAL = [
   { id: 'PENA', sigla: 'PEÑ', nombre: 'Peñarol', ciudad: 'Mar del Plata', apodo: 'El Milrayitas', color: '#FFFFFF', color2: '#16295C', fuerza: 62, rival: null },
   { id: 'GIMN', sigla: 'GIM', nombre: 'Gimnasia de Comodoro', corto: 'Gimnasia (CR)', ciudad: 'Comodoro Rivadavia', apodo: 'El Verde', color: '#0E3B2E', color2: '#C9A96A', fuerza: 65, rival: null },
   { id: 'OLIM', sigla: 'OLI', nombre: 'Olímpico', ciudad: 'La Banda', apodo: 'El Negro', color: '#111111', color2: '#FFFFFF', fuerza: 54, rival: 'QUIM', rivales: ['QUIM'] },
-  { id: 'FERR', sigla: 'FER', nombre: 'Ferro Carril Oeste', corto: 'Ferro', ciudad: 'Buenos Aires', apodo: 'El Verdolaga', color: '#1B7F4D', color2: '#FFFFFF', fuerza: 61, rival: 'ATEN', rivales: ['ATEN', 'OBRA', 'SLOR'] },
+  { id: 'FERR', sigla: 'FER', nombre: 'Ferro Carril Oeste', corto: 'Ferro', ciudad: 'Caballito', apodo: 'El Verdolaga', color: '#1B7F4D', color2: '#FFFFFF', fuerza: 61, rival: 'ATEN', rivales: ['ATEN', 'OBRA', 'SLOR'] },
   { id: 'UNIO', sigla: 'UNI', nombre: 'La Unión de Formosa', corto: 'La Unión (FOR)', ciudad: 'Formosa', apodo: 'La U', color: '#1B76BC', color2: '#C9A96A', fuerza: 57, rival: null },
   { id: 'ARJU', sigla: 'ARG', nombre: 'Argentino de Junín', corto: 'Argentino (Jun)', ciudad: 'Junín', apodo: null, color: '#1F5FA8', color2: '#7FA8D0', fuerza: 50, rival: null },
   { id: 'RACH', sigla: 'RAC', nombre: 'Racing de Chivilcoy', corto: 'Racing (Chiv)', ciudad: 'Chivilcoy', apodo: 'La Academia', color: '#5FA9E8', color2: '#FFFFFF', fuerza: 51, rival: null },
@@ -2712,7 +2714,7 @@ const CLUBES_ARGENTINA = [
   { id: 'QUIL', sigla: 'QUI', nombre: 'Quilmes', ciudad: 'Mar del Plata', apodo: 'El Indio', color: '#FFFFFF', color2: '#D2232A', fuerza: 52, rival: 'UMDP', rivales: ['UMDP'], zona: 'sur' },
   { id: 'RACA', sigla: 'RAC', nombre: 'Racing (A)', ciudad: 'Avellaneda', apodo: 'La Academia', color: '#FFFFFF', color2: '#75AADB', fuerza: 46, rival: null, zona: 'sur' },
   { id: 'RSAN', sigla: 'REG', nombre: 'Regatas (SN)', ciudad: 'San Nicolás', apodo: 'El Náutico', color: '#152B4E', color2: '#F26A21', fuerza: 49, rival: null, zona: 'sur' },
-  { id: 'RIVE', sigla: 'RIV', nombre: 'River', ciudad: 'Buenos Aires', apodo: 'El Millonario', color: '#FFFFFF', color2: '#D6202B', fuerza: 51, rival: null, zona: 'sur' },
+  { id: 'RIVE', sigla: 'RIV', nombre: 'River', ciudad: 'Núñez', apodo: 'El Millonario', color: '#FFFFFF', color2: '#D6202B', fuerza: 51, rival: null, zona: 'sur' },
   { id: 'ROCA', sigla: 'ROC', nombre: 'Rocamora', ciudad: 'Concepción del Uruguay', apodo: 'El Rojo', color: '#DE1C1F', color2: '#FFFFFF', fuerza: 42, rival: 'LUCO', rivales: ['LUCO', 'CENT'], zona: 'sur' },
   { id: 'UMDP', sigla: 'UNI', nombre: 'Unión (MDP)', ciudad: 'Mar del Plata', apodo: 'El Celeste', color: '#05ACDF', color2: '#FFFFFF', fuerza: 43, rival: 'QUIL', rivales: ['QUIL'], zona: 'sur' },
   { id: 'UNSF', sigla: 'UNI', nombre: 'Unión (SF)', ciudad: 'Santa Fe', apodo: 'El Tatengue', color: '#FFFFFF', color2: '#D0202E', fuerza: 46, rival: null, zona: 'sur' },

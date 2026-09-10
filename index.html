@@ -12680,8 +12680,8 @@ function armarPosesion(){
     /* §2z39.10 (su caza en el nivel 20: "que diga CARRIL y ATACÁ no muestra que el objetivo es pasársela
        al que se desmarca"): en el drill de visión el contrato es otro y la píldora lo dice */
     const drillVis=G.esDrill && window.drillEsVision && window.drillEsVision();
-    if(!heredada && !drillVis) veredicto(t(L('¡CARRIL — ATACÁ!','OPEN LANE — DRIVE!','CORREDOR — INFILTRA!')),'ok',1400);   // §2z39.12: en el drill, sin veredicto de entrada (tapaba el velo)
-    sit.textContent=drillVis?t(L('ENCONTRÁ EL PASE','FIND THE PASS','ACHA O PASSE')):t(L('CARRIL','LANE','CORREDOR')); sit.className='carril';
+    if(!heredada && !drillVis) veredicto(t(L('¡VÍA LIBRE — ATACÁ!','OPEN LANE — DRIVE!','CAMINHO LIVRE — ATACA!')),'ok',1400);   // 2026-09-10 (su caza: "CARRIL es una palabra interna")   // §2z39.12: en el drill, sin veredicto de entrada (tapaba el velo)
+    sit.textContent=drillVis?t(L('ENCONTRÁ EL PASE','FIND THE PASS','ACHA O PASSE')):t(L('VÍA LIBRE','OPEN LANE','CAMINHO LIVRE')); sit.className='carril';
     explicar('carril',dif.drive==='toques' ? t(L('Arrastrá y empujás la pelota. Toque seco: frenás y tirás.','Drag to push the ball ahead. Quick tap: stop and shoot.','Arraste e empurre a bola. Toque seco: para e arremessa.'))
                                 : t(L('Agarrá tu jugador y conducí. Al aro, definís.','Grab your player and drive. At the rim, finish.','Pegue seu jogador e conduza. No aro, finalize.')), false); }
   else if(G.tipo==='cierre'){
@@ -20702,7 +20702,7 @@ function abrirPasoParte(jugados,despues){
     : g===0?t(L('PERDIMOS LAS '+n,'WE LOST ALL '+n,'PERDEMOS OS '+n))
     : t(L('GANAMOS '+g+' DE '+n,'WE WON '+g+' OF '+n,'GANHAMOS '+g+' DE '+n));
   tit.className=g===n?'oro':g===0?'mal':'';
-  $l('pasoTag').textContent=t(L('EL RELATO JUGÓ','THE SIM PLAYED','A NARRAÇÃO JOGOU'));
+  $l('pasoTag').textContent=t(L('LO QUE PASÓ','WHAT HAPPENED','O QUE ACONTECEU'));   // 2026-09-10 (su caza: "el relato" es jerga nuestra)
   const paso=220;
   $l('pasoJuegos').innerHTML=filas.map((x,i)=>
     '<div class="fila-item" style="animation-delay:'+(i*paso)+'ms"><span class="desc">'

@@ -847,6 +847,12 @@
        border-radius:99px;padding:6px 16px;font-variant-numeric:tabular-nums;
        white-space:normal;text-align:center;line-height:1.25;min-width:0}   /* §2z39.63 decía «una píldora es UN renglón»; su corte 2026-09-10 para ésta: «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» envuelve en las chicas — es una pantalla intermedia con aire vertical de sobra, no compite con nada */
   #lobby .preTop .volver{flex:none}
+  /* 2026-09-11 (su caza desde el celular): el título de las plenas de TABLA y FIXTURE no es una píldora — tenía el fondo de
+     la del pre "de fondo, sin ningún sentido" y crecía con el texto, y cuando el título de la selección envolvía a dos
+     renglones el switch BOC · AMÉRICAS · ARG saltaba de altura al cambiar de lado. Sin fondo, y con la altura de DOS
+     renglones reservada siempre (2 × 1,25 × 13 px), así el switch queda quieto en los tres lados. */
+  #lobby #lv-tabla-full .fecha-pre,#lobby #lv-fixture-full .fecha-pre{background:none;padding:0 8px;border-radius:0;
+       min-height:33px;display:flex;align-items:center;justify-content:center;flex:1}
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
        display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
@@ -17798,8 +17804,15 @@ function frame(now){
         return dist(j,s.t); };
       /* §2z18: FÍSICO es tu velocidad base en la pelea (80 + 4·fis: de 80 a 120) */
       const vBase=s.vos?80+4*(dif.fis||3):92;
-      const dMi=mv(s.mi,(vBase+s.boost)*dt), dSu=mv(s.su,116*dt);
-      if(pico && (dMi<14*ESC()||dSu<14*ESC())) resolverRebote(dMi<=dSu);
+      mv(s.mi,(vBase+s.boost)*dt); mv(s.su,116*dt);
+      /* ⚠️ 2026-09-11 (su caza desde el celular: "nadie agarró la pelota, fuimos los dos y nos quedamos ahí" — el partido
+         colgado, sin salida): `mv` clampea el cuerpo a y ≥ aro+20·ESC, pero la pelota puede caer AL COSTADO del aro a la
+         altura del aro (esc.y entre aro−8·ESC y aro+6·ESC, §2z159 la deja real) — ahí ningún cuerpo llega a <14·ESC de ella
+         y la pelea no resolvía nunca. La distancia se mide contra el punto ALCANZABLE (la pelota se agarra desde la línea
+         donde el cuerpo frena), y de red: pasado 1,5 s del pique se resuelve por el mejor parado, pase lo que pase. */
+      const alc={x:s.t.x, y:Math.max(s.t.y, aro().y+20*ESC())};
+      const dMi=dist(s.mi,alc), dSu=dist(s.su,alc);
+      if(pico && (dMi<14*ESC()||dSu<14*ESC()||now-s.t0>2600)) resolverRebote(dMi<=dSu);
     }
     /* la transición del avance: compañeros y marcas VUELVEN corriendo hacia sus puestos —
        llegan más o menos cuando vos cruzás; la imagen del contragolpe es honesta */
@@ -19966,6 +19979,11 @@ const anioMundial=()=>(!esBeta()&&parteElim(C.anio)==='A')?C.anio+2:C.anio+1;
 /* 2026-09-10 (su pedido: "¿no debería decir, donde entre, «eliminatorias Mundial Catar 2027»?"): el destino con su sede (§2z194) */
 const mundialTxt=()=>{ const a=anfitrionSel('mundial',anioMundial(),C.semilla); return t(L('MUNDIAL','WORLD CUP','MUNDIAL'))+' '+nombreAnfitrion(a.final).toUpperCase()+' '+anioMundial(); };
 const elimTxt=()=>t(SEL_TXT.eliminatorias)+' · '+mundialTxt();
+/* 2026-09-11 (su caza desde el celular: el chip de arriba y el renglón del HOY se partían en dos con «MUNDIAL CATAR 2027»,
+   "y eso que Catar es una palabra corta"; su corte: "en alguna recortaría sólo a Catar 2027"): la forma corta —
+   «ELIMINATORIAS · CATAR 2027»— para los renglones angostos (el chip y el HOY); la entera queda en el pre, el parte, la
+   prensa y los títulos de las plenas, que tienen aire. */
+const elimTxtCorto=()=>{ const a=anfitrionSel('mundial',anioMundial(),C.semilla); return t(SEL_TXT.eliminatorias)+' · '+nombreAnfitrion(a.final).toUpperCase()+' '+anioMundial(); };
 /* la BANDERA en la caja del escudo: una selección no se dibuja con un escudo de club */
 const selEscudo=(id,px)=>'<span class="escudoR svg selBan">'+banderaDe(id,px||46)+'</span>';
 
@@ -20060,9 +20078,11 @@ function avisoSeleccion(e){
 }
 
 /** El chip y el renglón del próximo, cuando el próximo es de la selección. */
-function selCuandoTxt(prox){
+function selCuandoTxt(prox,chip){
   /* en el chip va corto (no entra en un renglón); el nombre entero va en el PRE y en el parte */
-  if(prox.etapa==='eliminatorias') return elimTxt()+' · '+t(SEL_TXT.ventana)+' '+prox.ventana.n;   // 2026-09-10: «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» (el chip de arriba, el HOY y el pre)
+  /* 2026-09-11 (medido a 375: hasta «ELIMINATORIAS · FRANCIA 2031 · VENTANA 1» partía el chip en dos): el CHIP no dice el
+     Mundial —lo dice el renglón del HOY, justo abajo, con la forma corta «ELIMINATORIAS · CATAR 2027 · VENTANA 4»— */
+  if(prox.etapa==='eliminatorias') return (chip?t(SEL_TXT.eliminatorias):elimTxtCorto())+' · '+t(SEL_TXT.ventana)+' '+prox.ventana.n;
   if(prox.etapa==='grupo') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.grupo)+' '+prox.grupo;
   if(prox.etapa==='segunda') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.segunda)+' '+prox.grupo;
   return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT[prox.etapa]||L(prox.etapa));
@@ -21387,7 +21407,7 @@ function pintaLobby(){
   if(prox&&prox.tipo==='seleccion'){   // en la regular y en el receso (las ventanas de verano, §12.2 v2)
     /* §2y: sin "LA SELECCIÓN" delante — ELIMINATORIAS y MUNDIAL ya dicen de qué se trata, y
        con el prefijo el chip se partía en dos renglones (medido a 375) */
-    $l('lobChip').innerHTML=anioTxt()+' · <b>'+selCuandoTxt(prox)+'</b>';   // §12
+    $l('lobChip').innerHTML=anioTxt()+' · <b>'+selCuandoTxt(prox,true)+'</b>';   // §12
   } else if(e.fase==='regular'&&prox&&prox.tipo==='americas'){
     $l('lobChip').innerHTML=anioTxt()+' · '+t(AM_TXT.nombre)+' · <b>'+amEtapaTxt(prox.etapa,prox.grupo)+'</b>';
   } else if(e.fase==='regular'){

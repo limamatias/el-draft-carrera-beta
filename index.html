@@ -13805,9 +13805,11 @@ function juntar(){
   vuelo({...G.vos},{x:a.x,y:a.y},vola?0.25:0.55,Math.max(0.25,dist(G.vos,a)/(H*0.6)),()=>{
     if(tapa){
       if(Math.random()<0.35){ flash(bigDef); G.tiros--;
-        irALaLinea(2,t(L('El grandote te bajó en la definición — dos libres.','The big man hacked you at the finish — two free throws.','O pivô te derrubou na finalização — dois lances livres.'))); return; }
+        irALaLinea(2,bigDef.big?t(L('El grandote te bajó en la definición — dos libres.','The big man hacked you at the finish — two free throws.','O pivô te derrubou na finalização — dois lances livres.'))
+                              :t(L('El que llegó a ayudar te bajó en la definición — dos libres.','The help defender hacked you at the finish — two free throws.','O que veio ajudar te derrubou na finalização — dois lances livres.'))); return; }   // 2026-09-10 (su caza): la frase dice quién fue
       flash(bigDef); veredicto(t(L('¡LA DEVOLVIÓ!','SENT IT BACK!','DEVOLVEU!')),'mal');
-      perderPelota(t(L('El grandote estaba abajo del aro y llegaste trabado.','The big man was under the rim and you got there smothered.','O pivô estava embaixo do aro e você chegou travado.')),null,true); return; }
+      perderPelota(bigDef.big?t(L('El grandote estaba abajo del aro y llegaste trabado.','The big man was under the rim and you got there smothered.','O pivô estava embaixo do aro e você chegou travado.'))
+                             :t(L('Un defensor llegó a cubrir el aro y llegaste trabado.','A defender got back to the rim and you got there smothered.','Um defensor chegou pra cobrir o aro e você chegou travado.')),null,true); return; }
     if(calidad>0.45){ canastaFx(); if(vola){ hierroFx(2.2); G.impactoFx={t0:performance.now()}; }
       G.nos+=2; G.pts+=2; G.aciertos++;
       prendeFuego(); aprende('drive');

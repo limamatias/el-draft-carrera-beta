@@ -710,7 +710,7 @@
   /* §2z35: la DIF va en toda tabla (liga y grupos); en 38 px entra "+123" */
   #lobby .tablita .dif{width:38px;text-align:right;font-size:11px;color:var(--tinta2);
        font-variant-numeric:tabular-nums;flex:none}
-  #lobby .tablita .banMini{flex:none;width:16px;height:11px;display:inline-flex;border-radius:2px;overflow:hidden}
+  #lobby .tablita .banMini{flex:none;width:16px;height:11px;display:inline-flex;border-radius:2px;overflow:hidden;margin-left:6px}   /* 2026-09-10: después del nombre */
   #lobby .tablita .banMini>*{width:100%;height:100%}
   #lobby .selSwitch .tab svg{width:18px;height:18px}
   #lobby .tablita .r.grupoSel .rec2{width:44px}
@@ -773,7 +773,7 @@
   #lobby .fix .r.am .f{letter-spacing:0}
   /* §2z88: la banderita del país en las filas del continental (la misma que la tabla, un punto más chica:
      la columna del nombre es la que paga y §2z31 la dejó justa) */
-  #lobby .fix .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-left:-2px}
+  #lobby .fix .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-left:6px}   /* 2026-09-10: después del nombre */
   #lobby .fix .banMini>*{width:100%;height:100%}
   /* §12: la fila de selección — la bandera a la izquierda y el renglón de la fecha que te
      perdiste por estar afuera, apagado (no es un resultado tuyo: es una ausencia) */
@@ -797,7 +797,7 @@
      pasando), el que PASÓ en blanco y negrita, el que SE QUEDÓ en gris y apagado. */
   #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta);font-variant-numeric:tabular-nums}
   #lobby .bkRow .escudito{width:14px;height:14px;flex:none}
-  #lobby .bkRow .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden} #lobby .bkRow .banMini>*{width:100%;height:100%}   /* 2026-09-10: la bandera en la llave del continental */
+  #lobby .bkRow .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-right:2px} #lobby .bkRow .banMini>*{width:100%;height:100%}   /* 2026-09-10: la bandera en la llave del continental */
   #lobby .bkRow .sig{flex:1;white-space:nowrap}
   #lobby .bkRow .w{flex:none;min-width:14px;text-align:right}
   #lobby .bkRow.gana{font-weight:700}
@@ -19560,7 +19560,7 @@ function filaGrupoAM(fila,pos,mio){
   const dif=(fila.pf||0)-(fila.pc||0), pasa=pos<=AMERICAS_PASAN;
   return '<div class="r grupoSel'+(fila.id===mio?' vos':'')+(pasa?' pasa':'')+(pos===AMERICAS_PASAN?' corte':'')+'">'
     +'<span class="pos">'+pos+'</span>'
-    +'<span class="club">'+escudito(fila.id)+banderita(fila.id)+'<span class="nom">'+nombreTabla(fila.id)+'</span></span>'
+    +'<span class="club">'+escudito(fila.id)+'<span class="nom">'+nombreTabla(fila.id)+'</span>'+banderita(fila.id)+'</span>'   // 2026-09-10 (su corte): la bandera a la DERECHA del nombre, como se estila
     +'<span class="rec2">'+fila.pg+'–'+fila.pp+'</span>'
     +'<span class="dif">'+(dif>0?'+':'')+dif+'</span></div>';
 }
@@ -19609,7 +19609,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
       if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
       const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
-      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+(opts.banderas?banderita(id):'')+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';   // 2026-09-10: la bandera del país en la llave del continental (su pedido; medido: 14+5+15+5+21+5+14 = 79 de 82)
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+g+'</span></div>';   // 2026-09-10: la bandera del país en la llave del continental (su pedido; medido: 14+5+15+5+21+5+14 = 79 de 82)
       const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;
       h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,gA)+fila(s.baja,gB)+'</div>'; });
     /* las líneas: cada par de la columna anterior se une con su caja de ésta. Si la ronda anterior tiene justo el
@@ -20645,7 +20645,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+(ladoAM?'':escudito(f.rival))+(f.am?banderita(f.rival):'')+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></span>'+   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
+    '<span class="q">'+(ladoAM?'':escudito(f.rival))+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span>'+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
     '<span class="dia">'+(f.dia?diaTxt(f.dia):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */

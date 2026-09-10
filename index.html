@@ -9571,7 +9571,7 @@ function ventanasAmericas(F, semilla, ritmo, desde) {
      que la liga; con esto, cero en 60 semillas por liga. */
   const desdeI = desde ? desde.hechas.length : 0;
   if (semilla && typeof diaDeFecha === 'function') for (let i = out.length - 1; i >= desdeI; i--) {
-    const v = out[i], techo = i < out.length - 1 ? out[i + 1].f - 1 : v.f, piso = desde && i === desdeI ? desde.ult : 0;
+    const v = out[i], techo = i < out.length - 1 ? out[i + 1].f - 1 : v.f, piso = desde ? desde.ult : 0;   // las jugadas no se mueven: ninguna nueva baja de la última jugada
     let k = Math.min(v.f, techo);
     while (k > piso && huecoDe(F, k, semilla, ritmo) < 2) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
     if (k > piso) v.f = k;

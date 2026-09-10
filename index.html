@@ -4570,8 +4570,13 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
   /* §2z194 (2026-09-10, medido con él: USA con los 88 en el Mundial más una «visita» sorteada daban Dbeta+12, y con la Dbeta
      en el techo de la LNB cruzaba el 38 donde el cierre deja de esperar tu toque): el rival de SELECCIÓN se acota a +6, y
      la cancha NEUTRAL (nadie es local) paga +2 en vez de los +4 de la visita. */
-  const rivalT = Math.max(-6, Math.min(rival.seleccion ? 6 : 8, 0.6 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))));   // David vs Goliat, acotado
-  const D = base + rivalT + (local === true ? 0 : local === 'neutral' ? 2 : 4);           // la visita aprieta (videos 10-12); la neutral, la mitad
+  /* §2z195 (su corte 2026-09-10, con los números de §2z194 a la vista: "la diferencia entre equipos no debería tener un pull
+     TAN grande en qué tan diferentes sentís los partidos; jugar en un equipo malo se tiene que sentir, pero no como para
+     dejar el juego; en NSS con Chicago dependía un poco de localía y rival, nunca con un abanico tan grande"): el abanico
+     baja de 18 puntos de D (−6…+8 de rival, +4 de visita) a 10 (±4 de rival, +2 de visita). Un club débil de visitante
+     contra el más fuerte queda en Dbeta+6 en vez de +12. Sin caso atípico aparte: el tope de +4 ya es el caso atípico. */
+  const rivalT = Math.max(-4, Math.min(4, 0.4 * (rival.fuerza - (miClub ? miClub.fuerza : rival.fuerza))));   // David vs Goliat, acotado (§2z195)
+  const D = base + rivalT + (local === true ? 0 : local === 'neutral' ? 1 : 2);           // la visita aprieta (videos 10-12); la neutral, la mitad
   return Math.max(0, Math.max(base * 0.5, Math.min(60, D)));
 }
 

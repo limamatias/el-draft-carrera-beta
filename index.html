@@ -636,7 +636,7 @@
        text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .goteo b{color:var(--tinta)}
   #lobby .goteo b.ok{color:var(--ok)} #lobby .goteo b.mal{color:var(--mal)}   /* 2026-09-10 (su caza): el marcador del último en verde o rojo */
-  #lobby #lobGoteo3{color:var(--naranja)}   /* 2026-09-10 (su caza: "la prosa del Juego de las Estrellas tiene el mismo tono que todo"): el aviso es un evento */
+  #lobby #lobGoteo3,#lobby #lobGoteo4{color:var(--naranja)}   /* 2026-09-10 (su caza: "la prosa del Juego de las Estrellas tiene el mismo tono que todo"): el aviso es un evento */
   /* §12.26 el escudo o la bandera adelante del promedio: en línea con el texto, no en su propio renglón */
   #lobby .goteo .escudito{display:inline-flex;width:15px;height:15px;vertical-align:-3px;margin-right:5px;float:none;position:static}
   #lobby .goteo .escudito.ban{vertical-align:1px}   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
@@ -1715,6 +1715,7 @@
           <div class="goteo" id="lobGoteo1"></div>
           <div class="goteo" id="lobGoteo2"></div>
           <div class="goteo oculto" id="lobGoteo3"></div>
+          <div class="goteo oculto" id="lobGoteo4"></div>
           <div class="partido">
             <div class="escudoR" id="lobHoyEscudo"></div>
             <div class="info">
@@ -5237,7 +5238,7 @@ function aplicarDecaimiento(jugador, fechaActual, semilla, ritmo) {
         esc[alto]--; comidas++;
       }
       en.decay[k] = owed;
-      if (comidas > 0) { recalcularSkill(jugador, k); caidos.push(k); }
+      if (comidas > 0) { recalcularSkill(jugador, k); caidos.push(k); (caidos.comidas = caidos.comidas || {})[k] = comidas; }   // 2026-09-10: cuántas, para decirlo
     }
   }
   return caidos;
@@ -11628,6 +11629,10 @@ const G = {
 };
 const rachasKey='partidos-jugados', recKey='record-racha';
 const rachas=()=>+(localStorage.getItem(rachasKey)||0);
+/* 2026-09-10 (su caza: "aclaraciones como el CRUZÁ ACÁ deberían vivir los primeros partidos; estoy avanzado y sigue ahí"): las
+   PISTAS de la cancha —lo que se aprende jugando— viven los primeros PISTAS_PARTIDOS partidos y después no vuelven (§2z39.15 ya
+   lo hacía con «llevala hasta el arco»). Las guías que prende un skill (BUENA/PLEGARIA, el pase que libera) no son pistas. */
+const PISTAS_PARTIDOS=4, pistasTempranas=()=>rachas()<PISTAS_PARTIDOS;
 const record=()=>+(localStorage.getItem(recKey)||0);
 $('#cIntro').textContent = rachas()? t(L(`Partidos jugados: ${rachas()}`,`Games played: ${rachas()}`,`Partidas jogadas: ${rachas()}`)) : '';
 
@@ -18135,7 +18140,7 @@ function frame(now){
       ctx.beginPath(); ctx.moveTo(14,my); ctx.lineTo(W-14,my); ctx.stroke(); ctx.setLineDash([]);
       ctx.textAlign='center'; ctx.font='600 15px Barlow Condensed';
       ctx.fillStyle='rgba(125,208,135,.9)';
-      ctx.fillText(t(L('CRUZÁ ACÁ','CROSS HERE','CRUZA AQUI')), W/2, my-10);
+      if(pistasTempranas()) ctx.fillText(t(L('CRUZÁ ACÁ','CROSS HERE','CRUZA AQUI')), W/2, my-10);   // 2026-09-10: la línea queda, el cartel se va
     }
     /* §2z64 LA LÍNEA DEL TUTORIAL DEL BOTE: el mismo idioma que el avance —punteada verde de lado a lado y
        CRUZÁ ACÁ—, porque es el mismo contrato (llegá hasta acá con la pelota). Vive en el mundo, así que la
@@ -18275,7 +18280,7 @@ function frame(now){
       ctx.fillStyle=adentro?'rgba(125,208,135,.95)':'rgba(255,150,51,.55)';
       /* §2z39.15 (su corte: "la leyenda al lado del aro debería vivir sólo unos pocos partidos, no toda la
          carrera"): la de "llevala hasta el arco" se va después de los primeros 4 partidos jugados; ¡DEFINÍS! queda */
-      if(adentro || rachas()<4) ctx.fillText(adentro?t(L('¡DEFINÍS!','FINISH!','FINALIZA!')):(dif.drive==='toques'?t(L('llevala hasta el arco punteado; seco = tirás','dribble to the dotted arc; tap = shoot','dribla até o arco pontilhado; toque seco = arremesso')):t(L('llegá al arco punteado y soltá','reach the dotted arc and release','chega no arco pontilhado e solta'))),
+      if(adentro || pistasTempranas()) ctx.fillText(adentro?t(L('¡DEFINÍS!','FINISH!','FINALIZA!')):(dif.drive==='toques'?t(L('llevala hasta el arco punteado; seco = tirás','dribble to the dotted arc; tap = shoot','dribla até o arco pontilhado; toque seco = arremesso')):t(L('llegá al arco punteado y soltá','reach the dotted arc and release','chega no arco pontilhado e solta'))),
                    q.x+Math.cos(angT)*rT, q.y+Math.sin(angT)*rT+5);
     }
     /* C4 (§2z4.1): acá vivió la línea del carril de vuelta, y SE FUE (su corte 2026-08-31:
@@ -18542,7 +18547,7 @@ function frame(now){
          quedás mirando correr el reloj (que era el bug). Las tres se tocan; elegís la menos mala. */
       const nada=!esT&&tap.arriba&&tap.abajo&&tap.medio;
       if(nada) ctx.fillStyle='rgba(224,108,90,.9)';
-      ctx.fillText(nada?t(L('TE TAPARON TODO — elegí la menos mala','ALL COVERED — pick the least bad','TAPARAM TUDO — escolhe a menos ruim'))
+      if(nada||pistasTempranas()) ctx.fillText(nada?t(L('TE TAPARON TODO — elegí la menos mala','ALL COVERED — pick the least bad','TAPARAM TUDO — escolhe a menos ruim'))   // 2026-09-10: «tocala donde la soltás» es pista
                        :t(L('LA SUBÍS — tocala donde la soltás','ON THE WAY UP — tap it where you release','NA SUBIDA — toca onde você solta')), pb.x, clamp(pb.y-pb.r-52,hudH+40,H));
       const restoMs=G.formaHasta-now;
       if(restoMs<1200){
@@ -21123,6 +21128,8 @@ function pintaLobby(){
   /* §2z45: el aviso de la carrera al MVP / el Juego de las Estrellas, sólo cuando pasó algo y hasta la próxima fecha */
   const av=e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada&&carreraActiva(e)?e.avisoMVP.txt:'';
   $l('lobGoteo3').innerHTML=av; $l('lobGoteo3').classList.toggle('oculto',!av);
+  const avOx=e.avisoOxido&&e.avisoOxido.fecha===e.fechaJugada?e.avisoOxido.txt:'';   // 2026-09-10: el óxido aplicado, hasta la próxima fecha
+  $l('lobGoteo4').innerHTML=avOx; $l('lobGoteo4').classList.toggle('oculto',!avOx);
   // HOY: el próximo (o el estado de la llave / el cierre)
   const bloquePartido=document.querySelector('#lp-hoy .partido');
   if(prox){
@@ -21476,6 +21483,17 @@ function pintaEntrenar(){
     avisar(t(L('Ese drill llega pronto.','That drill arrives soon.','Esse drill chega em breve.'))));
 }
 let escaleraAbierta=null;   // qué skill tiene su grilla de niveles abierta
+/* 2026-09-10 (su caza: "el ANTES lo vi; ¿qué pasa cuando efectivamente lo perdés?"): el óxido aplicado se DICE con nombre y
+   número — "Hace mucho no entrenás tiro: −1 estrella." — en el toast al volver y en el goteo del vestuario hasta la
+   próxima fecha (naranja, como el aviso de las estrellas). Con dos skills, los dos nombres y las estrellas sumadas. */
+function textoOxido(caidos){
+  if(!caidos||!caidos.length) return '';
+  const nom=(k)=>{ const d=SKILL_DEFS.find(x=>x[0]===k); return d?t(d[1]).toLowerCase():k; };
+  const y=t(L(' y ',' and ',' e ')), nombres=caidos.length===1?nom(caidos[0]):caidos.slice(0,-1).map(nom).join(', ')+y+nom(caidos[caidos.length-1]);
+  const n=caidos.reduce((a,k)=>a+((caidos.comidas||{})[k]||1),0);
+  const est=n===1?t(L('estrella','star','estrela')):t(L('estrellas','stars','estrelas'));
+  return t(L('Hace mucho no entrenás '+nombres+': −'+n+' '+est+'.','You haven\'t trained '+nombres+' in a while: −'+n+' '+est+'.','Faz tempo que você não treina '+nombres+': −'+n+' '+est+'.'));
+}
 function timerSkill(k,en,e){
   /* ⚠️ Decía "nunca entrenado" y "recién entrenado", y él preguntó qué eran las dos. Y la
      respuesta honesta es que no eran información: "nunca entrenado" ya lo dice el skill en
@@ -22183,6 +22201,7 @@ function registrarResultado(){
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
   const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada,e.semilla,e.ritmo):[];   // §2z90: el óxido cuenta semanas, y las semanas las sabe el calendario
+  if(caidos.length) e.avisoOxido={fecha:e.fechaJugada,txt:textoOxido(caidos)};   // 2026-09-10: queda en el goteo hasta la próxima fecha
   /* §2z29: la ventana de los últimos jugados con los dedos y la identidad emergente */
   C.pjCarrera=(C.pjCarrera||0)+1;
   C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-IDENTIDAD_VENTANA);
@@ -22208,7 +22227,7 @@ function registrarResultado(){
   guardar();
   const volverAlLobby=()=>{ abrirLobby();
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
-  const chicos=()=>{ if(caidos.length) avisar(t(L('Sin entrenar, algo se oxida…','Untrained, things get rusty…','Sem treinar, algo enferruja…')));
+  const chicos=()=>{ if(caidos.length) avisar(textoOxido(caidos));
     if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),caidos.length?2200:0); };   // §2z105: después del otro aviso, no encima
   if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,'',chicos);   // §2z169: la noticia grande, en su velo
   else chicos(); };

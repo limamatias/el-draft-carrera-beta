@@ -5668,6 +5668,18 @@ function misionHud(m, G) {
 }
 /* ¿se puede dar por CUMPLIDA antes de la chicharra? Las de "al menos N", sí; las de tope y el porcentaje se pierden hasta el final */
 const misionCerrable = (m) => m.tipo === 'mixta' ? m.partes.every(misionCerrable) : !['perdidas', 'perdidas4', 'sinPedir', 'porcentaje'].includes(m.tipo);
+/* ¿ya NO se puede cumplir? (2026-09-10, su caza: "cuando una misión ya no aplica debería decir MISIÓN FALLIDA — con la de
+   pedidas quedé en 1/2 y no me queda ninguna más para pedir"): las de tope se pierden al pasarlas; la de pedidas, cuando
+   las que te quedan (más la que estás jugando) no alcanzan; las de "al menos N" y el porcentaje no se pierden antes de la
+   chicharra (siempre podés meter una más). La mixta se pierde si cualquiera de sus partes se perdió. */
+function misionPerdida(m, G) {
+  if (m.tipo === 'mixta') return m.partes.some((p) => misionPerdida(p, G));
+  if (m.tipo === 'perdidas') return (G.perdidas || 0) > m.meta;
+  if (m.tipo === 'perdidas4') return (G.perdidasQ4 || 0) > 0;
+  if (m.tipo === 'sinPedir') return (G.pedidasUsadas || 0) > 0;
+  if (m.tipo === 'pedidas') return (G.pedidasResueltas || 0) + (G.pedidas || 0) + (G.enPedida ? 1 : 0) < m.meta;
+  return false;
+}
 function misionValor(m, G) {
   /* §2z39.30 (su corte: "la misión de UN ROBO es un montón; debería ser «robo o tapa»"): la clave sigue
      siendo `robos` (las carreras guardadas la tienen), pero cuenta robos + tapas */
@@ -13213,6 +13225,7 @@ function marcador(){
        chicharra, así que esa sigue mostrando el contador. */
     (G.mision?`<br><span class="mision">`+(misionCerrable(G.mision)&&misionCumplida(G.mision,G)
       ? L('MISIÓN CUMPLIDA','MISSION COMPLETE','MISSÃO CUMPRIDA')[idioma()]+` <b>✓</b>`
+      : misionPerdida(G.mision,G) ? L('MISIÓN FALLIDA','MISSION FAILED','MISSÃO FALHOU')[idioma()]+` <b>✗</b>`   // 2026-09-10 (su caza): cuando ya no se puede, se dice
       : L('MISIÓN','MISSION','MISSÃO')[idioma()]+` · `+misionHud(G.mision,G))+`</span>`:``);   // 2026-09-10: las cinco misiones nuevas tienen su renglón (01j)
   if(stat!==_mkStat){ _mkStat=stat; $('#statline').innerHTML=stat; }
 }

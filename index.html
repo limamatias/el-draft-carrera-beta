@@ -222,10 +222,13 @@
   #cuerpoNota #cuerpoNum{font-size:42px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tinta)}
   #cuerpoNota .barraExp{opacity:1;animation:none}
   #cuerpoNota #cuerpoBarraAntes{background:rgba(255,255,255,.28)}
-  #cuerpoNota #cuerpoBarra{background:var(--ok);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  #cuerpoNota #cuerpoBarra{background:var(--ok);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+  #cuerpoNota #cuerpoNum .rayo{width:.4em;height:.8em;vertical-align:-.05em}
+  #cuerpoNota .planilla .r.nota{padding:2px 0 6px;border-bottom:0;font-size:13px}
+  #cuerpoNota .planilla .r.nota .sub{padding-left:14px}
+  #cuerpoNota .planilla .r.total b.ok{color:var(--ok)}
   #cuerpoNota #cuerpoBarra.baja{background:var(--naranja)} #cuerpoNota #cuerpoBarra.mal{background:var(--mal)}
   #cuerpoNota .planilla .r.total{font-weight:700;color:var(--tinta);border-top:1px solid rgba(154,164,184,.3);margin-top:2px}
-  #cuerpoNota .planilla .r .sub{padding-left:14px;font-size:13px}
   #cuerpoNota .planilla .r small{font-size:12px;letter-spacing:.5px;color:var(--tinta2);margin-left:6px;font-weight:600}
   #finNota .planilla,#cuerpoNota .planilla{width:100%;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
        border-radius:12px;padding:4px 16px;text-align:left}
@@ -22091,32 +22094,37 @@ function registrarResultado(){
 function abrirCuerpo(despues){
   const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
   const e=est();
-  /* §2z186: el idioma del velo de fin — el número, la barra y DOS planillas. Sin el desglose "club +3 · la moto +1"
-     (§2z184: el modelo no se muestra) y sin el "tenés $": la plata la ves al salir. El total es la última fila. */
-  $l('cuerpoNum').textContent=p.despues+' %';
-  const bar=$l('cuerpoBarra'); bar.style.width=p.antes+'%'; bar.className=p.despues<25?'mal':p.despues<50?'baja':'';
-  $l('cuerpoBarraAntes').style.width=p.antes+'%';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=p.despues+'%'; }));
-  let n=0; const PASO=140;
-  const fila=(desc,sub,val,cls)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+(n++*PASO)+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'':cls)+'">'+val+'</b></div>';
-  let h=fila(t(L('En la cancha','On the court','Em quadra')),p.min+"'",'−'+p.costo+' '+RAYO,'mal');
+  /* §2z186/§2z188: el idioma del velo de fin, y LA BARRA CUENTA LA HISTORIA (su corte 2026-09-10: "la barra debería
+     bajar de 100 a 85 mientras aparece «jugaste 20'» y después volver a subir cuando aparece lo que recuperás, tipo
+     escalera"). Arranca en lo que saliste, baja con la fila del partido, sube con la del descanso y queda en lo que vas
+     a tener en el próximo partido; el número grande la sigue. Sin el desglose del modelo (§2z184). */
+  const num=$l('cuerpoNum'), bar=$l('cuerpoBarra'); $l('cuerpoBarraAntes').style.width='0';
+  const pinta=(v)=>{ num.innerHTML=v+' '+RAYO; bar.style.width=v+'%'; bar.className=v<25?'mal':v<50?'baja':''; };
+  pinta(p.antes);
+  /* el descanso hasta el próximo: los días reales (fecha, continental, ventana); en playoffs los de la serie; entre dos
+     partidos de la selección, los 3 que cuenta el cierre; sin próximo, no hay fila */
   const prox=e?miProximo(e):null; let dias=null;
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
-  else if(p.fase==='playoffs'||(e&&e.fase==='playoffs')) dias=diasPO();
-  const regen=regenDe(), extra=regen-regenClub();   // lo tuyo: lo que suman tus compras sobre la base
-  const rec=dias!==null?Math.min(100-p.despues,regen*dias):regen;
-  h+=dias!==null
-    ? fila(t(L('Hasta el próximo partido','Until the next game','Até o próximo jogo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+rec+' '+RAYO,'ok')
-    : fila(t(L('Por día','Per day','Por dia')),'','+'+rec+' '+RAYO,'ok');
-  /* su pedido 2026-09-10: "en algún lugar está bueno que te diga «recuperaste esta energía por lo que compraste»" —
-     sólo lo comprado, sin la base ("no sé ni qué es el club") */
-  if(extra>0) h+=fila('<span class="sub">'+t(L('de lo tuyo','from what you own','do que é seu'))+'</span>','','+'+Math.min(rec,dias!==null?extra*dias:extra)+' '+RAYO,'ok');
+  if(dias===null&&prox&&prox.tipo==='seleccion') dias=3;
+  if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))) dias=diasPO();
+  const regen=regenDe(), extra=regen-regenClub();
+  const rec=dias!==null?Math.min(100-p.despues,regen*dias):0, recTuyo=dias!==null?Math.min(rec,extra*dias):0;
+  const T1=350, T2=1100, T3=1700, PASO=140;
+  const fila=(desc,sub,val,cls,ms)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+ms+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'ok':cls)+'">'+val+'</b></div>';
+  let h=fila(t(L('Jugaste','You played','Você jogou')),p.min+"'",'−'+p.costo+' '+RAYO,'mal',T1);
+  if(dias!==null){
+    h+=fila(t(L('Descansás','You rest','Você descansa')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+rec+' '+RAYO,'ok',T2);
+    if(recTuyo>0) h+='<div class="r nota" style="animation-delay:'+(T2+PASO)+'ms"><span class="sub">'+recTuyo+' '+t(L('son de lo tuyo','come from what you own','vêm do que é seu'))+'</span></div>';
+  }
   $l('cuerpoEnergia').innerHTML=h;
-  const total=p.pago.partido+p.pago.ganar+p.pago.mision;
-  let q=fila(t(L('Partido','Game','Jogo')),'','+'+fplata(p.pago.partido),'ok');
-  if(p.gano) q+=fila(t(L('Ganar','Win','Vitória')),'','+'+fplata(p.pago.ganar),'ok');
-  if(p.misOk) q+=fila(t(L('Misión','Mission','Missão')),'','+'+fplata(p.pago.mision),'ok');
-  q+=fila(t(L('Total','Total','Total')),'','+'+fplata(total),'total');
+  setTimeout(()=>pinta(p.despues),T1);
+  if(dias!==null) setTimeout(()=>pinta(Math.min(100,p.despues+rec)),T2);
+  const total=p.pago.partido+p.pago.ganar+p.pago.mision; let n=0;
+  const plata=(desc,val,cls)=>fila(desc,'',fplata(val),cls,T3+(n++)*PASO);
+  let q=plata(t(L('Partido','Game','Jogo')),p.pago.partido,'');
+  if(p.gano) q+=plata(t(L('Ganar','Win','Vitória')),p.pago.ganar,'');
+  if(p.misOk) q+=plata(t(L('Misión','Mission','Missão')),p.pago.mision,'');
+  q+=plata(t(L('Total','Total','Total')),total,'total');
   $l('cuerpoPlata').innerHTML=q;
   const v=$l('cuerpoParte'); v.classList.remove('oculto');
   $l('cuerpoOk').onclick=()=>{ v.classList.add('oculto'); if(despues) despues(); };

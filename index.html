@@ -13572,7 +13572,16 @@ c.addEventListener('pointerdown',e=>{
   if(G.gym){ gymTap(e.clientX); return; }   // el gimnasio (13b): toques, nada más
   if(G.veloDrill){ G.veloDrill=null; G.tutQuieto=false; if(G.corrida){ if(G.corrida.esperaSep) G.corrida.esperaSep.desde=performance.now(); else G.corrida.arranca=performance.now()+900; } return; }   // §2z39.9: tocá para empezar
   /* peleando el rebote, cada toque TE empuja a la pelota (+26 px/s, tope +160) — §2z17: el que corre sos vos */
-  if(G.scr){ G.scr.boost=Math.min(G.scr.boost+26, 160); return; }
+  /* §2z198 (2026-09-11, su caza: "si hay impacto en tocar, no se siente de ninguna forma — yo no sabía que estaba esa
+     mecánica"): el toque ya no es un acelerador sobre un cuerpo que corre solo (tocar o no dibujaba lo mismo). Cada
+     toque es un TRANCO visible hacia la pelota (22 + 2·físico px) con un destello del muñeco; sin toques casi no te movés
+     y el rival la agarra. Tocás, se mueve. No tocás, la pierde. */
+  if(G.scr){ const s=G.scr;
+    if(s.vos && s.mi===G.vos){ const d0=dist(G.vos,s.t);
+      if(d0>1){ const paso=Math.min(d0, 22+2*(dif.fis||3)); G.vos.x+=(s.t.x-G.vos.x)/d0*paso;
+        G.vos.y=Math.max(G.vos.y+(s.t.y-G.vos.y)/d0*paso, aro().y+20*ESC()); }
+      s.trancos=(s.trancos||0)+1; flash(G.vos); }
+    return; }
   if(G.fase==='forma'){
     if(G.medidor){ if(!G.medidor.t0) G.medidor.t0=performance.now(); }  // apretaste: se carga
     else tocarPelota(e.clientX,e.clientY);   // la pelota grande es PANTALLA
@@ -14907,7 +14916,10 @@ function reboteTrasBailar(esc, txtEllos){
     setTimeout(()=>{ if(G.fase!=='vuelo') return;
       veredicto(t(L('¡REBOTE VIVO!','LIVE BALL!','REBOTE VIVO!')),'neu',1000);
       relato(t(L('¡TOCÁ RÁPIDO — llegá vos a la pelota!','TAP FAST — get to the ball!','TOQUE RÁPIDO — chegue você na bola!')),true);
-      G.scr={mi:G.vos, su:suBig, t:caeR, boost:0, t0:performance.now(), vos:true};
+      /* §2z198: la primera pelea de la carrera pica 1,6 s en vez de 1,1 — el primer intento se gana tocando y el
+         aprendizaje queda hecho (lo que se aprende jugando una vez no vive en la pantalla) */
+      const primera=!yaVisto('rebote_pelea'); if(primera) marcarVisto('rebote_pelea');
+      G.scr={mi:G.vos, su:suBig, t:caeR, boost:0, t0:performance.now(), vos:true, pico:primera?1600:1100};
     }, 350);
     return true;
   }
@@ -17795,7 +17807,7 @@ function frame(now){
          al aro y la aseguraba en un suspiro. Ahora hay un mínimo de scramble — mientras
          la pelota pica (1,1s) nadie la puede bajar: se paran ENCIMA peleándola, y tus
          toques posicionan al tuyo. Cuando pica, el mejor parado la gana. */
-      const pico = now-s.t0 > 1100;   // contra el now del frame: la pausa lo congela bien
+      const pico = now-s.t0 > (s.pico||1100);   // contra el now del frame: la pausa lo congela bien · §2z198: la primera pelea pica 1,6 s
       const tope = pico ? 0 : 15*ESC();
       const mv=(j,v)=>{ const d0=dist(j,s.t);
         if(d0>4){ const paso=Math.min(v, Math.max(0, d0-tope));
@@ -17803,8 +17815,10 @@ function frame(now){
                   j.y=Math.max(j.y+(s.t.y-j.y)/d0*paso, aro().y+20*ESC()); }
         return dist(j,s.t); };
       /* §2z18: FÍSICO es tu velocidad base en la pelea (80 + 4·fis: de 80 a 120) */
-      const vBase=s.vos?80+4*(dif.fis||3):92;
-      mv(s.mi,(vBase+s.boost)*dt); mv(s.su,116*dt);
+      /* §2z198: cuando corrés VOS, el cuerpo apenas se arrastra (15 px/s) — los trancos los ponen tus toques (10-gesto);
+         tu grandote, por relato, a 92 como siempre */
+      const vBase=s.vos?15:92;
+      mv(s.mi,vBase*dt); mv(s.su,116*dt);
       /* ⚠️ 2026-09-11 (su caza desde el celular: "nadie agarró la pelota, fuimos los dos y nos quedamos ahí" — el partido
          colgado, sin salida): `mv` clampea el cuerpo a y ≥ aro+20·ESC, pero la pelota puede caer AL COSTADO del aro a la
          altura del aro (esc.y entre aro−8·ESC y aro+6·ESC, §2z159 la deja real) — ahí ningún cuerpo llega a <14·ESC de ella
@@ -17812,7 +17826,7 @@ function frame(now){
          donde el cuerpo frena), y de red: pasado 1,5 s del pique se resuelve por el mejor parado, pase lo que pase. */
       const alc={x:s.t.x, y:Math.max(s.t.y, aro().y+20*ESC())};
       const dMi=dist(s.mi,alc), dSu=dist(s.su,alc);
-      if(pico && (dMi<14*ESC()||dSu<14*ESC()||now-s.t0>2600)) resolverRebote(dMi<=dSu);
+      if(pico && (dMi<14*ESC()||dSu<14*ESC()||now-s.t0>(s.pico||1100)+1500)) resolverRebote(dMi<=dSu);
     }
     /* la transición del avance: compañeros y marcas VUELVEN corriendo hacia sus puestos —
        llegan más o menos cuando vos cruzás; la imagen del contragolpe es honesta */

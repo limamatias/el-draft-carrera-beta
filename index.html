@@ -19494,7 +19494,8 @@ function htmlBracket(rondas,esperadas,mi,opts){
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
-  const todos=cols.flatMap(col=>col.series.filter(Boolean).flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]));   // 2026-09-10 (su caza: el fixture de AMÉRICAS tiraba «reading 'alta'»): las rondas que faltan son series null const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
+  const todos=cols.flatMap(col=>col.series.filter(Boolean).flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]));   /* 2026-09-10 (su caza: el fixture de AMÉRICAS tiraba «reading 'alta'»): las rondas que faltan son series null */
+  const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
     const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
@@ -20390,6 +20391,7 @@ function irLob(v){
   if(v==='tabla-full'||v==='fixture-full'){ ladoSel_auto=true; const l=ladoDelProximo(); if(l!==ladoSel){ ladoSel=l; repintarPlenasSel(); } }
   VISTAS.forEach(x=>$l('lv-'+x).classList.toggle('oculto',x!==v));
   apoyarPaneles();
+  if(v==='fixture-full') apoyarFixEnProx();   // 2026-09-10: recién ahora el cajón mide
   const fondo=$l('lobFondo'), nuevoFondo='url('+(FONDO_DE[v]||FONDO_DE.hoy)()+')';
   /* su caza 2026-09-05 (tocar VOS estando en VOS volvía a fundir el fondo): se comparaba contra `fondo.style.backgroundImage`,
      que el navegador devuelve NORMALIZADO (comillas), así que nunca era igual y el fundido corría siempre. Se recuerda el string propio. */
@@ -20558,8 +20560,14 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   const box=$l('lobFixFull'); box.innerHTML=h;
   /* §2z178 (su corte: "la lista del club te carga siempre desde el primero; debería cargar desde el próximo, o mostrando el
      anterior"): el cajón arranca con el partido ANTERIOR arriba y el próximo debajo — lo que pasó y lo que viene */
-  const prox=box.querySelector('.r.prox'); if(prox){ const ancla=prox.previousElementSibling||prox;
-    requestAnimationFrame(()=>{ box.scrollTop=Math.max(0,ancla.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-4); }); }
+  apoyarFixEnProx();
+}
+/* 2026-09-10 (su caza: "abrís el fixture y te abre desde la fecha 1"): el scroll de §2z178 corría al PINTAR, con la plena todavía
+   oculta (clase 4 de CLAUDE.md: un efecto con el contenedor oculto no hace nada) — así que también se apoya al MOSTRAR (irLob) */
+function apoyarFixEnProx(){
+  const box=$l('lobFixFull'); const prox=box&&box.querySelector('.r.prox'); if(!prox) return;
+  const ancla=prox.previousElementSibling||prox;
+  requestAnimationFrame(()=>{ box.scrollTop=Math.max(0,ancla.getBoundingClientRect().top-box.getBoundingClientRect().top+box.scrollTop-4); });
 }
 
 /* el nombre COMPLETO en la tabla (su caza 2026-09-02: "Philadelphia 76ers, no 76ers"): en la

@@ -1149,6 +1149,8 @@
   #lobPasarConfirm .lista .r{display:flex;align-items:center;gap:8px;min-width:0}
   #lobPasarConfirm .lista .r .nom{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobPasarConfirm .lista .r .f{color:var(--tinta2);font-size:12px;flex:none;min-width:34px}
+  #lobPasarConfirm .lista .r.clave{color:var(--naranja);margin-top:4px;padding-top:8px;border-top:1px solid rgba(154,164,184,.22)}   /* 2026-09-10: el clave al que saltás, aparte de los que se saltean */
+  #lobPasarConfirm .lista .r.clave .f{color:var(--naranja)}
   /* fase 5: la creación de jugador y el mercado — overlays de sistema, hermanos del
      popup de confirmación pero de pantalla completa y con lista scrolleable */
   /* ⚠️ La creación NO es una caja centrada como el mercado: es una pantalla de alto completo
@@ -20756,7 +20758,7 @@ function abrirPasoParte(jugados,despues){
   return true;
 }
 /* §2z39.24: el popup de PASAR LA SEMANA — qué te perdés, antes de pasar */
-function abrirPasarConfirm(sig,ref,alFinal){
+function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "saltar al clave te debería aclarar contra quién es"): `destino` es el clave
   const e=est(), P=$l('lobPasarConfirm');
   /* §2z111: el continental que cae en el medio también lo juega el relato — va en la lista, con su globo.
      §2z148 (su caza 2026-09-08: "me decía que sólo me iba a perder F16, pero simuló un continental y después la F16"):
@@ -20766,7 +20768,7 @@ function abrirPasarConfirm(sig,ref,alFinal){
   const diaAntes=diaDeFecha(e.semilla,Math.max(1,ref||1),e.ritmo);
   const dias=Math.max(1,sig.dia-diaAntes);
   const J=C.jugador, energia=Math.min(100,J.energia+regenDe()*dias)-J.energia;
-  P.querySelector('.preg').textContent=t(L('¿Pasar hasta el ','Skip to ','Pular até '))+diaTxt(sig.dia)+'?';
+  P.querySelector('.preg').textContent=destino?t(L('¿Saltar al clave?','Skip to the big one?','Pular pro jogo chave?')):t(L('¿Pasar hasta el ','Skip to ','Pular até '))+diaTxt(sig.dia)+'?';
   P.querySelector('.nota2').textContent=(fs.length
     /* §2z168 (su caza 2026-09-08: "está raro el wording: «el relato juega» y el botón de NO dice «No, juego»"): el
        relato es palabra nuestra, no del juego — para el que juega es SU EQUIPO el que juega sin él */
@@ -20774,7 +20776,8 @@ function abrirPasarConfirm(sig,ref,alFinal){
                     :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(energia>0?' · +'+Math.round(energia)+' ⚡':'');
-  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('');
+  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('')
+    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+'<span class="nom">'+vsTxt(destino.local)+nomCorto(destino.rival)+' · '+diaTxt(sig.dia)+'</span></div>':'');
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
   $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };
@@ -21206,7 +21209,7 @@ function pintaLobby(){
       const sigC={fecha:clave.fecha,dia:diaDeFecha(e.semilla,clave.fecha,e.ritmo)};
       $l('lobBSaltar').addEventListener('click',()=>{
         const refC=prox?fechaRef(prox):null;   // (refP2 vive en la rama de PASAR LA SEMANA)
-        if(refC!==null && clave.fecha>refC) abrirPasarConfirm(sigC,refC,()=>abrirPre(objClave));
+        if(refC!==null && clave.fecha>refC) abrirPasarConfirm(sigC,refC,()=>abrirPre(objClave),objClave);
         else abrirPre(objClave); }); }
   } else {
     /* ⚠️ PASAR LA SEMANA (su caza: *"después del primer partido no me da la opción de

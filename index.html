@@ -20645,7 +20645,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+(ladoAM?'':escudito(f.rival))+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span>'+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
+    '<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span>'+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
     '<span class="dia">'+(f.dia?diaTxt(f.dia):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */

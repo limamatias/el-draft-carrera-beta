@@ -644,7 +644,8 @@
   #lobby #lobGoteo3,#lobby #lobGoteo4{color:var(--naranja)}   /* 2026-09-10 (su caza: "la prosa del Juego de las Estrellas tiene el mismo tono que todo"): el aviso es un evento */
   /* §12.26 el escudo o la bandera adelante del promedio: en línea con el texto, no en su propio renglón */
   #lobby .goteo .escudito{display:inline-flex;width:15px;height:15px;vertical-align:-3px;margin-right:5px;float:none;position:static}
-  #lobby .goteo .escudito.ban{vertical-align:1px}   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
+  #lobby .goteo .escudito.ban{vertical-align:1px}
+  #lobby .goteo b .escudito{margin:0 5px 0 0} #lobby .goteo b .escudito:last-child{margin:0 0 0 5px}   /* 2026-09-10: uno de cada lado del marcador */   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
   #lobby .cajon{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
        border-radius:12px;padding:10px 12px}
   #lobby .partido{padding:6px 2px;display:flex;align-items:center;gap:13px;
@@ -21082,7 +21083,9 @@ function pintaLobby(){
       const soyLocal=marc.local===miIdU;
       const mis=soyLocal?marc.ptsLocal:marc.ptsVisita, sus=soyLocal?marc.ptsVisita:marc.ptsLocal;
       { const a=clubDe(miIdU), b=clubDe(soyLocal?marc.visita:marc.local);
-        m='<b class="'+(mis>sus?'ok':mis<sus?'mal':'')+'">'+siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt+'</b> — '; }   // §2z185 · 2026-09-10 (su caza): el resultado en su color
+        /* 2026-09-10 (su pedido: "los escudos en chiquito de cada lado del resultado"): los escudos REEMPLAZAN a las siglas —
+           con las dos cosas el renglón de «estabas con la selección» se pasaba de 328 px (el ancho útil del A32) */
+        m='<b class="'+(mis>sus?'ok':mis<sus?'mal':'')+'">'+escudito(a.id)+mis+'–'+sus+escudito(b.id)+'</b> — '; }   // §2z185 · el resultado en su color
     }
     /* §2z39.66 (su caza: "¿siempre dice anoche?"): sí, decía. El lobby vive antes del próximo partido, así que el
        último puede ser de hace una semana. Ahora dice el DÍA en que se jugó; sin día (playoffs, selección), "Último". */

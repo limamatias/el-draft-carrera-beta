@@ -21329,7 +21329,11 @@ function pintaEntrenar(){
        comían 40 px en la cancha corta).
        §2z89: y cuando dice algo va DEBAJO DE LA BARRA, adentro del mismo renglón — como renglón
        propio volvía a poner el scroll con una sola nota (ver el comentario de .barraCol en el CSS) */
-    const nota=timerSkill(k,en,e);
+    /* 2026-09-10 (su pedido: "si llegás al tope de entrenamiento… ahí te avisamos «mirá que esto se sube de otra forma»"):
+       cuando la escalera ya no puede subir más este skill, el renglón lo dice — es el contrato del juego, no una
+       aclaración. El botón IR se queda: entrenar sigue frenando el óxido (su ojo). */
+    const alTope=J.arranque&&J.skills[k]>=(J.arranque[k]||0)+nivelesTope()*3&&J.skills[k]<SKILL_TECHO;
+    const nota=[timerSkill(k,en,e),alTope?t(L('De acá sube con lo que decidís fuera de la cancha.','From here it grows with what you decide off the court.','Daqui sobe com o que você decide fora da quadra.')):''].filter(Boolean).join(' · ');
     html+='<div class="fila-skill'+claseSkill(J.skills[k])+'"><span class="nom">'+t(nom)+'</span>'
       +'<span class="barraCol"><span class="barraNrg"><i style="width:'+J.skills[k]+'%"></i></span>'
       +(nota?'<span class="oxi">'+nota+'</span>':'')+'</span>'

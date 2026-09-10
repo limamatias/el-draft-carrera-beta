@@ -1015,7 +1015,7 @@
   #lobby .statGrande .s b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
   #lobby .statGrande .s span{font-size:10.5px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600}
   #lobby .cajTag{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
-  #lobby .cajTag.bkSig{color:var(--naranja)}   /* 2026-09-10 (su corte): LA LLAVE en naranja */
+  #lobby .cajTag.bkSig,#lobby .cajTag.naranja{color:var(--naranja)}   /* 2026-09-10 (su corte): LA LLAVE en naranja; .naranja es lo mismo sin el separador de arriba (la previa abre el cajón) */
   #lobby .cajNota{font-size:10px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:center;margin-top:6px}   /* 2026-09-10: la regla, chica y debajo */
   /* §2z74 (su caza: "cambian de altura entre BOCA y ARG, el escudo es muy grande al lado de LIGA NACIONAL"): el
      rótulo de VOS mide lo mismo de los dos lados — escudo y bandera en la misma caja de 16 px, centrados */
@@ -20767,7 +20767,7 @@ function pintaTablaFull(){
       const primera=def.rondas.find(r=>!['reclasificacion','playin','playin2','conferencia'].includes(r.nombre))||def.rondas[0];   // el formato del árbol, no el de la previa
       const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(primera.mejorDe)+(primera.mejorDe!==fin.mejorDe?' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe):'');
       if(previa){ const bp=htmlBracket([serieDe(previa)],[previa],e.miClubId,{grilla:true});
-        if(bp) bkLiga+='<div class="cajTag bkSig">'+t(RONDA_TXT[previa]||L(previa))+'</div>'+bp+'<div class="cajNota">'+formatoTxt(def.rondas[0].mejorDe)+'</div>'; }
+        if(bp) bkLiga+='<div class="cajTag naranja">'+t(RONDA_TXT[previa]||L(previa))+'</div>'+bp+'<div class="cajNota">'+formatoTxt(def.rondas[0].mejorDe)+'</div>'; }
       /* 2026-09-10 (su regla de la llave, para todas): el título solo y en naranja; el formato debajo, chico */
       if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag bkSig">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajNota">'+fmt+'</div>';
     }

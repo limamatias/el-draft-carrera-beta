@@ -5630,7 +5630,10 @@ const MISION_TXT = {
   perdidas4: [L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO'), L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO')],
   pedidas: [L('PEDIDA RESUELTA', 'CALLED PLAY CONVERTED', 'PEDIDA RESOLVIDA'), L('PEDIDAS RESUELTAS', 'CALLED PLAYS CONVERTED', 'PEDIDAS RESOLVIDAS')],
   sinPedir: [L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA'), L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA')],
-  porcentaje: [L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO'), L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO')],
+  /* 2026-09-10 (su caza jugando: "no te indica en ningún lugar que te pide mínimo 4 tiros"): el mínimo es una regla del
+   * juego, no una aclaración — sin ella, 1/1 se lee como cumplida. Va en el enunciado (pre, HUD y planilla del fin). */
+  porcentaje: [L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS} TIROS)`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS} SHOTS)`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`),
+               L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS} TIROS)`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS} SHOTS)`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`)],
 };
 /* la mixta, corta para el HUD: "10 PTS · ≤1 PÉRD" */
 const MISION_CORTA = { puntos: L('PTS', 'PTS', 'PTS'), asistencias: L('AST', 'AST', 'AST'), triples: L('TRIPLES', 'THREES', 'TRÊS'), robos: L('ROB', 'STL', 'ROUB'), perdidas: L('PÉRD', 'TO', 'PERD') };
@@ -5652,7 +5655,14 @@ function misionHud(m, G) {
   const id = idioma();
   if (m.tipo === 'mixta') return m.partes.map((p) => (p.tipo === 'perdidas' ? '≤' : '') + p.meta + ' ' + MISION_CORTA[p.tipo][id]).join(' · ')
     + ' <b>' + m.partes.map((p) => misionValor(p, G) + '/' + p.meta).join(' · ') + '</b>';
-  if (m.tipo === 'porcentaje') return m.meta + ' ' + misionNombre(m)[id] + ' <b>' + (G.aciertos || 0) + '/' + (G.tiros || 0) + '</b>';
+  /* 2026-09-10 (su caza: "0/0, 1/1… debería decir al lado «vas 50 %» o «todavía no tiraste»"): el enunciado corto con el
+   * mínimo, y cómo venís en palabras — sin tiros lo dice; con tiros, la cuenta y el porcentaje que llevás */
+  if (m.tipo === 'porcentaje') {
+    const tiros = G.tiros || 0, ac = G.aciertos || 0;
+    const como = !tiros ? L('TODAVÍA NO TIRASTE', 'NO SHOTS YET', 'AINDA NÃO ARREMESSOU')[id]
+      : ac + '/' + tiros + ' · ' + L('VAS ', 'AT ', 'VAI ')[id] + Math.round(100 * ac / tiros) + ' %';
+    return m.meta + ' ' + L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS})`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS})`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`)[id] + ' <b>' + como + '</b>';
+  }
   if (m.meta === 0) return misionNombre(m)[id] + ' <b>' + (misionCumplida(m, G) ? '✓' : '✗') + '</b>';
   return misionNombre(m)[id] + ' <b>' + misionValor(m, G) + '/' + m.meta + '</b>';
 }

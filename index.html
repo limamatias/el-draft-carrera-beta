@@ -635,6 +635,8 @@
   #lobby .goteo{font-size:15px;color:var(--tinta2);letter-spacing:.5px;text-align:center;
        text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #lobby .goteo b{color:var(--tinta)}
+  #lobby .goteo b.ok{color:var(--ok)} #lobby .goteo b.mal{color:var(--mal)}   /* 2026-09-10 (su caza): el marcador del último en verde o rojo */
+  #lobby #lobGoteo3{color:var(--naranja)}   /* 2026-09-10 (su caza: "la prosa del Juego de las Estrellas tiene el mismo tono que todo"): el aviso es un evento */
   /* §12.26 el escudo o la bandera adelante del promedio: en línea con el texto, no en su propio renglón */
   #lobby .goteo .escudito{display:inline-flex;width:15px;height:15px;vertical-align:-3px;margin-right:5px;float:none;position:static}
   #lobby .goteo .escudito.ban{vertical-align:1px}   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
@@ -20989,7 +20991,7 @@ function pintaLobby(){
       const soyLocal=marc.local===miIdU;
       const mis=soyLocal?marc.ptsLocal:marc.ptsVisita, sus=soyLocal?marc.ptsVisita:marc.ptsLocal;
       { const a=clubDe(miIdU), b=clubDe(soyLocal?marc.visita:marc.local);
-        m='<b>'+siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt+'</b> — '; }   // §2z185
+        m='<b class="'+(mis>sus?'ok':mis<sus?'mal':'')+'">'+siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt+'</b> — '; }   // §2z185 · 2026-09-10 (su caza): el resultado en su color
     }
     /* §2z39.66 (su caza: "¿siempre dice anoche?"): sí, decía. El lobby vive antes del próximo partido, así que el
        último puede ser de hace una semana. Ahora dice el DÍA en que se jugó; sin día (playoffs, selección), "Último". */

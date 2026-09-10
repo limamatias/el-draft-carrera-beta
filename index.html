@@ -645,7 +645,7 @@
   /* §12.26 el escudo o la bandera adelante del promedio: en línea con el texto, no en su propio renglón */
   #lobby .goteo .escudito{display:inline-flex;width:15px;height:15px;vertical-align:-3px;margin-right:5px;float:none;position:static}
   #lobby .goteo .escudito.ban{vertical-align:1px}
-  #lobby .goteo b .escudito{margin:0 5px 0 0} #lobby .goteo b .escudito:last-child{margin:0 0 0 5px}   /* 2026-09-10: uno de cada lado del marcador */   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
+  #lobby .goteo b .escudito{margin:0 5px 0 0} #lobby .goteo b .escudito:last-child{margin:0 0 0 5px}   /* 2026-09-10: uno de cada lado del marcador, cuando entran */   /* la bandera es chata (66 % de alto): medida 4 px abajo del texto (su caza 2026-09-05) */
   #lobby .cajon{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
        border-radius:12px;padding:10px 12px}
   #lobby .partido{padding:6px 2px;display:flex;align-items:center;gap:13px;
@@ -20473,6 +20473,7 @@ function irLob(v){
   VISTAS.forEach(x=>$l('lv-'+x).classList.toggle('oculto',x!==v));
   apoyarPaneles();
   if(v==='fixture-full') apoyarFixEnProx();   // 2026-09-10: recién ahora el cajón mide
+  if(v==='hoy') encajarGoteo1();
   const fondo=$l('lobFondo'), nuevoFondo='url('+(FONDO_DE[v]||FONDO_DE.hoy)()+')';
   /* su caza 2026-09-05 (tocar VOS estando en VOS volvía a fundir el fondo): se comparaba contra `fondo.style.backgroundImage`,
      que el navegador devuelve NORMALIZADO (comillas), así que nunca era igual y el fundido corría siempre. Se recuerda el string propio. */
@@ -20975,6 +20976,13 @@ function coachear(){
   v.querySelector('.x').onclick=cerrar;
   setTimeout(()=>document.addEventListener('pointerdown',cerrar,true),300);   // el toque que lo cierra sigue su camino: si fue la latita, se toma
 }
+/* 2026-09-10: el primer renglón del goteo con su variante corta. `sin` es la misma frase sin los escudos; encajarGoteo1 mide
+   el renglón (nowrap + ellipsis: scrollWidth > clientWidth es "se pasa") y elige. Con el lobby oculto no mide nada (clase 4),
+   así que también se llama al mostrarlo (abrirLobby / irLob('hoy')). */
+function goteo1(con,sin){ const el=$l('lobGoteo1'); el.innerHTML=con; el.dataset.con=con; el.dataset.sin=sin||''; }
+function encajarGoteo1(){ const el=$l('lobGoteo1'); if(!el||!el.dataset.sin||el.clientWidth<=0) return;
+  if(el.innerHTML!==el.dataset.con) el.innerHTML=el.dataset.con;
+  if(el.scrollWidth>el.clientWidth+1) el.innerHTML=el.dataset.sin; }
 function pintaLobby(){
   nacerRelSel();   // §12.20: las relaciones con la selección nacen con la primera convocatoria, la decida quien la decida
   try{ revisarCarrera(est()); }catch(err){ mostrarErrorNSS('✖ '+(err.stack||err.message)); }
@@ -21078,14 +21086,16 @@ function pintaLobby(){
       : ultimo.po
       ? e.playoffs.juegos.filter(j=>j.local===e.miClubId||j.visita===e.miClubId).pop()
       : e.resultados.filter(r=>r.fecha===ultimo.fecha&&(r.local===e.miClubId||r.visita===e.miClubId)).pop();
-    let m='';
+    let m='', mSin='';   // 2026-09-10 (su corte): con escudos, y sin ellos si el renglón no entra — la sigla se queda siempre
     if(marc){
       const soyLocal=marc.local===miIdU;
       const mis=soyLocal?marc.ptsLocal:marc.ptsVisita, sus=soyLocal?marc.ptsVisita:marc.ptsLocal;
       { const a=clubDe(miIdU), b=clubDe(soyLocal?marc.visita:marc.local);
-        /* 2026-09-10 (su pedido: "los escudos en chiquito de cada lado del resultado"): los escudos REEMPLAZAN a las siglas —
-           con las dos cosas el renglón de «estabas con la selección» se pasaba de 328 px (el ancho útil del A32) */
-        m='<b class="'+(mis>sus?'ok':mis<sus?'mal':'')+'">'+escudito(a.id)+mis+'–'+sus+escudito(b.id)+'</b> — '; }   // §2z185 · el resultado en su color
+        /* 2026-09-10 (su corte: "devolvemos las siglas: el escudo chiquito no siempre te muestra quién es, sobre todo si es
+           receta; el escudo en todas menos cuando se pasa"): las dos variantes; encajarGoteo1 mide y elige */
+        const marca=siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt, cls=mis>sus?'ok':mis<sus?'mal':'';
+        m='<b class="'+cls+'">'+escudito(a.id)+marca+escudito(b.id)+'</b> — ';   // §2z185 · el resultado en su color
+        mSin='<b class="'+cls+'">'+marca+'</b> — '; }
     }
     /* §2z39.66 (su caza: "¿siempre dice anoche?"): sí, decía. El lobby vive antes del próximo partido, así que el
        último puede ser de hace una semana. Ahora dice el DÍA en que se jugó; sin día (playoffs, selección), "Último". */
@@ -21095,19 +21105,20 @@ function pintaLobby(){
        ¡pero porque no jugaste!"*): la fecha que el club jugó mientras vos estabas en la ventana FIBA entra a
        `misPartidos` con 0/0 y `conSeleccion`, y el renglón la leía como una noche horrible tuya. El marcador del
        club queda —es su partido y te interesa—; lo que cambia es por qué no hay línea. */
-    $l('lobGoteo1').innerHTML=cuando+m+(ultimo.conSeleccion
+    const cola=(ultimo.conSeleccion
       ? t(L('estabas con la selección','you were on NT duty','você estava com a seleção'))
       : (m?t(L('Tuyos:','Yours:','Seus:'))+' ':'')+'<b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>');
+    goteo1(cuando+m+cola, m?cuando+mSin+cola:'');
   } else {
-    $l('lobGoteo1').textContent=t(L('Arranca la temporada.','The season begins.','Começa a temporada.'));
+    goteo1(t(L('Arranca la temporada.','The season begins.','Começa a temporada.')));
   }
   /* §12: en el receso el goteo cuenta el torneo, no la temporada que ya cerró */
   if(C.selTorneo&&C.selTorneo.mis.length){
     const u=C.selTorneo.mis[C.selTorneo.mis.length-1];
-    $l('lobGoteo1').innerHTML=t(SEL_TXT.seleccion)+' vs '+nombreSel(u.rival).toUpperCase()+' — '
-      +t(L('Tuyos:','Yours:','Seus:'))+' <b>'+u.pts+' PTS · '+u.ast+' AST</b>';
+    goteo1(t(SEL_TXT.seleccion)+' vs '+nombreSel(u.rival).toUpperCase()+' — '
+      +t(L('Tuyos:','Yours:','Seus:'))+' <b>'+u.pts+' PTS · '+u.ast+' AST</b>');
   } else if(C.selTorneo){
-    $l('lobGoteo1').textContent=selTorneoTxt(C.selTorneo.torneo)+': '+t(L('empieza el torneo.','the tournament begins.','começa o torneio.'));
+    goteo1(selTorneoTxt(C.selTorneo.torneo)+': '+t(L('empieza el torneo.','the tournament begins.','começa o torneio.')));
   }
   /* §12: si una ventana se cerró, el parte queda armado para que el vestuario lo muestre */
   if(e.seleccion&&e.seleccion.parteListo&&!C.selParte){
@@ -21116,9 +21127,10 @@ function pintaLobby(){
   /* §12 (su línea 4): la ventana que se jugó sin vos se DICE — si no, el club juega dos
      fechas sin tu línea y no hay ningún lugar donde enterarte de por qué */
   const avSel=avisoSeleccion(e);
-  if(avSel) $l('lobGoteo1').innerHTML=avSel;
+  if(avSel) goteo1(avSel);
   const avTor=avisoTorneoSel();   // §12: cómo terminó el torneo del receso (o por qué no fuiste)
-  if(avTor&&e.fase==='terminada') $l('lobGoteo1').innerHTML=avTor.txt;
+  if(avTor&&e.fase==='terminada') goteo1(avTor.txt);
+  encajarGoteo1();
   /* §12.25 (su caza: "ese PROMEDIÁS toma todo lo de la temporada, club + selección; es misleading"): el promedio
      es el de la competencia que viene — con la selección, tus partidos de selección; con el club, los del club */
   /* ⚠️ §2z92 (su pregunta 2026-09-06: *"ese partido que no jugás, ¿te cuenta para los promedios? ¿para el MVP?
@@ -22382,6 +22394,7 @@ function abrirLobby(){
   pintaLobby();
   irLob('hoy');
   verQueSeVe('lobby','EL VESTUARIO');
+  encajarGoteo1();   // 2026-09-10: el goteo mide recién con el lobby a la vista
   if(esBeta()&&!yaVisto('beta_hola')){ abrirBetaHola(); return; }   // §7.1: el contrato de la beta, una vez
   /* §7.1 el tutorial como último paso del alta (una vez por carrera; una carrera ya jugada no lo pregunta) */
   if(!esBeta()&&!yaVisto('tut_hola')){ marcarVisto('tut_hola'); guardar(); if(est().fechaJugada===0){ abrirTutHola(); return; } }

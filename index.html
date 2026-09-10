@@ -19889,20 +19889,22 @@ function htmlSeleccion(e){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
     /* de todo grupo de un torneo pasan DOS: ésa es la línea de corte */
     if(t2.miGrupo){
-      h+=tit(selTorneoTxt(t2.torneo)+' · '+t(SEL_TXT.grupo)+' '+t2.miGrupo);
+      h+=tit(t(SEL_TXT.grupo)+' '+t2.miGrupo);   // 2026-09-10 (su regla del grupo): el torneo ya lo dice el título de la plena
       tablaSel(t2,t2.miGrupo).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
+      h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
     }
     /* §12: la segunda fase del Mundial tiene tabla propia — y ahí se ve el partido arrastrado */
     if(t2.miGrupo2){
-      h+=tit(selTorneoTxt(t2.torneo)+' · '+t(SEL_TXT.segunda)+' '+t2.miGrupo2);
+      h+=tit(t(SEL_TXT.segunda)+' '+t2.miGrupo2);
       tablaSel(t2,t2.miGrupo2).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
+      h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
     }
     if(t2.llave){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
       const jug=t2.llave.jugadas||[], esp=['cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');
       const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
       const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
-      if(bk) h+='<div class="cajTag">'+selTorneoTxt(t2.torneo)+' · '+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+' · '+formatoTxt(1)+'</div>'+bk;
+      if(bk) h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+bk+'<div class="cajNota">'+formatoTxt(1)+'</div>';   // 2026-09-10: como la del continental
       for(const x of jug.filter(x=>x.nombre==='bronce')){
         const mio=x.alta===t2.pais||x.baja===t2.pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
         h+='<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)
@@ -20765,8 +20767,9 @@ function pintaTablaFull(){
       const primera=def.rondas.find(r=>!['reclasificacion','playin','playin2','conferencia'].includes(r.nombre))||def.rondas[0];   // el formato del árbol, no el de la previa
       const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(primera.mejorDe)+(primera.mejorDe!==fin.mejorDe?' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe):'');
       if(previa){ const bp=htmlBracket([serieDe(previa)],[previa],e.miClubId,{grilla:true});
-        if(bp) bkLiga+='<div class="cajTag">'+t(RONDA_TXT[previa]||L(previa))+' · '+formatoTxt(def.rondas[0].mejorDe)+'</div>'+bp; }
-      if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag'+(bkLiga?' bkSig':'')+'">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+' · '+fmt+'</div>'+htmlBracket(rondas,esperadas,e.miClubId);
+        if(bp) bkLiga+='<div class="cajTag bkSig">'+t(RONDA_TXT[previa]||L(previa))+'</div>'+bp+'<div class="cajNota">'+formatoTxt(def.rondas[0].mejorDe)+'</div>'; }
+      /* 2026-09-10 (su regla de la llave, para todas): el título solo y en naranja; el formato debajo, chico */
+      if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag bkSig">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajNota">'+fmt+'</div>';
     }
   }
   const PO='__po';

@@ -208,25 +208,38 @@
   #fin .donde span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* el HUD no se ve debajo del velo de fin (medido 2026-09-02 en 600: el título quedaba sobre el
      marcador atenuado — y el marcador ya está en el velo). Clase: velos centrados que crecen. */
-  body:has(#fin:not(.oculto)) #hud{visibility:hidden}
+  body:has(#fin:not(.oculto)) #hud,body:has(#cuerpoParte:not(.oculto)) #hud{visibility:hidden}
   /* §2z12: la nota grande (tamaño de portada) y la barra de experiencia entre estrellas */
   /* LA PLANILLA DEL CIERRE (§2z12, la mecánica de NSS): las filas entran una por una, la
      PUNTUACIÓN remata con un destello, las relaciones muestran su delta y la barra se llena */
   #finNota{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,300px)}
-  #finNota .planilla{width:100%;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
+  /* §2z186 (su corte 2026-09-10: "pasás de la statline y acá es todo diferente"): EL CUERPO Y EL BOLSILLO habla el
+     idioma del velo de fin — el mismo velo, la misma planilla, el mismo botón. Tapa al fin (z 41), sin desglose del
+     modelo (§2z184), y el total de lo cobrado es la última fila de la planilla, como una suma. */
+  #cuerpoParte{z-index:41;background:rgba(8,11,19,.96)}
+  #cuerpoNota{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,300px)}
+  #cuerpoNota .puntuacion{opacity:1;animation:none} #cuerpoNota .puntuacion.sub{margin-top:6px}
+  #cuerpoNota #cuerpoNum{font-size:42px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tinta)}
+  #cuerpoNota .barraExp{opacity:1;animation:none}
+  #cuerpoNota #cuerpoBarraAntes{background:rgba(255,255,255,.28)}
+  #cuerpoNota #cuerpoBarra{background:var(--ok);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  #cuerpoNota #cuerpoBarra.baja{background:var(--naranja)} #cuerpoNota #cuerpoBarra.mal{background:var(--mal)}
+  #cuerpoNota .planilla .r.total{font-weight:700;color:var(--tinta);border-top:1px solid rgba(154,164,184,.3);margin-top:2px}
+  #cuerpoNota .planilla .r small{font-size:12px;letter-spacing:.5px;color:var(--tinta2);margin-left:6px;font-weight:600}
+  #finNota .planilla,#cuerpoNota .planilla{width:100%;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);
        border-radius:12px;padding:4px 16px;text-align:left}
-  #finNota .planilla .r{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;
+  #finNota .planilla .r,#cuerpoNota .planilla .r{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:6px 0;
        border-bottom:1px solid rgba(154,164,184,.14);font-size:15px;color:var(--tinta2);letter-spacing:.5px;
        opacity:0;animation:entra .3s ease-out forwards}
-  #finNota .planilla .r:last-child{border-bottom:0}
-  #finNota .planilla .r b{color:var(--tinta);font-variant-numeric:tabular-nums}
-  #finNota .planilla .ok{color:var(--ok)} #finNota .planilla .mal{color:var(--mal)}
+  #finNota .planilla .r:last-child,#cuerpoNota .planilla .r:last-child{border-bottom:0}
+  #finNota .planilla .r b,#cuerpoNota .planilla .r b{color:var(--tinta);font-variant-numeric:tabular-nums}
+  #finNota .planilla .ok,#cuerpoNota .planilla .ok{color:var(--ok)} #finNota .planilla .mal,#cuerpoNota .planilla .mal{color:var(--mal)}
   /* ⚠️ se llamaba `destello` y PISABA al destello del veredicto (dos @keyframes con el mismo
      nombre: gana el último, sin error — su caza en video 2026-09-02: el ¡ADENTRO! saltaba a la
      derecha agrandado y volvía). Clase 7 de CLAUDE.md, versión CSS: nombres de keyframes únicos. */
-  #finNota .puntuacion{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0;
+  #finNota .puntuacion,#cuerpoNota .puntuacion{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0;
        animation:destelloNota .7s cubic-bezier(.2,.9,.3,1.2) forwards}
-  #finNota .puntuacion .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #finNota .puntuacion .lbl,#cuerpoNota .puntuacion .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #finNotaNum{font-size:42px;font-weight:700;color:var(--naranja);line-height:1;font-variant-numeric:tabular-nums;
        text-shadow:0 0 18px rgba(255,150,51,.55)}
   @keyframes destelloNota{from{opacity:0;transform:scale(1.8);filter:brightness(2.2)}60%{opacity:1;filter:brightness(1.6)}to{opacity:1;transform:none;filter:none}}
@@ -235,7 +248,7 @@
        background:var(--chip);border:1px solid rgba(154,164,184,.35);font-size:13px;letter-spacing:1px;color:var(--tinta2)}
   #finNota .chip b{color:var(--tinta);font-variant-numeric:tabular-nums}
   #finNota .chip b.ok{color:var(--ok)} #finNota .chip b.mal{color:var(--mal)}
-  #finNota .barraExp{display:flex;align-items:center;gap:8px;width:100%;opacity:0;animation:entra .3s ease-out forwards}
+  #finNota .barraExp,#cuerpoNota .barraExp{display:flex;align-items:center;gap:8px;width:100%;opacity:0;animation:entra .3s ease-out forwards}
   /* §2z19: la card del cierre de serie — ancho completo, entra última (después de la barra) */
   #finNota .nivelNuevo{font-size:22px;font-weight:700;letter-spacing:3px;color:#f2c94c;text-align:center;width:100%;
        text-shadow:0 0 18px rgba(242,201,76,.55);opacity:0;animation:entra .35s ease-out forwards}
@@ -301,8 +314,8 @@
   #carta .seguir:focus-visible{outline:3px solid var(--tinta)}
   body:has(#carta:not(.oculto)) #hud,body:has(#carta:not(.oculto)) #btnPausa,body:has(#carta:not(.oculto)) #btnAjustes{visibility:hidden}
   #finNota .barraExp span{font-size:13px;font-weight:700;letter-spacing:1px;color:#f2c94c;flex:none}
-  #finNota .pista{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
-  #finNota .pista i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+  #finNota .pista,#cuerpoNota .pista{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
+  #finNota .pista i,#cuerpoNota .pista i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
   #finNota #finBarraAntes{background:rgba(242,201,76,.45)}
   #finNota #finBarraAhora{background:#f2c94c;transition:width .9s cubic-bezier(.2,.8,.2,1)}
   /* §2z101: lo que la noche te sacó, en rojo, y el número del partido al lado de la barra */
@@ -317,7 +330,7 @@
   #lobPreMision small{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #lobPreMision b{font-size:20px;font-weight:700;letter-spacing:1px;line-height:1.05}
   #statline .mision{color:var(--naranja)} #statline .mision b{color:var(--tinta)}
-  #fin button,#pausa button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px}
+  #fin button,#pausa button,#cuerpoParte button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px}
   .velo .sub{font-size:15px;color:var(--tinta2);max-width:38ch;line-height:1.5;text-align:left}
   .velo .sub b{color:var(--tinta)}
   .oculto{display:none !important}
@@ -2150,16 +2163,15 @@
 </div>
 <!-- §2z181 EL CUERPO Y EL BOLSILLO (2026-09-10, su corte a lo NSS: "una pantalla más, post statline: cuánto bajó la
      energía en el partido, cómo recuperás hasta el próximo, y lo que cobraste") -->
-<div id="cuerpoParte" class="veloB oculto">
-  <div class="caja selCaja">
-    <div id="cuerpoTag" class="cajTag"></div>
-    <h2 id="cuerpoTit"></h2>
-    <div class="barraE"><div class="barraEIn" id="cuerpoBarra"></div><div class="barraEAntes" id="cuerpoBarraAntes"></div></div>
-    <div id="cuerpoEnergia"></div>
-    <div id="cuerpoTag2" class="cajTag"></div>
-    <div id="cuerpoPlata"></div>
-    <button class="jugar ancho" id="cuerpoOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+<div class="velo oculto" id="cuerpoParte">
+  <div id="cuerpoNota">
+    <div class="puntuacion"><span class="lbl" data-l-en="ENERGY" data-l-pt="ENERGIA">ENERGÍA</span><b id="cuerpoNum"></b></div>
+    <div class="barraExp"><div class="pista"><i id="cuerpoBarraAntes"></i><i id="cuerpoBarra"></i></div></div>
+    <div class="planilla" id="cuerpoEnergia"></div>
+    <div class="puntuacion sub"><span class="lbl" data-l-en="YOU EARNED" data-l-pt="VOCÊ RECEBEU">COBRASTE</span></div>
+    <div class="planilla" id="cuerpoPlata"></div>
   </div>
+  <button id="cuerpoOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
 </div>
 <!-- §12 LA CEREMONIA DE LA SELECCIÓN: lo que pasa cuando se te termina el torneo. Es el único
      lugar del juego donde el título no es de un club, y por eso tiene velo propio. -->
@@ -22058,31 +22070,29 @@ function registrarResultado(){
    desglosado) y lo que cobraste esta noche. Entra sin scroll en 360×780: siete renglones, una barra y el botón. */
 function abrirCuerpo(despues){
   const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
-  const J=C.jugador, e=est();
-  $l('cuerpoTag').textContent=t(L('ENERGÍA','ENERGY','ENERGIA'));
-  $l('cuerpoTit').textContent=p.despues+' %';
-  const bar=$l('cuerpoBarra'); bar.style.width=p.antes+'%'; bar.className='barraEIn'+(p.despues<25?' mal':p.despues<50?' baja':'');
-  $l('cuerpoBarraAntes').style.left=p.antes+'%';
+  const e=est();
+  /* §2z186: el idioma del velo de fin — el número, la barra y DOS planillas. Sin el desglose "club +3 · la moto +1"
+     (§2z184: el modelo no se muestra) y sin el "tenés $": la plata la ves al salir. El total es la última fila. */
+  $l('cuerpoNum').textContent=p.despues+' %';
+  const bar=$l('cuerpoBarra'); bar.style.width=p.antes+'%'; bar.className=p.despues<25?'mal':p.despues<50?'baja':'';
+  $l('cuerpoBarraAntes').style.width=p.antes+'%';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.width=p.despues+'%'; }));
-  const fila=(desc,sub,val,cls)=>'<div class="fila-item"><span class="desc">'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+cls+'">'+val+'</b></div>';
-  let h=fila(t(L('En la cancha','On the court','Em quadra')),p.min+"'",'−'+p.costo+' '+RAYO,'menos');
-  /* hasta el próximo partido: los días de descanso que vienen, con lo tuyo desglosado */
+  let n=0; const PASO=140;
+  const fila=(desc,sub,val,cls)=>'<div class="r'+(cls==='total'?' total':'')+'" style="animation-delay:'+(n++*PASO)+'ms"><span>'+desc+(sub?'<small>'+sub+'</small>':'')+'</span><b class="'+(cls==='total'?'':cls)+'">'+val+'</b></div>';
+  let h=fila(t(L('En la cancha','On the court','Em quadra')),p.min+"'",'−'+p.costo+' '+RAYO,'mal');
   const prox=e?miProximo(e):null; let dias=null;
   if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   else if(p.fase==='playoffs'||(e&&e.fase==='playoffs')) dias=diasPO();
   const regen=regenDe();
-  const partes=[t(L('club','club','clube'))+' +'+regenClub()].concat(['vehiculo','casa','staff'].map(k=>{ const m=mejorDe(J,k); return m&&m.regen?t(m.nom).toLowerCase()+' +'+m.regen:null; }).filter(Boolean));
   h+=dias!==null
-    ? fila(t(L('Hasta el próximo','Until the next game','Até o próximo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+Math.min(100-p.despues,regen*dias)+' '+RAYO,'mas')
-    : fila(t(L('Por día','Per day','Por dia')),'','+'+regen+' '+RAYO,'mas');
-  if(partes.length>1) h+='<div class="gancho" style="margin-top:2px">'+partes.join(' · ')+'</div>';
+    ? fila(t(L('Hasta el próximo','Until the next game','Até o próximo')),dias+' '+t(dias===1?L('día','day','dia'):L('días','days','dias')),'+'+Math.min(100-p.despues,regen*dias)+' '+RAYO,'ok')
+    : fila(t(L('Por día','Per day','Por dia')),'','+'+regen+' '+RAYO,'ok');
   $l('cuerpoEnergia').innerHTML=h;
-  $l('cuerpoTag2').textContent=t(L('COBRASTE','YOU EARNED','VOCÊ RECEBEU'));
   const total=p.pago.partido+p.pago.ganar+p.pago.mision;
-  let q=fila(t(L('Partido','Game','Jogo')),'','+'+fplata(p.pago.partido),'mas');
-  if(p.gano) q+=fila(t(L('Ganar','Win','Vitória')),'','+'+fplata(p.pago.ganar),'mas');
-  if(p.misOk) q+=fila(t(L('Misión','Mission','Missão')),'','+'+fplata(p.pago.mision),'mas');
-  q+=fila('<b>'+fplata(total)+'</b>',t(L('tenés','you have','você tem'))+' '+fplata(J.plata||0),'','');
+  let q=fila(t(L('Partido','Game','Jogo')),'','+'+fplata(p.pago.partido),'ok');
+  if(p.gano) q+=fila(t(L('Ganar','Win','Vitória')),'','+'+fplata(p.pago.ganar),'ok');
+  if(p.misOk) q+=fila(t(L('Misión','Mission','Missão')),'','+'+fplata(p.pago.mision),'ok');
+  q+=fila(t(L('Total','Total','Total')),'','+'+fplata(total),'total');
   $l('cuerpoPlata').innerHTML=q;
   const v=$l('cuerpoParte'); v.classList.remove('oculto');
   $l('cuerpoOk').onclick=()=>{ v.classList.add('oculto'); if(despues) despues(); };

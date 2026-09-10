@@ -771,6 +771,7 @@
   #lobby .selSwitch .escudito{width:20px;height:20px;border-width:1px}
   #lobby .selSwitch .escudito.ban{width:20px}
   #lobby .fix .r.am .f{letter-spacing:0}
+  #lobby #lobFixFull.ladoAm .f{width:22px}   /* 2026-09-10: «J3» a 14 px mide ~18; los 12 que sobran van al nombre */
   /* §2z88: la banderita del país en las filas del continental (la misma que la tabla, un punto más chica:
      la columna del nombre es la que paga y §2z31 la dejó justa) */
   #lobby .fix .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden}   /* 2026-09-10: después del nombre (el gap del contenedor la separa) */
@@ -20656,6 +20657,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   const sel=ladoSel==='sel', am=ladoSel==='am';
   $l('lobFixTit').textContent=(sel?t(SEL_TXT.seleccion):am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
+  $l('lobFixFull').classList.toggle('ladoAm',am);   // 2026-09-10 (su caza): del lado del globo la marca es «1» o «J2», la columna de 34 px sobraba y le robaba al nombre
   if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(); return; }
   /* §2z177 (su caza 2026-09-08: "en la lista de partidos no se ve nunca por qué instancia jugás"): del lado del globo,
      una cabecera por instancia — FASE DE GRUPOS · GRUPO A, CUARTOS · AL MEJOR DE 3, SEMIFINAL, LA FINAL */

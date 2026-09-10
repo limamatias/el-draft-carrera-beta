@@ -9518,19 +9518,76 @@ const AMERICAS_GRUPOS = ['A', 'B', 'C', 'D'];
 
 /** Las ventanas concretas para una liga de F fechas: {etapa, n, f} con f distintos y ≤ F−2
  *  (la última tiene que resolverse antes de la última fecha, que arma la llave de la liga). */
-function ventanasAmericas(F) {
-  const out = [];
-  let ult = 0;
+/* 2026-09-10 (su caza: "3 games in 2 nights suena un poco ilegal; 6 games in 5 nights"): la ventana se anclaba a un NÚMERO
+ * de fecha y el partido caía al día siguiente sin mirar el calendario de días — con dos fechas de liga pegadas salían dos
+ * partidos el mismo día. Ahora la ventana busca, desde su fecha objetivo, LA PRIMERA FECHA CON AIRE ADELANTE (la que
+ * sigue a ≥ AMERICAS_AIRE días) y el partido va en el MEDIO del hueco: liga · descanso · continental ·
+ * descanso · liga. Si en AMERICAS_BUSCA fechas no hay ninguna con aire, cae como antes (no se cuelga el calendario).
+ * `semilla` y `ritmo` son opcionales: sin ellos (los chequeadores sin 01h) vale la regla vieja. */
+const AMERICAS_AIRE = 4, AMERICAS_BUSCA = 6;
+/* el hueco de días entre la fecha f y la f+1 */
+function huecoDe(F, f, semilla, ritmo) { return f >= F ? 0 : diaDeFecha(semilla, f + 1, ritmo) - diaDeFecha(semilla, f, ritmo); }
+/* EL DÍA del continental de una ventana: el que guardó al armarse (el medio de su hueco); sin él (partidas viejas ya
+   jugadas), el día siguiente de la fecha, como era */
+function diaAmericas(e, v) { return (v && v.dia) || diaDeFecha(e.semilla, v.f, e.ritmo) + 1; }
+function fechaConAire(F, f, semilla, ritmo, quedan, ult) {
+  if (!semilla || typeof diaDeFecha !== 'function') return f;
+  /* `quedan`: cuántas ventanas vienen después de ésta — cada una necesita su fecha propia antes de F−2, así que la
+     búsqueda no puede comérselas (medido: la final 1 empujada dos fechas dejaba la final 3 en F−1 y reventaba).
+     Primero la primera fecha con AIRE; si ninguna lo tiene, la del hueco más ancho (medido: con sólo la primera regla el
+     6 % de las ventanas de la LNB y el 17 % de la LUB caían pegadas a la liga) */
+  const tope = Math.min(f + AMERICAS_BUSCA, F - 2 - (quedan || 0));
+  let mejor = f, mejorH = -1;
+  for (let k = f; k <= tope; k++) {
+    const h = huecoDe(F, k, semilla, ritmo);
+    if (h >= AMERICAS_AIRE) return k;
+    if (h > mejorH) { mejorH = h; mejor = k; }
+  }
+  /* al final de la temporada las ventanas de la final no tienen adónde ir hacia adelante (la última es F−2): si hacia
+     adelante no hay ni un día libre, se ADELANTA a la fecha más cercana hacia atrás que tenga uno (medido: sin esto el
+     4 % de las finales de la LNB y el 8 % de la LUB caían el mismo día que la liga) */
+  if (mejorH < 2) for (let k = f - 1; k > (ult || 0); k--) if (huecoDe(F, k, semilla, ritmo) >= 2) return k;
+  return mejor;
+}
+function ventanasAmericas(F, semilla, ritmo, desde) {
+  const out = desde ? desde.hechas.slice() : [];
+  let ult = desde ? desde.ult : 0;
   const cont = {};
-  for (const [etapa, fr] of AMERICAS_VENTANAS) {
+  for (const v of out) cont[v.etapa] = (cont[v.etapa] || 0) + 1;
+  for (const [etapa, fr] of AMERICAS_VENTANAS.slice(out.length)) {
     let f = Math.round(fr * F);
     if (f <= ult) f = ult + 1;
+    f = fechaConAire(F, f, semilla, ritmo, AMERICAS_VENTANAS.length - out.length - 1, ult);
     ult = f;
     cont[etapa] = (cont[etapa] || 0) + 1;
-    out.push({ etapa, n: cont[etapa], f });
+    /* el día: el medio del hueco (hueco 4 → +2: liga · descanso · continental · descanso · liga; hueco 2 → +1, el único
+       día libre). Sin calendario (chequeadores viejos), sin día: diaAmericas cae al día siguiente */
+    const h = semilla && typeof diaDeFecha === 'function' ? huecoDe(F, f, semilla, ritmo) : 0;
+    out.push(h > 0 ? { etapa, n: cont[etapa], f, dia: diaDeFecha(semilla, f, ritmo) + Math.max(1, Math.ceil(h / 2)) } : { etapa, n: cont[etapa], f });
   }
+  /* segunda pasada, de atrás para adelante: las ventanas del final llegan encadenadas (F−4, F−3, F−2) y si una cae en
+     un hueco de un día no tiene adónde ir hacia adelante — se corre HACIA ATRÁS a la fecha más cercana con un día libre
+     que no pise a la ventana anterior. Medido: sin esto el 2 % de las ventanas de la LNB y de la LUB caían el mismo día
+     que la liga; con esto, cero en 60 semillas por liga. */
+  const desdeI = desde ? desde.hechas.length : 0;
+  if (semilla && typeof diaDeFecha === 'function') for (let i = out.length - 1; i >= desdeI; i--) {
+    const v = out[i], techo = i < out.length - 1 ? out[i + 1].f - 1 : v.f, piso = desde && i === desdeI ? desde.ult : 0;
+    let k = Math.min(v.f, techo);
+    while (k > piso && huecoDe(F, k, semilla, ritmo) < 2) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
+    if (k > piso) v.f = k;
+  }
+  for (let i = desdeI; i < out.length; i++) { const v = out[i], h = huecoDe(F, v.f, semilla, ritmo); if (semilla && h > 0) v.dia = diaDeFecha(semilla, v.f, ritmo) + Math.max(1, Math.ceil(h / 2)); }
   if (out[out.length - 1].f > F - 2) throw new Error('la Liga de las Américas no entra en ' + F + ' fechas');
   return out;
+}
+/* las partidas que ya venían: las ventanas por jugar se re-anclan con la regla nueva; las jugadas quedan */
+function reanclarAmericas(am, F, semilla, ritmo) {
+  if (!am || am.fase === 'terminado' || !semilla) return false;
+  const hechas = am.ventanas.slice(0, am.idx), ult = hechas.length ? hechas[hechas.length - 1].f : 0;
+  const nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult });
+  const cambio = nuevas.some((v, i) => !am.ventanas[i] || am.ventanas[i].f !== v.f || am.ventanas[i].dia !== v.dia);
+  if (cambio) am.ventanas = nuevas;
+  return cambio;
 }
 
 /** ¿Este puesto del año pasado clasifica, en esta liga? */
@@ -9569,7 +9626,7 @@ function barajarAM(rng, arr) {
  * muestra. Tu grupo se guarda con vos PRIMERO: el patrón de partidos te pone en las cuatro
  * ventanas (los dos rivales se cruzan entre sí en las ventanas 2 y 3, otro día).
  */
-function crearAmericas(semilla, campo, miClubId, F) {
+function crearAmericas(semilla, campo, miClubId, F, ritmo) {
   const rng = rngFor(semilla, 'americas', 'sorteo');
   const orden = campo.slice().sort((a, b) => b.fuerza - a.fuerza);
   const bombos = [orden.slice(0, 4), orden.slice(4, 8), orden.slice(8, 12)].map((b) => barajarAM(rng, b));
@@ -9592,7 +9649,7 @@ function crearAmericas(semilla, campo, miClubId, F) {
   }
   return {
     campo: campo.map((c) => c.id), fuerzas, ligaDe, grupos, miGrupo,
-    ventanas: ventanasAmericas(F), idx: 0,   // la próxima ventana sin resolver
+    ventanas: ventanasAmericas(F, semilla, ritmo), idx: 0,   // la próxima ventana sin resolver
     juegosGrupo,
     llave: null,          // {series:[], seriesJugadas:[], ronda}
     fase: 'grupo',        // 'grupo' | 'llave' | 'terminado'
@@ -9794,15 +9851,16 @@ function miSerieAM(e) {
 function misJuegosAM(e) {
   const am = e.americas, mi = e.miClubId, out = [];
   if (!am) return out;
-  const fDe = (etapa, n) => (am.ventanas.find((v) => v.etapa === etapa && v.n === n) || {}).f;
+  const vDe = (etapa, n) => am.ventanas.find((v) => v.etapa === etapa && v.n === n) || null;
+  const fDe = (etapa, n) => (vDe(etapa, n) || {}).f, dDe = (etapa, n) => { const v = vDe(etapa, n); return v && v.f ? diaAmericas(e, v) : null; };
   for (const j of am.juegosGrupo) {
     if (j.grupo !== am.miGrupo || (j.local !== mi && j.visita !== mi)) continue;
-    out.push({ etapa: 'grupo', n: j.n, f: fDe('grupo', j.n), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
+    out.push({ etapa: 'grupo', n: j.n, f: fDe('grupo', j.n), dia: dDe('grupo', j.n), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   if (am.llave) for (const s of am.llave.seriesJugadas) {
     if (s.alta !== mi && s.baja !== mi) continue;
-    s.juegos.forEach((j) => out.push({ etapa: s.nombre, n: j.juego, f: fDe(s.nombre, j.juego), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
+    s.juegos.forEach((j) => out.push({ etapa: s.nombre, n: j.juego, f: fDe(s.nombre, j.juego), dia: dDe(s.nombre, j.juego), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
       res: { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } }));
     /* 2026-09-10 (su caza: "juego por cuartos y me dice sólo el J1; es al mejor de 3, debería decir el J2 y el J3 si hace
        falta"): la serie abierta lista TODOS los juegos que le quedan; los que no están asegurados llevan `siHaceFalta`
@@ -9812,7 +9870,7 @@ function misJuegosAM(e) {
       const seguros = Math.ceil(s.mejorDe / 2) - Math.max(s.ganAlta || 0, s.ganBaja || 0);
       for (let nro = s.juegos.length + 1; nro <= s.mejorDe; nro++) {
         const localId = altaEsLocal(s.mejorDe, nro) ? s.alta : s.baja;
-        out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), rival: s.alta === mi ? s.baja : s.alta, local: localId === mi, res: null, serie: s,
+        out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), dia: dDe(s.nombre, nro), rival: s.alta === mi ? s.baja : s.alta, local: localId === mi, res: null, serie: s,
           siHaceFalta: nro > s.juegos.length + seguros });
       }
     }
@@ -19297,6 +19355,7 @@ function cargarCarrera(n){
       for(const k of ['nombre','corto','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
+    if(c.temporada&&c.temporada.americas) reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo);   // 2026-09-10: las ventanas por jugar, con aire
     /* §2z73: EN LA BETA TE CONVOCAN SIEMPRE, también en las partidas que ya venían (su caza: una beta con 8,8 contra
        Estados Unidos y "esta vez no te llamaron" a la segunda ventana — la selección de esa partida no llevaba el
        flag `beta` y el motor sorteó la ventana con media 43). Las ventanas que faltan pasan a convocado y el aviso
@@ -19417,7 +19476,7 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
   const campo=campoAmericas((l)=>ordenAnioPasado(l,anio,tablaFinal),clubDeCualquierLiga);
   for(const c of campo) if(c.liga===ligaId&&e.fuerzas[c.id]!==undefined) e.fuerzas[c.id]-=AMERICAS_DESGASTE;
   if(!campo.some(c=>c.id===e.miClubId)) return;
-  e.americas=crearAmericas(e.semilla,campo,e.miClubId,e.fechasTotales);
+  e.americas=crearAmericas(e.semilla,campo,e.miClubId,e.fechasTotales,e.ritmo);   // 2026-09-10: con el calendario de días, para anclar con aire
 }
 /* la tabla de la temporada que cierra, guardada para la puerta del año que viene */
 function guardarTablaFinal(){
@@ -20468,7 +20527,7 @@ function misFechas(){
   if(e.americas) for(const j of misJuegosAM(e)){
     if(!j.f) continue;
     out.push({am:true,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,
-      res:j.res?{ptsLocal:j.res.ptsLocal,ptsVisita:j.res.ptsVisita}:null,dia:diaDeFecha(e.semilla,j.f,est().ritmo)+1});
+      res:j.res?{ptsLocal:j.res.ptsLocal,ptsVisita:j.res.ptsVisita}:null,dia:j.dia||diaDeFecha(e.semilla,j.f,est().ritmo)+1});
   }
   /* ⚠️ §12 (su corte 2026-09-04): EN EL FIXTURE DE TU EQUIPO **NO** VAN LOS PARTIDOS DE LA
      SELECCIÓN — *"en el DE TU EQUIPO no ves también a la selección metida (solo vs «contra
@@ -22092,16 +22151,16 @@ function registrarResultado(){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
     const faseAM=e.americas.fase;
     jugarJuegoAmericas(e,miJuego);
-    e.americas.ultimoDia=diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)+1;   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
+    e.americas.ultimoDia=diaAmericas(e,enPartido.ventana);   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
     alDiaTrasSeleccion(e);   // §2z88: la ventana del continental era la que frenaba el ponerse al día
     /* §2z166: el cierre del grupo ya lo dijo la card del cierre (cierreDeSerie); acá no va más el toast */
   }
   /* la energía vuelve por DÍA de descanso real (§2q b2b/giras): los días entre tu último
      partido y éste, leídos del calendario. En playoffs, cada juego son DIAS_PO. §2z27: el
-     continental va al día siguiente de la fecha (1 día), y la fecha que sigue descuenta ese día. */
+     continental va en el medio del hueco de su ventana (2026-09-10, `v.dia`), y la fecha que sigue descuenta esos días. */
   const diaUltAM=e.americas&&e.americas.ultimoDia||0;
   const dias=enPartido.tipo==='seleccion' ? 3
-    : enPartido.tipo==='americas' ? 1
+    : enPartido.tipo==='americas' ? Math.max(1,diaAmericas(e,enPartido.ventana)-diaDeFecha(e.semilla,enPartido.ventana.f,e.ritmo))
     : faseAntes==='regular'&&antes<e.fechaJugada
     ? Math.max(1,diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)-Math.max(antes>0?diaDeFecha(e.semilla,antes,est().ritmo):0,diaUltAM))
     : diasPO();
@@ -22177,7 +22236,7 @@ function abrirCuerpo(despues){
   /* el descanso hasta el próximo: los días reales (fecha, continental, ventana); en playoffs los de la serie; entre dos
      partidos de la selección, los 3 que cuenta el cierre; sin próximo, no hay fila */
   const prox=e?miProximo(e):null; let dias=null;
-  if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:diaSel(prox); if(d!==null) dias=Math.max(1,d-p.diaHoy); }
+  if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaAmericas(e,prox.ventana):diaSel(prox); if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   if(dias===null&&prox&&prox.tipo==='seleccion') dias=3;
   if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))) dias=diasPO();
   /* 2026-09-10: después del último partido del torneo del receso lo que sigue es la pretemporada, y ahí volvés a 100 */

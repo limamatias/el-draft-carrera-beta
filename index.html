@@ -817,6 +817,11 @@
      letter-spacing — en toda píldora o botón centrado con espaciado de 1,5 px o más (clase entera) */
   #lobby .fecha-pre,#sit,.fila.hito,.velo button{text-indent:2px}
   #feedAcciones button,#fin button,#pausa button,#cuerpoParte button{text-indent:1.5px}
+  /* 2026-09-10 (su caza: "FECHA 21 DE 38 no está 100% centrado"): el letter-spacing también se agrega DESPUÉS de la última
+     letra, así que un texto centrado queda corrido a la izquierda por ese ancho. Se compensa con text-indent igual al
+     letter-spacing — en toda píldora o botón centrado con espaciado de 1,5 px o más (clase entera, con su ok) */
+  #lobby .fecha-pre,#sit,.fila.hito,.velo button{text-indent:2px}
+  #feedAcciones button,#fin button,#pausa button,#cuerpoParte button{text-indent:1.5px}
   #lobby .fecha-pre{font-size:13px;letter-spacing:2px;color:var(--tinta);font-weight:600;
        background:rgba(20,27,44,.82);
        border-radius:99px;padding:6px 16px;font-variant-numeric:tabular-nums;

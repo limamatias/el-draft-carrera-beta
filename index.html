@@ -19478,7 +19478,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
-  const todos=cols.flatMap(col=>col.series.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)])); const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
+  const todos=cols.flatMap(col=>col.series.filter(Boolean).flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]));   // 2026-09-10 (su caza: el fixture de AMÉRICAS tiraba «reading 'alta'»): las rondas que faltan son series null const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
     const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
@@ -19942,7 +19942,9 @@ function abrirParteVentana(p){
 }
 document.getElementById('parteOk').onclick=()=>{
   document.getElementById('selParte').classList.add('oculto');
-  C.selParte=null; guardar(); pintaLobby(); CARTAS.cartasAlEntrar();
+  C.selParte=null; const cp=C.clubParte; C.clubParte=null; guardar(); pintaLobby();
+  if(cp&&abrirPasoParte(cp,()=>CARTAS.cartasAlEntrar())) return;   // 2026-09-10: cómo le fue al club sin vos
+  CARTAS.cartasAlEntrar();
 };
 
 /* ══ §12 LA CEREMONIA — el único título del juego que no es de un club, y por eso tiene velo
@@ -22041,7 +22043,11 @@ function registrarResultado(){
     /* 2026-09-09: sin titular — la CEREMONIA (§12.5) ya es el velo grande de ese resultado y salían los dos, uno encima del otro */
   } else if(enPartido&&enPartido.tipo==='seleccion'&&enPartido.etapa==='eliminatorias'){
     /* §12: la eliminatoria resuelve SU jornada (la tuya con tu resultado, las otras dos simuladas) */
-    jugarJuegoSeleccion(e,miJuego);   // §2z88: al cerrar la ventana el motor pone al día las dos fechas del club
+    { const antesMP=e.misPartidos.length;
+      jugarJuegoSeleccion(e,miJuego);   // §2z88: al cerrar la ventana el motor pone al día las dos fechas del club
+      /* 2026-09-10 (su caza: "nadie te dice cómo salió tu equipo cuando no estabas"): lo que el club jugó sin vos se cuenta
+         con el parte de la semana, después del parte de la ventana */
+      const club=e.misPartidos.slice(antesMP).filter(x=>!x.sel&&!x.po); if(club.length) C.clubParte=club; }
     if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]};
     C.seleccion.yaEstuvo=true;   // el que entró al grupo, se queda mientras el nivel le dé
     /* §12: el resultado de las eliminatorias VIAJA al receso siguiente — el Mundial es el del
@@ -22077,7 +22083,7 @@ function registrarResultado(){
     /* §2z181: lo que el velo del cuerpo y el bolsillo cuenta después de la statline (se arma acá, se abre en el circuito) */
     C.cuerpo={antes:Math.round(eDesc),despues:Math.round(J.energia),costo,min:minutosJugados(),
       pago:{partido:con.partido||0,ganar:gano?(con.ganar||0):0,mision:misOk?(con.mision||0):0},gano,misOk,
-      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):null,fase:faseAntes}; }
+      diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):diaSel(enPartido),fase:faseAntes}; }
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
@@ -22120,6 +22126,9 @@ function registrarResultado(){
    sueldo en la misma"*; frames del video 1: "Your weekly update"). Un velo propio, después de la statline: la barra
    con la marca de dónde estabas, lo que bajó en la cancha, lo que recuperás hasta el próximo partido (con lo tuyo
    desglosado) y lo que cobraste esta noche. Entra sin scroll en 360×780: siete renglones, una barra y el botón. */
+/* 2026-09-10 (su caza: post partido con la selección el velo no decía cuánto recuperás): el día real de una jornada de
+   eliminatorias sale de la ventana (`dias[0]`/`dias[1]`, §12.28); en el receso no hay club que espere y queda null */
+function diaSel(o){ if(!o||o.tipo!=='seleccion'||o.etapa!=='eliminatorias'||!o.ventana||!o.ventana.dias) return null; const d=o.ventana.dias[o.jornada-(o.ventana.n*2-1)]; return typeof d==='number'?d:null; }
 function abrirCuerpo(despues){
   const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
   const e=est();
@@ -22133,7 +22142,7 @@ function abrirCuerpo(despues){
   /* el descanso hasta el próximo: los días reales (fecha, continental, ventana); en playoffs los de la serie; entre dos
      partidos de la selección, los 3 que cuenta el cierre; sin próximo, no hay fila */
   const prox=e?miProximo(e):null; let dias=null;
-  if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:prox.tipo==='seleccion'&&prox.ventana&&prox.ventana.dias?prox.ventana.dias[0]:null; if(d!==null) dias=Math.max(1,d-p.diaHoy); }
+  if(prox&&p.diaHoy!==null){ const d=prox.tipo==='fecha'?diaDeFecha(e.semilla,prox.fecha,e.ritmo):prox.tipo==='americas'?diaDeFecha(e.semilla,prox.ventana.f,e.ritmo)+1:diaSel(prox); if(d!==null) dias=Math.max(1,d-p.diaHoy); }
   if(dias===null&&prox&&prox.tipo==='seleccion') dias=3;
   if(dias===null&&(p.fase==='playoffs'||(e&&e.fase==='playoffs'))) dias=diasPO();
   const regen=regenDe(), extra=regen-regenClub();

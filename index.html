@@ -770,7 +770,7 @@
   #lobby .selSwitch .tab{display:flex;align-items:center;justify-content:center;gap:6px}
   #lobby .selSwitch .escudito{width:20px;height:20px;border-width:1px}
   #lobby .selSwitch .escudito.ban{width:20px}
-  #lobby .fix .r.am .f{letter-spacing:0}
+  #lobby .fix .r.am .f,#lobby .fix .r.po .f{letter-spacing:0}
   #lobby #lobFixFull.ladoAm .f{width:22px}   /* 2026-09-10: «J3» a 14 px mide ~18; los 12 que sobran van al nombre */
   /* §2z88: la banderita del país en las filas del continental (la misma que la tabla, un punto más chica:
      la columna del nombre es la que paga y §2z31 la dejó justa) */
@@ -19678,6 +19678,9 @@ const SEL_TXT={
   cuarto:L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR'),
 };
 const selTorneoTxt=(k)=>t(SEL_TXT[k]||L(k));
+/* 2026-09-10 (su caza: "en el fixture de la selección no dice en ningún lugar qué competencia es"): el título de las plenas del
+   lado de la bandera nombra la competencia —el torneo del receso o las eliminatorias—, no «LA SELECCIÓN» */
+const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):t(SEL_TXT.eliminatorias);
 /* ⚠️ LAS ELIMINATORIAS SON A ALGO, Y ESE ALGO SE DICE (su caza 2026-09-04: *"debería decir en
    cómo salió el partido sin ser convocado que es eliminatorias de qué torneo, sino es
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
@@ -19856,8 +19859,8 @@ function htmlSeleccion(e){
     const ultV=el.ventanas[el.ventanas.length-1], dUlt=ultV&&ultV.dias&&ultV.dias[1];
     const mesUlt=dUlt?diaTxt(dUlt).split(' ').find(x=>isNaN(+x))||null:null;   // en inglés diaTxt da "NOV 29": el token que no es número
     if(!el.fin) h+='<div class="r amTit nota"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
-      ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE · EL MUNDIAL '+aM+', EN EL RECESO SIGUIENTE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON · WORLD CUP '+aM+' THE OFFSEASON AFTER','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA · O MUNDIAL '+aM+', NO RECESSO SEGUINTE'))
-      : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+' · '+t(L('EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';
+      ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA'))+'<br>'+t(L('EL MUNDIAL '+aM+', EN EL RECESO SIGUIENTE','WORLD CUP '+aM+' THE OFFSEASON AFTER','O MUNDIAL '+aM+', NO RECESSO SEGUINTE'))
+      : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+' SE JUEGA EN ESTE RECESO','WORLD CUP '+aM+' IS PLAYED THIS OFFSEASON','O MUNDIAL '+aM+' É JOGADO NESTE RECESSO')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
   }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
@@ -20383,6 +20386,11 @@ const RONDA_TXT={  // los nombres que ya viajaron por El Draft (season.ts)
   final_llave:L('POR EL ASCENSO','FOR PROMOTION','PELO ACESSO'),  // §2z7: ganarla ES ascender — y ahora es verdad
   playout:L('POR LA PERMANENCIA','TO STAY UP','PELA PERMANÊNCIA'),  // §2z7: el play-out de la LNB — perderla ES bajar
   final:L('LA FINAL','THE FINAL','A FINAL')};
+/* 2026-09-10: la ronda en la columna del día del fixture (52 px a 13 px: siete letras) */
+const RONDA_CORTA={reclasificacion:L('RECLAS.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),
+  conferencia:L('CONFER.','CONF.','CONFER.'),octavos:L('OCTAVOS','R16','OITAVAS'),cuartos:L('CUARTOS','QF','QUARTAS'),semifinal:L('SEMIS','SF','SEMIS'),
+  final:L('FINAL','FINAL','FINAL'),final_llave:L('ASCENSO','PROMO','ACESSO'),playout:L('PERMAN.','RELEG.','PERMAN.')};
+const rondaCorta=(r)=>t(RONDA_CORTA[r]||RONDA_TXT[r]||L(r||''));
 function ordEn(n){ return n===1?'st':n===2?'nd':n===3?'rd':'th'; }
 function porqueTxt(c){
   if(!c||!c.clave) return '';
@@ -20578,16 +20586,29 @@ function misFechas(){
      Regatas — EN LA SELECCIÓN»)"*. Mezclar los dos calendarios era mi primera versión y él la
      corrigió: son dos competencias distintas y el switch de arriba las separa. Lo único que
      queda acá es la MARCA de la fecha que tu club juega sin vos, que es información del club. */
+  /* 2026-09-10 (su caza: "los playoffs no aparecen en el fixture; lo encontramos de rebote"): las series de tu club entran
+     como entraron las del continental — una fila por juego, «J1» en la marca, la ronda en la columna del día (los playoffs
+     no tienen día real: corren en pasos de diasPO), y los juegos que faltan de la serie abierta con SI HACE FALTA cuando
+     no están asegurados. Van al final, que es cuando pasan. */
+  if(e.playoffs&&e.playoffs.seriesJugadas){ const mi=e.miClubId; let ord=0;
+    for(const s of e.playoffs.seriesJugadas){ if(s.alta!==mi&&s.baja!==mi) continue; ord++;
+      const seguros=Math.ceil(s.mejorDe/2)-Math.max(s.ganAlta||0,s.ganBaja||0);
+      (s.juegos||[]).forEach(j=>out.push({po:true,ronda:s.nombre,n:j.juego,key:'po'+s.nombre+j.juego,rival:j.local===mi?j.visita:j.local,local:j.local===mi,
+        res:{ptsLocal:j.ptsLocal,ptsVisita:j.ptsVisita},dia:null,poOrd:ord*10+j.juego}));
+      if(!s.ganador) for(let nro=(s.juegos||[]).length+1;nro<=s.mejorDe;nro++){ const localId=altaEsLocal(s.mejorDe,nro)?s.alta:s.baja;
+        out.push({po:true,ronda:s.nombre,n:nro,key:'po'+s.nombre+nro,rival:s.alta===mi?s.baja:s.alta,local:localId===mi,res:null,dia:null,poOrd:ord*10+nro,
+          siHaceFalta:nro>(s.juegos||[]).length+seguros}); }
+    } }
   const salt=fechasSalteadas(e.seleccion);
-  for(const f of out) if(!f.am&&salt.has(f.fecha)) f.conSel=true;
+  for(const f of out) if(!f.am&&!f.po&&salt.has(f.fecha)) f.conSel=true;
   /* ⚠️⚠️ EL CALENDARIO SE ORDENA POR DÍA, no por número de fecha. Ordenar por fecha y usar el
      día de desempate deja renglones fuera de orden apenas dos competencias se cruzan: con la
      selección adentro, la fecha 6 del 13 de octubre caía DEBAJO del partido del 14, porque la
      ventana está anclada a la fecha 5 (cazado en captura, 2026-09-04). El día es lo que la
      columna de la derecha muestra, así que es lo que tiene que mandar; la fecha desempata.
      Los del torneo del receso no tienen día y van al final, que es cuando pasan. */
-  const diaOrd=(x)=>x.dia||9e6;
-  out.sort((a,b)=>diaOrd(a)-diaOrd(b)||a.fecha-b.fecha||(a.am?1:0)-(b.am?1:0)||(a.n||0)-(b.n||0));
+  const diaOrd=(x)=>x.dia||(x.po?9e6+(x.poOrd||0):9e6);
+  out.sort((a,b)=>diaOrd(a)-diaOrd(b)||(a.fecha||0)-(b.fecha||0)||(a.am?1:0)-(b.am?1:0)||(a.n||0)-(b.n||0));
   return out;
 }
 function filaFix(f,calPorFecha,proxFecha,ladoAM){
@@ -20623,7 +20644,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      `calPorFecha[f.fecha]` es basura), pero la salida era tirar el fuego en vez de preguntar por el lado correcto.
      ⚠️ Sólo si todavía NO se jugó: la del club nunca puede traerlo (elegirCalientes saltea las jugadas) y acá hay
      que decirlo a mano — `.res` tiene 78 px y "🔥 110–105 · G" no entra (§2z31). */
-  const cal=(f.sel||f.conSel)?null
+  const cal=(f.sel||f.conSel||f.po)?null
     :f.am?(!f.res&&esClaveAmericas(e,{tipo:'americas',etapa:f.etapa,rival:f.rival})?1:null)
     :calPorFecha[f.fecha];
   /* §2z31 EL FUEGO SALE DE LA COLUMNA DEL NOMBRE (2026-09-04, su corte "moverlo al lado del
@@ -20642,20 +20663,21 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      donde conviven liga y competencia"): del lado del globo la marca es el número del partido en su instancia (1–4 en el
      grupo, J1–J3 en una serie); el globo queda para la lista mezclada del club */
   const marca=f.sel?banderaDe(C.jugador.nacionalidad||'ar',14)
+    :f.po?'J'+f.n   // 2026-09-10: los playoffs en el fixture
     :f.am?(ladoAM?(f.etapa==='grupo'?String(f.n):'J'+f.n):icono('globo',14)):fPrefijo()+numFecha(f.fecha);
   /* §2z88 (su caza 2026-09-06: "en el fixture de AMÉRICAS no está el país del equipo, que sí está en la tabla"):
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
-  return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
+  return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.po?' po':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
     '<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span>'+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
-    '<span class="dia">'+(f.dia?diaTxt(f.dia):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
+    '<span class="dia">'+(f.dia?diaTxt(f.dia):f.po?rondaCorta(f.ronda):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */
 function pintaFixFull(fechas,calPorFecha,proxKey){
   ultimoFix=[fechas,calPorFecha,proxKey];
   pintaSwitchSel('lobFixSwitch');
   const sel=ladoSel==='sel', am=ladoSel==='am';
-  $l('lobFixTit').textContent=(sel?t(SEL_TXT.seleccion):am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
+  $l('lobFixTit').textContent=(sel?tituloSel():am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
   $l('lobFixFull').classList.toggle('ladoAm',am);   // 2026-09-10 (su caza): del lado del globo la marca es «1» o «J2», la columna de 34 px sobraba y le robaba al nombre
   if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(); return; }
@@ -20692,7 +20714,7 @@ let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tu
 function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
   pintaSwitchSel('lobTablaSwitch');   // §12
-  $l('lobTablaTit').textContent=(ladoSel==='sel'?t(SEL_TXT.seleccion):ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
+  $l('lobTablaTit').textContent=(ladoSel==='sel'?tituloSel():ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
   if(ladoSel==='sel'){ tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto
     const am=e.americas, g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
@@ -20809,7 +20831,7 @@ function proximaSemana(prox){
   const semAhora=semanaDeFecha(e.semilla,Math.max(1,ref),r);
   const v=ventanaSelPendiente(e);
   for(const f of misFechas()){
-    if(f.am||f.fecha<=ref||f.res) continue;
+    if(f.am||f.po||f.fecha<=ref||f.res) continue;   // 2026-09-10: los playoffs no tienen fecha
     if(semanaDeFecha(e.semilla,f.fecha,r)>semAhora){
       /* la ventana `f` vive entre la fecha f y la f+1: avanzar hasta la f+1 juega la f y frena ahí */
       if(v&&f.fecha>v.f+1) return v.f+1>ref?{fecha:v.f+1,dia:diaDeFecha(e.semilla,v.f+1,r)}:null;
@@ -21262,7 +21284,7 @@ function pintaLobby(){
 
   // FIXTURE (5 renglones alrededor del próximo) y TABLA (5 con vos adentro)
   const fechas=misFechas();
-  const proxKey=prox&&prox.tipo==='fecha'?prox.fecha:prox&&prox.tipo==='americas'?'am'+prox.etapa+prox.juego:-1;
+  const proxKey=prox&&prox.tipo==='fecha'?prox.fecha:prox&&prox.tipo==='americas'?'am'+prox.etapa+prox.juego:prox&&prox.tipo==='serie'?'po'+prox.serie.nombre+prox.juego:-1;   // 2026-09-10: la serie también
   const enSel=!!prox&&prox.tipo==='seleccion';
   /* §12.22 (su corte 2026-09-05: "cuando estás en fecha con la selección, en FIXTURE/TABLA debería mostrarse la
      info de la selección, no la del club"): en la ventana FIBA el panel corto es el de la selección —sus partidos
@@ -21285,7 +21307,7 @@ function pintaLobby(){
     { const cond=amCondicionTxt(); if(cond) tA+='<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+cond+'</span></span></div>'; }
     $l('lobTabla5').innerHTML=tA;
   } else {
-    const idxProx=prox&&(prox.tipo==='fecha'||prox.tipo==='americas')?fechas.findIndex(f=>f.key===proxKey):fechas.length-1;
+    const idxProx=prox&&(prox.tipo==='fecha'||prox.tipo==='americas'||prox.tipo==='serie')?fechas.findIndex(f=>f.key===proxKey):fechas.length-1;
     const desde=Math.max(0,Math.min(idxProx-2,fechas.length-5));
     $l('lobFix5').innerHTML=fechas.slice(desde,desde+5).map(f=>filaFix(f,calPorFecha,proxKey)).join('');
     let t5=''; const k5=cortesTabla(e), n5=mt.tabla.length;   // §2z44: las mismas líneas, sin leyenda

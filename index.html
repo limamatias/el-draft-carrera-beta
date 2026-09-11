@@ -20594,7 +20594,7 @@ function icAnunciado(e){
 }
 function notaICPendiente(e){
   const ic=icAnunciado(e); if(!ic) return '';
-  return '<div class="cajNota">'+t(L('COPA INTERCONTINENTAL · SEPTIEMBRE DE ','INTERCONTINENTAL CUP · SEPTEMBER ','COPA INTERCONTINENTAL · SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
+  return '<div class="cajNota">'+t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
         +'<div class="cajNota">'+t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo+': '+ic.rivales.map(x=>x.toUpperCase()).join(' · ')+'</div>';
 }
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
@@ -20773,10 +20773,13 @@ function htmlAmericas(e,g){
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
-      +(am.campeon===e.miClubId ? notaICPendiente(e) : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>')
+      +(am.campeon===e.miClubId ? '' : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>')
       /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
          había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
-      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })();
+      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })()
+      /* 2026-09-12 (su captura: "quedó todo muy pegado"): con el título ganado, la copa que viene tiene su bloque propio con
+         título, después del tercer puesto — no tres renglones de nota seguidos */
+      +(am.campeon===e.miClubId ? '<div class="cajTag bkSig">'+t(IC_TXT.nombre)+'</div>'+notaICPendiente(e) : '');
   }
   return h;
 }

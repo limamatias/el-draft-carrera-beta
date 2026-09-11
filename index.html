@@ -815,6 +815,7 @@
   #lobby .fix .r.sel .f{letter-spacing:0;display:flex;align-items:center}
   #lobby .fix .r.sel .f .flag{border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.34)}
   #lobby .fix .r.conSel{opacity:.5}
+  #lobby .fix .r.libre{opacity:.45}   /* 2026-09-12: la fecha libre del club */
   #lobby .fix .res.selAus{color:var(--tinta2);font-size:10px;letter-spacing:1px}
   #lobby .fix .nota.sinVos{color:var(--tinta2);font-size:9px;letter-spacing:1px;background:none}
   #lobby .tablita .r.amTit{color:var(--tinta);font-weight:600;margin-top:8px}
@@ -21550,8 +21551,15 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
      apoyarse. El respaldo es el primer partido de este lado sin resultado — el que viene, aunque no sea el próximo. */
   const filas=fechas.filter(f=>!am||f.am);
   if(!filas.some(f=>f.key===proxKey)){ const n=filas.find(f=>!f.res); if(n) proxKey=n.key; }
-  let h='', etapaAnt=null;
+  let h='', etapaAnt=null, ultF=0;
+  /* 2026-09-12 (su caza: "paso de F33 a F35, ¿F34 estaremos libres? debería decírmelo, si no se ve raro"): la fecha libre del
+     club va como fila apagada, «FECHA LIBRE», con su día. Sólo en la liga con fechas de verdad (en la NBA cada fecha es un
+     día y los días sin partido son la mitad del calendario: ahí no). */
+  const eL=est(), conLibres=!am&&!esNBA();
+  const filaLibre=(k)=>'<div class="r libre"><span class="f">'+fPrefijo()+numFecha(k)+'</span><span class="q"><span class="nom">'+t(L('FECHA LIBRE','BYE','FOLGA'))+'</span></span>'
+    +'<span class="dia">'+diaTxt(diaDeFecha(eL.semilla,k,eL.ritmo))+'</span><span class="res">—</span></div>';
   for(const f of filas){
+    if(conLibres&&!f.am&&!f.po&&!f.sel&&f.fecha){ for(let k=ultF+1;k<f.fecha;k++) h+=filaLibre(k); ultF=f.fecha; }
     if(am&&f.etapa!==etapaAnt){ etapaAnt=f.etapa;
       const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
                                 :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(mejorDeAM(f.etapa));

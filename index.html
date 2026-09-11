@@ -193,6 +193,22 @@
   #fin h1,#pausa h1{font-size:42px}
   /* §2z169: el titular — sobre el lobby (8) y debajo de las cartas (45) */
   #titular{z-index:30;background:rgba(8,11,19,.9)}
+  /* 2026-09-12 el momento de la compra: entra con el ícono creciendo, se queda un respiro y se va sola */
+  #compra{z-index:31;background:rgba(8,11,19,.86);gap:10px;cursor:pointer}
+  #compra .compraIco{width:96px;height:96px;display:flex;align-items:center;justify-content:center;border-radius:50%;
+       background:rgba(20,27,44,.95);border:2px solid currentColor;margin-bottom:6px}
+  #compra .compraIco svg{width:56px;height:56px;fill:currentColor}
+  #compra .compraIco.cad-vehiculo{color:#7fb3e6} #compra .compraIco.cad-casa{color:#e0a96b}
+  #compra .compraIco.cad-staff{color:#7dd087} #compra .compraIco.cad-lifestyle{color:#f2c94c}
+  #compra .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #compra h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch;color:#f2c94c}
+  #compra .linea{max-width:30ch;line-height:1.3}
+  #compra.entra{animation:compraEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
+  #compra.entra .compraIco{animation:compraIco .5s cubic-bezier(.2,.9,.3,1.3) both}
+  #compra.sale{animation:compraSale .4s ease-in both}
+  @keyframes compraEntra{from{opacity:0}to{opacity:1}}
+  @keyframes compraIco{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+  @keyframes compraSale{to{opacity:0}}
   #titular .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #titular h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch}
   #titular h1.oro{color:#f2c94c}
@@ -1646,6 +1662,14 @@
   <div class="linea honor" id="retiroHonor"></div>
   <button id="retiroOk"></button>
   <button class="secundario" id="retiroSeguir" data-l-en="ONE MORE YEAR" data-l-pt="MAIS UM ANO">SIGO UN AÑO MÁS</button>
+</div>
+<!-- 2026-09-12 EL MOMENTO DE LA COMPRA (su pedido: "una transición, un momento como los de El Draft mostrando lo que
+     compraste, que se va sola"): el ícono de la cadena, ES TUYO, el nombre y lo que te da. Se va sola; un toque la apura. -->
+<div class="velo oculto" id="compra">
+  <div class="compraIco" id="compraIco"></div>
+  <div class="rotulo" data-l-en="IT'S YOURS" data-l-pt="É SEU">ES TUYO</div>
+  <h1 id="compraTxt"></h1>
+  <div class="linea" id="compraSub"></div>
 </div>
 <div class="velo oculto" id="titular">
   <div class="rotulo" id="titularRot"></div>
@@ -23610,15 +23634,29 @@ function comprarLata(){
   plata(-precioLata()); J.latas++;
   guardar(); pintaRecursos(); pintaSecciones();
 }
+/* 2026-09-12 EL MOMENTO DE LA COMPRA (su pedido: "cuando comprás algo en la tienda no hay transición; con las latas no
+   debería pasar nada, pero con lo otro sí: un momento, como los de El Draft, mostrando lo que compraste, que se va sola"):
+   el ícono de la cadena, ES TUYO, el nombre y lo que te da; 2,2 s y se va; un toque la apura. */
+let compraTimer=null;
+function momentoCompra(cad,it){
+  const v=$('#compra'); if(!v) return;
+  const ico=$l('compraIco'); ico.innerHTML=iconoTienda(cad); ico.className='compraIco cad-'+cad;
+  $l('compraTxt').textContent=t(it.nom); $l('compraSub').textContent=fraseItem(cad,it,C.jugador)||'';
+  v.classList.remove('oculto','sale'); v.classList.add('entra');
+  const cerrar=()=>{ clearTimeout(compraTimer); v.classList.remove('entra'); v.classList.add('sale'); setTimeout(()=>v.classList.add('oculto'),400); };
+  v.onclick=cerrar;
+  clearTimeout(compraTimer); compraTimer=setTimeout(cerrar,2200);
+}
 function comprarItem(id){
   if(id==='lata') return comprarLata();
   const J=C.jugador;
-  let it=null; for(const k in ESCALERA) it=it||ESCALERA[k].find(x=>x.id===id);
+  let it=null, cad=null; for(const k in ESCALERA){ const f=ESCALERA[k].find(x=>x.id===id); if(f&&!it){ it=f; cad=k; } }
   if(!it||tieneItem(J,id)) return;
   if(J.plata<it.precio){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-it.precio); J.mejoras=J.mejoras||{}; J.mejoras[id]=true;
   if(id==='trainer') J.entreno.trainer=true;   // el flag viejo sigue mandando en el costo de la sesión
   guardar(); pintaRecursos(); pintaSecciones();
+  momentoCompra(cad,it);
   /* §2z42.3 (su ok: "la prensa registra el lujo"): comprás algo de LUJO y el diario lo titula — una carta con tu
      compra adentro, para posar o para el bajo perfil. Sólo el lujo: la moto no es noticia. */
   if(ESCALERA.lifestyle.some(x=>x.id===id)&&CARTAS.cartaDeLujo) CARTAS.cartaDeLujo(t(it.nom));   // §2z162: se anota; sale en la próxima prensa

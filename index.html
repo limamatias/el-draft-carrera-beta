@@ -10918,6 +10918,10 @@ function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal, parte
     const par = [];
     const arr = [grupo[0]].concat(rot.slice(r).concat(rot.slice(0, r)));
     for (let i = 0; i < 3; i++) par.push({ local: arr[i], visita: arr[5 - i] });
+    /* 2026-09-12 (su caza: "los 5 primeros de local, los 5 siguientes de visitante"): el pivote del círculo (tu país va
+       primero) era local en las cinco jornadas de ida y visitante en las cinco de vuelta. El pivote alterna: L V L V L y
+       después V L V L V. Las partidas que ya tienen el fixture armado siguen con el suyo. */
+    if (r % 2) { const p0 = par[0]; par[0] = { local: p0.visita, visita: p0.local }; }
     jornadas.push(par);
   }
   for (let r = 0; r < 5; r++) jornadas.push(jornadas[r].map((p) => ({ local: p.visita, visita: p.local })));

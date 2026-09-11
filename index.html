@@ -15255,6 +15255,8 @@ function corteEscena(){
    preocupa que la mayoría sean rebote + bandeja": por eso al ganarla la marca se re-planta ENTRE vos y el aro
    (resolverRebote) y su grandote sigue en el aro — la segunda chance no es un carril libre. */
 const REBOTE_ZONA=0.55;
+const REBOTE_PICO=2000, REBOTE_PICO_PRIMERA=2600;   // §2z198.1: cuánto pica la pelota en la pelea (ms)
+const REBOTE_RIVAL_V=92;                            // §2z198.1: el rival en la pelea (px/s); tu grandote por relato sigue a 116 contra él
 function reboteTrasBailar(esc, txtEllos){
   if(!enCancha(esc)) return false;   // afuera es afuera (04/10)
   /* §2z68 (su caza 2026-09-06: "en la práctica de tiro ME SALIÓ EL REBOTE OFENSIVO, eso sí está raro"). Y sí: una
@@ -15294,14 +15296,14 @@ function reboteTrasBailar(esc, txtEllos){
   if(dVos<zona && dRiv<zona){
     /* PELEA: la escena, con vos corriendo (§2z17) */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();
-    setTimeout(()=>{ if(G.fase!=='vuelo') return;
-      veredicto(t(L('¡REBOTE VIVO!','LIVE BALL!','REBOTE VIVO!')),'neu',1000);
-      relato(t(L('¡TOCÁ RÁPIDO — llegá vos a la pelota!','TAP FAST — get to the ball!','TOQUE RÁPIDO — chegue você na bola!')),true);
-      /* §2z198: la primera pelea de la carrera pica 1,6 s en vez de 1,1 — el primer intento se gana tocando y el
-         aprendizaje queda hecho (lo que se aprende jugando una vez no vive en la pantalla) */
-      const primera=!yaVisto('rebote_pelea'); if(primera) marcarVisto('rebote_pelea');
-      G.scr={mi:G.vos, su:suBig, t:caeR, boost:0, t0:performance.now(), vos:true, pico:primera?1600:1100};
-    }, 350);
+    /* §2z198.1 (su caza 2026-09-12: "no tengo tiempo de tocar nada, o si toco no hace nada"): la pelota picaba a 1,1 s desde
+       un cartel que salía 350 ms después del corte — cuatro toques en un segundo, sin tiempo de leer. Ahora el cartel y los
+       toques valen DESDE el corte, la pelota pica a 2,0 s (2,6 la primera pelea de la carrera) y el rival corre a 92 px/s:
+       llega, pero no antes de que puedas reaccionar. Sólo números. */
+    veredicto(t(L('¡REBOTE VIVO!','LIVE BALL!','REBOTE VIVO!')),'neu',1000);
+    relato(t(L('¡TOCÁ RÁPIDO — llegá vos a la pelota!','TAP FAST — get to the ball!','TOQUE RÁPIDO — chegue você na bola!')),true);
+    const primera=!yaVisto('rebote_pelea'); if(primera) marcarVisto('rebote_pelea');
+    G.scr={mi:G.vos, su:suBig, t:caeR, boost:0, t0:performance.now(), vos:true, pico:primera?REBOTE_PICO_PRIMERA:REBOTE_PICO};
     return true;
   }
   /* LEJOS: el grandote, por relato — sin dado: la gana si está en zona y claramente mejor
@@ -18199,7 +18201,7 @@ function frame(now){
       /* §2z198: cuando corrés VOS, el cuerpo apenas se arrastra (15 px/s) — los trancos los ponen tus toques (10-gesto);
          tu grandote, por relato, a 92 como siempre */
       const vBase=s.vos?15:92;
-      mv(s.mi,vBase*dt); mv(s.su,116*dt);
+      mv(s.mi,vBase*dt); mv(s.su,(s.vos?REBOTE_RIVAL_V:116)*dt);   // §2z198.1: contra vos el rival corre a 92
       /* ⚠️ 2026-09-11 (su caza desde el celular: "nadie agarró la pelota, fuimos los dos y nos quedamos ahí" — el partido
          colgado, sin salida): `mv` clampea el cuerpo a y ≥ aro+20·ESC, pero la pelota puede caer AL COSTADO del aro a la
          altura del aro (esc.y entre aro−8·ESC y aro+6·ESC, §2z159 la deja real) — ahí ningún cuerpo llega a <14·ESC de ella

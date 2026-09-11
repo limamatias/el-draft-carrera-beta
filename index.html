@@ -6017,8 +6017,10 @@ function cartaElegible(c,ctx,s){
   return true;
 }
 function sortearCarta(pool,ctx,rng){
-  const s=cartasEstado(), cand=pool.filter(c=>cartaElegible(c,ctx,s));
+  const s=cartasEstado(); let cand=pool.filter(c=>cartaElegible(c,ctx,s));
   if(!cand.length) return null;
+  /* 2026-09-12: la misma carta no sale dos veces seguidas si hay otra candidata (su caza: la del micrófono en dos series seguidas) */
+  if(s.ultimaId){ const otras=cand.filter(c=>c.id!==s.ultimaId); if(otras.length) cand=otras; }
   /* 2026-09-10 (su caza: a mitad de la LNB no había visto skill; medido en la beta, 53 % por carta de fecha): las que
      tienen skill en el dado pesan ×1,4 y las de puras relaciones ×0,7 — el mazo pasa a ~70 % de skill. Una perilla. */
   const conSkill=(c)=>(c.opciones||[]).some(o=>o.tipo==='apuesta'&&(o.desenlaces||[]).some(d=>d.ef&&d.ef.skills&&Object.values(d.ef.skills).some(v=>v>0)));
@@ -6156,7 +6158,7 @@ function elegirCarta(i){
   let r=rng.next()*100, d=o.desenlaces[o.desenlaces.length-1];
   for(const x of o.desenlaces){ r-=x.p; if(r<=0){ d=x; break; } }
   aplicarEfectos(d.ef);
-  s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio;
+  s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio; s.ultimaId=c.id;
   guardar();
   /* §2z39.53 EL DADO (su caza en el video: "el dado no tiene emoción; mirá cómo está en El Draft"): la
      apuesta se resuelve DONDE se tomó — la otra opción se apaga, y un cursor recorre las ramas de la
@@ -6502,6 +6504,24 @@ const CARTAS_PRENSA=[
      {tipo:'apuesta',label:L('Prometer el título','Promise the title','Prometer o título'),desenlaces:[
        {p:60,remate:L('Frase de bandera','Banner material','Frase de bandeira'),texto:L('Al otro día está pintada en el paredón del club.','The next day it is painted on the club wall.','No dia seguinte está pintada no muro do clube.'),ef:{rel:{hinchada:6,dt:2}}},
        {p:40,remate:L('Te la van a cobrar','They will hold you to it','Vão te cobrar'),texto:L('El DT te mira desde la otra punta del vestuario. No dice nada. Todavía.','The coach stares from across the room. Says nothing. Yet.','O técnico te olha do outro lado do vestiário. Não diz nada. Ainda.'),ef:{rel:{dt:-3,hinchada:-2}}}]}]},
+ /* 2026-09-12 (su caza: "me salió dos series seguidas la del micrófono, se ve repetitivo"): la serie ganada tiene TRES cartas,
+    y el sorteo no repite la última carta vista si hay otra candidata */
+ { id:'prensa_serie_ganada_2', repite:true, evento:true,
+   cuando:(c)=>c.u.serie&&(c.u.serie.tono==='ok'||c.u.serie.tono==='oro'),
+   gancho:L('Pasás por la zona mixta con la camiseta empapada. Un cronista quiere una frase para el título.','You walk through the mixed zone with your jersey soaked. A reporter wants a line for the headline.','Você passa pela zona mista com a camisa encharcada. Um repórter quer uma frase para a manchete.'),
+   opciones:[
+     {tipo:'segura',label:L('"Fue el equipo"','"It was the team"','"Foi o time"'),desenlaces:[{p:100,remate:null,texto:L('La frase más vieja del deporte. Sigue funcionando.','The oldest line in sports. Still works.','A frase mais velha do esporte. Ainda funciona.'),ef:{rel:{plantel:3}}}]},
+     {tipo:'apuesta',label:L('"Todavía no ganamos nada"','"We have not won anything yet"','"Ainda não ganhamos nada"'),desenlaces:[
+       {p:60,remate:L('Cabeza fría','Cool head','Cabeça fria'),texto:L('El DT la repite en la charla del lunes. Le gustó.','The coach repeats it in Monday\'s talk. He liked it.','O técnico repete na conversa de segunda. Gostou.'),ef:{rel:{dt:5,plantel:2}}},
+       {p:40,remate:L('Aguafiestas','Party pooper','Estraga-prazeres'),texto:L('La hinchada quería festejar. Vos les hablaste de trabajo.','The fans wanted to celebrate. You talked to them about work.','A torcida queria festejar. Você falou de trabalho.'),ef:{rel:{hinchada:-3}}}]}]},
+ { id:'prensa_serie_ganada_3', repite:true, evento:true,
+   cuando:(c)=>c.u.serie&&(c.u.serie.tono==='ok'||c.u.serie.tono==='oro'),
+   gancho:L('En la conferencia te preguntan por el rival que viene.','At the press conference they ask about the next opponent.','Na coletiva perguntam pelo próximo adversário.'),
+   opciones:[
+     {tipo:'segura',label:L('"Los respetamos"','"We respect them"','"Nós os respeitamos"'),desenlaces:[{p:100,remate:null,texto:L('Nadie anota la frase. Nadie la olvida tampoco.','Nobody writes the line down. Nobody forgets it either.','Ninguém anota a frase. Ninguém esquece também.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('"Que se preparen ellos"','"They had better get ready"','"Que eles se preparem"'),desenlaces:[
+       {p:55,remate:L('Titular de mañana','Tomorrow\'s headline','Manchete de amanhã'),texto:L('La frase viaja hasta el vestuario de ellos. Al tuyo le encanta.','The line travels to their locker room. Yours loves it.','A frase viaja até o vestiário deles. O seu adora.'),ef:{rel:{hinchada:5,plantel:3}}},
+       {p:45,remate:L('Combustible','Fuel','Combustível'),texto:L('Al rival le pegan la nota en el vestuario. El DT te pide que dejes de regalar títulos.','They pin the article in the rival locker room. The coach asks you to stop handing out headlines.','Colam a matéria no vestiário do rival. O técnico pede que você pare de dar manchetes.'),ef:{rel:{dt:-3}}}]}]},
  { id:'prensa_serie_perdida', repite:true, evento:true,
    cuando:(c)=>c.u.serie&&c.u.serie.tono==='mal'&&!c.u.americas,   // §2z27: la del continental tiene la suya
    gancho:L('Se terminó el año. Un cronista te pregunta si te quedás.','The season is over. A reporter asks if you are staying.','Acabou o ano. Um repórter pergunta se você fica.'),

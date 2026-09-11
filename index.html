@@ -18788,7 +18788,9 @@ function frame(now){
       /* los 5s de la sacada arrancan CON EL CORTE (su diseño 2026-08-23), no con tu toque:
          2s de lectura con el jugador quieto y la flecha a la vista, como el aire de la marca */
       const relojCongelado = G.tipo==='sacada' && (G.corrida ? now<G.corrida.arranca : !G.toco);
-      if(!relojCongelado && !finalQuieto && !dif.clkOff) G.posClock-=dt*1000;
+      /* 2026-09-12 (su caza: "cuando terminás un entrenamiento debería dejar de correr la barrita de arriba"): entre intentos
+         del drill (fase 'entre') el reloj de posesión se queda quieto */
+      if(!relojCongelado && !finalQuieto && !dif.clkOff && !(G.esDrill && G.fase==='entre')) G.posClock-=dt*1000;
       if(G.fase!=='entre'&&G.posClock<=0){
         /* la ventana del contra NO castiga (decisión neutra, su regla): se cierra sola
            en posesión normal, con continuidad — bajarla y jugar también era jugar.

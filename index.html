@@ -808,6 +808,7 @@
   #lobby #lobFixFull.ladoAm .f{width:22px}   /* 2026-09-10: «J3» a 14 px mide ~18; los 12 que sobran van al nombre */
   /* §2z88: la banderita del país en las filas del continental (la misma que la tabla, un punto más chica:
      la columna del nombre es la que paga y §2z31 la dejó justa) */
+  #lobby #lobHoyRival .banMini{width:16px;height:11px;display:inline-flex;border-radius:2px;overflow:hidden;vertical-align:-1px;margin-left:2px}   /* 2026-09-12 (su caza: a REAL ESTELÍ le faltaba la banderita en el HOY): fuera de la tabla y el fixture no tenía tamaño */
   #lobby .fix .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden}   /* 2026-09-10: después del nombre (el gap del contenedor la separa) */
   #lobby .fix .banMini>*{width:100%;height:100%}
   /* §12: la fila de selección — la bandera a la izquierda y el renglón de la fecha que te
@@ -20313,6 +20314,8 @@ function amPorqueTxt(o){
   if(o.etapa==='grupo'){ const cond=amCondicionTxt();
     return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||4)+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
+  /* 2026-09-12 (su caza: "SERIE 0-0 · JUEGO 1 · AL MEJOR DE 1 es rarísimo"): el Final Four es a partido único, y lo dice así */
+  if(s.mejorDe===1) return t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'))+(o.sede?' · '+((clubDe(o.sede)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase():'');
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
 function ordenAnioPasado(ligaId,anio,tablaFinal){
@@ -22119,7 +22122,7 @@ function pintaLobby(){
     } else if(prox.tipo==='americas'){
       /* §2z27: el continental — la competencia y la etapa arriba, el grupo o la serie abajo */
       $l('lobHoyCuando').textContent=compAM(prox)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
-      $l('lobHoyRival').textContent=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase();
+      $l('lobHoyRival').innerHTML=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase()+(prox.ic?'':' '+banderita(prox.rival));   // 2026-09-12 (su caza): la banderita del rival, como en la tabla
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=amPorqueTxt(prox);
     } else {
@@ -22751,7 +22754,7 @@ function abrirPre(objetivo){
   } else {
     /* medido 2026-09-02: la caja tiene 256 útiles; con "· 24 MIN" POR LA PERMANENCIA (255) y
        PLAYOFF DE CONFERENCIA (283) se partían en dos. Los minutos van con la serie. */
-    $l('lobPreFecha').textContent=t(RONDA_TXT[objetivo.serie.nombre]||L(objetivo.serie.nombre))+' · '+t(L('JUEGO','GAME','JOGO'))+' '+objetivo.juego;
+    $l('lobPreFecha').textContent=t(RONDA_TXT[objetivo.serie.nombre]||L(objetivo.serie.nombre))+(objetivo.serie.mejorDe===1?'':' · '+t(L('JUEGO','GAME','JOGO'))+' '+objetivo.juego);   // 2026-09-12: a partido único, sin JUEGO 1
     const s=objetivo.serie, miGan=s.alta===e.miClubId?s.ganAlta:s.ganBaja, riGan=s.alta===e.miClubId?s.ganBaja:s.ganAlta;
     $l('lobPrePorque').textContent=t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
     $l('lobPreSalteo').textContent='';
@@ -22942,7 +22945,7 @@ terminar=function(){
       } else {
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
         const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha
-          :o.tipo==='serie'?t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego
+          :o.tipo==='serie'?t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+(o.serie.mejorDe===1?'':' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego)
           :o.tipo==='americas'?compAM(o):'';
         /* §2z97 (su caza: "salió cortado lo de abajo del score"): sin el nombre de tu club — el escudo ya dice de quién
            son los chips (§2z12.5), y "BOCA JUNIORS · LIGA DE LAS AMÉRICAS · vs FUERZA REGIA" no entraba en 375 */

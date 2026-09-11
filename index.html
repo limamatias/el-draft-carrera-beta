@@ -15296,8 +15296,12 @@ function reboteTrasBailar(esc, txtEllos){
   let suBig=G.defs[2]||G.defs[0], dRiv=Infinity;
   for(const d of rivales){ const dd=dist(d,caeR); if(dd<dRiv){ dRiv=dd; suBig=d; } }   // el rival MÁS CERCANO la pelea
   const dVos=dist(G.vos,caeR);
+  /* 2026-09-12 (su caza: "el big se teletransportó hacia la pelota, era una pelota que medio se fue afuera y no había nadie
+     cerca"): el rival corría a la pelota en 0,45 s fijos, estuviera a un cuerpo o a media cancha. Ahora corre a su velocidad
+     de siempre (116 px/s): de cerca es el mismo respiro, de lejos se lo ve correr. Tope 1,6 s para que no se haga eterno. */
   const armaEllos=(txt)=>{ G.fase='vuelo'; G.suelo=caeR;
-    correr(suBig,{x:caeR.x+rnd(-6,6), y:caeR.y}, 0.45, ()=>{ G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now(), txtEllos:txt};
+    const dur=Math.min(1.6, Math.max(0.45, dist(suBig,caeR)/116));
+    correr(suBig,{x:caeR.x+rnd(-6,6), y:caeR.y}, dur, ()=>{ G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now(), txtEllos:txt};
       resolverRebote(false); }); };
   /* §2z152 (su caza 2026-09-08: "cayó cerca mío pero con un rival literalmente al lado; mi jugador se movió solo hasta
      la pelota y no tuve chance"): con el rival ENCIMA de la pelota (a menos de un cuerpo, 30·ESC — el mismo umbral del

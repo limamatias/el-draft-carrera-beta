@@ -6220,7 +6220,7 @@ function cartaDeSalida(o,seguir){
   const ctx={...ctxCarta(),salida:salidaDe(o)}, s=cartasEstado();
   const clave=(o.tipo||'')+(o.fecha||'')+(o.etapa||'')+(o.juego||'')+(o.ventana?o.ventana.n:'');
   const rng=rngFor($C().semilla,'salida',$C().anio,clave);
-  const cand=pool.filter(c=>cartaElegible(c,ctx,s)&&rng.chance(c.chance===undefined?1:c.chance));
+  const cand=pool.filter(c=>cartaElegible(c,ctx,s)&&rng.chance(c.chance===undefined?1:(typeof c.chance==='function'?c.chance(ctx):c.chance)));   // 2026-09-12: `chance` puede mirar la situación (la carta del anfitrión: siempre en el Final Four, a veces en el grupo)
   if(!cand.length) return false;
   const c=sortearCarta(cand,ctx,rng); if(!c) return false;
   salidaEnSel=o.tipo==='seleccion';
@@ -11907,8 +11907,10 @@ const CARTAS_SALIDA=[
     grifo (0 contra +2/+4); la carta la agranda o te la come. */
  /* 2026-09-12 (su caza, con la sede del Final Four por récord: "es un montón; que la del 100 % diga «el rival afloja» es una locura,
     sobre todo cuando ya hay efecto de localía"): la localía ya la paga el grifo. La segura es sólo de hinchada; la apuesta ganada
-    te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y sale menos: chance 0,6 → 0,35. */
- { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.35, fondo:'tunel',
+    te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y su segunda vuelta ("en la final no me salió ninguna; en un partido
+    que no pasa seguido debería salir siempre, atenuada"): en el Final Four (semi · final · tercer puesto) y en la fase final de la
+    selección sale SIEMPRE; en el grupo y las eliminatorias, una de tres. */
+ { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:(c)=>['semifinal','final','tercero','cuartos'].includes(c.salida.etapa)?1:0.35, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.anfitrion&&(c.salida.tipo==='seleccion'||c.salida.tipo==='americas'),
    gancho:(c)=>L('Torneo en casa: '+c.salida.competencia+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. La sala de prensa está llena y todos preguntan lo mismo: "¿Pesa jugar de local?"','Home tournament: '+c.salida.competencia+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The press room is packed and everyone asks the same thing: "Does playing at home weigh on you?"','Torneio em casa: '+c.salida.competencia+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. A sala de imprensa está cheia e todos perguntam a mesma coisa: "Pesa jogar em casa?"'),
    opciones:[

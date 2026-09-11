@@ -849,12 +849,22 @@
   #lobby .cajTag.bkSig{margin-top:14px;padding-top:12px;border-top:1px solid rgba(154,164,184,.18)}
   /* 2026-09-12 (su corte: "un mínimo más de formato, está todo muy plano"): EL TORNEO QUE VIENE (la Intercontinental, el Mundial…)
      en una caja con el idioma de las del bracket — la línea de cuándo y dónde, el grupo, y una fila por equipo con escudo */
-  #lobby .bkBox.queViene{position:static;width:min(100%,300px);height:auto;margin:6px auto 0;padding:7px 10px 8px;gap:1px}
-  #lobby .queViene .bkRow{height:22px;font-size:12.5px}
-  #lobby .queViene .bkRow.cab{height:18px;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
-  #lobby .queViene .bkRow.cab+.bkRow:not(.cab){margin-top:2px}
-  #lobby .queViene .bkRow.yo{font-weight:700}
-  #lobby .queViene .bkRow .escudito{width:16px;height:16px}
+  /* v2 (su caza: "MUNDIAL 2027 y COPA INTERCONTINENTAL no tienen letras blancas del tamaño de ELIMINATORIAS; en uno el año va en la
+     fecha y en el otro no; le falta amor"): el nombre es el ENCABEZADO de la caja con el cuerpo del título de tabla (15, blanco) y
+     el ícono de quien la juega; la fecha sin año, alineada con el nombre (18 del ícono + 9 de gap); el grupo en píldora; tu fila
+     con fondo naranja. El corte con lo de arriba es el mismo de LA LLAVE. Las elipsis son la red.
+     ⚠️ MEDIDO en Barlow Condensed: «COPA INTERCONTINENTAL 2027» + «GRUPO A» pedía 273 de 274 con relleno 12 y gap 9 — por eso el
+     relleno es 10, el gap 8 y la píldora 7: sobran 9 px en castellano y 16 en inglés (el preolímpico en inglés, 25). */
+  #lobby .qvSep{margin-top:14px;padding-top:12px;border-top:1px solid rgba(154,164,184,.18)}
+  #lobby .bkBox.queViene{position:static;width:min(100%,300px);height:auto;margin:0 auto;padding:10px 10px 8px;justify-content:flex-start}
+  #lobby .queViene .qvCab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:.5px;color:var(--tinta);text-transform:uppercase}
+  #lobby .queViene .qvCab .nom{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .queViene .qvCab .escudito{width:18px;height:18px;flex:none}
+  #lobby .queViene .qvGrupo{flex:none;font-size:11px;letter-spacing:1.6px;font-weight:600;color:var(--tinta2);border:1px solid rgba(154,164,184,.35);border-radius:999px;padding:1px 7px}
+  #lobby .queViene .qvLinea{font-size:11px;letter-spacing:1.6px;font-weight:600;color:var(--tinta2);margin:3px 0 8px 26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .queViene .bkRow{height:26px;font-size:14px;gap:9px;padding:0 6px;border-radius:6px}
+  #lobby .queViene .bkRow.yo{font-weight:700;background:rgba(255,150,51,.14)}
+  #lobby .queViene .bkRow .escudito{width:18px;height:18px}
   #lobby .fix .r.amTit{color:var(--tinta2);font-weight:600;margin-top:8px;font-size:11px;letter-spacing:1.6px}   /* §12.25: VENTANA n como cabecera */
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */
@@ -20836,12 +20846,17 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
 /* 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega"; y "¡la sede no se sortea en la pretemporada!"):
    el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
    quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
-/* la caja del TORNEO QUE VIENE: {linea, cab, ids, mi, esc(id), nom(id), ban(id)?} */
+/* la caja del TORNEO QUE VIENE: {tit, ico, linea, grupo, ids, mi, esc(id), nom(id)}
+   2026-09-12 v2 (su caza: "¿por qué MUNDIAL 2027 y COPA INTERCONTINENTAL no tienen letras blancas del tamaño de ELIMINATORIAS?
+   Y en uno ponemos año en la fecha y en el otro no"; y "le falta amor al formato, quedó muy plano"): el nombre entra a la caja
+   como ENCABEZADO, con el cuerpo del título de tabla y el ícono de quien la juega; el año va en el nombre y nunca en la fecha;
+   el grupo es una píldora; tu fila, un fondo naranja (sin "VOS": el fondo ya lo dice). */
 function htmlQueViene(o){
-  let h='<div class="bkBox vos queViene"><div class="bkRow cab"><span class="sig">'+o.linea+'</span></div>';
-  if(o.cab) h+='<div class="bkRow cab"><span class="sig">'+o.cab+'</span></div>';
-  for(const id of o.ids) h+='<div class="bkRow'+(id===o.mi?' yo':'')+'">'+o.esc(id)+'<span class="sig">'+o.nom(id)+'</span>'+(o.ban?o.ban(id):'')+'</div>';
-  return h+'</div>';
+  let h='<div class="qvSep"><div class="bkBox queViene"><div class="qvCab">'+(o.ico||'')+'<span class="nom">'+o.tit+'</span>'
+    +(o.grupo?'<span class="qvGrupo">'+o.grupo+'</span>':'')+'</div>';
+  if(o.linea) h+='<div class="qvLinea">'+o.linea+'</div>';
+  for(const id of o.ids) h+='<div class="bkRow'+(id===o.mi?' yo':'')+'">'+o.esc(id)+'<span class="sig">'+o.nom(id)+'</span></div>';
+  return h+'</div></div>';
 }
 function icAnunciado(e,clubId){
   const id=clubId||e.miClubId, anio=C.anio+1;   // 2026-09-12 (su caza: "¿no sería septiembre de 2027? estoy en la 2026-27"): la copa es del septiembre siguiente, también en la beta
@@ -20857,7 +20872,8 @@ function notaICPendiente(e,clubId){
   /* 2026-09-12 (su corte: "un mínimo más de formato"): la caja del torneo que viene — cuándo y dónde, el grupo, los tres con escudo
      (el que la juega siempre nombrado: "¿por qué no dice que lo jugamos nosotros?") */
   const nomIC=(id)=>{ const c=clubIC(id)||clubDe(id); return c?(c.corto||c.nombre):id; };
-  return htmlQueViene({linea:t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase(), cab:t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo,
+  return htmlQueViene({tit:t(IC_TXT.nombre)+' '+ic.anio, ico:escudito(ic.club.id),
+    linea:t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' · '+ic.sede.ciudad.toUpperCase(), grupo:t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo,
     ids:ic.ids, mi:e.miClubId, esc:(id)=>escudito(id), nom:(id)=>nomIC(id)});
 }
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
@@ -21045,8 +21061,10 @@ function htmlAmericas(e,g){
       /* 2026-09-12 (su corte: "el «campeón clasifica» no va debajo del bracket, son secciones diferentes; y con campeón tiene que
          decir quién la juega"): la sección de la copa SIEMPRE, con su título — sin campeón el contrato, con campeón quién · cuándo ·
          dónde · con quiénes, seas vos u otro */
-      +'<div class="cajTag bkSig">'+t(IC_TXT.nombre)+'</div>'+(am.campeon ? notaICPendiente(e,am.campeon)
-          : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>');
+      /* 2026-09-12 v2: con campeón, el nombre de la copa es el encabezado de su caja (htmlQueViene); sin campeón queda el rótulo
+         de sección con el contrato debajo */
+      +(am.campeon ? notaICPendiente(e,am.campeon)
+          : '<div class="cajTag bkSig">'+t(IC_TXT.nombre)+'</div><div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>');
   }
   return h;
 }
@@ -21306,8 +21324,8 @@ function htmlSeleccion(e){
   { const an=anV;
       if(an&&!an.afuera){
         const pais=C.jugador.nacionalidad||'ar';
-        h+='<div class="cajTag bkSig">'+nombreTorneoSel(an.cual)+' '+an.anio+'</div>';
-        h+=htmlQueViene({linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), cab:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
+        h+=htmlQueViene({tit:nombreTorneoSel(an.cual)+' '+an.anio, ico:escuditoDe(clubDeSeleccion(pais)),
+          linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), grupo:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
           ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), nom:(id)=>nombreSelCorto(id)});
         /* §12.31: con el ranking arriba los directos ya se ven; queda la regla del preolímpico */
         if(rk&&an.cual==='preolimpico') h+='<div class="cajNota">'+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'))+'</div>';

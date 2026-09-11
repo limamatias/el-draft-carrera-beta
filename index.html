@@ -23279,6 +23279,11 @@ function abrirLobby(){
   if(typeof murmulloAjustar==='function') murmulloAjustar(0);   // el estadio queda en la cancha
   pintaLobby();
   irLob('hoy');
+  /* 2026-09-12 (su caza: "salí del partido y el lobby me apareció en FIXTURE en vez de HOY"): las pestañas HOY · FIXTURE ·
+     TABLA son estado del DOM y quedaban como las dejaste antes de tocar JUGAR. Al volver al vestuario, HOY: ahí está el
+     parte de lo que acabás de jugar. */
+  { const v=$l('lv-hoy'); if(v){ v.querySelectorAll('.tab[data-lp]').forEach(x=>x.classList.toggle('act',x.dataset.lp==='hoy'));
+      v.querySelectorAll('.panel').forEach(p=>p.classList.toggle('act',p.id==='lp-hoy')); } }
   verQueSeVe('lobby','EL VESTUARIO');
   encajarGoteo1();   // 2026-09-10: el goteo mide recién con el lobby a la vista
   if(esBeta()&&!yaVisto('beta_hola')){ abrirBetaHola(); return; }   // §7.1: el contrato de la beta, una vez

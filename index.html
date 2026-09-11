@@ -9730,7 +9730,7 @@ const AMERICAS_DESGASTE = 2;   // al club, en su liga, el año que juega los dos
  * es al mejor de 3: cada ventana juega UN juego de cada serie viva. */
 /* 2026-09-10 (su ok, con el formato real de la BCL Americas 2025-26 delante): cuartos al mejor de 3 con localía 1-2 (el
  * juego 1 en la cancha del peor sembrado, el 2 y el 3 en la del mejor), y un FINAL FOUR en una sola sede: semis a partido
- * único y la final al día siguiente. La sede es el semifinalista de más fuerza. Del tercer puesto no se juega. Nueve
+ * único y la final al día siguiente. La sede es el semifinalista con mejor récord en la copa (grupo + cuartos). Del tercer puesto no se juega. Nueve
  * ventanas: 4 de grupo, 3 de cuartos, la semi y la final — la final comparte la fecha ancla de la semi y cae al día
  * siguiente (ventanasAmericas). Las partidas que ya venían con las 13 ventanas viejas y semis empezadas siguen como
  * estaban (reanclarAmericas no las toca). */
@@ -10007,6 +10007,14 @@ function anotarLineaAM(e, etapa, n, rival, miJuego, rng) {
   sumarLinea(e.miLinea, linea, minutos);   // §2z29
 }
 
+/** El récord de un club en la copa hasta acá: ganados y diferencia de puntos, grupo + todas las series jugadas. */
+function recordCopaAM(am, id) {
+  let g = 0, dif = 0;
+  const suma = (j) => { if (j.local !== id && j.visita !== id) return; const mio = j.local === id ? j.ptsLocal : j.ptsVisita, suyo = j.local === id ? j.ptsVisita : j.ptsLocal; if (mio > suyo) g++; dif += mio - suyo; };
+  am.juegosGrupo.filter((j) => j.jugado).forEach(suma);
+  ((am.llave && am.llave.seriesJugadas) || []).forEach((s) => (s.juegos || []).forEach(suma));
+  return { g, dif };
+}
 /** La tabla de un grupo (con el desempate de 01e), en filas de `tabla()`. */
 function tablaGrupoAM(am, g) {
   const res = am.juegosGrupo.filter((j) => j.grupo === g && j.jugado).map((j) => ({ local: j.local, visita: j.visita, ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita }));
@@ -10077,7 +10085,12 @@ function cerrarRondaAM(am, mi) {
     series.push({ ronda: ll.ronda, nombre, alta: p, baja: q, mejorDe: mejorDeAM(nombre), ganAlta: 0, ganBaja: 0, juegos: [], ganador: null });
   }
   ll.series = series; ll.seriesJugadas.push(...series);
-  if (nombre === 'semifinal') ll.sede = vivos.slice().sort((a, b) => am.fuerzas[b] - am.fuerzas[a])[0];   // el Final Four: la sede es el semifinalista de más fuerza
+  /* el Final Four: la sede es el semifinalista con MEJOR RÉCORD EN LA COPA (grupo + cuartos: ganados, después diferencia de
+     puntos, después la fuerza) — su corte 2026-09-12 ("¿no podría ser por cómo le fue en la copa, en vez de la fuerza? mejor
+     récord agregado entre grupo y cuartos, desempate por puntos"). En la realidad se adjudica por candidatura (Obras 2026 para
+     Boca, Maracanãzinho 2025 para Flamengo): el que llega mejor es la aproximación jugable. */
+  if (nombre === 'semifinal') ll.sede = vivos.slice().sort((a, b) => { const ra = recordCopaAM(am, a), rb = recordCopaAM(am, b);
+    return (rb.g - ra.g) || (rb.dif - ra.dif) || (am.fuerzas[b] - am.fuerzas[a]); })[0];
   if (!am.eliminado) am.miFase = nombre;
 }
 

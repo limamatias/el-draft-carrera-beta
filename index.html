@@ -4253,6 +4253,7 @@ function jugarJuegoDeSerie(estado, s, miJuego) {
   const juego = {
     ronda: s.ronda, nombre: s.nombre, juego: nro, local, visita, ptsLocal, ptsVisita,
     jugado: !!(miJuego && esMio),
+    paso: estado.pasoPO || 0,   // 2026-09-12: el paso en que se jugó (su día, en el fixture)
   };
   s.juegos.push(juego);
   po.juegos.push(juego);
@@ -4326,6 +4327,7 @@ function cerrarRondaSiTermino(estado) {
  */
 function semanaDePlayoffs(estado) {
   estado.semanaNro++;
+  estado.pasoPO = (estado.pasoPO || 0) + 1;   // 2026-09-12: el paso de playoffs, para fechar los juegos (juego.paso × diasPO en el lobby)
   const po = estado.playoffs;
   const goteo = [];
   for (const s of po.series) {
@@ -4350,6 +4352,7 @@ function pasoDePlayoffs(estado, miJuego) {
   const goteo = [];
   const mia = miSerie(estado);
   if (mia) {
+    estado.pasoPO = (estado.pasoPO || 0) + 1;   // 2026-09-12: el paso (el día del juego = última fecha + diasPO × paso)
     const juego = jugarJuegoDeSerie(estado, mia, miJuego);
     if (juego) goteo.push(juego);
     for (const s of po.series) {
@@ -22026,12 +22029,20 @@ function misFechas(){
      no tienen día real: corren en pasos de diasPO), y los juegos que faltan de la serie abierta con SI HACE FALTA cuando
      no están asegurados. Van al final, que es cuando pasan. */
   if(e.playoffs&&e.playoffs.seriesJugadas){ const mi=e.miClubId; let ord=0;
+    /* 2026-09-12 (su caza: "en el fixture no dice fecha, solo CUARTOS. ¿No hay fecha definida?"): no la había — el motor corre
+       los playoffs en pasos de diasPO días sin anotar el día. Ahora cada juego guarda su paso (01e `juego.paso`) y su día es el
+       de la última fecha + diasPO × paso, la misma cuenta con la que se descansa; los que faltan de tu serie viva se proyectan
+       desde el paso de hoy. Una partida de antes (juegos sin paso) sigue con la ronda en la columna. */
+    const diaFin=diaDeFecha(e.semilla,e.fechasTotales,est().ritmo), dPO=diasPO(), pasoHoy=e.pasoPO||0;
+    const legado=(e.playoffs.juegos||[]).some(j=>!j.paso);
+    const diaPaso=(p)=>legado?null:diaFin+dPO*p;
     for(const s of e.playoffs.seriesJugadas){ if(s.alta!==mi&&s.baja!==mi) continue; ord++;
       const seguros=Math.ceil(s.mejorDe/2)-Math.max(s.ganAlta||0,s.ganBaja||0);
       (s.juegos||[]).forEach(j=>out.push({po:true,ronda:s.nombre,n:j.juego,key:'po'+s.nombre+j.juego,rival:j.local===mi?j.visita:j.local,local:j.local===mi,
-        res:{ptsLocal:j.ptsLocal,ptsVisita:j.ptsVisita},dia:null,poOrd:ord*10+j.juego}));
+        res:{ptsLocal:j.ptsLocal,ptsVisita:j.ptsVisita},dia:j.paso?diaPaso(j.paso):null,poOrd:ord*10+j.juego}));
       if(!s.ganador) for(let nro=(s.juegos||[]).length+1;nro<=s.mejorDe;nro++){ const localId=altaEsLocal(s.mejorDe,nro)?s.alta:s.baja;
-        out.push({po:true,ronda:s.nombre,n:nro,key:'po'+s.nombre+nro,rival:s.alta===mi?s.baja:s.alta,local:localId===mi,res:null,dia:null,poOrd:ord*10+nro,
+        out.push({po:true,ronda:s.nombre,n:nro,key:'po'+s.nombre+nro,rival:s.alta===mi?s.baja:s.alta,local:localId===mi,res:null,
+          dia:diaPaso(pasoHoy+nro-(s.juegos||[]).length),poOrd:ord*10+nro,
           siHaceFalta:nro>(s.juegos||[]).length+seguros}); }
     } }
   const salt=fechasSalteadas(e.seleccion);
@@ -22124,7 +22135,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
      apoyarse. El respaldo es el primer partido de este lado sin resultado — el que viene, aunque no sea el próximo. */
   const filas=fechas.filter(f=>!am||f.am);
   if(!filas.some(f=>f.key===proxKey)){ const n=filas.find(f=>!f.res); if(n) proxKey=n.key; }
-  let h='', etapaAnt=null, ultF=0;
+  let h='', etapaAnt=null, ultF=0, rondaAnt=null;
   /* 2026-09-12 (su caza: "paso de F33 a F35, ¿F34 estaremos libres? debería decírmelo, si no se ve raro"): la fecha libre del
      club va como fila apagada, «FECHA LIBRE», con su día. Sólo en la liga con fechas de verdad (en la NBA cada fecha es un
      día y los días sin partido son la mitad del calendario: ahí no). */
@@ -22137,6 +22148,9 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
       const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
                                 :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(mejorDeAM(f.etapa));
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+cab+'</span></span></div>'; }
+    /* 2026-09-12: con el día en la columna, la ronda de los playoffs va de cabecera — el idioma de las instancias del continental (§2z177) */
+    if(!am&&f.po&&f.dia&&f.ronda!==rondaAnt){ rondaAnt=f.ronda;
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(RONDA_TXT[f.ronda]||L(f.ronda))+'</span></span></div>'; }
     h+=filaFix(f,calPorFecha,proxKey,am);
   }
   const box=$l('lobFixFull'); box.innerHTML=h;
@@ -22955,7 +22969,7 @@ function pintaEntrenar(){
   /* §2z39.44 (su caza 2026-09-04: "hoy no hay nada que te haga saber que podés volver a entrenar"): el
      puntito de §2z15 en la barra, mientras queden sesiones y la energía alcance para usarlas */
   const accEnt=document.querySelector('#lobby .acc[data-lir=entrenar]');
-  if(accEnt) accEnt.classList.toggle('aviso', libres>0 && J.energia>=ENERGIA_MIN_ENTRENAR);
+  if(accEnt) accEnt.classList.toggle('aviso', libres>0 && J.energia>=ENERGIA_MIN_ENTRENAR && e.fase==='regular');   /* 2026-09-12 (su caza: "queda el puntito clavado"): fuera de la regular no se entrena */
   /* ⚠️ Antes decía además "cada una cuesta −20 ⚡ (con entrenador)". Se fue por su ley:
      es algo que se aprende jugando UNA vez y estaba ocupando lugar SIEMPRE. El costo se
      ve donde importa —la energía baja al entrenar, delante tuyo— y si alguna vez hay que
@@ -22968,7 +22982,7 @@ function pintaEntrenar(){
   $l('lobby').classList.toggle('plena',!!escaleraAbierta);
   /* "0/2" no es una frase (su caza 2026-09-02): sin sesiones, se dice */
   const cupoTxt=e.fase!=='regular'
-      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('En playoffs no se entrena.','No training in the playoffs.','Nos playoffs não se treina.')))   // §2z19: el contrato, no una aclaración
+      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('Estás concentrado en la postemporada.','You are focused on the postseason.','Você está concentrado na pós-temporada.')))   // §2z19: el contrato, no una aclaración
       : libres<=0
       ? t(L('Esta semana no te quedan sesiones.','No sessions left this week.','Esta semana não restam sessões.'))
       : t(L('Esta semana te quedan <b>','This week you have <b>','Esta semana restam <b>'))+libres+'/'+SESIONES_POR_SEMANA+'</b>'
@@ -23044,6 +23058,7 @@ function timerSkill(k,en,e){
   /* §2z89/§2z90: el aviso habla en SEMANAS porque el óxido se cuenta en semanas (ver `semanasSinTocar`
      en 01h) — y porque entrenar se compra por semana: el cupo son 2 sesiones y el botón de al lado dice
      PASAR LA SEMANA. La misma cuenta que el motor, para que el cartel no mienta. */
+  if(e.fase!=='regular') return '';   /* 2026-09-12 (su caza: "que no se oxiden las habilidades en postemporada"): el motor sólo oxida en la regular (aplicarDecaimiento) y la temporada nueva reinicia la cuenta — el aviso seguía a la vista y mentía */
   const hace=semanasSinTocar(e.semilla,en.ultimo[k],e.fechaJugada,e.ritmo);
   if(hace>=DECAY_SEMANAS) return '⚠ '+t(L('se está oxidando','going rusty','está enferrujando'));
   const sem=DECAY_SEMANAS-hace;
@@ -23075,7 +23090,8 @@ function pintaEscalera(k){
     +'<span class="escEstrellas">★'+total+'/'+(nivelesTope()*3)+'</span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">';
   for(let n=1;n<=NIVELES_ESCALERA;n++){
-    const marca=esc[n-1]||0, jugable=n<=abierto, cerrado=n>nivelesTope();   // §2z39.46: la beta termina en el 14
+    /* 2026-09-12 (su caza: "no deberían estar habilitados los botones para entrar a entrenar, todos grisados, los que tenés y los que te faltan; así ese cartel en rojo ni siquiera sale"): fuera de la regular la grilla se mira, no se toca */
+    const marca=esc[n-1]||0, jugable=n<=abierto&&e.fase==='regular', cerrado=n>nivelesTope();   // §2z39.46: la beta termina en el 14
     if(cerrado){ html+='<button disabled style="font-family:inherit;background:#141b2c;color:#e9ecf3;border-radius:10px;'
       +'border:1px solid rgba(255,255,255,.08);padding:7px 0 5px;opacity:.22"><div style="font-size:16px;font-weight:700">'+n+'</div>'
       +'<div style="font-size:12px;letter-spacing:1px">🔒</div></button>'; continue; }
@@ -23112,7 +23128,7 @@ function entrenar(k,nivelPedido){
   if(e.fase!=='regular'){ avisar(t(C.selTorneo
     ? L('Estás con la Selección: no hay gimnasio.','You are with the national team: no gym.','Você está com a Seleção: sem academia.')
     : e.fase==='terminada'?L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')
-    : L('En playoffs no se entrena.','No training in the playoffs.','Nos playoffs não se treina.'))); return; }   // §2z19
+    : L('Estás concentrado en la postemporada.','You are focused on the postseason.','Você está concentrado na pós-temporada.'))); return; }   // §2z19
   if(sesionesRestantes(J,e.semilla,proximaFecha(),est().ritmo)<=0){
     avisar(t(L('Sin sesiones esta semana: jugá y volvé.','No sessions left this week: play on and come back.','Sem sessões esta semana: joga e volta.'))); return; }
   if(J.energia<ENERGIA_MIN_ENTRENAR){
@@ -24413,6 +24429,23 @@ function verQueSeVe(id,nombre){
       'pantalla='+innerWidth+'x'+innerHeight+' ranuras='+($l('partidasRanuras')||{children:[]}).children.length);
   }catch(e){ mostrarErrorNSS('al medir '+nombre+': '+e.message); }
 }
+/* 2026-09-12 (su caza: "si estás en postemporada, desde el cargar partida sólo dice PLAYOFFS genérico; no te dice de qué ronda estás
+   ni nada"): la ranura dice la ronda y cómo va tu serie (tus victorias primero); si ya quedaste afuera, dónde; y si tu equipo no
+   entró, eso. Las palabras son las del cierre de serie (SERIE GANADA · ELIMINADOS EN …). */
+function dondePlayoffs(e){
+  const po=e.playoffs, mi=e.miClubId, ronda=(s)=>t(RONDA_TXT[s.nombre]||L(String(s.nombre||'').toUpperCase()));
+  const viva=miSerie(e);
+  if(viva){ const alta=viva.alta===mi; return ronda(viva)+' · '+(alta?viva.ganAlta:viva.ganBaja)+'–'+(alta?viva.ganBaja:viva.ganAlta); }
+  const mias=((po&&po.seriesJugadas)||[]).filter(s=>s.alta===mi||s.baja===mi), u=mias[mias.length-1];
+  if(!u) return t(L('AFUERA DE PLAYOFFS','MISSED THE PLAYOFFS','FORA DOS PLAYOFFS'));
+  if(u.playout) return u.ganador===mi?t(L('SE QUEDÓ EN LA LIGA','STAYED UP','FICOU NA LIGA')):t(L('DESCENDIDOS','RELEGATED','REBAIXADOS'));
+  if(u.ganador&&u.ganador!==mi){
+    if(u.nombre==='final') return t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES'));
+    if(u.nombre==='final_llave') return t(L('SIN ASCENSO','NO PROMOTION','SEM ACESSO'));
+    return t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+ronda(u);
+  }
+  return t(L('SERIE GANADA · ','SERIES WON · ','SÉRIE VENCIDA · '))+ronda(u);
+}
 function pintaPartidas(){
   let html='';
   for(let n=1;n<=RANURAS;n++){
@@ -24436,7 +24469,7 @@ function pintaPartidas(){
            muestra el lobby (la Federal "2026", el resto "2026/27") y la fecha que viene, o playoffs, o terminada. */
         '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
           const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
-            :e.fase==='playoffs'?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
+            :e.fase==='playoffs'?dondePlayoffs(e)
             :e.fase==='terminada'?t(L('TEMPORADA TERMINADA','SEASON OVER','TEMPORADA ENCERRADA'))
             :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
           return anioL+' · '+donde; })()+'</div>'+

@@ -20836,7 +20836,9 @@ const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):elimTxt();  
 /* 2026-09-11 (lo destapó el arnés de capturas arreglado, clase 9): las plenas del lado de la bandera sumaban el año de la
    temporada a un título que YA trae el año del Mundial — «MUNDIAL FRANCIA 2031 · 2029». El torneo del receso no trae año, así
    que ahí sí va el de la temporada. */
-const tituloSelConAnio=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo)+' · '+anioTxt():elimTxt();
+const tituloSelConAnio=()=>{ if(C&&C.selTorneo) return selTorneoTxt(C.selTorneo.torneo)+' · '+anioTxt();
+  const e=est(); if(e&&!e.seleccion){ const an=torneoAnunciado(e); if(an&&!an.afuera) return nombreTorneoSel(an.cual)+' '+an.anio; }   // 2026-09-12: sin eliminatorias, la plena se titula con el torneo que viene
+  return elimTxt(); };
 /* ⚠️ LAS ELIMINATORIAS SON A ALGO, Y ESE ALGO SE DICE (su caza 2026-09-04: *"debería decir en
    cómo salió el partido sin ser convocado que es eliminatorias de qué torneo, sino es
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
@@ -21008,8 +21010,9 @@ function filaGrupoSel(fila,pos,pasan,mio){
  */
 function htmlSeleccion(e){
   const el=e.seleccion, t2=C.selTorneo;
-  const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ocho previas)
-  if(!elTuvo&&!t2) return '';
+  const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ochoprevias)
+  const anV=(!t2&&(!el||el.fin||!elTuvo))?torneoAnunciado(e):null;   // 2026-09-12: el torneo que viene, también en los años sin eliminatorias
+  if(!elTuvo&&!t2&&!(anV&&!anV.afuera)) return '';
   const ban=banderaDe(C.jugador.nacionalidad||'ar',14);
   const tit=(x)=>'<div class="r amTit"><span class="pos">'+ban+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='';
@@ -21026,15 +21029,16 @@ function htmlSeleccion(e){
     if(!el.fin) h+='<div class="r amTit nota"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
       ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA'))+'<br>'+t(L('EL MUNDIAL '+aM+', AL TERMINAR LA TEMPORADA SIGUIENTE','WORLD CUP '+aM+' ONCE NEXT SEASON ENDS','O MUNDIAL '+aM+', AO TERMINAR A PRÓXIMA TEMPORADA'))
       : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+', CUANDO TERMINE LA TEMPORADA CON TU CLUB','WORLD CUP '+aM+' ONCE YOUR CLUB SEASON ENDS','O MUNDIAL '+aM+', QUANDO TERMINAR A TEMPORADA COM SEU CLUBE')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
-    else { const an=torneoAnunciado(e);
+  }
+  { const an=anV;
       if(an&&!an.afuera){
         const pais=C.jugador.nacionalidad||'ar';
         h+='<div class="cajTag bkSig">'+nombreTorneoSel(an.cual)+' '+an.anio+'</div>';
         h+=htmlQueViene({linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), cab:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
           ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), nom:(id)=>nombreSelCorto(id)});
+        if(an.directos&&an.directos.length) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
         h+='<div class="cajNota">'+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
       } }
-  }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
     /* de todo grupo de un torneo pasan DOS: ésa es la línea de corte */
@@ -21082,10 +21086,13 @@ function memSel(){ if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]}; ret
    que torneoRecesoDe, sin efectos: no convoca, no anota, no guarda. Si el país quedó afuera, lo dice la línea del ciclo. */
 const SEL_MES_TXT={mundial:L('AGOSTO','AUGUST','AGOSTO'),continental:L('AGOSTO','AUGUST','AGOSTO'),eurobasket:L('AGOSTO','AUGUST','AGOSTO'),jjoo:L('JULIO','JULY','JULHO'),preolimpico:L('JULIO','JULY','JULHO')};
 function torneoAnunciado(e){
-  if(!e||!e.seleccion||!e.seleccion.fin||C.selTorneo) return null;
+  if(!e||C.selTorneo) return null;
   const mem=memSel(), pais=C.jugador.nacionalidad||'ar'; if(!SELECCIONES[pais]) return null;
   const torneo=torneoDelReceso(C.anio,pais); if(!torneo) return null;
-  const clasif=e.seleccion.clasificados||mem.clasificados||[];
+  /* el Mundial depende de las eliminatorias: hasta que cierran no hay campo. Los Juegos, el preolímpico y el continental salen
+     del Mundial anterior o del ciclo: se anuncian desde el arranque de la temporada (su pregunta: "¿quién va al preolímpico?") */
+  if(torneo==='mundial'&&!(e.seleccion&&e.seleccion.fin)) return null;
+  const clasif=(e.seleccion&&e.seleccion.clasificados)||mem.clasificados||[];
   const clasifAm=clasifAmericaDe({clasificados:clasif});
   const fuera=(torneo==='mundial'&&clasif.indexOf(pais)<0)?pais:null;
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
@@ -21098,8 +21105,9 @@ function torneoAnunciado(e){
   const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
   const rivales=t.miGrupo?t.grupos[t.miGrupo].filter(x=>x!==pais):(t.llave?t.llave.series.filter(s=>s.alta===pais||s.baja===pais).map(s=>s.alta===pais?s.baja:s.alta):[]);
   const sede=sedeDe(t,t.miGrupo?'grupo':'semifinal',t.miGrupo);
-  const ids=t.miGrupo?t.grupos[t.miGrupo].slice():[pais,...rivales];
-  return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,ids,sede,afuera:false};
+  const ids=t.miGrupo?t.grupos[t.miGrupo].slice():campo.slice();   // el preolímpico: los cuatro, que es la pregunta ("¿quién va?")
+  const directos=(cual==='jjoo'||cual==='preolimpico')?directosJJOO(mem.mundialTop||clasifAm):null;
+  return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,ids,sede,directos,afuera:false};
 }
 function torneoRecesoDe(){
   const e=est(); if(!e||e.fase!=='terminada') return null;   // §12.2 v2: la beta cae en la parte B y juega el Mundial al final
@@ -21404,7 +21412,8 @@ function animaCambio(id){
 /** ¿Hay algo de selección para mirar en esta temporada? (eliminatorias o torneo del receso) */
 function haySeleccionQueVer(){
   const e=est(); if(!e) return false;
-  return !!(e.seleccion||C.selTorneo);
+  if(e.seleccion||C.selTorneo) return true;
+  const an=torneoAnunciado(e); return !!(an&&!an.afuera);   // 2026-09-12: en los años sin eliminatorias, la pestaña existe para anunciar el torneo que viene
 }
 /** Pinta el switch en un contenedor y lo cablea. Se esconde si no hay nada del otro lado. */
 /** Los lados que hay para mirar esta temporada: el club siempre; el continental si lo jugás (§2z35); la selección si hay algo (§12). */

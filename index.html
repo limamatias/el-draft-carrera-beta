@@ -13038,7 +13038,7 @@ function armarPosesion(){
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
   const a=aro(), d=dif.dist/100;
   G.camLat=null;   // la cámara lateral es de la sacada; cualquier otra posesión la apaga
-  G.sacCortina=null; G.sacEntrada=null; G.sacVar=null;   // §2z199: los libretos de la sacada viven una posesión
+  G.sacCortina=null; G.sacEntrada=null; G.sacVar=null; G.sacLectura=null;   // §2z199: los libretos de la sacada viven una posesión
   /* variedad de arranque (reclamo suyo: "siempre arrancás en los mismos lugares"):
      esquina, ala, frente, codo — y el radio también varía por situación */
   const ANGS=[-1.25,-0.8,-0.35,0,0.35,0.8,1.25];
@@ -13248,6 +13248,11 @@ function armarPosesion(){
                v:Math.max(26, dif.def, dist(G.comps[1],metaCorte)/3.0)} : null;
     /* §2z199 `devolucion`: la pizarra es TU entrada — un punto adentro, de tu lado, a <0,55·R3 del aro (la vuelta ahí es carril) */
     if(sv==='devolucion') G.sacEntrada={x:a.x + ladoS*R3()*0.30, y:a.y + R3()*0.42};
+    /* §2z205: donde nadie corta, los 2 s de lectura que los otros saques tienen por el arranque del corte */
+    G.sacLectura=(sv==='devolucion'||sv==='poste') ? performance.now()+2000 : null;
+    /* §2z205.2 (su caza: "hay una flecha saliendo DE MÍ… no la entendí en vivo"): en la devolución la válvula te PIDE con las
+       manos arriba, el mismo tell del poste — a quién va el pase que abre tu corte */
+    if(sv==='devolucion') posar(G.comps[2],'pide',G.vos,6000);
     /* §2z199 `poste`: el grandote pide con las manos arriba, quieto — el tell de a quién va */
     if(sv==='poste') posar(G.comps[0],'pide',G.vos,2600);
     angM=Math.atan2(a.y-G.vos.y, a.x-G.vos.x); dm=70;
@@ -15601,9 +15606,9 @@ function lanzar(zona){
     G.giroPase=giroDe(compi,cae);   // 2026-09-12: el pase atrás cuesta un giro (14)
     const msArm=armadoDe(forma,compi)+(G.giroPase?GIRO_MS:0);
     let vaATirar=tiraElCompi(compi, dist(cae,compi)>50 ? cae : undefined, msArm);
-    if(forma==='abajo' && !vaATirar && G.posClock>800 && lobLibera(compi,cae)) vaATirar=true;
+    if(forma==='abajo' && !vaATirar && G.posClock>800 && !saqueDevuelve() && lobLibera(compi,cae)) vaATirar=true;   // §2z205: en la devolución nada libera: te la devuelve
     /* §2z25: el TENSO corto al que tenés cerca también lo libera (el cartel ya lo dijo) */
-    if(forma==='medio' && !vaATirar && G.posClock>800 && paseRapidoLibera(compi,cae)) vaATirar=true;
+    if(forma==='medio' && !vaATirar && G.posClock>800 && !saqueDevuelve() && paseRapidoLibera(compi,cae)) vaATirar=true;
     /* LA CARRERA SALE CON EL PASE (su ok 2026-08-23; antes todos miraban la pelota rodar
        y recién muerta corría UNO, sorteado por distancia): al pase que va a quedar vivo lo
        corren EN EL AIRE el compañero más cercano al punto de caída Y el defensor más
@@ -15618,7 +15623,12 @@ function lanzar(zona){
     const aCompiP=dist(cae,compiAlCaer);
     let carrera=null;
     if(aCompiP>110){
-      const rod={x:cae.x+Math.cos(dir)*46, y:cae.y+Math.sin(dir)*46};   // sin clamp: si rueda afuera, ES afuera
+      /* §2z205.3 EL PASE AL VACÍO PESA (su caza: "la pelota llega como estáticamente hasta ahí… no hay mucha física"; su corte
+         "vamos con A"): rodaba siempre 46 px, sobrado o flojo. Ahora rueda con la FUERZA (la energía va con el cuadrado de
+         r = fuerza/justa; r = 1 da los 46 de antes) y frena: sobrado la regalás lejos o afuera, flojo muere corto. */
+      const rF=t.potencia/Math.max(1,justa);
+      const R=clamp(46*rF*rF,16,140), Troll=0.25+R/150;
+      const rod={x:cae.x+Math.cos(dir)*R, y:cae.y+Math.sin(dir)*R};   // sin clamp: si rueda afuera, ES afuera
       /* a la pelota dividida se le CORRE de verdad: el doble del sprint del cierre (64px/s
        era caminar — la primera prueba dio carreras de 6s). Constante nueva, a calibrar. */
       const vCarrera=Math.max(120, dif.def*3.5);
@@ -15627,9 +15637,15 @@ function lanzar(zona){
       let cC=null,dC=1e9; for(const j of G.comps){ const q=dist(j,rod); if(q<dC){dC=q;cC=j;} }
       let cD=null,dD=1e9; for(const j of G.defs){ const q=dist(j,rod); if(q<dD){dD=q;cD=j;} }
       const tC=Math.max(0.05,(dC-16)/vCarrera), tD=Math.max(0.05,(dD-16)/vCarrera);
-      carrera={rod, cC, cD, tC, tD, muerta:dur+0.4};
+      carrera={rod, cC, cD, tC, tD, muerta:dur+Troll, Troll};
       G.corres=[{j:cC,x0:cC.x,y0:cC.y,x1:rod.x-8,y1:rod.y,t:0,dur:tC},
                 {j:cD,x0:cD.x,y0:cD.y,x1:rod.x+8,y1:rod.y,t:0,dur:tD}];
+      /* §2z205.3: y LOS DEMÁS NO MIRAN — los otros defensores (menos tu marca) cierran hacia donde para, al sprint del volado
+         (el calibrado), hasta un cuerpo, durante vuelo + rodado + levantada. El que la levanta decide con ellos ahí. */
+      { const tLev=Math.min(1.6, Math.max(0, Math.min(tC,tD)-(dur+Troll))), Ttot=dur+Troll+tLev, vCierre=Math.max(55,dif.def*2);
+        for(const df of G.defs){ if(df===cD||df===G.marca) continue;
+          const dd=dist(df,rod), av=Math.min(Math.max(0,dd-30*ESC()), vCierre*Ttot); if(av<2) continue;
+          G.corres.push({j:df,x0:df.x,y0:df.y,x1:df.x+(rod.x-df.x)/dd*av,y1:df.y+(rod.y-df.y)/dd*av,t:0,dur:Math.max(0.2,Ttot)}); } }
     } else if(aCompiP>50 && !(G.corrida&&G.corrida.j===compi&&compiAlCaer!==compi)){   // §2z39.10/52: el que corre ya va solo por su camino (y llega)
       // el pase justo también se corre EN EL AIRE: llega con la pelota, no después
       correr(compi,{x:cae.x,y:cae.y},dur+0.15,()=>{});
@@ -15652,7 +15668,7 @@ function lanzar(zona){
           recibe(compi,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],
             (G.corrida&&G.corrida.j===compi)?tiraElCompi(compi,cae,msArm):vaATirar); }); return; }
       // la pelota rueda con la carrera ya lanzada: la gana el que llegue primero
-      vuelo(cae,carrera.rod,0.04,0.4,()=>{
+      vuelo(cae,carrera.rod,0.04,carrera.Troll,()=>{
         const rod=carrera.rod;
         /* la cancha tiene líneas EN SERIO: si rueda más allá de la raya, es AFUERA */
         if(!enCancha(rod)){
@@ -15680,9 +15696,11 @@ function lanzar(zona){
             L('Quedó '+(corta?'corta':'larga')+', pero tu compañero ganó la carrera.',
               'It came up '+(corta?'short':'long')+', but your teammate won the race.',
               'Ficou '+(corta?'curto':'longo')+', mas seu companheiro ganhou a corrida.')[idioma()],
-            tiraElCompi(gana,rod));
+            /* §2z205.3 (su caza: "salió corriendo para agarrar esa pelota y tirar solo"): levantar una suelta no es premio —
+               tira sólo si queda solo ABAJO del aro (<0,45·R3); si no, se juega desde ahí */
+            tiraElCompi(gana,rod) && dist(rod,aro())<R3()*0.45);
         }, tPickup*1000);
-      });
+      },0,true);
     });
   }
 }
@@ -16590,7 +16608,12 @@ function giroDe(compi,cae){
   if(c&&c.j===compi&&!c.llego){ const dx=cae.x-compi.x, dy=cae.y-compi.y; return (dx*(c.meta.x-compi.x)+dy*(c.meta.y-compi.y))<0 && Math.hypot(dx,dy)>8*ESC(); }
   return dist(cae,aro())>dist(compi,aro())+15*ESC();
 }
+/* §2z205 (su caza: "si la paso y el jugador está solo, no hay devolución"): en el saque de la DEVOLUCIÓN la jugada es la vuelta —
+   el que recibe te la devuelve siempre, esté solo, lejos, sellando el poste o haya ganado una suelta. Vale hasta que la vuelta te
+   encuentra adentro (ahí la posesión deja de ser 'sacada'). */
+function saqueDevuelve(){ return G.tipo==='sacada' && G.sacVar==='devolucion'; }
 function tiraElCompi(compi,p,msArmado){
+  if(saqueDevuelve()) return false;
   /* p = DÓNDE recibe (su reporte 2026-08-24: le tiró el pase pasado al poste, el big
      corrió al punto y quedó SOLO de mid-range... y le devolvió — la intención se sellaba
      al soltar con la Q del lugar VIEJO, al lado de su marca: el pase pasado, cuyo único
@@ -16761,7 +16784,7 @@ function recibe(compi,forma,txt,va){
      que tape: es LA VENTAJA del poste; el mismo principio del superado de la bandeja):
      si todo defensor cerca del receptor quedó más lejos del aro que él, define aunque
      su Q de spot lo lea "marcado". */
-  const sella = dist(compi,aro())<R3()*0.55
+  const sella = !saqueDevuelve() && dist(compi,aro())<R3()*0.55   // §2z205: en la devolución, el poste también te la devuelve
     && G.defs.every(d=> d===G.marca || dist(d,compi)>50*ESC()
                      || dist(d,aro())>dist(compi,aro())+6*ESC());
   if((abierto||sella) && dist(compi,aro())<R3()*0.55
@@ -16859,7 +16882,7 @@ function recibe(compi,forma,txt,va){
   /* §2z128 (su caza 2026-09-07: "metí un pase de mitad de cancha en la contra a uno cerca del aro, y como estaba
      marcado frenó para devolvérmela cuando yo estaba MUY lejos"): la devolución pide que estés a tiro de pase
      (≤1,0·R3). Lejos, no hay devolución: la juega él como puede — marcado, con su Q de apuro. */
-  if(dist(compi,G.vos)>R3()*1.0){
+  if(dist(compi,G.vos)>R3()*1.0 && !saqueDevuelve()){   // §2z205: en la devolución vas entrando: te la devuelve igual
     relato(t(L('Estás lejos: la juega él.','You are far: he plays it himself.','Você está longe: ele joga sozinho.')),true);
     setTimeout(()=>{ if(G.fase==='fin') return;
       G.pelotaEn=null; posar(compi,'tira',aro(),1000);
@@ -16876,9 +16899,10 @@ function recibe(compi,forma,txt,va){
   }
   devolver(compi,forma, txt||t(L('Buen pase: quedaste mejor parado.','Good pass: you\'re better set now.','Bom passe: você ficou melhor posicionado.')));
 }
-function vuelo(desde,hasta,arco,durS,alLlegar,fuego){
+function vuelo(desde,hasta,arco,durS,alLlegar,fuego,frena){
   /* `fuego`: sólo TU tiro viaja ardiendo (los pases y los vuelos de NPC van sin llama) */
-  G.pelota={desde,hasta,arco,t:0,dur:Math.max(0.28,durS),alLlegar,fuego:fuego||0};
+  /* `frena` (§2z205.3): la pelota que RUEDA sale rápido y llega quieta (el camino se recorre con 1−(1−t)²) */
+  G.pelota={desde,hasta,arco,t:0,dur:Math.max(0.28,durS),alLlegar,fuego:fuego||0,frena:!!frena};
 }
 /* `ajena`: la perdió OTRO (la devolución del compañero que cortan): la posesión termina
    igual, pero la pérdida NO es tuya (su caza 2026-09-02: "la pasé, me la devolvieron, erró
@@ -18947,8 +18971,25 @@ function frame(now){
        la vuelta te encuentre adentro (ahí la posesión cambia de tipo y la línea se va sola) */
     if(G.tipo==='sacada' && G.sacEntrada && (G.fase==='espera'||G.fase==='apunto'||G.fase==='vuelo'||G.fase==='desmarque')){
       const p0=aPantalla(G.vos), p1=aPantalla(G.sacEntrada);
+      const antes = G.fase==='espera'||G.fase==='apunto';
+      /* §2z205.2 LA JUGADA ENTERA ANTES DE PASAR (su caza: "hay una flecha saliendo DE MÍ… ¿es para pasársela y picar yo?"):
+         la línea verde que sale de un muñeco dice "éste corre ahí", y en los otros saques ese muñeco es el compañero. Acá el
+         primer paso es el pase: una flecha clara a la válvula (que te pide) antes que tu corte. Al soltar queda sólo tu línea,
+         latiendo — también mientras el saque vuela, que es cuando hay que arrancar. */
+      const val=G.comps[2];
+      if(antes && val){
+        const v0=aPantalla(G.vos), v1=aPantalla(val), Lv=Math.hypot(v1.x-v0.x,v1.y-v0.y);
+        if(Lv>40){
+          const ux=(v1.x-v0.x)/Lv, uy=(v1.y-v0.y)/Lv, a0={x:v0.x+ux*14,y:v0.y+uy*14}, a1={x:v1.x-ux*18,y:v1.y-uy*18};
+          ctx.strokeStyle='rgba(233,236,243,.55)'; ctx.lineWidth=2; ctx.setLineDash([4,6]);
+          ctx.beginPath(); ctx.moveTo(a0.x,a0.y); ctx.lineTo(a1.x,a1.y); ctx.stroke(); ctx.setLineDash([]);
+          const angV=Math.atan2(uy,ux);
+          ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a1.x-9*Math.cos(angV-0.5),a1.y-9*Math.sin(angV-0.5));
+          ctx.moveTo(a1.x,a1.y); ctx.lineTo(a1.x-9*Math.cos(angV+0.5),a1.y-9*Math.sin(angV+0.5)); ctx.stroke();
+        }
+      }
       if(Math.hypot(p1.x-p0.x,p1.y-p0.y)>8){
-        const al = G.fase==='desmarque' ? 0.5+0.3*Math.sin(now/180) : 0.32;
+        const al = antes ? 0.32 : 0.5+0.3*Math.sin(now/180);
         ctx.strokeStyle=`rgba(125,208,135,${al})`; ctx.lineWidth=2.5; ctx.setLineDash([7,7]);
         ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y); ctx.stroke(); ctx.setLineDash([]);
         const ang=Math.atan2(p1.y-p0.y,p1.x-p0.x);
@@ -19317,7 +19358,12 @@ function frame(now){
          endurece acortando el reloj, no robándote la mirada. */
       /* los 5s de la sacada arrancan CON EL CORTE (su diseño 2026-08-23), no con tu toque:
          2s de lectura con el jugador quieto y la flecha a la vista, como el aire de la marca */
-      const relojCongelado = G.tipo==='sacada' && (G.corrida ? now<G.corrida.arranca : !G.toco);
+      /* §2z205 (su caza: "no la entendí en vivo y cuando la pasé ya no quedaba tiempo"): en los saques donde nadie corta
+         (devolución · poste) los 5 s arrancaban con tu primer toque — mirar la pizarra con el dedo apoyado se comía el saque.
+         Ahora tienen los mismos 2 s de lectura (`G.sacLectura`). Y los 5 s son del PASE: mientras el saque vuela, no corren
+         (la vuelta, `paseVivo==='vuelta'`, ya trae su reloj). */
+      const relojCongelado = G.tipo==='sacada' && ((G.corrida ? now<G.corrida.arranca : (!G.toco || (!!G.sacLectura && now<G.sacLectura)))
+        || (G.fase==='vuelo' && G.paseVivo!=='vuelta'));
       /* 2026-09-12 (su caza: "cuando terminás un entrenamiento debería dejar de correr la barrita de arriba"): entre intentos
          del drill (fase 'entre') el reloj de posesión se queda quieto */
       if(!relojCongelado && !finalQuieto && !dif.clkOff && !(G.esDrill && G.fase==='entre')) G.posClock-=dt*1000;
@@ -19814,7 +19860,7 @@ function frame(now){
           /* el globo se anuncia (mismo contrato): si el volado lo deja solo, se ve antes.
              §2z25: al que tenés CERCA lo libera el pase rápido, no el globo — el cartel
              dice eso, y el globo no se ofrece en un pase de 2 metros. */
-          if(!va){
+          if(!va && !saqueDevuelve()){   // §2z205: en la devolución no hay pase que libere: lo que el cartel dice es lo que pasa
             const rapido=estable('rap', paseRapidoLibera(compiB,b.p));
             const lob=!rapido && dist(G.vos,b.p)>PASE_CORTO() && estable('lob', lobLibera(compiB,b.p));
             if(rapido||lob){
@@ -19926,7 +19972,8 @@ function frame(now){
     if(G.pelota){
       const p=G.pelota; p.t+=dt/p.dur;
       const t=Math.min(1,p.t);
-      const q=aPantalla({x:lerp(p.desde.x,p.hasta.x,t), y:lerp(p.desde.y,p.hasta.y,t)});
+      const tp=p.frena?1-(1-t)*(1-t):t;   // §2z205.3: el rodado frena
+      const q=aPantalla({x:lerp(p.desde.x,p.hasta.x,tp), y:lerp(p.desde.y,p.hasta.y,tp)});
       const alto=1+p.arco*1.9*Math.sin(Math.PI*t);
       /* LA SOMBRA ES EL ALTÍMETRO (ARTE-PELOTA.md): con la altura se encoge y se apaga —
          el tenso la lleva pegada y oscura, el globo la deja chica y pálida allá abajo.

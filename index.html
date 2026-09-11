@@ -351,7 +351,7 @@
   #carta .pildoras{display:flex;flex-wrap:wrap;gap:6px}
   #carta .pil{padding:5px 11px;border-radius:999px;background:var(--chip);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--tinta2)}
   #carta .pil.ok{color:var(--ok)} #carta .pil.mal{color:var(--mal)}
-  #carta .pil.skill{border:1px solid rgba(125,208,135,.5);color:var(--ok)} #carta .rama i.skill{font-size:15px}   /* 2026-09-10: el skill se ve más que la relación · 2026-09-12 (su caza: «+2 FÍSICO» y «+6 ⚡» con dos tamaños, rarísimo): mismo cuerpo que las demás, se distingue por el borde y el color */
+  #carta .pil.skill{border:1px solid rgba(125,208,135,.5);color:var(--ok)} /* 2026-09-10: el skill se veía más que la relación (15 px) · 2026-09-12 (su caza, dos veces: «+2 FÍSICO» y «+6 ⚡» con dos tamaños; y en el HOSPITAL DE NIÑOS "la palabra de la rama positiva se ve más grande que la de la roja" — la regla de 15 px seguía viva aunque el comentario decía lo contrario): mismo cuerpo que las demás, se distingue por el borde y el color */
   #carta .seguir{font-family:inherit;font-weight:700;letter-spacing:1.5px;border:0;border-radius:12px;min-height:48px;width:100%;
                  font-size:20px;color:#10151f;background:var(--naranja);margin-top:8px;padding:0 16px}
   #carta .seguir:focus-visible{outline:3px solid var(--tinta)}
@@ -816,7 +816,7 @@
   #lobby .fix .r.sel .f{letter-spacing:0;display:flex;align-items:center}
   #lobby .fix .r.sel .f .flag{border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.34)}
   #lobby .fix .r.conSel{opacity:.5}
-  #lobby .fix .r.libre{opacity:.45}   /* 2026-09-12: la fecha libre del club */
+  #lobby .fix .r.libre{opacity:.45} #lobby .fix .r.libre .q{min-height:28px}   /* 2026-09-12: la fecha libre del club · su caza: "se siente rara por no tener la misma altura" — sin escudito (28 px) la fila era más baja; el aire es el del resto */
   #lobby .fix .res.selAus{color:var(--tinta2);font-size:10px;letter-spacing:1px}
   #lobby .fix .nota.sinVos{color:var(--tinta2);font-size:9px;letter-spacing:1px;background:none}
   #lobby .tablita .r.amTit{color:var(--tinta);font-weight:600;margin-top:8px}
@@ -5732,7 +5732,7 @@ const MISION_TXT = {
   puntos: [L('PUNTO', 'POINT', 'PONTO'), L('PUNTOS', 'POINTS', 'PONTOS')],
   asistencias: [L('ASISTENCIA', 'ASSIST', 'ASSISTÊNCIA'), L('ASISTENCIAS', 'ASSISTS', 'ASSISTÊNCIAS')],
   triples: [L('TRIPLE', 'THREE', 'BOLA DE TRÊS'), L('TRIPLES', 'THREES', 'BOLAS DE TRÊS')],
-  robos: [L('ROBO O TAPA', 'STEAL OR BLOCK', 'ROUBO OU TOCO'), L('ROBOS O TAPAS', 'STEALS OR BLOCKS', 'ROUBOS OU TOCOS')],   // §2z39.30: cuenta las dos
+  robos: [L('DEFENSIVA GANADA', 'DEFENSIVE STOP', 'DEFESA GANHA'), L('DEFENSIVAS GANADAS', 'DEFENSIVE STOPS', 'DEFESAS GANHAS')],   // §2z39.30: contaba robos y tapas · 2026-09-12 (su caza: "me salió una sola defensiva y fue un 1v1, no había robo"; y "se cumplió con la tapa: que pida 1 defensiva"): la clave sigue siendo `robos` (las carreras guardadas), pero lo que cuenta es la defensiva GANADA — robo, tapa, tiro molestado o carga (`D.merito`), la que sea que te toque
   perdidas: [L('PÉRDIDA COMO MÁXIMO', 'TURNOVER AT MOST', 'PERDA NO MÁXIMO'), L('PÉRDIDAS COMO MÁXIMO', 'TURNOVERS AT MOST', 'PERDAS NO MÁXIMO')],
   racha: [L('SEGUIDA', 'IN A ROW', 'SEGUIDA'), L('SEGUIDAS', 'IN A ROW', 'SEGUIDAS')],   // §2z141: "3 SEGUIDAS"
   perdidas4: [L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO'), L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO')],
@@ -5744,7 +5744,7 @@ const MISION_TXT = {
                L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS} TIROS)`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS} SHOTS)`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`)],
 };
 /* la mixta, corta para el HUD: "10 PTS · ≤1 PÉRD" */
-const MISION_CORTA = { puntos: L('PTS', 'PTS', 'PTS'), asistencias: L('AST', 'AST', 'AST'), triples: L('TRIPLES', 'THREES', 'TRÊS'), robos: L('ROB', 'STL', 'ROUB'), perdidas: L('PÉRD', 'TO', 'PERD') };
+const MISION_CORTA = { puntos: L('PTS', 'PTS', 'PTS'), asistencias: L('AST', 'AST', 'AST'), triples: L('TRIPLES', 'THREES', 'TRÊS'), robos: L('DEF', 'DEF', 'DEF'), perdidas: L('PÉRD', 'TO', 'PERD') };
 /* el nombre sin traducir (el HUD del partido lo indexa por idioma: ahí `t` es otra cosa) */
 const misionNombre = (m) => MISION_TXT[m.tipo] ? MISION_TXT[m.tipo][m.meta === 1 ? 0 : 1] : L(m.tipo, m.tipo, m.tipo);
 /* el enunciado entero (pre, cierre): "12 PUNTOS" · "SIN PEDIRLA" · "50 % DE TIRO" · "10 PUNTOS Y 1 PÉRDIDA COMO MÁXIMO" */
@@ -5761,8 +5761,10 @@ function misionMetaCorta(m) {
 /* el renglón del HUD, indexado por idioma (ahí `t` es otra cosa): nombre + cómo venís */
 function misionHud(m, G) {
   const id = idioma();
-  if (m.tipo === 'mixta') return m.partes.map((p) => (p.tipo === 'perdidas' ? '≤' : '') + p.meta + ' ' + MISION_CORTA[p.tipo][id]).join(' · ')
-    + ' <b>' + m.partes.map((p) => misionValor(p, G) + '/' + p.meta).join(' · ') + '</b>';
+  /* 2026-09-12 (su captura: «10 PTS · 1 ROB 4/10 · 0/1» — "tanto número, y la parte blanca toda continua sin nada que te
+   * diga nada"; y la parte cumplida seguía contando: 11/10): cada parte lleva SU cuenta al lado —la meta ya está en el
+   * «/10», no se repite—, y la parte que ya cumpliste dice ✓ en vez de seguir sumando */
+  if (m.tipo === 'mixta') return m.partes.map((p) => (misionCerrable(p) && misionCumplida(p, G) ? '<b>✓</b>' : '<b>' + misionValor(p, G) + '/' + p.meta + '</b>') + ' ' + MISION_CORTA[p.tipo][id] + (p.tipo === 'perdidas' ? L(' MÁX.', ' MAX', ' MÁX.')[id] : '')).join(' · ');
   /* 2026-09-10 (su caza: "0/0, 1/1… debería decir al lado «vas 50 %» o «todavía no tiraste»"): el enunciado corto con el
    * mínimo, y cómo venís en palabras — sin tiros lo dice; con tiros, la cuenta y el porcentaje que llevás */
   if (m.tipo === 'porcentaje') {
@@ -5793,7 +5795,7 @@ function misionPerdida(m, G) {
 function misionValor(m, G) {
   /* §2z39.30 (su corte: "la misión de UN ROBO es un montón; debería ser «robo o tapa»"): la clave sigue
      siendo `robos` (las carreras guardadas la tienen), pero cuenta robos + tapas */
-  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: (G.robos || 0) + (G.tapas || 0), perdidas: G.perdidas, racha: G.fuegoMax || 0,
+  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: G.defGanadas || 0, perdidas: G.perdidas, racha: G.fuegoMax || 0,
            perdidas4: G.perdidasQ4 || 0, pedidas: G.pedidasResueltas || 0, sinPedir: G.pedidasUsadas || 0,
            porcentaje: (G.tiros || 0) >= PORCENTAJE_MIN_TIROS ? Math.round(100 * (G.aciertos || 0) / G.tiros) : 0 }[m.tipo] || 0;
 }
@@ -12719,6 +12721,7 @@ function armarPosesion(){
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
   const a=aro(), d=dif.dist/100;
   G.camLat=null;   // la cámara lateral es de la sacada; cualquier otra posesión la apaga
+  G.sacCortina=null; G.sacEntrada=null; G.sacVar=null;   // §2z199: los libretos de la sacada viven una posesión
   /* variedad de arranque (reclamo suyo: "siempre arrancás en los mismos lugares"):
      esquina, ala, frente, codo — y el radio también varía por situación */
   const ANGS=[-1.25,-0.8,-0.35,0,0.35,0.8,1.25];
@@ -12828,16 +12831,31 @@ function armarPosesion(){
        salida corta), pero el corte cambia de libreto: (1) AL ARO, la de siempre; (2) A LA
        ESQUINA — arranca del codo alto y recibe para el triple del córner; (3) LA DIAGONAL
        — arranca del lado opuesto pegado al fondo y cruza toda la pintura hacia tu lado. */
-    const jugadaS=Math.random();
-    const abierto = jugadaS<0.4
+    /* §2z199 (2026-09-12, su pedido: "siento que se repiten siempre los mismos"): SIETE LIBRETOS A PARTES IGUALES — los
+       tres de siempre y cuatro nuevos: `codo` (el corte al codo, recibe de frente), `cortina` (el grandote bloquea a la
+       marca del que corta), `devolucion` (nadie corta: la pizarra es TU entrada después de sacar) y `poste` (el grandote
+       en el poste bajo, adelantado por su marca: el tenso muere, el globo entra). Las cuatro líneas de cada uno, en DISEÑO. */
+    const VARS=['aro','esquina','diagonal','codo','cortina','devolucion','poste'];
+    const sv = (G.sacForzar && VARS.includes(G.sacForzar)) ? G.sacForzar : VARS[Math.floor(Math.random()*VARS.length)];
+    G.sacVar=sv;
+    /* `codo`: sacás más arriba (0,62-0,78·R3). Medido: sacando cerca del fondo la línea del pase se pisaba con el camino del
+       corte y la marca que viene por atrás caía sobre ella (15 px en 2 de 4); desde arriba el pase entra de costado y ella queda a >30 */
+    if(sv==='codo') G.vos.y=clamp(a.y + R3()*rnd(0.62,0.78), a.y+50, H*0.8);
+    const abierto = sv==='aro'
       ? {x:a.x + ladoS*R3()*rnd(0.60,0.88), y:a.y + R3()*rnd(0.30,0.55), big:false}
-      : jugadaS<0.7
+      : sv==='esquina'
       ? {x:a.x + ladoS*R3()*rnd(0.15,0.35), y:a.y + R3()*rnd(0.70,0.92), big:false}
-      : {x:a.x - ladoS*R3()*rnd(0.55,0.80), y:a.y + R3()*rnd(0.16,0.30), big:false};
-    G.comps=[
-      {x:a.x - ladoS*pintura().w*rnd(0.40,0.60), y:a.y + R3()*rnd(0.22,0.40), big:true},
-      abierto,
-    ];
+      : sv==='diagonal'
+      ? {x:a.x - ladoS*R3()*rnd(0.55,0.80), y:a.y + R3()*rnd(0.16,0.30), big:false}
+      : sv==='codo'
+      ? {x:a.x + ladoS*R3()*rnd(0.86,0.92), y:a.y + R3()*rnd(0.20,0.26), big:false}   // la esquina de tu lado
+      : sv==='cortina'
+      ? {x:a.x + ladoS*R3()*rnd(0.58,0.66), y:a.y + R3()*rnd(0.46,0.54), big:false}   // el ala de tu lado, esperando la cortina
+      : {x:a.x - ladoS*R3()*rnd(0.70,0.80), y:a.y + R3()*rnd(0.50,0.60), big:false};  // devolucion · poste: plantado en el ala opuesta
+    const grandote = sv==='poste'
+      ? {x:a.x + ladoS*R3()*rnd(0.30,0.34), y:a.y + R3()*rnd(0.12,0.16), big:true}    // el poste bajo de TU lado
+      : {x:a.x - ladoS*pintura().w*rnd(0.40,0.60), y:a.y + R3()*rnd(0.22,0.40), big:true};
+    G.comps=[grandote, abierto];
     /* LA SALIDA CORTA (su hallazgo 2026-08-23: "en la sacada tenés MUY pocas opciones"):
        en todo saque real alguien viene a pedirla cerca — la opción SEGURA: casi siempre
        libre pero lejos del aro; la recibís y se juega adentro. El elenco es POR SITUACIÓN
@@ -12866,16 +12884,26 @@ function armarPosesion(){
        cuando te vienen a marcar, con flechita de para dónde va a salir"): el abierto
        arranca QUIETO con la flecha mostrando el corte; a los 2s sale corriendo derecho a
        velocidad de marca — y AHÍ arrancan los 5 segundos, no con tu toque. */
-    const metaCorte = jugadaS<0.4
+    const metaCorte = sv==='aro'
       ? {x: a.x + ladoS*R3()*0.22, y: a.y + R3()*rnd(0.40,0.55)}          // al aro
-      : jugadaS<0.7
+      : sv==='esquina'
       ? {x: a.x + ladoS*R3()*rnd(0.88,0.98), y: a.y + R3()*rnd(0.18,0.30)} // a la esquina (el triple del córner)
-      : {x: a.x + ladoS*R3()*rnd(0.30,0.45), y: a.y + R3()*rnd(0.50,0.68)};// la diagonal, cruzando la pintura
+      : sv==='diagonal'
+      ? {x: a.x + ladoS*R3()*rnd(0.30,0.45), y: a.y + R3()*rnd(0.50,0.68)} // la diagonal, cruzando la pintura
+      : sv==='codo'
+      ? {x: a.x + ladoS*R3()*rnd(0.20,0.25), y: a.y + R3()*rnd(0.75,0.82)} // §2z199: al codo, de frente a vos
+      : sv==='cortina'
+      ? {x: a.x + ladoS*R3()*0.18, y: a.y + R3()*rnd(0.32,0.38)}           // §2z199: por atrás de la cortina, al aro
+      : null;                                                              // §2z199 devolucion · poste: nadie corta
     /* LA CORRIDA TIENE QUE LLEGAR (su reporte 2026-08-25: la diagonal desde el poste no
        termina antes de los 5s): el que corta llega en ≤3s aunque el libreto sea largo —
        si la corrida a paso de marca no alcanza, el cortador SPRINTEA lo necesario */
-    G.corrida={j:G.comps[1], meta:metaCorte, arranca:performance.now()+2000,
-               v:Math.max(26, dif.def, dist(G.comps[1],metaCorte)/3.0)};
+    G.corrida = metaCorte ? {j:G.comps[1], meta:metaCorte, arranca:performance.now()+(sv==='cortina'?2400:2000),   // §2z199: la cortina se planta en ≤2,2 s y el corte sale a los 2,4
+               v:Math.max(26, dif.def, dist(G.comps[1],metaCorte)/3.0)} : null;
+    /* §2z199 `devolucion`: la pizarra es TU entrada — un punto adentro, de tu lado, a <0,55·R3 del aro (la vuelta ahí es carril) */
+    if(sv==='devolucion') G.sacEntrada={x:a.x + ladoS*R3()*0.30, y:a.y + R3()*0.42};
+    /* §2z199 `poste`: el grandote pide con las manos arriba, quieto — el tell de a quién va */
+    if(sv==='poste') posar(G.comps[0],'pide',G.vos,2600);
     angM=Math.atan2(a.y-G.vos.y, a.x-G.vos.x); dm=70;
     G.camLat=armarCamLateral(ladoS, G.vos.x);
   }
@@ -12893,6 +12921,22 @@ function armarPosesion(){
        (2z39.1): sale a rotar cuando la pelota entra a la pintura */
     (()=>{ const b=G.comps[0], dB=Math.max(1,dist(b,a)); return { x: b.x+(a.x-b.x)/dB*34*ESC(), y: b.y+(a.y-b.y)/dB*34*ESC(), big:true }; })(),
   ];
+  /* §2z199: lo que cada libreto nuevo cambia de la defensa (las cuatro líneas están en DISEÑO) */
+  if(G.tipo==='sacada'){
+    const sv=G.sacVar, b=G.comps[0];
+    /* `codo`: la marca del que corta arranca DETRÁS de él (del lado contrario a su corrida) y lo persigue: al codo llega de frente */
+    if(sv==='codo' && G.corrida){ const m=G.corrida.meta, dM=Math.max(1,dist(c1,m));
+      let q=clampMundoJugable(c1.x-(m.x-c1.x)/dM*33*ESC(), c1.y-(m.y-c1.y)/dM*33*ESC());
+      if(dist(q,c1)<22*ESC()) q=clampMundoJugable(c1.x, c1.y-30*ESC());   // sin lugar atrás (la esquina): pegado al fondo
+      G.defs[1].x=q.x; G.defs[1].y=q.y; }
+    /* `poste`: su marca lo ADELANTA — entre vos y él, a un cuerpo: pisa el tenso, el globo le pasa por arriba */
+    if(sv==='poste'){ const dV=Math.max(1,dist(b,G.vos));
+      G.defs[2].x=b.x+(G.vos.x-b.x)/dV*30*ESC()+rnd(-4,4); G.defs[2].y=Math.max(b.y+(G.vos.y-b.y)/dV*30*ESC()+rnd(-4,4), a.y+18*ESC()); }
+    /* `cortina`: la coreografía vive en el frame (18): el grandote trota a plantarse sobre la marca del que corta, del
+       lado del aro; su propia marca se queda con él (55 %) o CAMBIA al que corta (45 %) */
+    if(sv==='cortina'){ G.sacCortina={j:b, d:G.defs[1], dBig:G.defs[2], spot:null, lista:false, t0:null, v:null,
+                                     defensa: Math.random()<0.55?'queda':'cambia', cambio:false, arranco:false}; }
+  }
   /* §2z129: la marca de la válvula de la sacada, a un cuerpo de él del lado de la pelota */
   if(G.tipo==='sacada' && G.comps[2]){ const cv=G.comps[2], dV=Math.max(1,dist(cv,G.vos));
     G.defs.push({ x: cv.x+(G.vos.x-cv.x)/dV*30*ESC()+rnd(-5,5), y: cv.y+(G.vos.y-cv.y)/dV*30*ESC()+rnd(-5,5) }); }
@@ -13548,7 +13592,8 @@ function armarPosesion(){
   else if(G.tipo==='sacada'){
     veredicto(t(L('¡SACÁS DEL COSTADO!','SIDELINE INBOUND!','REPOSIÇÃO LATERAL!')),'neu',1400);
     sit.textContent=t(L('SACADA','INBOUND','REPOSIÇÃO')); sit.className='cierre';
-    explicar('sacada',t(L('Sin tiro: metela adentro. Los 5s arrancan con el corte.','No shot: get it inside. The 5s start on the cut.','Sem arremesso: bota ela pra dentro. Os 5s começam no corte.')), false); }
+    explicar('sacada',G.corrida ? t(L('Sin tiro: metela adentro. Los 5s arrancan con el corte.','No shot: get it inside. The 5s start on the cut.','Sem arremesso: bota ela pra dentro. Os 5s começam no corte.'))
+                                : t(L('Sin tiro: metela adentro. Los 5s arrancan con tu toque.','No shot: get it inside. The 5s start on your touch.','Sem arremesso: bota ela pra dentro. Os 5s começam no seu toque.')), false); }   // §2z199: sin corte, el reloj es tuyo
   else if(G.tipo==='avance'){
     veredicto(t(L('¡AVANZÁ!','PUSH IT UP!','AVANÇA!')),'ok',1400);
     sit.textContent=t(L('AVANCE','ADVANCE','AVANÇO')); sit.className='carril';
@@ -16881,6 +16926,8 @@ $('#btnSeguir').onclick=()=>{
 /* al cerrar TU posesión: el resultado entra al feed y el guion sigue */
 function finPosesion(anoto, resumen){
   if(G.fase==='fin'||G.fase==='feed') return;
+  /* 2026-09-12: la defensiva GANADA (robo · tapa · tiro molestado · carga: `D.merito`) se cuenta al cerrar la escena, una vez — es lo que pide la misión */
+  if(G.tipo==='defensa' && G.defensa && G.defensa.merito && !G.defensa.contada){ G.defensa.contada=true; G.defGanadas=(G.defGanadas||0)+1; }
   if(G.enPedida){ if(anoto) G.pedidasResueltas=(G.pedidasResueltas||0)+1; G.enPedida=false; }   // 2026-09-10: la pedida que terminó en algo
   if(G.esFinal){ tensionParar(); sfx('chicharra',0.9); }   // LA ÚLTIMA muere con la bocina
   /* §2z99 (su caza 2026-09-07: "erré el triple para empatar… esa jugada CLUTCH tiene que generar algo"): el motor
@@ -18349,7 +18396,7 @@ function frame(now){
       const w=(1-dv/R0)*3.0*dot;
       let nx=dx+(-dy)*o.esqLado*w, ny=dy+dx*o.esqLado*w; const n=Math.hypot(nx,ny)||1; return {x:nx/n,y:ny/n}; };
     /* §2z106: en la contra ABRE el que persigue es el del medio (defs[1]), y sólo desde que gatilla el closeout */
-    const perseguidorDe=(cor)=> cor.pedida ? cor.ch : G.tipo==='sacada' ? G.defs[1] : (G.tipo==='contra'&&cor.abre) ? G.defs[1] : G.defs[0];
+    const perseguidorDe=(cor)=> (cor.pedida||cor.chFijo) ? cor.ch : G.tipo==='sacada' ? G.defs[1] : (G.tipo==='contra'&&cor.abre) ? G.defs[1] : G.defs[0];   // §2z199: `chFijo` = el que cambió en la cortina
     window.esPerseguidor=(df)=>{ const cor=G.corrida; if(!cor||cor.llego||now<cor.arranca) return false;
       if(cor.abre && G.tipo==='contra' && !cor.cierra) return false;
       return df===perseguidorDe(cor) && df!==G.marca; };
@@ -18413,7 +18460,8 @@ function frame(now){
          lo corre al 78 %; con def 64 lo lee a los 320 ms y casi lo alcanza (98 %). La ventana se achica
          con el nivel: en los altos dura medio segundo y es timing puro. */
       const reaccion=cor.pedida?Math.max(420,700-6*(dif.def||16)):0;   // §2z39.15 (nivel 19/20: "lo corren DEMASIADO de cerca, imposible buscar la ventana"): piso 420 ms
-      if(ch && ch!==G.marca && now>=cor.arranca+reaccion && cierraAbre){
+      const trabadaEnCortina = !!(ch && ch.trabadoHasta && now<ch.trabadoHasta);   // §2z199 `cortina`: pegada al grandote, 700 ms
+      if(ch && ch!==G.marca && now>=cor.arranca+reaccion && cierraAbre && !trabadaEnCortina){
         /* el perseguidor se planta AFUERA del radio de la regla 2 (28·ESC) — a 30px crudos
            quedaba ADENTRO y la separación lo empujaba mientras él volvía a entrar: los dos
            vibraban abrazados al lado del aro (su reporte 2026-08-27, la contra) */
@@ -18445,6 +18493,46 @@ function frame(now){
         ctx.stroke(); ctx.setLineDash([]);
         /* §2z39.4 (su caza: "la punta de la flecha sale rota"): la punta mira desde el anteúltimo punto; si ese tramo mide cero, desde el cuerpo */
         const ang=Math.hypot(p1.x-pAnte.x,p1.y-pAnte.y)>1 ? Math.atan2(p1.y-pAnte.y,p1.x-pAnte.x) : Math.atan2(p1.y-p0.y,p1.x-p0.x);
+        ctx.beginPath(); ctx.moveTo(p1.x,p1.y);
+        ctx.lineTo(p1.x-10*Math.cos(ang-0.5),p1.y-10*Math.sin(ang-0.5));
+        ctx.moveTo(p1.x,p1.y);
+        ctx.lineTo(p1.x-10*Math.cos(ang+0.5),p1.y-10*Math.sin(ang+0.5));
+        ctx.stroke();
+      }
+    }
+    /* §2z199 `cortina`: el grandote trota (112-180, ≤2,2 s) a plantarse a un cuerpo de la marca del que corta, del lado
+       del aro; su propia marca sube colgada de él. Al arrancar el corte, la marca que quedó a <40·ESC de la cortina queda
+       TRABADA 700 ms; y si la defensa CAMBIA, a los 500 ms del corte la marca del grandote pasa a perseguir al que corta. */
+    if(G.tipo==='sacada' && G.sacCortina && (G.fase==='espera'||G.fase==='apunto'||G.fase==='vuelo'||G.fase==='desmarque')){
+      const P=G.sacCortina, a2=aro();
+      if(!P.lista){
+        if(!P.t0) P.t0=now;
+        /* el spot se fija UNA vez (medido: recalculado por frame, la separación corría a la marca y el grandote la perseguía sin
+           plantarse nunca); 34·ESC como la del bloqueo. Y a los 2,4 s está plantado donde llegó: el corte no lo espera */
+        if(!P.spot){ const dD=Math.max(1,dist(P.d,a2)); P.spot={x:P.d.x+(a2.x-P.d.x)/dD*34*ESC(), y:P.d.y+(a2.y-P.d.y)/dD*34*ESC()}; }
+        if(!P.v) P.v=clamp(dist(P.j,P.spot)/2.0, 112, 180);
+        const d1=dist(P.j,P.spot);
+        if(d1>7 && now<P.t0+2400){ P.j.x+=(P.spot.x-P.j.x)/d1*Math.min(P.v*dt,d1); P.j.y+=(P.spot.y-P.j.y)/d1*Math.min(P.v*dt,d1); }
+        else P.lista=true;
+        if(!P.cambio){ const ub={x:a2.x-P.j.x, y:a2.y-P.j.y}, Lb=Math.hypot(ub.x,ub.y)||1;
+          const m2={x:P.j.x+ub.x/Lb*30*ESC(), y:P.j.y+ub.y/Lb*30*ESC()}, d2=dist(P.dBig,m2);
+          if(d2>4){ P.dBig.x+=(m2.x-P.dBig.x)/d2*Math.min(112*dt,d2); P.dBig.y+=(m2.y-P.dBig.y)/d2*Math.min(112*dt,d2); } }
+      }
+      const cor=G.corrida;
+      if(cor && now>=cor.arranca){
+        if(!P.arranco){ P.arranco=true; if(dist(P.d,P.j)<50*ESC()) P.d.trabadoHasta=now+700; }   // 50·ESC: la separación la corre hasta ~45 px al plantarse (medido 41-49)
+        if(P.defensa==='cambia' && !P.cambio && now>=cor.arranca+500){ P.cambio=true; cor.ch=P.dBig; cor.chFijo=true; }
+      }
+    }
+    /* §2z199 `devolucion`: la pizarra es TUYA — la línea punteada desde tu muñeco hasta el punto de entrada, hasta que
+       la vuelta te encuentre adentro (ahí la posesión cambia de tipo y la línea se va sola) */
+    if(G.tipo==='sacada' && G.sacEntrada && (G.fase==='espera'||G.fase==='apunto'||G.fase==='vuelo'||G.fase==='desmarque')){
+      const p0=aPantalla(G.vos), p1=aPantalla(G.sacEntrada);
+      if(Math.hypot(p1.x-p0.x,p1.y-p0.y)>8){
+        const al = G.fase==='desmarque' ? 0.5+0.3*Math.sin(now/180) : 0.32;
+        ctx.strokeStyle=`rgba(125,208,135,${al})`; ctx.lineWidth=2.5; ctx.setLineDash([7,7]);
+        ctx.beginPath(); ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y); ctx.stroke(); ctx.setLineDash([]);
+        const ang=Math.atan2(p1.y-p0.y,p1.x-p0.x);
         ctx.beginPath(); ctx.moveTo(p1.x,p1.y);
         ctx.lineTo(p1.x-10*Math.cos(ang-0.5),p1.y-10*Math.sin(ang-0.5));
         ctx.moveTo(p1.x,p1.y);
@@ -18751,8 +18839,8 @@ function frame(now){
           /* §2z132: el que CORRE con correr() (interpolado punto a punto) no se deja empujar — la separación lo corría y
              la interpolación lo devolvía cada frame: "enganchado" entre dos cuerpos. Empuja, no lo empujan. */
           const corre1=!!(G.corre&&G.corre.j===p1), corre2=!!(G.corre&&G.corre.j===p2);
-          const fija1=(G.pantalla&&G.pantalla.lista&&p1===G.pantalla.j)||p1===G.marca||corre1;
-          const fija2=(G.pantalla&&G.pantalla.lista&&p2===G.pantalla.j)||p2===G.marca||corre2;
+          const fija1=(G.pantalla&&G.pantalla.lista&&p1===G.pantalla.j)||(G.sacCortina&&G.sacCortina.lista&&p1===G.sacCortina.j)||p1===G.marca||corre1;   // §2z199: la cortina de la sacada también
+          const fija2=(G.pantalla&&G.pantalla.lista&&p2===G.pantalla.j)||(G.sacCortina&&G.sacCortina.lista&&p2===G.sacCortina.j)||p2===G.marca||corre2;
           if(!fija1){ p1.x-=ux*emp*(fija2?2:1); p1.y-=uy*emp*(fija2?2:1); }
           if(!fija2){ p2.x+=ux*emp*(fija1?2:1); p2.y+=uy*emp*(fija1?2:1); }
         }
@@ -18876,9 +18964,8 @@ function frame(now){
             || (df===G.custodio && !!G.comprometido)
             || !!(G.corre&&G.corre.j===df)
             || !!(G.corres&&G.corres.some(cr=>cr.j===df&&cr.t<1))
-            || !!(G.corrida&&now>=G.corrida.arranca&&df!==G.marca
-                  &&df===(G.tipo==='contra'?G.defs[0]:G.defs[1])
-                  &&dist(df,G.corrida.j)>30)
+            || !!(G.corrida&&esPerseguidor(df)&&dist(df,G.corrida.j)>30)   // §2z199: el que persigue, sea quien sea (en la cortina puede haber cambiado)
+            || !!(G.sacCortina&&!G.sacCortina.lista&&df===G.sacCortina.dBig)
             /* el defensor del big trota subiendo con la pantalla, hundiéndose en el
                drop, o cazándote en el blitz — quieto sólo cuando llegó a su lugar */
             || !!(G.tipo==='bloqueo'&&G.pantalla&&df===G.pantalla.d
@@ -18890,11 +18977,13 @@ function frame(now){
       let ap2, pasa2=false, band2=false, vol2=false;
       if(co.pose && now<co.pose.hasta){
         const v=vecPantalla({x:co.pose.hacia.x-co.x, y:co.pose.hacia.y-co.y});
-        ap2=Math.atan2(v.y,v.x); pasa2=co.pose.t==='pasa';
+        if(co.pose.t!=='pide') ap2=Math.atan2(v.y,v.x);   // §2z199: el que pide levanta las manos, no apunta
+        pasa2=co.pose.t==='pasa';
         band2=co.pose.t==='bandeja'; vol2=co.pose.t==='volcada';
       }
       jugador(aPantalla(co),CASACAS.nos,{big:co.big, i:ci, apunta:ap2, pasa:pasa2,
         bandeja:band2, volcada:vol2,
+        manosArriba: !!(co.pose&&co.pose.t==='pide'&&now<co.pose.hasta),   // §2z199 `poste`: pide con las manos arriba
         /* el corredor que LLEGÓ deja de trotar (su reporte 2026-08-24: "figura corriendo
            contra el aro, contra una pared invisible"): el flag moría con la corrida, no
            con la llegada — ahora corre sólo mientras le falte camino */
@@ -18907,6 +18996,7 @@ function frame(now){
             || !!(G.tipo==='bloqueo'&&G.pantalla&&co===G.pantalla.j&&!G.pantalla.lista
                   &&G.pantalla.t0&&now>=G.pantalla.t0+900
                   &&G.pantalla.spot&&dist(co,G.pantalla.spot)>7)
+            || !!(G.sacCortina&&!G.sacCortina.lista&&co===G.sacCortina.j&&G.sacCortina.spot&&dist(co,G.sacCortina.spot)>4)   // §2z199
             /* y trota reubicándose con la vida del ataque */
             || !!(co.vida&&co.vida.meta&&dist(co,co.vida.meta)>5)});
     });

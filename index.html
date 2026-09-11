@@ -15108,7 +15108,14 @@ function lanzar(zona){
     /* el pase que cae del otro lado de la raya se va: nadie corre lo incorrible */
     if(!enCancha(cae)){
       const sal=puntoSalida(desde,cae);
-      vuelo(desde,sal,arco,dur*Math.max(0.25,dist(desde,sal)/Math.max(1,dist(desde,cae))),()=>{
+      const durSal=dur*Math.max(0.25,dist(desde,sal)/Math.max(1,dist(desde,cae)));
+      /* 2026-09-12 (su caza: "tiré un picado largo que se fue afuera por un metro y el receptor se quedó mirando"): el más
+         cercano CORRE a la raya donde sale la pelota —hasta un cuerpo adentro, nunca la cruza— y no llega: el intento se ve,
+         el resultado es el mismo. Si estaba lejos (más de 220·ESC), no corre: nadie corre lo incorrible. */
+      if(dist(compi,sal)<220*ESC()){
+        const adentro={x:Math.max(MARG()+12*ESC(),Math.min(W-MARG()-12*ESC(),sal.x)), y:Math.max(baseY()+12*ESC(),Math.min(H-20,sal.y))};
+        correr(compi,adentro,Math.max(0.3,durSal),()=>{}); }
+      vuelo(desde,sal,arco,durSal,()=>{
         veredicto(L('¡AFUERA!','OUT!','FORA!')[idioma()],'mal');
         perderPelota(L('El pase se fue afuera: nadie lo puede levantar ahí.','The pass went out of bounds: nobody can pick it up there.','O passe saiu pela linha: ninguém pode pegar ali.')[idioma()],null,true); });
       return;

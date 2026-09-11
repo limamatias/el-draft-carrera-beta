@@ -3255,6 +3255,8 @@ const RECETAS_ESCUDO = {
   ALBS: { pattern: 'liso' },
   FLAM: { pattern: 'rayas' },
   TIBA: { pattern: 'banda', colors: ['#355498', '#ED1C24', '#FFFFFF'] },   // 2026-09-12 (su pedido: "bastante rojo en su identidad"): banda roja sobre azul, filete blanco   // 2026-09-12: las rayas rojinegras (no estaba entre las 116 de El Draft y caía en liso)
+  ICSHA: { pattern: 'banda', colors: ['#1A3D8F', '#F58220', '#F58220'] },   // 2026-09-12 (su pedido: "que el escudo al menos tenga naranja"): banda y filete naranjas sobre el azul de los Sharks
+  ICGLU: { pattern: 'estrella', colors: ['#F58220', '#FFFFFF'] },   // 2026-09-12 (su pedido: "naranja y blanco"): la estrella blanca del UNITED sobre naranja
   AMAN: { pattern: 'banda' },
   ARJU: { pattern: 'diagonal' },
   ATEN: { pattern: 'cuartos', colors: ['#FFFFFF', '#31993F'] },   // 2026-09-12 (su pedido: el escudo verde y blanco a cuartos, no un verde plano como Ferro)
@@ -10523,12 +10525,12 @@ const CLUBES_INTERCONTINENTAL = [
   /* Asia · Champions League Asia */
   { id: 'ICUTS', sigla: 'UTS', nombre: 'Utsunomiya Brex', corto: 'Utsunomiya', ciudad: 'Utsunomiya', apodo: null, color: '#F5C400', color2: '#1A1A1A', fuerza: 60, rival: null, pais: 'jp', cont: 'asia' },
   { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi', ciudad: 'Beirut', apodo: null, color: '#0A8F3C', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
-  { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', corto: 'Shanghai', ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
+  { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', corto: 'Shanghai Sharks', ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
   /* Oceanía · NBL */
   { id: 'ICTAS', sigla: 'TAS', nombre: 'Tasmania JackJumpers', corto: 'JackJumpers', ciudad: 'Hobart', apodo: null, color: '#0A6E4F', color2: '#F5C400', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
   { id: 'ICILL', sigla: 'ILL', nombre: 'Illawarra Hawks', corto: 'Illawarra', ciudad: 'Wollongong', apodo: null, color: '#D8202C', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
   /* el combinado de la G League: fijo, siempre está */
-  { id: 'ICGLU', sigla: 'GLU', nombre: 'NBA G League United', corto: 'G League United', ciudad: 'Nueva York', apodo: null, color: '#0F1F5C', color2: '#C8102E', fuerza: 69, rival: null, pais: 'us', cont: 'gleague' },
+  { id: 'ICGLU', sigla: 'GLU', nombre: 'NBA G League United', corto: 'G League United', ciudad: 'Nueva York', apodo: null, color: '#F58220', color2: '#FFFFFF', fuerza: 69, rival: null, pais: 'us', cont: 'gleague' },
 ];
 const IC_CONTINENTES = ['europa', 'africa', 'asia', 'oceania', 'gleague'];
 /* la sede rota por carrera; es neutral salvo que sea la ciudad de un participante (juega de local) */

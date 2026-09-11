@@ -4676,8 +4676,10 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
 const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 44 }, piso: 4, ventana: 3, bien: 7, mal: 5,
   /* 2026-09-12 (su pedido, en el techo con media 64 y entrenando: "pasada la dificultad que tengo ahora, con 5 partidos seguidos a
      nivel alto, 8,5, que te siga subiendo"): la SEGUNDA ESCALERA, arriba del techo — cinco seguidos con promedio ≥ 8,5 suben otro
-     escalón, cuatro más hasta el techo2. Bajar sigue igual (tres flojos). */
-  ventana2: 5, bien2: 8.5, techo2: { nacional: 38, nba: 56 } };
+     escalón, cuatro más hasta el techo2. Bajar sigue igual (tres flojos).
+     Su segunda vuelta, el mismo día ("bajaría esto a 3 partidos, no 5; no es tan larga la beta"): TRES seguidos. Con cinco,
+     llegar al techo2 de la LNB comía las 38 fechas de la regular jugando siempre bien; con tres, 30. */
+  ventana2: 3, bien2: 8.5, techo2: { nacional: 38, nba: 56 } };
 const dbetaTecho2 = (ligaId) => DBETA.techo2[ligaId] !== undefined ? DBETA.techo2[ligaId] : 38;
 const dbetaTecho = (ligaId) => DBETA.techo[ligaId] !== undefined ? DBETA.techo[ligaId] : 26;
 function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DBETA.arranque[ligaId] : 8; }
@@ -12941,7 +12943,11 @@ function armarPosesion(){
      gratis — y se repite todo el partido porque el estilo es del club. El CARRIL nace afuera del arco
      (piso 0,95·R3): conducir tiene que ser conducir. La decisión y el cierre siguen pudiendo nacer cerca:
      ahí recibir cuesta, que es lo que ese estilo promete. */
-  if(G.tipo==='carril' && r<R3()*0.95) r=R3()*rnd(0.95,1.12);
+  /* ⚠️ 2026-09-12 (su segunda caza: "hay muchas de VÍA LIBRE que arrancás bastante cerca del aro y con NADIE cerca"): el piso
+     preguntaba por G.tipo, que acá todavía es el de la posesión ANTERIOR (el nuevo se asignaba 50 líneas más abajo) — sólo
+     aplicaba si la anterior también era carril. El tipo se sortea ACÁ y abajo se usa el mismo (sortearTipo no lee la posición). */
+  const tipoNuevo = (G.beat && G.beat.tipo) ? G.beat.tipo : sortearTipo(!!(G.beat && G.beat.pedida));
+  if(tipoNuevo==='carril' && r<R3()*0.95) r=R3()*rnd(0.95,1.12);
   G.vos = { x: clamp(a.x + Math.sin(ang)*r, MARG()+16, W-MARG()-16),
             y: Math.min(Math.max(a.y + Math.cos(ang)*r, a.y + H*0.045), pisoVos()) };
   /* §2z39.4 + §2z39.13 EL DRILL DE VISIÓN NACE AFUERA DEL ARCO Y EN LUGARES DISTINTOS (su caza: "empezás
@@ -12993,8 +12999,7 @@ function armarPosesion(){
      11:38→11:29 entrenando — parece un partido y no lo es; en NSS el drill no tiene
      reloj de partido). El flag vive acá para que el frame lo lea sin adivinar. */
   G.esDrill = !!(G.beat && G.beat.drill);
-  if(G.beat && G.beat.tipo) G.tipo=G.beat.tipo;
-  else G.tipo=sortearTipo(esPedida);
+  G.tipo=tipoNuevo;   // sorteado arriba, antes del radio (el piso del carril lo necesita)
   /* §2z87: las escenas defensivas nuevas son la MISMA posesión 'defensa' con otra geometría (cierre · cortina · 1v1) */
   G.defEscena=null;
   if(G.tipo==='defCierre'){ G.tipo='defensa'; G.defEscena='cierre'; }
@@ -23660,7 +23665,7 @@ function registrarResultado(){
     /* §2z105 (su pedido: "comunicar al pasar que jugaste bien algunos partidos seguidos y va a subir la dificultad;
        si no, de la nada te cuesta más y es frustrante"): el escalón se anuncia al volver al vestuario */
     /* copia corta: el toast es nowrap a 14,5 px (clase 1 de CLAUDE.md, left:50%) — 43 caracteres entran en 375 */
-    if(J.dbeta>dAntes) dbetaAviso={txt:dAntes>=dbetaTecho(C.ligaId)?t(L('Cinco grandes seguidos: te marcan como a una figura.','Five big ones in a row: they guard you like a star.','Cinco grandes seguidos: te marcam como a um craque.')):t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
+    if(J.dbeta>dAntes) dbetaAviso={txt:dAntes>=dbetaTecho(C.ligaId)?t(L('Tres partidazos seguidos: te marcan como a una figura.','Three big games in a row: they guard you like a star.','Três jogaços seguidos: te marcam como a um craque.')):t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
     else if(J.dbeta<dAntes) dbetaAviso={txt:t(L('Tres flojos seguidos: te aflojan la marca.','Three poor in a row: they ease up on you.','Três fracos seguidos: aliviam a marcação.'))};
     /* 2026-09-12 (su corte: "ese toast es justamente lo que se pasa por arriba; debería decirlo en la parte del lobby donde
        mostramos cosas"): el escalón queda en el goteo del vestuario hasta la próxima fecha, como el óxido. El toast se va. */

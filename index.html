@@ -45,6 +45,13 @@
   #sReloj,#fReloj{display:inline-block;min-width:5.2ch;text-align:center}
   #marcador .lado:first-child{border-radius:8px 0 0 8px}
   #marcador .lado:last-child{border-radius:0 8px 8px 0}
+  /* 2026-09-12 COMO EN LA TELE (su corte): el LOCAL a la izquierda. De visitante, `body.visita` da vuelta el marcador de arriba y
+     el del feed (las cajas se espejan por adentro para que el número quede pegado al reloj); en cancha neutral, como local. */
+  body.visita #marcador,body.visita #feedMarcador{flex-direction:row-reverse}
+  body.visita #marcador .lado:first-child,body.visita #feedMarcador .lado:first-child{border-radius:0 8px 8px 0}
+  body.visita #marcador .lado:last-child,body.visita #feedMarcador .lado:last-child{border-radius:8px 0 0 8px}
+  body.visita #feedMarcador .lado:first-child{border-radius:0 12px 12px 0} body.visita #feedMarcador .lado:last-child{border-radius:12px 0 0 12px}
+  body.visita #marcador .lado,body.visita #feedMarcador .lado{flex-direction:row-reverse}
   #posClock{margin:5px auto 0;width:130px;height:5px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden}
   #posClock i{display:block;height:100%;background:var(--naranja);width:100%}
   /* el renglón completo (PTS·AST·FG·3P·ROB·TAP·PÉR) medía 379,8 px con letter-spacing 1px:
@@ -22831,6 +22838,7 @@ $l('lobSalir').addEventListener('click',()=>{
   $l('lobby').classList.add('oculto');
   botonesDelJuego(true);
   marcadorDeClubes(preAbierto.rival,miIdEn(preAbierto));
+  document.body.classList.toggle('visita',preAbierto.local===false&&!preAbierto.neutral);   // 2026-09-12: como en la tele, el local a la izquierda
   const btn=document.getElementById('btnOtra');
   if(btn) btn.textContent=t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
   empezar();

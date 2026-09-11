@@ -6301,14 +6301,32 @@ function cartaDeVentana(){
         desenlaces:[ {p:100, remate:L('Te quedás','You stay','Você fica'), texto:L('La ventana se juega sin vos.','The window is played without you.','A janela é jogada sem você.'), ef:{ rel:{dt:3}, relSel:{dt:-5}, ventana:{n:v.n, ir:false}, verdePrimero:true }} ] },
     ] };
 }
+/* 2026-09-12 (su caza: la carta de la víspera de la final de las Américas decía «FECHA 36» — la fecha que acababa de jugar, no
+   lo que venía): el rótulo dice el PRÓXIMO partido, como el HOY. Sin nada por delante, sólo el club. Autocontenido (01k está
+   fuera del cierre del lobby: nada de AM_TXT/RONDA_TXT de 18b, clase 17). */
+function rotuloCarta(e){
+  const club=clubDe(e.miClubId), base=club?club.nombre.toUpperCase():'';
+  let o=null; try{ o=miProximo(e); }catch(err){ o=null; }
+  if(!o) return base;
+  const R={cuartos:L('CUARTOS','QUARTERFINALS','QUARTAS'),semifinal:L('SEMIFINAL','SEMIFINALS','SEMIFINAL'),final:L('LA FINAL','THE FINAL','A FINAL'),tercero:L('TERCER PUESTO','THIRD PLACE','TERCEIRO LUGAR'),
+           grupo:L('GRUPO','GROUP','GRUPO'),segunda:L('SEGUNDA FASE','SECOND ROUND','SEGUNDA FASE'),conferencia:L('FINAL DE CONFERENCIA','CONFERENCE FINALS','FINAL DE CONFERÊNCIA'),
+           reclasificacion:L('RECLASIFICACIÓN','PLAY-IN','REPESCAGEM'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),primera:L('PRIMERA RONDA','FIRST ROUND','PRIMEIRA RODADA'),octavos:L('OCTAVOS','ROUND OF 16','OITAVAS')};
+  const ronda=(n)=>t(R[n]||L(String(n||'').toUpperCase()));
+  let que='';
+  if(o.tipo==='fecha') que=t(L('FECHA','ROUND','RODADA'))+' '+o.fecha;
+  else if(o.tipo==='serie'&&o.serie) que=ronda(o.serie.nombre)+(o.serie.mejorDe>1&&o.juego?' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego:'');
+  else if(o.tipo==='americas') que=(o.ic?t(L('COPA INTERCONTINENTAL','INTERCONTINENTAL CUP','COPA INTERCONTINENTAL')):t(L('LIGA DE LAS AMÉRICAS','AMERICAS LEAGUE','LIGA DAS AMÉRICAS')))+(o.etapa?' · '+ronda(String(o.etapa).replace(/^ic-/,'')):'');
+  else if(o.tipo==='seleccion') que=t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO'));
+  return que?base+' · '+que:base;
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
-  if(ev){ const e=est(), club=clubDe(e.miClubId); mostrarCarta(ev,(club?club.nombre.toUpperCase():'')+' · '+t(L('FECHA','ROUND','RODADA'))+' '+e.fechaJugada,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
+  if(ev){ const e=est(); mostrarCarta(ev,rotuloCarta(e),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
   const c=cartaPendiente(); if(!c) return false;
-  const e=est(), club=clubDe(e.miClubId);
-  mostrarCarta(c,(club?club.nombre.toUpperCase():'')+' · '+t(L('FECHA','ROUND','RODADA'))+' '+e.fechaJugada,()=>{ pintaLobby(); });
+  const e=est();
+  mostrarCarta(c,rotuloCarta(e),()=>{ pintaLobby(); });
   return true;
 }
 /* al abrir el mercado: una por receso; el que llama se vuelve a llamar al cerrar */
@@ -8871,8 +8889,8 @@ const CARTAS_NCAA=[
      { tipo:'segura', label:L('Jugarlo callado', 'Play it quiet', 'Jogar calado'), desenlaces:[
          {p:100, remate:L('Sin titulares', 'No headlines', 'Sem manchetes'), texto:L('No les das nada. El clásico se juega igual, y tu nombre no está en ninguna pared.', 'You give them nothing. The rivalry game gets played all the same, and your name is not on any wall.', 'Você não dá nada a eles. O clássico é jogado do mesmo jeito, e seu nome não está em parede nenhuma.'), ef:{ rel:{dt:2} }} ] },
      { tipo:'apuesta', label:L('Prometerlo en voz alta', 'Promise it out loud', 'Prometer em voz alta'), desenlaces:[
-         {p:60, remate:L('Dicho y hecho', 'Said and done', 'Dito e feito'), texto:L('La frase empapela el vestuario de ellos una semana. Después ganás el clásico, y la frase cambia de dueño.', 'The quote wallpapers their locker room for a week. Then you win the rivalry game, and the quote changes owners.', 'A frase forra o vestiário deles por uma semana. Depois você ganha o clássico, e a frase muda de dono.'), ef:{ rel:{hinchada:6} }},
-         {p:40, remate:L('Empapelado', 'Wallpaper', 'Papel de parede'), texto:L('Perdés el clásico con tu frase colgada en el vestuario de ellos. Te la van a recordar hasta que te vayas.', 'You lose the rivalry game with your quote hanging in their locker room. They will remind you of it until the day you leave.', 'Você perde o clássico com a sua frase pendurada no vestiário deles. Vão te lembrar dela até você ir embora.'), ef:{ rel:{hinchada:-4} }} ] },
+         {p:60, remate:L('Dicho y hecho', 'Said and done', 'Dito e feito'), texto:L('La frase empapela el vestuario de ellos una semana. La tuya la corea la tribuna en el calentamiento.', 'The quote wallpapers their locker room for a week. Then you win the rivalry game, and the quote changes owners.', 'A frase forra o vestiário deles por uma semana. Depois você ganha o clássico, e a frase muda de dono.'), ef:{ rel:{hinchada:6} }},
+         {p:40, remate:L('Empapelado', 'Wallpaper', 'Papel de parede'), texto:L('El DT te la hace leer en voz alta delante del plantel. Ahora la tenés que sostener vos, y el partido todavía no empezó.', 'You lose the rivalry game with your quote hanging in their locker room. They will remind you of it until the day you leave.', 'Você perde o clássico com a sua frase pendurada no vestiário deles. Vão te lembrar dela até você ir embora.'), ef:{ rel:{hinchada:-4} }} ] },
    ] },
 
  // ── El tobillo en la semana del torneo ──────────────────────────────────────
@@ -9649,10 +9667,10 @@ const CARTAS_AMERICAS=[
    cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='nbb',
    gancho:L('Mañana juegan contra los brasileños. El que te va a marcar habla todo el partido, te lo avisa el ayudante: te dice cosas al oído en cada pelota parada, y nadie sabe qué.','Tomorrow you play the Brazilians. The guy who will guard you talks the whole game, the assistant warns you: he whispers things in your ear at every dead ball, and nobody knows what.','Amanhã jogam contra os brasileiros. O cara que vai te marcar fala o jogo inteiro, o auxiliar te avisa: diz coisas no seu ouvido em cada bola parada, e ninguém sabe o quê.'),
    opciones:[
-     {tipo:'segura',label:L('Hacerte el sordo','Play deaf','Fingir que não ouve'),desenlaces:[{p:100,remate:L('Ni una palabra','Not a word','Nem uma palavra'),texto:L('Habla cuarenta minutos y no le contestás ni una vez. Al final del partido te da la mano y se ríe.','He talks for forty minutes and you never answer once. After the game he shakes your hand and laughs.','Fala quarenta minutos e você não responde nenhuma vez. No fim do jogo ele te dá a mão e ri.'),ef:{rel:{dt:2}}}]},
+     {tipo:'segura',label:L('Hacerte el sordo','Play deaf','Fingir que não ouve'),desenlaces:[{p:100,remate:L('Ni una palabra','Not a word','Nem uma palavra'),texto:L('Te ponés los auriculares desde el calentamiento: que hable solo. El DT te ve y asiente.','You put your headphones on from warm-ups: let him talk to himself. The coach sees you and nods.','Você põe os fones desde o aquecimento: que ele fale sozinho. O técnico te vê e assente.'),ef:{rel:{dt:2}}}]},
      {tipo:'apuesta',label:L('Contestarle en portuñol','Answer in Portuñol','Responder em portunhol'),desenlaces:[
-       {p:60,remate:L('Se ríe la cancha','The whole gym laughs','A quadra inteira ri'),texto:L('Le decís algo que no existe en ningún idioma y se desconcentra él. La tribuna visitante te aplaude a vos.','You say something that exists in no language and he is the one who loses focus. The away crowd applauds you.','Você diz algo que não existe em nenhum idioma e quem se desconcentra é ele. A torcida visitante aplaude você.'),ef:{rel:{hinchada:5,plantel:4}}},
-       {p:40,remate:L('Técnica','Technical foul','Técnica'),texto:L('El árbitro es brasileño y entendió perfectamente. Técnica, y el DT te sienta dos minutos para que pienses.','The referee is Brazilian and understood perfectly. Technical foul, and the coach sits you for two minutes to think it over.','O árbitro é brasileiro e entendeu perfeitamente. Técnica, e o técnico te senta dois minutos para pensar.'),ef:{rel:{dt:-3},minutos:-2}}]}]},
+       {p:60,remate:L('Se ríe el vestuario','The locker room laughs','O vestiário ri'),texto:L('El utilero brasileño te enseña tres frases en la práctica y el plantel se las aprende con vos. El club sube el video y la hinchada lo comparte toda la noche.','The Brazilian kit man teaches you three lines at practice and the squad learns them with you. The club posts the video and the fans share it all night.','O roupeiro brasileiro te ensina três frases no treino e o elenco aprende junto. O clube posta o vídeo e a torcida compartilha a noite toda.'),ef:{rel:{hinchada:5,plantel:4}}},
+       {p:40,remate:L('No era un saludo','Not a greeting','Não era um cumprimento'),texto:L('El utilero te enseña algo que no era un saludo. Lo decís en la práctica delante del DT, que sí entiende portugués. Mañana arrancás en el banco.','The kit man teaches you something that was not a greeting. You say it at practice in front of the coach, who does understand Portuguese. Tomorrow you start on the bench.','O roupeiro te ensina algo que não era um cumprimento. Você diz no treino na frente do técnico, que entende português. Amanhã você começa no banco.'),ef:{rel:{dt:-3},minutos:-2}}]}]},
  { id:'las_dos_copas', de:'liga', peso:400, maxVeces:1, edadMin:17, ligas:['nacional','nbb','lub'], fondo:'vestuario',
    cuando:(c)=>c.continental&&c.amFaltan!==null&&c.amFaltan>=1&&c.amFaltan<=3,   // §2z39.51: en las tres fechas antes del primer partido continental
    gancho:L('Está por arrancar el continental. El técnico junta al plantel: son dos torneos a la vez y el calendario no da para los dos, viajes de tres días, partidos entre semana y un plantel de doce. Te mira a vos primero.',

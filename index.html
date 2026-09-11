@@ -20337,14 +20337,14 @@ function armarParteVentana(e,n){
   }).filter(Boolean);
   const mias=e.misPartidos.filter(p=>p.sel&&jornadasDeVentana(n).indexOf(p.n)>=0);
   const vN=el.ventanas.find(v=>v.n===n)||{};   // §12.21: la ventana que se cerró, no la que viene — por NÚMERO: en la parte B el arreglo trae sólo la quinta y `[n-1]` daba undefined ("No te convocaron" con tus dos partidos arriba, 2026-09-09)
-  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una   /* 2026-09-11 (su caza: «VENTANA / 4/5» partido en dos): el espacio entre VENTANA y el número no rompe, acá y en los otros cinco */
+  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una
     juegos:js,mias:mias.map(p=>({pts:p.pts,ast:p.ast,min:p.minutos,rating:p.rating})),
     tabla:tablaSel(el).map(f=>({id:f.id,pg:f.pg,pp:f.pp})),fin:!!el.fin,pase:!!el.pase};
 }
 function abrirParteVentana(p){
   if(!p) return false;
   $l('parteBandera').innerHTML=banderaDe(p.pais,64);
-  $l('parteTag').textContent=elimTxt()+' · '+t(SEL_TXT.ventana)+'\u00a0'+p.n+'/'+p.total;
+  $l('parteTag').textContent=elimTxt()+' · '+t(SEL_TXT.ventana)+'\u00a0'+p.n+'/'+p.total;   /* 2026-09-11 (su caza: «VENTANA / 4/5» partido en dos): el espacio entre VENTANA y el número no rompe, acá y en los otros cinco */
   const g=p.juegos.filter(x=>x.mios>x.sus).length;
   const tit=$l('parteTit');
   /* el título es lo que pasó con TU PAÍS, no con vos: la selección es de todos */

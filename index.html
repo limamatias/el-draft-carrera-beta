@@ -6322,6 +6322,25 @@ function rotuloCarta(e){
   else if(o.tipo==='seleccion') que=t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO'));
   return que?base+' · '+que:base;
 }
+/* 2026-09-12 (su pedido: "¡personalicemos!"): el rival que viene después de cerrar una serie —
+   {conocido, ronda} si la otra llave ya cerró (o la ronda nueva ya nació), {entre:[a,b], ronda} si se está definiendo,
+   null si no hay nada que decir (ganaste la final, o no es una llave que sepamos leer). Sólo el continental se lee
+   de la llave; en los playoffs de liga se dice el rival cuando el próximo partido ya lo tiene. */
+function rivalQueViene(u){
+  const e=est(); if(!e) return null; const mi=e.miClubId;
+  const nom=(id)=>{ const c=clubDe(id); return c?(c.corto||c.nombre):''; };
+  const RON={cuartos:L('los cuartos','the quarterfinals','as quartas'),semifinal:L('la semifinal','the semifinal','a semifinal'),final:L('la final','the final','a final')};
+  if(u&&u.americas){ const am=e.americas, ll=am&&am.llave; if(!ll||!ll.series) return null;
+    const idx=ll.series.findIndex(s=>s.alta===mi||s.baja===mi); if(idx<0) return null;
+    const mia=ll.series[idx];
+    if(mia.ganador===mi){ const otra=ll.series[idx^1]; if(!otra||mia.nombre==='final'||mia.nombre==='tercero') return null;
+      const ronda=t(RON[AMERICAS_RONDAS[ll.ronda+1]]||L('la próxima ronda','the next round','a próxima rodada'));
+      return otra.ganador?{conocido:nom(otra.ganador),ronda}:{entre:[nom(otra.alta),nom(otra.baja)],ronda}; }
+    if(!mia.ganador) return {conocido:nom(mia.alta===mi?mia.baja:mia.alta),ronda:t(RON[mia.nombre]||L('la próxima ronda','the next round','a próxima rodada'))};
+    return null; }
+  try{ const o=miProximo(e); if(o&&o.tipo==='serie'&&o.rival) return {conocido:nom(o.rival),ronda:null}; }catch(err){}
+  return null;
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
@@ -6528,7 +6547,7 @@ const CARTAS_PRENSA=[
  /* 2026-09-12 (su caza: "me salió dos series seguidas la del micrófono, se ve repetitivo"): la serie ganada tiene TRES cartas,
     y el sorteo no repite la última carta vista si hay otra candidata */
  { id:'prensa_serie_ganada_2', repite:true, evento:true,
-   cuando:(c)=>c.u.serie&&(c.u.serie.tono==='ok'||c.u.serie.tono==='oro'),
+   cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   // «todavía no ganamos nada» no va con el título ganado
    gancho:L('Pasás por la zona mixta con la camiseta empapada. Un cronista quiere una frase para el título.','You walk through the mixed zone with your jersey soaked. A reporter wants a line for the headline.','Você passa pela zona mista com a camisa encharcada. Um repórter quer uma frase para a manchete.'),
    opciones:[
      {tipo:'segura',label:L('"Fue el equipo"','"It was the team"','"Foi o time"'),desenlaces:[{p:100,remate:null,texto:L('La frase más vieja del deporte. Sigue funcionando.','The oldest line in sports. Still works.','A frase mais velha do esporte. Ainda funciona.'),ef:{rel:{plantel:3}}}]},
@@ -6536,8 +6555,12 @@ const CARTAS_PRENSA=[
        {p:60,remate:L('Cabeza fría','Cool head','Cabeça fria'),texto:L('El DT la repite en la charla del lunes. Le gustó.','The coach repeats it in Monday\'s talk. He liked it.','O técnico repete na conversa de segunda. Gostou.'),ef:{rel:{dt:5,plantel:2}}},
        {p:40,remate:L('Aguafiestas','Party pooper','Estraga-prazeres'),texto:L('La hinchada quería festejar. Vos les hablaste de trabajo.','The fans wanted to celebrate. You talked to them about work.','A torcida queria festejar. Você falou de trabalho.'),ef:{rel:{hinchada:-3}}}]}]},
  { id:'prensa_serie_ganada_3', repite:true, evento:true,
-   cuando:(c)=>c.u.serie&&(c.u.serie.tono==='ok'||c.u.serie.tono==='oro'),
-   gancho:L('En la conferencia te preguntan por el rival que viene.','At the press conference they ask about the next opponent.','Na coletiva perguntam pelo próximo adversário.'),
+   cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   // con el título ganado no hay rival que viene
+   gancho:(c)=>{ const r=rivalQueViene(c.u);
+     if(r&&r.conocido&&r.ronda) return L('En la conferencia te preguntan por '+r.conocido+', el rival de '+r.ronda+'.','At the press conference they ask about '+r.conocido+', your opponent in '+r.ronda+'.','Na coletiva perguntam por '+r.conocido+', o adversário d'+r.ronda.slice(1)+'.');
+     if(r&&r.conocido) return L('En la conferencia te preguntan por '+r.conocido+', el rival que viene.','At the press conference they ask about '+r.conocido+', the next opponent.','Na coletiva perguntam por '+r.conocido+', o próximo adversário.');
+     if(r&&r.entre) return L('En la conferencia te preguntan por el rival de '+r.ronda+'. Todavía se define entre '+r.entre[0]+' y '+r.entre[1]+'.','At the press conference they ask about your opponent in '+r.ronda+'. It is still being decided between '+r.entre[0]+' and '+r.entre[1]+'.','Na coletiva perguntam pelo adversário d'+r.ronda.slice(1)+'. Ainda se define entre '+r.entre[0]+' e '+r.entre[1]+'.');
+     return L('En la conferencia te preguntan por el rival que viene.','At the press conference they ask about the next opponent.','Na coletiva perguntam pelo próximo adversário.'); },
    opciones:[
      {tipo:'segura',label:L('"Los respetamos"','"We respect them"','"Nós os respeitamos"'),desenlaces:[{p:100,remate:null,texto:L('Nadie anota la frase. Nadie la olvida tampoco.','Nobody writes the line down. Nobody forgets it either.','Ninguém anota a frase. Ninguém esquece também.'),ef:{rel:{dt:2}}}]},
      {tipo:'apuesta',label:L('"Que se preparen ellos"','"They had better get ready"','"Que eles se preparem"'),desenlaces:[

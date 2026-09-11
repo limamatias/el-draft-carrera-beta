@@ -5246,10 +5246,21 @@ function drillDe(skillKey, skill, real) {
 }
 const drillTiroDe = (skill) => drillDe('tiro', skill);   // el arnés y 18b la siguen usando
 const BEAT_DRILL = { tiro: 'decision', vision: 'decision', manejo: 'slalom', defensa: 'defensa' };
+/* §2z202 LAS ESCENAS DEL DRILL DE VISIÓN (su caza 2026-09-12: "siempre pasársela al jugador que se desmarca de la misma forma"):
+   el corte de siempre, el que pica en la contra y el que corta en la sacada. Sólo las variantes con alguien CORRIENDO a recibir:
+   el pase bueno de 14 pide pasársela al que corre (G.corrida), largo y libre. Y sólo las que tienen la ventana MEDIDA
+   (tools-carrera/vision-escenas-check.js): la contra clásica da 0 de 4 —el perseguidor y el que quedó en el aro le cierran el
+   hueco— y la devolución y el poste de la sacada no tienen a nadie corriendo. */
+const VIS_ESCENAS = ['corte', 'contra', 'sacada'];
+const VIS_VARIANTES = { corte: [null], contra: ['trailer', 'tresdos', 'abre', 'adelante'], sacada: ['aro', 'esquina', 'diagonal', 'codo', 'cortina'] };
 /* §2z38 v2 (su escalera): la visión se entrena PARADO en los niveles bajos y DRIBBLEANDO en los altos —
    en carril tenés que alejarte de tu defensor a toques mientras el otro se desmarca, frenar y pasar. */
 function beatDrillDe(skillKey, skill) {
-  if (skillKey === 'vision') return skill >= 50 ? 'carril' : 'decision';
+  if (skillKey === 'vision') {
+    const s = typeof window !== 'undefined' && window.__visEscenaSesion;   // §2z202: la escena de la sesión (18b, entrenar)
+    if (s && (s.escena === 'contra' || s.escena === 'sacada')) return s.escena;
+    return skill >= 50 ? 'carril' : 'decision';
+  }
   /* §2z87: el banco de defensa elige la escena (contra · cierre · cortina · 1v1); sin banco, la de siempre */
   if (skillKey === 'defensa' && typeof window !== 'undefined' && window.escenaDefensaBanco) return window.escenaDefensaBanco;
   /* §2z87 n (su corte: "los 3 intentos son sobre UN MISMO JUEGO: con ganar 1 ya te da las estrellas que te queden —
@@ -12735,6 +12746,9 @@ function sortearEscenaDef(){
    terminología que jugadas que en el juego implican ATACAR"): la píldora del drill de visión dice su
    objetivo, siempre — nunca TIRÁ O PASÁ ni CARRIL */
 function txtSit(){ return (G.esDrill && window.drillEsVision && window.drillEsVision()) ? t(L('ENCONTRÁ EL PASE','FIND THE PASS','ACHA O PASSE')) : (G.esDrill && window.drillEsTiro && window.drillEsTiro()) ? t(L('TIRÁ','SHOOT','ARREMESSA')) : t(L('TIRÁ O PASÁ','SHOOT OR PASS','ARREMESSA OU PASSA')); }   // §2z39.21: en el drill de tiro la píldora dice TIRÁ
+/* §2z198.3 (su corte 2026-09-12: "sí, también se cambia"): RECIBIR ES BOTE NUEVO — después de una devolución, en una posesión de
+   parado, podés botear, y la píldora seguía en TIRÁ O PASÁ. Dice JUGÁ. Los drills y los tutoriales conservan la suya. */
+function pildoraDevuelta(){ if(G.tipo!=='decision'||G.esDrill||G.tut) return; const sit=$('#sit'); sit.textContent=t(L('JUGÁ','PLAY','JOGA')); sit.className=''; }
 /* §2z39: LAS DOS CASAS DEL GRANDOTE, del lado `lado`: el rincón corto (short corner) y el codo.
    Las dos fuera del rectángulo de la pintura (pintura().w/2 = 0,31·R3 de ancho; 0,80·R3 de alto). */
 function casasDelBig(lado){ const a=aro(); return [ {x:a.x+lado*R3()*0.52, y:a.y+R3()*0.22}, {x:a.x+lado*R3()*0.36, y:a.y+R3()*0.86} ]; }
@@ -14287,7 +14301,7 @@ c.addEventListener('pointerdown',e=>{
       (s.fantasmas=s.fantasmas||[]).push({x:G.vos.x, y:G.vos.y, t:performance.now()});   // §2z198.2: el fantasma del tranco
       if(d0>1){ const paso=Math.min(d0, 22+2*(dif.fis||3)); G.vos.x+=(s.t.x-G.vos.x)/d0*paso;
         G.vos.y=Math.max(G.vos.y+(s.t.y-G.vos.y)/d0*paso, aro().y+20*ESC()); }
-      s.trancos=(s.trancos||0)+1; flash(G.vos); }
+      s.trancos=(s.trancos||0)+1; }   /* §2z198.3 (su caza: "la onda es MUY grande e intrusiva"): el flash rojo de cada toque se fue — el fantasma ya muestra el tranco */
     return; }
   if(G.fase==='forma'){
     if(G.medidor){ if(!G.medidor.t0) G.medidor.t0=performance.now(); }  // apretaste: se carga
@@ -15682,7 +15696,10 @@ function resolverRebote(gana){
   if(miBig===G.vos){
     /* LA GANASTE VOS: la tenés en la mano, abajo del aro — definí (§2z17) */
     G.vos.x=caeR.x; G.vos.y=caeR.y; G.pelotaEn=null; G.paseVivo=null;
-    G.tipo='decision'; const sit=$('#sit'); sit.textContent=txtSit(); sit.className='';
+    /* §2z198.3 (su caza: "pensé que era para dribble, no TIRÁ O PASÁ"; su corte: "ok lo de dejar el dribble"): la píldora
+       mentía — `G.devuelta` (abajo) te deja botear. Nombra la situación, como VÍA LIBRE o CIERRE. Y la confirmación suena. */
+    G.tipo='decision'; const sit=$('#sit'); sit.textContent=t(L('SEGUNDA CHANCE','SECOND CHANCE','SEGUNDA CHANCE')); sit.className='';
+    sfx('bote',0.9);
     veredicto(t(L('¡REBOTE TUYO!','YOUR BOARD!','REBOTE SEU!')),'ok');
     relato(t(L('La ganaste vos: segunda chance, definí.','You won it: second chance, finish.','Você ganhou: segunda chance, finaliza.')),true);
     /* recepción protegida, como la devolución: la marca no puede estar ya encima */
@@ -16183,7 +16200,11 @@ function tirarLibre(dx,dy,largo){
      Con el tiro por toque (ajuste), el libre sigue siendo la gomera sola. */
   if(dif.tiro2==='timing'){
     G.tiro={blanco:{tipo:'tiro',p:hasta}, potencia:pot, drive:false, eA, eAs, dirT, libre:true};
-    G.medidor={...bandaDe(d), t0:null};
+    /* §2z201 v2 (su corte: "que el jugador arranque tirando 55% no sé si me convence; debería ser más acotado el rango, o que pague
+       bastante acertarle a la parte buena de donde soltar… no deja de ser un tiro libre"): la campana del libre es PROPIA — el pico
+       va de 0,72 (tiro 0) a 0,97 (tiro 10) y el ancho es fijo y angosto (0,13): soltar en el tope paga el techo entero, errarle por
+       45 ms paga 86 % del techo, por 90 ms 55 %. Con tiro ≥ 8 aparece el casquete verde (entra siempre). */
+    G.medidor={...bandaDe(d), pico:LIBRE_PICO0+LIBRE_PICO_SKILL*clamp(dif.tiro||0,0,10), w:LIBRE_ANCHO, t0:null};
     G.medidor.w*=clamp(1-eA*2.2, 0.15, 1);   // el apuntado cruzado angosta la campana, como en la cancha
     G.subida=null;
     G.fase='forma'; G.formaMax=6000; G.formaHasta=performance.now()+G.formaMax;
@@ -16194,7 +16215,7 @@ function tirarLibre(dx,dy,largo){
   G.fta++;
   vueloLibre(entra?'entra':casi?'casi':(pot>justa?'larga':'corta'), dirT, pot);
 }
-const LIBRE_TOL=0.115;
+const LIBRE_TOL=0.115, LIBRE_PICO0=0.72, LIBRE_PICO_SKILL=0.025, LIBRE_ANCHO=0.13;   // §2z201 v2: la campana propia del libre
 /** §2z201: soltaste la barra del libre (lo llama soltarMedidor). La gomera manda primero; después la campana. */
 function soltarLibre(p,md,t){
   const d=dist(G.vos,aro()), justa=potPara(d);
@@ -18246,7 +18267,7 @@ function frame(now){
              primera devolución, 3s la segunda, 2,6s después — ver pisoDevolucion(). */
           G.posClock=Math.max(G.posClock, pisoDevolucion());
           G.pasesPos=(G.pasesPos||0)+1;
-          G.devuelta=true; G.levanto=false;   // recibir es bote nuevo
+          G.devuelta=true; G.levanto=false; pildoraDevuelta();   // recibir es bote nuevo · §2z198.3: la píldora lo dice
           G.paseVivo=null;
           G.fase='espera';
           if(recibisSolo()){ definirSolo(); return; }   // §2z48 d
@@ -18281,7 +18302,7 @@ function frame(now){
              recibir vale el mismo piso decreciente que la devolución del desmarque */
           G.posClock=Math.max(G.posClock, pisoDevolucion());
           G.pasesPos=(G.pasesPos||0)+1;
-          G.devuelta=true; G.levanto=false;   // recibir es bote nuevo
+          G.devuelta=true; G.levanto=false; pildoraDevuelta();   // recibir es bote nuevo · §2z198.3: la píldora lo dice
           G.paseVivo=null;
           relato(m.txt,false); G.fase='espera';
           if(recibisSolo()){ definirSolo(); return; }   // §2z48 d
@@ -19170,7 +19191,10 @@ function frame(now){
            Y si YA ESTÁS APUNTANDO la gomera, el cierre espera la suelta: el contest se
            sella ahí — la ventana no te arranca el gesto de la mano. */
         if(G.tipo==='contra'){
-          if(G.fase!=='apunto'){
+          /* §2z202: en el drill de visión la contra que se cierra sin el pase es un intento perdido — heredar la posesión
+             normal sacaba el drill del drill (el beat heredado no trae la marca de práctica) */
+          if(G.esDrill){ if(G.fase!=='apunto'&&G.fase!=='vuelo') finPosesion(false,t(L('Se cerró la contra sin el pase.','The break closed without the pass.','O contra-ataque fechou sem o passe.'))); }
+          else if(G.fase!=='apunto'){
           veredicto(t(L('SE CERRÓ LA CONTRA','THE BREAK IS OVER','FECHOU O CONTRA-ATAQUE')),'neu',1100);
           chip(t(L('Se cerró la contra: posesión.','The break is over: regular possession.','O contra-ataque fechou: posse normal.')));
           G.beat={tipo:'decision', heredada:true, desde:{x:G.vos.x, y:G.vos.y},
@@ -19275,10 +19299,16 @@ function frame(now){
          se cierra con el tiempo que queda hasta que pica, y «¡TOCÁ!» debajo, grande. Y cada toque deja un fantasma del
          muñeco donde estaba, así el tranco se ve aunque dure un instante. */
       if(G.scr&&G.scr.vos){ const s=G.scr, pico=s.pico||1100, f=clamp(1-(now-s.t0)/pico,0,1);
-        ctx.save(); ctx.strokeStyle='rgba(255,150,51,.9)'; ctx.lineWidth=3;
-        ctx.beginPath(); ctx.arc(q.x,q.y,14+46*f,0,Math.PI*2); ctx.stroke();
-        ctx.fillStyle='rgba(255,150,51,.95)'; ctx.font='700 22px Barlow Condensed'; ctx.textAlign='center';
-        ctx.fillText(t(L('¡TOCÁ!','TAP!','TOQUE!')), q.x, q.y+14+46*f+24);
+        /* §2z198.3 (su caza 2026-09-12: "la onda expansiva es MUY grande e intrusiva… y cuando llegás al rebote hay un segundo
+           donde no sabés si lo agarraste o no"): el anillo arranca en 34 px de radio (era 60), fino y más transparente; y apenas
+           estás parado en la pelota y mejor que el rival —lo mismo que el pique va a juzgar— se pone VERDE y deja de pedir
+           toques: la posición ganada se ve ANTES del pique, que sigue siendo el que la baja. */
+        const alc={x:s.t.x, y:Math.max(s.t.y, aro().y+20*ESC())}, dMi=dist(s.mi,alc);
+        const ganada=dMi<14*ESC() && dMi<=dist(s.su,alc), rA=14+20*f;
+        ctx.save(); ctx.strokeStyle=ganada?'rgba(125,208,135,.85)':'rgba(255,150,51,.7)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(q.x,q.y,rA,0,Math.PI*2); ctx.stroke();
+        if(!ganada){ ctx.fillStyle='rgba(255,150,51,.95)'; ctx.font='700 22px Barlow Condensed'; ctx.textAlign='center';
+          ctx.fillText(t(L('¡TOCÁ!','TAP!','TOQUE!')), q.x, q.y+rA+24); }
         for(const fz of (s.fantasmas||[])){ const a=clamp(1-(now-fz.t)/450,0,1); if(!a) continue; const p=aPantalla(fz);
           ctx.globalAlpha=a*0.45; ctx.fillStyle='#e9ecf3'; ctx.beginPath(); ctx.arc(p.x,p.y,12,0,Math.PI*2); ctx.fill(); }
         ctx.restore(); } }
@@ -23052,6 +23082,14 @@ function entrenar(k,nivelPedido){
   const nivel=Math.max(1,Math.min(nivelPedido||nivelSugerido(en,k),nivelesAbiertos(en,k)));
   drillT={k,nivel,estrellas:0,intentos:0,difSnap:{...dif}};
   if(k==='defensa') window.__defEscenaSesion=['defensa','defCierre','defCortina','def1v1'][Math.floor(Math.random()*4)];   // §2z87 n: una escena por sesión
+  /* §2z202 (su caza 2026-09-12: "el drill de visión es siempre pasársela al jugador que se desmarca de la misma forma; no hay un
+     pase en la contra, no hay otras situaciones"; su corte: "una diferente por sesión, no por intento"): la escena se sortea UNA
+     vez por sesión, sin repetir la de la anterior —el corte de siempre, el que pica en la contra, el que corta en la sacada— y la
+     variante queda fija para los tres intentos (como la defensa, §2z87 n). */
+  if(k==='vision'){ const pool=VIS_ESCENAS.filter(x=>x!==en.visUlt), esc=pool[Math.floor(Math.random()*pool.length)];
+    const vs=VIS_VARIANTES[esc]||[null];
+    en.visUlt=esc;
+    window.__visEscenaSesion={escena:esc, v:vs[Math.floor(Math.random()*vs.length)]}; }
   Object.assign(dif,drillDe(k,skillEqDeNivel(nivel),J.skills[k]));
   casacasPractica();   // en el drill se entrena con la ropa de práctica
   guardar();
@@ -23138,6 +23176,8 @@ function lanzarIntentoDrill(){
   /* la base del intento: la estrella la paga SOLO el gesto entrenado (revisión
      2026-08-29 — el palmeo del grandote, los libres y el lob del NPC no cuentan) */
   drillT.base={ac:G.aciertos||0, ast:G.ast||0, pb:G.paseBueno||0};   // §2z38.4: la visión paga el PASE BUENO
+  /* §2z202: la variante de la escena de visión queda fija en la sesión (la contra y la sacada la leen de sus forzar) */
+  if(drillT.k==='vision'&&window.__visEscenaSesion){ const s=window.__visEscenaSesion; G.contraForzar=s.escena==='contra'?s.v:null; G.sacForzar=s.escena==='sacada'?s.v:null; }
   G.beat={tipo:beatDrillDe(drillT.k,skillEqDeNivel(drillT.nivel)), drill:true};   // §2z38 v2: visión alta se entrena en carril
   armarPosesion();
 }
@@ -23165,6 +23205,7 @@ function cerrarDrill(){
   const J=C.jugador, k=drillT.k, nivel=drillT.nivel, ganadas=drillT.estrellas;
   window.finPosesion=finPosesionReal; window.siguienteBeat=siguienteBeatReal;
   window.finSlalom=window.conoTirado=window.compuertaLista=null; window.__defEscenaSesion=null;
+  if(window.__visEscenaSesion){ G.contraForzar=null; G.sacForzar=null; window.__visEscenaSesion=null; }   // §2z202: la variante forzada es de la sesión
   Object.assign(dif,drillT.difSnap); pintarAjustes();
   drillT=null;
   marcarEntrenado(J,k,est().fechaJugada);

@@ -11240,7 +11240,7 @@ const SEL_FORMATOS = {
   eurobasket: { equipos: 16, porGrupo: 4, nGrupos: 4, nombre: 'eurobasket' },
   mundial: { equipos: 24, porGrupo: 3, nGrupos: 8, segunda: true, nombre: 'mundial' },
   jjoo: { equipos: 12, porGrupo: 3, nGrupos: 4, nombre: 'jjoo' },
-  preolimpico: { equipos: 4, porGrupo: 0, nGrupos: 0, nombre: 'preolimpico' },
+  preolimpico: { equipos: 6, porGrupo: 3, nGrupos: 2, nombre: 'preolimpico' },   // §12.30 (2026-09-12): el OQT real — 6, dos grupos de 3, semis cruzadas y final
 };
 const SEL_LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const SEL_LETRAS2 = ['I', 'J', 'K', 'L'];   // la segunda fase
@@ -11430,11 +11430,14 @@ function pasoTorneoSel(t, e, miJuego) {
 function cerrarGruposSel(t, rng) {
   const F = SEL_FORMATOS[t.torneo];
   if (t.fase === 'grupo' && F.segunda) return abrirSegundaFaseSel(t, rng);
-  const letras = (t.fase === 'segunda' ? SEL_LETRAS2 : SEL_LETRAS).slice(0, 4), pos = {};
+  /* §12.30: con DOS grupos (el preolímpico) los dos primeros van a semis cruzadas: A1–B2 · B1–A2 */
+  const dosGrupos = F.nGrupos === 2;
+  const letras = (t.fase === 'segunda' ? SEL_LETRAS2 : SEL_LETRAS).slice(0, dosGrupos ? 2 : 4), pos = {};
   for (const g of letras) pos[g] = tablaSel(t, g).map((f) => f.id);
   const [a, b, c, d] = letras;
-  const cruces = [[a, b], [c, d], [b, a], [d, c]];
-  t.llave = { ronda: 0, series: cruces.map(([x, y]) => mkSerieSel({ nombre: 'cuartos', alta: pos[x][0], baja: pos[y][1] })), jugadas: [] };
+  const cruces = dosGrupos ? [[a, b], [b, a]] : [[a, b], [c, d], [b, a], [d, c]];
+  const primera = dosGrupos ? 'semifinal' : 'cuartos';
+  t.llave = { ronda: 0, series: cruces.map(([x, y]) => mkSerieSel({ nombre: primera, alta: pos[x][0], baja: pos[y][1] })), jugadas: [] };
   t.llave.jugadas = t.llave.series.slice();
   const miG = t.fase === 'segunda' ? t.miGrupo2 : t.miGrupo;
   t.posGrupo = (pos[miG] || []).indexOf(t.pais) + 1;
@@ -11443,7 +11446,7 @@ function cerrarGruposSel(t, rng) {
      misma regla del continental (§2z27) y la que hace que el "casi" tenga con qué compararse. */
   if (!t.llave.series.some((s) => s.alta === t.pais || s.baja === t.pais)) {
     t.fuera = true; t.miFase = 'grupo'; t.puesto = t.puesto || 'grupo';
-  } else t.miFase = 'cuartos';
+  } else t.miFase = primera;
 }
 
 /**
@@ -11748,15 +11751,15 @@ function sedeDeTorneo(t) {
  *  De la segunda fase en adelante, la sede de la fase final. */
 function sedeDe(t, etapa, grupo) {
   const s = sedeDeTorneo(t);
+  if (t.torneo === 'preolimpico') {   // cuatro preolímpicos: el tuyo es el de tu sede — una ciudad para todo el torneo (§12.30)
+    const id = s.ids.indexOf(t.pais) >= 0 ? t.pais : s.ids[Math.abs(hashStr(t.pais)) % s.ids.length];
+    return { id, ciudad: ((s.ciudades && s.ciudades[id]) || [ciudadAnfitrion(id, 0)])[0] };
+  }
   if (etapa === 'grupo' && grupo && t.grupos && t.grupos[grupo]) {
     const h = t.grupos[grupo].find((x) => s.ids.indexOf(x) >= 0);
     const gi = SEL_LETRAS.indexOf(grupo); const id = h || s.ids[Math.max(0, gi) % s.ids.length];
     const cs = (s.ciudades && s.ciudades[id]) || [ciudadAnfitrion(id, 0)];
     return { id, ciudad: cs[Math.max(0, gi) % cs.length] };
-  }
-  if (etapa === 'semifinal' && t.torneo === 'preolimpico') {   // cuatro preolímpicos: el tuyo es el de tu sede
-    const id = s.ids.indexOf(t.pais) >= 0 ? t.pais : s.ids[Math.abs(hashStr(t.pais)) % s.ids.length];
-    return { id, ciudad: ((s.ciudades && s.ciudades[id]) || [ciudadAnfitrion(id, 0)])[0] };
   }
   return { id: s.final, ciudad: s.ciudadFinal || ciudadAnfitrion(s.final, 0) };
 }
@@ -11805,19 +11808,36 @@ function clasifAmericaDe(memoria) {
 function directosJJOO(clasifMundial) {
   return (clasifMundial || []).slice(0, SEL_JJOO_DIRECTOS_AM);
 }
-function campoPreolimpico(clasifMundial, pais) {
+/* §12.30 EL PREOLÍMPICO REAL (2026-09-12, su pedido: "¿por qué no armamos los torneos cruzados reales, con placeholders para los
+   países no jugables, como el Mundial?"): el OQT de la FIBA son cuatro torneos de SEIS en julio, con países de distintos
+   continentes mezclados; el ganador de cada uno va a los Juegos. Acá se juega EL TUYO: tu país (si no fue directo), el
+   americano más fuerte que tampoco fue directo, el anfitrión si es elegible, y el resto de otros continentes —dos europeos,
+   uno de Asia/Oceanía, uno de África— sorteados por semilla entre los que no están ya en los Juegos (SEL_JJOO_FIJOS). Los
+   otros tres preolímpicos no se juegan: sus ganadores ya viven en los fijos de los Juegos. */
+function campoPreolimpico(clasifMundial, pais, semilla, anio) {
   const directos = directosJJOO(clasifMundial);
-  /* 2026-09-09: tu país entra SIEMPRE si no es directo (antes eran los cuatro más fuertes y ocho de las doce jugables no
-     llegaban ni al preolímpico); los otros tres, por fuerza — como los OQT reales, que reparten a casi todo el continente */
-  const resto = SEL_CONTINENTAL.am.filter((id) => directos.indexOf(id) < 0 && id !== pais)
-    .sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
-  return (pais && directos.indexOf(pais) < 0 && SELECCIONES[pais] && SELECCIONES[pais].cont === 'am' ? [pais] : []).concat(resto).slice(0, 4);
+  const campo = [];
+  const mete = (id) => { if (id && SELECCIONES[id] && campo.indexOf(id) < 0 && directos.indexOf(id) < 0 && SEL_JJOO_FIJOS.indexOf(id) < 0) campo.push(id); };
+  if (pais && SELECCIONES[pais] && SELECCIONES[pais].cont === 'am') mete(pais);
+  /* el anfitrión juega (la sede sale del pool de sedes, por carrera) */
+  const s = anfitrionSel('preolimpico', anio || 0, semilla || '');
+  const host = s.ids.indexOf(pais) >= 0 ? pais : s.ids[Math.abs(hashStr(pais || '')) % s.ids.length];
+  mete(host);
+  const am = SEL_CONTINENTAL.am.filter((id) => id !== pais).sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
+  for (const id of am) { if (campo.filter((x) => SELECCIONES[x].cont === 'am').length >= 2) break; mete(id); }
+  const rng = rngFor(semilla || '', 'seleccion', 'preo-campo', anio || 0);
+  const pool = (conts) => Object.keys(SELECCIONES).filter((id) => conts.indexOf(SELECCIONES[id].cont) >= 0 && campo.indexOf(id) < 0 && SEL_JJOO_FIJOS.indexOf(id) < 0);
+  const saca = (conts) => { const p = pool(conts); if (!p.length) return; mete(p[rng.int(0, p.length - 1)]); };
+  const cuotas = [['eu'], ['eu'], ['as', 'oc'], ['af']];
+  for (const c of cuotas) { if (campo.length >= SEL_FORMATOS.preolimpico.equipos) break; saca(c); }
+  while (campo.length < SEL_FORMATOS.preolimpico.equipos) { const p = pool(['eu', 'as', 'oc', 'af', 'am']); if (!p.length) break; mete(p[rng.int(0, p.length - 1)]); }
+  return campo.slice(0, SEL_FORMATOS.preolimpico.equipos);
 }
 /** Los cupos de América en los Juegos: los dos directos, el ganador del preolímpico, y uno más por fuerza entre los que
  *  no jugaron el preolímpico (el que lo perdió, se quedó afuera: ése es el "casi"). */
 function cuposJJOOAm(clasifMundial, preo) {
   const directos = directosJJOO(clasifMundial), out = directos.slice();
-  if (preo && preo.ganador && out.indexOf(preo.ganador) < 0) out.push(preo.ganador);
+  if (preo && preo.ganador && SELECCIONES[preo.ganador] && SELECCIONES[preo.ganador].cont === 'am' && out.indexOf(preo.ganador) < 0) out.push(preo.ganador);   // §12.30: si tu preolímpico lo ganó un europeo, ése ya vive en los fijos
   const fuera = new Set((preo && preo.campo) || []);
   for (const id of SEL_CONTINENTAL.am.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza)) {
     if (out.length >= SEL_JJOO_CUPOS_AM) break;
@@ -21099,7 +21119,7 @@ function torneoAnunciado(e){
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   let cual=torneo;
   if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
-  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais)
+  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
     :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
   if(!campo||campo.indexOf(pais)<0) return {cual,anio:C.anio+1,afuera:true};
@@ -21134,7 +21154,7 @@ function torneoRecesoDe(){
      se juega UNA vez por ciclo (`mem.preo.anio`), lo hayas ganado o no */
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
-  const campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais)
+  const campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
     :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera);
   if(campo.indexOf(pais)<0){ C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }

@@ -14395,9 +14395,10 @@ function juntar(){
          poner a botear — en el contra todo arrastre era bote): levantaste el dribble, no
          botás más — el arrastre que sigue es LA GOMERA, como el freno promete. */
       G.levanto=true;
+      /* 2026-09-12 (su caza: "te dice «levantaste el dribble» y no sé qué del hail mary"): tres textos a la vez y uno con
+         jerga de fútbol americano. Queda el veredicto y UNA línea en castellano: sin dribble, pase largo o tiro. El chip se va. */
       veredicto(t(L('FRENASTE','YOU STOPPED','VOCÊ FREOU')),'neu',1100);
-      relato(t(L('Levantaste el dribble: el que corta sigue — metele el hail mary, o tirá.','You picked up your dribble: the runner keeps going — throw the hail mary, or shoot.','Você parou o drible: quem corta segue — manda o hail mary, ou arremessa.')),false);
-      chip(t(L('Frenaste: la contra sigue','You stopped: the break is still on','Você freou: o contra-ataque segue')));
+      relato(t(L('Sin dribble. El que corta sigue: pase largo, o tirá.','No dribble. The runner keeps going: long pass, or shoot.','Sem drible. Quem corta segue: passe longo, ou arremessa.')),true);
       return;
     }
     const eraAvance=G.tipo==='avance';

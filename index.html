@@ -5658,7 +5658,9 @@ const MISIONES = ['puntos', 'asistencias', 'triples', 'robos', 'perdidas', 'rach
  * partido — miden lo que el motor ya cuenta o cómo usás el juego:
  *   perdidas4  · sin pérdidas en el último cuarto (una situada: el motor sabe el cuarto)
  *   pedidas    · pedila y resolvé 2 (la pedida que termina en puntos o asistencia)
- *   sinPedir   · jugá sin pedirla (el trade-off: cumplís, pero con menos chances)
+ *   sinPedir   · pedila UNA vez como máximo (2026-09-12, su corte: «SIN PEDIRLA es una trampa mortal, mi primer impulso
+ *                siempre es PEDIRLA ni bien empieza» — con tope cero el reflejo te la mataba sin decidir nada; con tope uno el
+ *                reflejo se perdona y la decisión vuelve a ser tuya. El examen es el mismo: contenerte)
  *   porcentaje · 50 % de tiro, con 4 tiros como mínimo (sin mínimo 1/1 cumple)
  *   mixta      · dos condiciones de una — sin rol, que el jugador es todo junto (su corte): 10 pts y ≤1 pérdida,
  *                5 ast y 2 triples, 10 pts y 1 robo, 5 ast y ≤1 pérdida. Entra dos veces al sorteo (tiene cuatro caras). */
@@ -5674,7 +5676,7 @@ function misionDe(semilla, clave, minutos, cadaMin, siempre) {
   const tipo = rng.pick(MISIONES);
   const metas = { puntos: Math.max(6, Math.round(nInt * 1.1)), asistencias: Math.max(2, Math.round(nInt / 4)),
                   triples: Math.max(1, Math.round(nInt / 5)), robos: 1, perdidas: 2, racha: 3,
-                  perdidas4: 0, pedidas: 2, sinPedir: 0, porcentaje: 50 };
+                  perdidas4: 0, pedidas: 2, sinPedir: 1, porcentaje: 50 };
   if (tipo === 'mixta') {
     const par = rng.pick(MIXTAS);
     /* en la mixta cada parte pide un poco menos que sola, y la pérdida se aprieta a 1 */
@@ -5694,7 +5696,7 @@ const MISION_TXT = {
   racha: [L('SEGUIDA', 'IN A ROW', 'SEGUIDA'), L('SEGUIDAS', 'IN A ROW', 'SEGUIDAS')],   // §2z141: "3 SEGUIDAS"
   perdidas4: [L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO'), L('SIN PÉRDIDAS EN EL ÚLTIMO CUARTO', 'NO TURNOVERS IN THE 4TH', 'SEM PERDAS NO ÚLTIMO QUARTO')],
   pedidas: [L('PEDIDA RESUELTA', 'CALLED PLAY CONVERTED', 'PEDIDA RESOLVIDA'), L('PEDIDAS RESUELTAS', 'CALLED PLAYS CONVERTED', 'PEDIDAS RESOLVIDAS')],
-  sinPedir: [L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA'), L('SIN PEDIRLA', 'WITHOUT CALLING FOR IT', 'SEM PEDIR A BOLA')],
+  sinPedir: [L('PEDIDA COMO MÁXIMO', 'CALL FOR IT AT MOST', 'PEDIDA NO MÁXIMO'), L('PEDIDAS COMO MÁXIMO', 'CALLS FOR IT AT MOST', 'PEDIDAS NO MÁXIMO')],   // «1 PEDIDA COMO MÁXIMO», como las pérdidas
   /* 2026-09-10 (su caza jugando: "no te indica en ningún lugar que te pide mínimo 4 tiros"): el mínimo es una regla del
    * juego, no una aclaración — sin ella, 1/1 se lee como cumplida. Va en el enunciado (pre, HUD y planilla del fin). */
   porcentaje: [L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS} TIROS)`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS} SHOTS)`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`),
@@ -5741,7 +5743,7 @@ function misionPerdida(m, G) {
   if (m.tipo === 'mixta') return m.partes.some((p) => misionPerdida(p, G));
   if (m.tipo === 'perdidas') return (G.perdidas || 0) > m.meta;
   if (m.tipo === 'perdidas4') return (G.perdidasQ4 || 0) > 0;
-  if (m.tipo === 'sinPedir') return (G.pedidasUsadas || 0) > 0;
+  if (m.tipo === 'sinPedir') return (G.pedidasUsadas || 0) > m.meta;
   if (m.tipo === 'pedidas') return (G.pedidasResueltas || 0) + (G.pedidas || 0) + (G.enPedida ? 1 : 0) < m.meta;
   return false;
 }

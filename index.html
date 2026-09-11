@@ -4380,6 +4380,8 @@ function miProximo(estado) {
     }
     return null;
   }
+  /* §2z27.3 + §7.1: en la beta la copa se juega con la temporada cerrada (ic.post), y es el próximo mientras dure */
+  if (estado.fase === 'terminada' && estado.intercontinental && estado.intercontinental.post) return proximoIntercontinental(estado);
   if (estado.fase === 'playoffs') {
     const s = miSerie(estado);
     if (!s) return null;
@@ -10326,7 +10328,11 @@ function quedaIC(ic, mi) {
 /** Tu PRÓXIMO partido de la copa, con la forma de `miProximo` (tipo 'americas' + ic). Sólo antes de la fecha 1. */
 function proximoIntercontinental(e) {
   const ic = e.intercontinental;
-  if (!ic || ic.fase === 'terminado' || e.fase !== 'regular' || (e.fechaJugada || 0) > 0) return null;
+  if (!ic || ic.fase === 'terminado') return null;
+  /* §7.1 LA BETA (su corte 2026-09-12: "en la beta te la dan SOLO si ganás la Liga de las Américas… después del Mundial"):
+     `ic.post` es la copa jugada sobre la temporada YA CERRADA, el último acto de la beta; en el juego completo vive antes
+     de la fecha 1 de la temporada siguiente */
+  if (ic.post ? e.fase !== 'terminada' : (e.fase !== 'regular' || (e.fechaJugada || 0) > 0)) return null;
   const j = miJuegoIC(ic, ic.idx, e.miClubId);
   if (!j) return null;
   const local = j.local === e.miClubId, rival = local ? j.visita : j.local;
@@ -10410,12 +10416,12 @@ function misJuegosIC(e) {
   if (!ic) return out;
   for (const j of ic.juegos) {
     if (j.local !== mi && j.visita !== mi) continue;
-    out.push({ ic: true, etapa: j.etapa, n: j.n, f: 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+    out.push({ ic: true, etapa: j.etapa, n: j.n, f: ic.post ? 999 : 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   for (const j of (ic.definicion || [])) {
     if (j.local !== mi && j.visita !== mi) continue;
-    out.push({ ic: true, etapa: j.etapa, n: 1, f: 0, dia: ic.dias.definicion, rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+    out.push({ ic: true, etapa: j.etapa, n: 1, f: ic.post ? 999 : 0, dia: ic.dias.definicion, rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   return out;
@@ -20180,6 +20186,23 @@ function instalarIntercontinental(e,pend,anio){
   const fuerza=(e.fuerzas&&e.fuerzas[pend.club]!==undefined)?e.fuerzas[pend.club]:cl.fuerza;
   e.intercontinental=crearIntercontinental(C.semilla,anio,{id:pend.club,fuerza},diaDeFecha(e.semilla,1,e.ritmo));
 }
+/* §7.1 (su corte 2026-09-12): en la beta la Copa Intercontinental se habilita SÓLO si ganaste la Liga de las Américas, y se
+   juega después del Mundial, sobre la temporada cerrada — el último acto de la beta. Se instala recién cuando el receso de la
+   selección terminó (las ventanas de verano y el torneo), así el orden del receso es el de siempre. Los días: las semanas
+   después de los playoffs, como la copa real de septiembre. */
+function proxICBeta(e){
+  if(!esBeta()||!e||e.fase!=='terminada') return null;
+  if(!e.intercontinental){
+    const am=e.americas; if(!am||am.fase!=='terminado'||am.campeon!==e.miClubId) return null;
+    const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario;
+    const fin=cal&&cal.playoffsHasta?diaDeTemporada(cal,cal.playoffsHasta):diaDeFecha(e.semilla,e.fechasTotales,e.ritmo)+30;
+    const cl=clubDe(e.miClubId), fuerza=(e.fuerzas&&e.fuerzas[e.miClubId]!==undefined)?e.fuerzas[e.miClubId]:cl.fuerza;
+    e.intercontinental=crearIntercontinental(C.semilla,C.anio,{id:e.miClubId,fuerza},fin+100);   // días F−9…F−5 → tres meses después del cierre: septiembre
+    e.intercontinental.post=true;
+    guardar();
+  }
+  return proximoIntercontinental(e);
+}
 function guardarCampeonAmericas(){
   const e=est(), am=e&&e.americas;
   C.icPendiente=am&&am.campeon?{club:am.campeon,anio:C.anio}:null;
@@ -21741,7 +21764,7 @@ function pintaLobby(){
   pintaSecciones();
   /* §12: con la temporada cerrada, el próximo puede ser un partido del TORNEO DEL RECESO —
      si no, el panel de HOY quedaba vacío y el botón ofrecía un partido que no se veía */
-  const prox=miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()):null);   // §12.2 v2: primero las ventanas del receso
+  const prox=miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICBeta(e)):null);   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
   const calientes=e.fase==='regular'?elegirCalientes(e):[];
   const calPorFecha={}; for(const c of calientes) calPorFecha[c.fecha]=c;
   const mt=miTabla(e);
@@ -21793,7 +21816,7 @@ function pintaLobby(){
     /* §2y: sin "LA SELECCIÓN" delante — ELIMINATORIAS y MUNDIAL ya dicen de qué se trata, y
        con el prefijo el chip se partía en dos renglones (medido a 375) */
     $l('lobChip').innerHTML=anioTxt()+' · <b>'+selCuandoTxt(prox,true)+'</b>';   // §12
-  } else if(e.fase==='regular'&&prox&&prox.tipo==='americas'){
+  } else if((e.fase==='regular'||(prox&&prox.ic))&&prox&&prox.tipo==='americas'){   // §7.1: la copa de la beta, con la temporada cerrada
     $l('lobChip').innerHTML=anioTxt()+' · '+compAM(prox)+' · <b>'+amEtapaTxt(prox.etapa,prox.grupo)+'</b>';
   } else if(e.fase==='regular'){
     /* el chip del boceto ("SEMANA 14 · FECHA 20/26") por fin tiene trabajo: la semana

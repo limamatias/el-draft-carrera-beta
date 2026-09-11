@@ -18308,6 +18308,21 @@ function frame(now){
         o.esqLado = Math.abs(cr)>0.15 ? (cr>=0?-1:1) : ((G.vos.x-MARG()) >= (W-MARG()-G.vos.x) ? 1 : -1); }
       const w=(1-dv/R)*3.0*dot;
       let nx=dx+(-dy)*o.esqLado*w, ny=dy+dx*o.esqLado*w; const n=Math.hypot(nx,ny)||1; return {x:nx/n,y:ny/n}; };
+    /* 2026-09-12 (su caza en la sacada: "el jugador nuestro intenta desmarcarse pero siempre queda trabado contra el rival;
+       la línea verde es estática, se quiere mover EN ESA DIRECCIÓN y se choca con todo"): el que corre esquivaba SÓLO a vos
+       (§2z57). La misma regla, contra el cuerpo que tenga adelante —vos o un rival—: tuerce hacia el lado por el que ya
+       venía pasando, más fuerte cuanto más cerca, y pasado el cuerpo retoma su tramo. Radio 70·ESC contra un rival (contra vos
+       siguen los 90). Un solo obstáculo por frame: el más cercano que tenga adelante. */
+    window.esquivaCuerpos=(o,dx,dy,cuerpos)=>{ let mejor=null, dMejor=Infinity, R0=0;
+      for(const c of cuerpos){ if(!c||c===o) continue; const R=(c===G.vos?90:70)*ESC(), dv=dist(o,c); if(dv>=R||dv<0.5) continue;
+        const ax=(c.x-o.x)/dv, ay=(c.y-o.y)/dv; if(ax*dx+ay*dy<=0.15) continue;
+        if(dv<dMejor){ dMejor=dv; mejor=c; R0=R; } }
+      if(!mejor){ o.esqLado=null; o.esqDe=null; return {x:dx,y:dy}; }
+      const dv=dMejor, ax=(mejor.x-o.x)/dv, ay=(mejor.y-o.y)/dv, dot=ax*dx+ay*dy;
+      if(!o.esqLado || o.esqDe!==mejor){ const cr=dx*ay-dy*ax; o.esqDe=mejor;
+        o.esqLado = Math.abs(cr)>0.15 ? (cr>=0?-1:1) : ((mejor.x-MARG()) >= (W-MARG()-mejor.x) ? 1 : -1); }
+      const w=(1-dv/R0)*3.0*dot;
+      let nx=dx+(-dy)*o.esqLado*w, ny=dy+dx*o.esqLado*w; const n=Math.hypot(nx,ny)||1; return {x:nx/n,y:ny/n}; };
     /* §2z106: en la contra ABRE el que persigue es el del medio (defs[1]), y sólo desde que gatilla el closeout */
     const perseguidorDe=(cor)=> cor.pedida ? cor.ch : G.tipo==='sacada' ? G.defs[1] : (G.tipo==='contra'&&cor.abre) ? G.defs[1] : G.defs[0];
     window.esPerseguidor=(df)=>{ const cor=G.corrida; if(!cor||cor.llego||now<cor.arranca) return false;
@@ -18355,7 +18370,7 @@ function frame(now){
         /* §2z57 (su caza: "te pasan prácticamente por arriba teniendo más espacio al costado"): el que corre te
            ESQUIVA en vivo — si te tiene adelante a <48·ESC, tuerce hacia el lado por el que ya venía pasando, más
            fuerte cuanto más cerca; pasado tu cuerpo, retoma su tramo. */
-        const paso=esquivaVos(j,(tramo.x-j.x)/dT,(tramo.y-j.y)/dT);
+        const paso=esquivaCuerpos(j,(tramo.x-j.x)/dT,(tramo.y-j.y)/dT,[G.vos,...G.defs]);   // 2026-09-12: también rodea a los rivales
         j.x+=paso.x*Math.min(cor.v*dt,dT); j.y+=paso.y*Math.min(cor.v*dt,dT);
       }
       /* EL CORTE TIENE SU PERSEGUIDOR EN LAS DOS ESCENAS (su reporte 2026-08-24: "es muy

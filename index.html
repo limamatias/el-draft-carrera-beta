@@ -21990,7 +21990,9 @@ function pintaLobby(){
   const av=e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada&&carreraActiva(e)?e.avisoMVP.txt:'';
   $l('lobGoteo3').innerHTML=av; $l('lobGoteo3').classList.toggle('oculto',!av);
   const avOx=e.avisoOxido&&e.avisoOxido.fecha===e.fechaJugada?e.avisoOxido.txt:'';   // 2026-09-10: el óxido aplicado, hasta la próxima fecha
-  $l('lobGoteo4').innerHTML=avOx; $l('lobGoteo4').classList.toggle('oculto',!avOx);
+  const avDb=e.avisoDbeta&&e.avisoDbeta.fecha===e.fechaJugada?e.avisoDbeta.txt:'';   // 2026-09-12: el escalón de la beta, en el goteo
+  const av4=[avOx,avDb].filter(Boolean).join('<br>');
+  $l('lobGoteo4').innerHTML=av4; $l('lobGoteo4').classList.toggle('oculto',!av4);
   // HOY: el próximo (o el estado de la llave / el cierre)
   const bloquePartido=document.querySelector('#lp-hoy .partido');
   if(prox){
@@ -23096,6 +23098,9 @@ function registrarResultado(){
     /* copia corta: el toast es nowrap a 14,5 px (clase 1 de CLAUDE.md, left:50%) — 43 caracteres entran en 375 */
     if(J.dbeta>dAntes) dbetaAviso={txt:t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
     else if(J.dbeta<dAntes) dbetaAviso={txt:t(L('Tres flojos seguidos: te aflojan la marca.','Three poor in a row: they ease up on you.','Três fracos seguidos: aliviam a marcação.'))};
+    /* 2026-09-12 (su corte: "ese toast es justamente lo que se pasa por arriba; debería decirlo en la parte del lobby donde
+       mostramos cosas"): el escalón queda en el goteo del vestuario hasta la próxima fecha, como el óxido. El toast se va. */
+    if(dbetaAviso){ e.avisoDbeta={fecha:e.fechaJugada,txt:dbetaAviso.txt}; dbetaAviso=null; }
     betaEvento('partido',{fecha:enPartido.fecha||null,tipo:enPartido.tipo,nota:rating,gano:G.nos>G.riv,min:miJuego.linea.min,
       pts:G.pts,ast:G.ast,dbeta:dAntes,dbetaDespues:J.dbeta,energia:Math.round(J.energia)});
   }

@@ -9753,8 +9753,12 @@ function fechaConAire(F, f, semilla, ritmo, quedan, ult) {
   if (mejorH < 2) for (let k = f - 1; k > (ult || 0); k--) if (huecoDe(F, k, semilla, ritmo) >= 2) return k;
   return mejor;
 }
-function ventanasAmericas(F, semilla, ritmo, desde, lista) {
+function ventanasAmericas(F, semilla, ritmo, desde, lista, ocupadas) {
   lista = lista || AMERICAS_VENTANAS;
+  /* 2026-09-12 (su caza: el tercero de cuartos re-anclado cayó adentro de la ventana FIBA): las fechas que la selección se
+     lleva (f y f+1 de cada ventana) no reciben un continental al re-anclar — al nacer ya las esquivaban (01r las esquiva a
+     ellas), y el re-anclado las pisaba */
+  const tomada = (f) => !!(ocupadas && ocupadas.has(f));
   const burbuja = lista === AMERICAS_VENTANAS;   // §2z27.2: las ventanas de grupo son burbujas de tres días
   const out = desde ? desde.hechas.slice() : [];
   let ult = desde ? desde.ult : 0;
@@ -9766,6 +9770,7 @@ function ventanasAmericas(F, semilla, ritmo, desde, lista) {
     else {
       if (f <= ult) f = ult + 1;
       f = fechaConAire(F, f, semilla, ritmo, lista.length - out.length - 1, ult);
+      while (tomada(f) && f < F - 2) f++;
     }
     ult = f;
     cont[etapa] = (cont[etapa] || 0) + 1;
@@ -9788,8 +9793,8 @@ function ventanasAmericas(F, semilla, ritmo, desde, lista) {
     const techo = sig ? sig.f - 1 : v.f, piso = Math.max(desde ? desde.ult : 0, prev ? prev.f : 0);   // las jugadas no se mueven: ninguna nueva baja de la última jugada
     const minH = v.etapa === 'semifinal' ? 3 : (burbuja && v.etapa === 'grupo') ? AMERICAS_BURBUJA + 1 : 2;   // la semi necesita dos días libres: ella y la final; la burbuja, tres
     let k = Math.min(v.f, techo);
-    while (k > piso && huecoDe(F, k, semilla, ritmo) < minH) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
-    if (k > piso) v.f = k;
+    while (k > piso && (huecoDe(F, k, semilla, ritmo) < minH || tomada(k))) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
+    if (k > piso && !tomada(k)) v.f = k;
   }
   for (let i = desdeI; i < out.length; i++) { const v = out[i];
     if (v.etapa === 'final' && i > 0 && out[i - 1].etapa === 'semifinal') { v.f = out[i - 1].f; if (out[i - 1].dia) v.dia = out[i - 1].dia + 1; continue; }
@@ -9798,7 +9803,7 @@ function ventanasAmericas(F, semilla, ritmo, desde, lista) {
   return out;
 }
 /* las partidas que ya venían: las ventanas por jugar se re-anclan con la regla nueva; las jugadas quedan */
-function reanclarAmericas(am, F, semilla, ritmo, fechaJugada) {
+function reanclarAmericas(am, F, semilla, ritmo, fechaJugada, ocupadas) {
   religarLlaveAM(am);   // 2026-09-12: al cargar, las dos listas de la llave vuelven a ser una
   if (!am || am.fase === 'terminado' || !semilla) return false;
   const lista = listaVentanasAM(am);   // §2z27.2: cada torneo se re-ancla con SU lista
@@ -9808,7 +9813,7 @@ function reanclarAmericas(am, F, semilla, ritmo, fechaJugada) {
      pendiente podía re-anclarse a una fecha que la liga ya había pasado — se ofrecía con fecha vieja, el descanso se
      contaba hasta la fecha siguiente (12 días) y el orden del calendario quedaba roto. El piso es también la fecha jugada. */
   const hechas = am.ventanas.slice(0, am.idx), ult = Math.max(hechas.length ? hechas[hechas.length - 1].f : 0, fechaJugada || 0);
-  let nuevas; try { nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult }, lista); } catch (err) { return false; }   // si ya no entran, se quedan como están
+  let nuevas; try { nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult }, lista, ocupadas); } catch (err) { return false; }   // si ya no entran, se quedan como están
   const cambio = nuevas.some((v, i) => !am.ventanas[i] || am.ventanas[i].f !== v.f || am.ventanas[i].dia !== v.dia);
   if (cambio) am.ventanas = nuevas;
   return cambio;
@@ -20091,7 +20096,9 @@ function cargarCarrera(n){
       for(const k of ['nombre','corto','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
-    if(c.temporada&&c.temporada.americas) reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo,c.temporada.fechaJugada);   // 2026-09-11: nunca a una fecha ya jugada   // 2026-09-10: las ventanas por jugar, con aire
+    if(c.temporada&&c.temporada.americas){ const selV=c.temporada.seleccion&&c.temporada.seleccion.ventanas||[];
+      const ocup=new Set(selV.filter(v=>v.receso!=='verano'&&!v.receso).flatMap(v=>[v.f,v.f+1]));   // 2026-09-12: las fechas de la ventana FIBA
+      reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo,c.temporada.fechaJugada,ocup); }   // 2026-09-11: nunca a una fecha ya jugada   // 2026-09-10: las ventanas por jugar, con aire
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
        fecha f+1 y la 2 tres días después. Las del receso ya los traen. */

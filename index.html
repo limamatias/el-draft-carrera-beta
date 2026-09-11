@@ -865,6 +865,10 @@
   #lobby .queViene .bkRow{height:26px;font-size:14px;gap:9px;padding:0 6px;border-radius:6px}
   #lobby .queViene .bkRow.yo{font-weight:700;background:rgba(255,150,51,.14)}
   #lobby .queViene .bkRow .escudito{width:18px;height:18px}
+  #lobby .queViene .bkRow .sig{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  /* 2026-09-12 EL NOMBRE MÁS LARGO QUE ENTRA (18b `nomAjustable`): todo nombre con varias formas recorta, así ajustarNombre
+     puede ver si la forma entra (scrollWidth contra clientWidth) — y si ninguna entra, la última queda con puntos suspensivos */
+  [data-nv]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #lobby .fix .r.amTit{color:var(--tinta2);font-weight:600;margin-top:8px;font-size:11px;letter-spacing:1.6px}   /* §12.25: VENTANA n como cabecera */
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */
@@ -10521,25 +10525,28 @@ const IC_TXT = {
 };
 /* las fuerzas en NUESTRA escala (Franca 67 · Boca 66): Europa arriba de todos, la G League apenas debajo, Oceanía a la
    altura del campeón de las Américas, África y Asia debajo. Ganarla es difícil y posible. */
+/* 2026-09-12 (su pedido: "que quede siempre el nombre más largo posible dada la dimensión de cada lugar"): `nombre` es el completo
+   y `nombres` las formas más cortas, en orden de preferencia; cada renglón deja la más larga que entra (18b `nomAjustable`). Sin
+   `corto`: dos campos para lo mismo se separan (clase 16). La última forma tiene que entrar en el fixture a 360 con bandera (~73 px). */
 const CLUBES_INTERCONTINENTAL = [
   /* Europa · Champions League */
-  { id: 'ICUNI', sigla: 'UNI', nombre: 'Unicaja Málaga', ciudad: 'Málaga', apodo: null, color: '#0B7A3B', color2: '#5A2D82', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
-  { id: 'ICTEN', sigla: 'TEN', nombre: 'La Laguna Tenerife', corto: 'Tenerife', ciudad: 'La Laguna', apodo: null, color: '#0F1F5C', color2: '#F2C300', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
-  { id: 'ICBUR', sigla: 'BUR', nombre: 'San Pablo Burgos', corto: 'Burgos', ciudad: 'Burgos', apodo: null, color: '#1B3A8C', color2: '#FFFFFF', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
-  { id: 'ICRYT', sigla: 'RYT', nombre: 'Vilnius Rytas', ciudad: 'Vilna', apodo: null, color: '#0D0D0D', color2: '#E30613', fuerza: 72, rival: null, pais: 'lt', cont: 'europa' },
+  { id: 'ICUNI', sigla: 'UNI', nombre: 'Unicaja Málaga', nombres: ['Unicaja'], ciudad: 'Málaga', apodo: null, color: '#0B7A3B', color2: '#5A2D82', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICTEN', sigla: 'TEN', nombre: 'La Laguna Tenerife', nombres: ['Tenerife'], ciudad: 'La Laguna', apodo: null, color: '#0F1F5C', color2: '#F2C300', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICBUR', sigla: 'BUR', nombre: 'San Pablo Burgos', nombres: ['Burgos'], ciudad: 'Burgos', apodo: null, color: '#1B3A8C', color2: '#FFFFFF', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICRYT', sigla: 'RYT', nombre: 'Vilnius Rytas', nombres: ['Rytas'], ciudad: 'Vilna', apodo: null, color: '#0D0D0D', color2: '#E30613', fuerza: 72, rival: null, pais: 'lt', cont: 'europa' },
   /* África · Basketball Africa League */
-  { id: 'ICAHL', sigla: 'AHL', nombre: 'Al Ahli Trípoli', corto: 'Al Ahli', ciudad: 'Trípoli', apodo: null, color: '#0B8A3E', color2: '#FFFFFF', fuerza: 62, rival: null, pais: 'ly', cont: 'africa' },
-  { id: 'ICPET', sigla: 'PET', nombre: 'Petro de Luanda', corto: 'Petro', ciudad: 'Luanda', apodo: null, color: '#F5C400', color2: '#1B4FA5', fuerza: 62, rival: null, pais: 'ao', cont: 'africa' },
-  { id: 'ICRSS', sigla: 'RSS', nombre: 'RSSB Tigers', ciudad: 'Kigali', apodo: null, color: '#1E6BB8', color2: '#FFD200', fuerza: 62, rival: null, pais: 'rw', cont: 'africa' },
+  { id: 'ICAHL', sigla: 'AHL', nombre: 'Al Ahli Trípoli', nombres: ['Al Ahli'], ciudad: 'Trípoli', apodo: null, color: '#0B8A3E', color2: '#FFFFFF', fuerza: 62, rival: null, pais: 'ly', cont: 'africa' },
+  { id: 'ICPET', sigla: 'PET', nombre: 'Petro de Luanda', nombres: ['Petro'], ciudad: 'Luanda', apodo: null, color: '#F5C400', color2: '#1B4FA5', fuerza: 62, rival: null, pais: 'ao', cont: 'africa' },
+  { id: 'ICRSS', sigla: 'RSS', nombre: 'RSSB Tigers', nombres: ['Tigers'], ciudad: 'Kigali', apodo: null, color: '#1E6BB8', color2: '#FFD200', fuerza: 62, rival: null, pais: 'rw', cont: 'africa' },
   /* Asia · Champions League Asia */
-  { id: 'ICUTS', sigla: 'UTS', nombre: 'Utsunomiya Brex', corto: 'Utsunomiya', ciudad: 'Utsunomiya', apodo: null, color: '#F5C400', color2: '#1A1A1A', fuerza: 60, rival: null, pais: 'jp', cont: 'asia' },
-  { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi Club Beirut', ciudad: 'Beirut', apodo: null, color: '#23338F', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
-  { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', corto: 'Shanghai Sharks', ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
+  { id: 'ICUTS', sigla: 'UTS', nombre: 'Utsunomiya Brex', nombres: ['Utsunomiya', 'Brex'], ciudad: 'Utsunomiya', apodo: null, color: '#F5C400', color2: '#1A1A1A', fuerza: 60, rival: null, pais: 'jp', cont: 'asia' },
+  { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi Club Beirut', nombres: ['Al Riyadi'], ciudad: 'Beirut', apodo: null, color: '#23338F', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
+  { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', nombres: ['Sharks'], ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
   /* Oceanía · NBL */
-  { id: 'ICTAS', sigla: 'TAS', nombre: 'Tasmania JackJumpers', corto: 'JackJumpers', ciudad: 'Hobart', apodo: null, color: '#0A6E4F', color2: '#F5C400', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
-  { id: 'ICILL', sigla: 'ILL', nombre: 'Illawarra Hawks', corto: 'Illawarra', ciudad: 'Wollongong', apodo: null, color: '#D8202C', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
+  { id: 'ICTAS', sigla: 'TAS', nombre: 'Tasmania JackJumpers', nombres: ['JackJumpers', 'Tasmania'], ciudad: 'Hobart', apodo: null, color: '#0A6E4F', color2: '#F5C400', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
+  { id: 'ICILL', sigla: 'ILL', nombre: 'Illawarra Hawks', nombres: ['Illawarra'], ciudad: 'Wollongong', apodo: null, color: '#D8202C', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
   /* el combinado de la G League: fijo, siempre está */
-  { id: 'ICGLU', sigla: 'GLU', nombre: 'NBA G League United', corto: 'G League United', ciudad: 'Nueva York', apodo: null, color: '#F58220', color2: '#FFFFFF', fuerza: 69, rival: null, pais: 'us', cont: 'gleague' },
+  { id: 'ICGLU', sigla: 'GLU', nombre: 'NBA G League United', nombres: ['G League United', 'G League'], ciudad: 'Nueva York', apodo: null, color: '#F58220', color2: '#FFFFFF', fuerza: 69, rival: null, pais: 'us', cont: 'gleague' },
 ];
 const IC_CONTINENTES = ['europa', 'africa', 'asia', 'oceania', 'gleague'];
 /* la sede rota por carrera; es neutral salvo que sea la ciudad de un participante (juega de local) */
@@ -20787,7 +20794,35 @@ const clubDe=(id)=>(est()&&clubPorId(est().clubes,id))||clubPorId(ligaDe().clube
    Independiente ("vs Independiente …" y "en Independi…" pueden ser dos clubes distintos). `corto`
    vive en el padrón, sólo en los que no entran, y SÓLO se usa en esos renglones: el nombre entero
    sigue en el PRE, el mercado, el draft, la ceremonia, el resumen y la card. */
-const nomCorto=(id)=>{ const c=clubDe(id); return (c&&(c.corto||c.nombre))||''; };
+/* 2026-09-12 EL NOMBRE MÁS LARGO QUE ENTRA (su pedido: "separá de forma que quede siempre el nombre más largo posible dada la
+   dimensión de cada lugar donde va a ir"). Un club puede traer `nombres`: sus formas más cortas, en orden de preferencia (hoy
+   los de la Copa Intercontinental). El renglón que lo pinta lleva TODAS las formas en `data-nv`, y ajustarNombre prueba de la
+   más larga a la más corta y deja la primera que entra sin recortarse. Mide cuando el renglón tiene ancho: un ResizeObserver
+   sobre el padre (vale al abrir una pestaña oculta y al girar el teléfono — la clase 4 de CLAUDE.md, efectos disparados con el
+   contenedor oculto). Sin `nombres` hay una sola forma (corto || nombre): el padrón queda exactamente como estaba.
+   ⚠️ Sólo va donde el renglón RECORTA (overflow hidden en un ancho que no depende del texto): donde el ancho lo pone el
+   contenido, "entra" siempre la más larga y se desborda — ahí va `nomCorto`, la forma más corta. */
+const nomCorto=(id)=>{ const c=clubDe(id); if(!c) return ''; return c.nombres?c.nombres[c.nombres.length-1]:(c.corto||c.nombre); };
+const nombresDe=(id)=>{ const c=clubDe(id); if(!c) return ['']; return c.nombres?[c.nombre,...c.nombres]:[c.corto||c.nombre]; };
+function nomAjustable(clase,antes,noms,despues){
+  const vs=noms.map(n=>antes+n+(despues||''));
+  return '<span'+(clase?' class="'+clase+'"':'')+(vs.length>1?' data-nv="'+vs.join('|').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"':'')+'>'+vs[0]+'</span>';
+}
+function ajustarNombre(el){
+  const vs=(el.getAttribute('data-nv')||'').split('|');
+  if(vs.length<2||!el.getClientRects().length) return;   // oculto: lo vuelve a pedir el ResizeObserver cuando aparezca
+  for(let i=0;i<vs.length;i++){ el.textContent=vs[i]; if(el.scrollWidth<=el.clientWidth+1) break; }
+}
+/* la vigilancia: sólo mira ELEMENTOS agregados (el reloj y el marcador cambian texto y no le cuestan nada); el padre que se
+   desconecta mide 0 y se deja de observar */
+if(typeof ResizeObserver!=='undefined'&&typeof MutationObserver!=='undefined'){
+  const roNV=new ResizeObserver(ents=>{ for(const en of ents){ if(!en.target.isConnected){ roNV.unobserve(en.target); continue; }
+    for(const el of en.target.children) if(el.hasAttribute('data-nv')) ajustarNombre(el); } });
+  new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes){ if(n.nodeType!==1) continue;
+      const els=n.hasAttribute('data-nv')?[n]:n.querySelectorAll('[data-nv]');
+      for(const el of els){ ajustarNombre(el); if(el.parentElement) roNV.observe(el.parentElement); } } })
+    .observe(document.documentElement,{childList:true,subtree:true});
+}
 const est=()=>C.temporada;
 
 /* ══ §2z27: LA LIGA DE LAS AMÉRICAS — el lobby la instala al nacer la temporada ══
@@ -20857,7 +20892,7 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
 /* 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega"; y "¡la sede no se sortea en la pretemporada!"):
    el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
    quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
-/* la caja del TORNEO QUE VIENE: {tit, ico, linea, grupo, ids, mi, esc(id), nom(id)}
+/* la caja del TORNEO QUE VIENE: {tit, ico, linea, grupo, ids, mi, esc(id), noms(id) — las formas del nombre, de la más larga a la más corta}
    2026-09-12 v2 (su caza: "¿por qué MUNDIAL 2027 y COPA INTERCONTINENTAL no tienen letras blancas del tamaño de ELIMINATORIAS?
    Y en uno ponemos año en la fecha y en el otro no"; y "le falta amor al formato, quedó muy plano"): el nombre entra a la caja
    como ENCABEZADO, con el cuerpo del título de tabla y el ícono de quien la juega; el año va en el nombre y nunca en la fecha;
@@ -20866,7 +20901,7 @@ function htmlQueViene(o){
   let h='<div class="qvSep"><div class="bkBox queViene"><div class="qvCab">'+(o.ico||'')+'<span class="nom">'+o.tit+'</span>'
     +(o.grupo?'<span class="qvGrupo">'+o.grupo+'</span>':'')+'</div>';
   if(o.linea) h+='<div class="qvLinea">'+o.linea+'</div>';
-  for(const id of o.ids) h+='<div class="bkRow'+(id===o.mi?' yo':'')+'">'+o.esc(id)+'<span class="sig">'+o.nom(id)+'</span></div>';
+  for(const id of o.ids) h+='<div class="bkRow'+(id===o.mi?' yo':'')+'">'+o.esc(id)+nomAjustable('sig','',o.noms(id))+'</div>';
   return h+'</div></div>';
 }
 function icAnunciado(e,clubId){
@@ -20882,10 +20917,9 @@ function notaICPendiente(e,clubId){
   const ic=icAnunciado(e,clubId); if(!ic) return '';
   /* 2026-09-12 (su corte: "un mínimo más de formato"): la caja del torneo que viene — cuándo y dónde, el grupo, los tres con escudo
      (el que la juega siempre nombrado: "¿por qué no dice que lo jugamos nosotros?") */
-  const nomIC=(id)=>{ const c=clubIC(id)||clubDe(id); return c?(c.corto||c.nombre):id; };
   return htmlQueViene({tit:t(IC_TXT.nombre)+' '+ic.anio, ico:escudito(ic.club.id),
     linea:t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' · '+ic.sede.ciudad.toUpperCase(), grupo:t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo,
-    ids:ic.ids, mi:e.miClubId, esc:(id)=>escudito(id), nom:(id)=>nomIC(id)});
+    ids:ic.ids, mi:e.miClubId, esc:(id)=>escudito(id), noms:(id)=>nombresDe(id)});
 }
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
    `C.icPendiente` lo deja el cierre de la temporada; si en el mercado te fuiste, la juegan sin vos (no se arma). */
@@ -21337,7 +21371,7 @@ function htmlSeleccion(e){
         const pais=C.jugador.nacionalidad||'ar';
         h+=htmlQueViene({tit:nombreTorneoSel(an.cual)+' '+an.anio, ico:escuditoDe(clubDeSeleccion(pais)),
           linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), grupo:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
-          ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), nom:(id)=>nombreSelCorto(id)});
+          ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), noms:(id)=>[nombreSelCorto(id)]});
         /* §12.31: con el ranking arriba los directos ya se ven; queda la regla del preolímpico */
         if(rk&&an.cual==='preolimpico') h+='<div class="cajNota">'+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'))+'</div>';
         else if(an.directos&&an.directos.length&&!rk) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
@@ -22211,7 +22245,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.po?' po':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span>'+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
+    '<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local),nombresDe(f.rival))+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
     '<span class="dia">'+(f.dia?diaTxt(f.dia):f.po?rondaCorta(f.ronda):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */
@@ -22504,8 +22538,8 @@ function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "
                     :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(Math.round(energia)!==0?' · '+(energia>0?'+':'−')+Math.abs(Math.round(energia))+' ⚡':'');
-  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local)+nomCorto(f.rival)+'</span></div>').join('')
-    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+'<span class="nom">'+vsTxt(destino.local)+nomCorto(destino.rival)+' · '+diaTxt(sig.dia)+'</span><span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
+  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local),nombresDe(f.rival))+'</div>').join('')
+    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+nomAjustable('nom',vsTxt(destino.local),nombresDe(destino.rival),' · '+diaTxt(sig.dia))+'<span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
   $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };
@@ -23643,7 +23677,7 @@ terminar=function(){
           :o.tipo==='americas'?compAM(o):'';
         /* §2z97 (su caza: "salió cortado lo de abajo del score"): sin el nombre de tu club — el escudo ya dice de quién
            son los chips (§2z12.5), y "BOCA JUNIORS · LIGA DE LAS AMÉRICAS · vs FUERZA REGIA" no entraba en 375 */
-        h=escuditoDe(club)+'<span>'+(comp?comp+' · ':'')+vsTxt(o.local,o.neutral)+nomCorto(o.rival).toUpperCase()+'</span>'+escudito(o.rival);   // 2026-09-10 (su caza): el escudo del rival, al mismo tamaño · §2z27.3: en neutral dice «vs», no «en»
+        h=escuditoDe(club)+nomAjustable('',(comp?comp+' · ':'')+vsTxt(o.local,o.neutral),nombresDe(o.rival).map(n=>n.toUpperCase()))+escudito(o.rival);   // 2026-09-10 (su caza): el escudo del rival, al mismo tamaño · §2z27.3: en neutral dice «vs», no «en»
       }
       d.innerHTML=h; d.classList.remove('oculto'); } }
   /* §2z101: LA BARRA VA Y VUELVE. Se dibuja el tramo del nivel en que TERMINÁS: si perdiste la estrella, el tramo

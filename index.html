@@ -22626,6 +22626,7 @@ function cerrarSlalom(llego){
 function estrellasDrill(){
   if(!drillT) return;
   const enJuego=3-drillT.intentos;   // las que todavía podés ganar
+  $('#sit').className='';   // 2026-09-12 (su caza: "las 3 estrellas quedan con el contenedor en ROJO" en el drill de defensa): la píldora heredaba el tono de la situación (cierre = rojo); las estrellas van neutras
   $('#sit').innerHTML='<b style="color:#f2c94c;letter-spacing:3px">'+
     '★'.repeat(Math.max(0,enJuego))+'☆'.repeat(Math.min(3,drillT.intentos))+'</b>';
 }

@@ -747,6 +747,10 @@
   #lobby .tablita .banMini>*{width:100%;height:100%}
   #lobby .selSwitch .tab svg{width:18px;height:18px}
   #lobby .tablita .r.grupoSel .rec2{width:44px}
+  /* §12.31 AMÉRICA EN EL MUNDIAL: el puesto en el Mundial ("20°") pide más que el de un grupo; la ronda, chica como la DIF */
+  #lobby .tablita .r.rankMun .pos{width:28px}
+  #lobby .tablita .r.rankMun .ronda{width:60px;flex:none;text-align:right;font-size:11px;letter-spacing:.5px;color:var(--tinta2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .tablita .r.rankMun .rec2{width:34px}
   /* §2z44 LAS LÍNEAS DE LA TABLA DE LIGA: el puntito de la copa al lado del puesto, la línea abajo del
      último directo (llena) y del último que clasifica (punteada), y la roja arriba del play-out. La
      leyenda va sólo al pie de la plena (su corte: en el panel de 5 rompe la tabla). */
@@ -21059,14 +21063,42 @@ function filaGrupoSel(fila,pos,pasan,mio){
  * Muestra la tabla de las eliminatorias mientras corren, y la LLAVE del torneo del receso
  * mientras se juega — que hasta ahora no se veía en ningún lado.
  */
+/* §12.31 AMÉRICA EN EL MUNDIAL (2026-09-12, su pedido): los seis de América en el orden del Mundial, con el corte de los dos que
+   van directo a los Juegos — hasta hoy el corte no se veía en ninguna tabla, porque el Mundial no es una tabla. Se ve desde que
+   termina el Mundial hasta que se resuelve el receso de los Juegos, y sólo si tu país es de América. El renglón: puesto en el
+   Mundial · escudo · nombre · hasta dónde llegó · récord. La leyenda es UNA: el que no es directo no va siempre al preolímpico
+   (el tuyo lo juegan seis), así que «PREOLÍMPICO» sería una regla falsa. El cuarto dice SEMIS: el 4° ya está a la izquierda. */
+const RONDA_MUN_TXT={oro:L('ORO','GOLD','OURO'),plata:L('PLATA','SILVER','PRATA'),bronce:L('BRONCE','BRONZE','BRONZE'),cuarto:L('SEMIS','SEMIS','SEMIS'),
+  cuartos:L('CUARTOS','QUARTERS','QUARTAS'),segunda:L('2ª FASE','ROUND 2','2ª FASE'),grupo:L('GRUPO','GROUP','GRUPO')};
+function mundialRankVisible(){
+  const mem=C&&C.seleccion, rk=mem&&mem.mundialRank, pais=C&&C.jugador&&(C.jugador.nacionalidad||'ar');
+  if(!rk||!rk.filas||!SELECCIONES[pais]||SELECCIONES[pais].cont!=='am'||C.selTorneo) return null;
+  if(rk.anio===C.anio+1&&C.selTorneoHecho===C.anio) return rk;   // la temporada del Mundial, ya jugado
+  if(rk.anio===C.anio&&C.selTorneoHecho!==C.anio) return rk;     // la de los Juegos, hasta que se resuelven
+  return null;
+}
+function htmlRankMundial(rk){
+  const pais=C.jugador.nacionalidad||'ar', n=SEL_JJOO_DIRECTOS_AM;
+  let h='<div class="cajTag bkSig">'+t(L('AMÉRICA EN EL MUNDIAL ','AMERICAS AT THE WORLD CUP ','AMÉRICA NO MUNDIAL '))+rk.anio+'</div>';
+  rk.filas.forEach((f,i)=>{
+    h+='<div class="r grupoSel rankMun'+(f.id===pais?' vos':'')+(i<n?' pasa':'')+(i===n-1?' corteDir':'')+'">'
+      +'<span class="pos">'+f.puesto+'°</span>'
+      +'<span class="club">'+escudito(f.id)+'<span class="nom">'+nombreSelCorto(f.id)+'</span></span>'
+      +'<span class="ronda">'+t(RONDA_MUN_TXT[f.ronda]||L(f.ronda))+'</span>'
+      +'<span class="rec2">'+f.pg+'–'+f.pp+'</span></div>';
+  });
+  return h+'<div class="leyenda"><span><span class="ley"></span>'+t(L('DIRECTO A LOS JUEGOS','STRAIGHT TO THE GAMES','DIRETO AOS JOGOS'))+'</span></div>';
+}
 function htmlSeleccion(e){
   const el=e.seleccion, t2=C.selTorneo;
   const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ochoprevias)
   const anV=(!t2&&(!el||el.fin||!elTuvo))?torneoAnunciado(e):null;   // 2026-09-12: el torneo que viene, también en los años sin eliminatorias
-  if(!elTuvo&&!t2&&!(anV&&!anV.afuera)) return '';
+  const rk=mundialRankVisible();   // §12.31
+  if(!elTuvo&&!t2&&!(anV&&!anV.afuera)&&!rk) return '';
   const ban=banderaDe(C.jugador.nacionalidad||'ar',14);
   const tit=(x)=>'<div class="r amTit"><span class="pos">'+ban+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='';
+  if(rk) h+=htmlRankMundial(rk);   // §12.31: lo último que pasó, arriba
   if(elTuvo){
     h+=tit(elimTxt());
     /* de las eliminatorias pasan CUATRO al Mundial */
@@ -21087,7 +21119,9 @@ function htmlSeleccion(e){
         h+='<div class="cajTag bkSig">'+nombreTorneoSel(an.cual)+' '+an.anio+'</div>';
         h+=htmlQueViene({linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), cab:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
           ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), nom:(id)=>nombreSelCorto(id)});
-        if(an.directos&&an.directos.length) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
+        /* §12.31: con el ranking arriba los directos ya se ven; queda la regla del preolímpico */
+        if(rk&&an.cual==='preolimpico') h+='<div class="cajNota">'+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'))+'</div>';
+        else if(an.directos&&an.directos.length&&!rk) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
         h+='<div class="cajNota">'+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
       } }
   if(t2){
@@ -21137,7 +21171,7 @@ function memSel(){ if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]}; ret
    que torneoRecesoDe, sin efectos: no convoca, no anota, no guarda. Si el país quedó afuera, lo dice la línea del ciclo. */
 const SEL_MES_TXT={mundial:L('AGOSTO','AUGUST','AGOSTO'),continental:L('AGOSTO','AUGUST','AGOSTO'),eurobasket:L('AGOSTO','AUGUST','AGOSTO'),jjoo:L('JULIO','JULY','JULHO'),preolimpico:L('JULIO','JULY','JULHO')};
 function torneoAnunciado(e){
-  if(!e||C.selTorneo) return null;
+  if(!e||C.selTorneo||C.selTorneoHecho===C.anio) return null;   /* §12.31: el receso ya se resolvió (el Mundial recién jugado se volvía a anunciar) */
   const mem=memSel(), pais=C.jugador.nacionalidad||'ar'; if(!SELECCIONES[pais]) return null;
   const torneo=torneoDelReceso(C.anio,pais); if(!torneo) return null;
   /* el Mundial depende de las eliminatorias: hasta que cierran no hay campo. Los Juegos, el preolímpico y el continental salen
@@ -21483,6 +21517,7 @@ function animaCambio(id){
 function haySeleccionQueVer(){
   const e=est(); if(!e) return false;
   if(e.seleccion||C.selTorneo) return true;
+  if(mundialRankVisible()) return true;   /* §12.31: la temporada de los Juegos, la pestaña existe también para el ranking */
   const an=torneoAnunciado(e); return !!(an&&!an.afuera);   // 2026-09-12: en los años sin eliminatorias, la pestaña existe para anunciar el torneo que viene
 }
 /** Pinta el switch en un contenedor y lo cablea. Se esconde si no hay nada del otro lado. */

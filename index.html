@@ -3784,6 +3784,7 @@ function jugarFecha(estado, miJuego) {
   if (!fecha || estado.fase !== 'regular') return [];
   /* §2z27: las ventanas del continental que dejaste pasar las juega el relato ANTES de la
      fecha siguiente (la ventana f va entre la fecha f y la f+1) */
+  if (estado.intercontinental) avanzarIntercontinental(estado);   // §2z27.3: la copa de la pretemporada, antes de la fecha 1
   if (estado.americas) avanzarAmericas(estado, estado.fechaJugada);
   /* §12: lo mismo con las ventanas de la Selección. Van DESPUÉS del continental porque la
      ventana FIBA se lleva las fechas f y f+1 del club: lo que caiga adentro lo juega el club
@@ -4344,6 +4345,8 @@ function miProximo(estado) {
     /* §12: LA SELECCIÓN VA PRIMERO DE TODO. Es la única cita del calendario que no se
        negocia: la ventana FIBA se lleva tus dos fechas y, si adentro cae un continental,
        ése también lo juega el club sin vos. */
+    const ic = proximoIntercontinental(estado);   // §2z27.3: la copa se juega antes de la fecha 1; no compite con nada
+    if (ic) return ic;
     const sel = proximoSeleccion(estado);
     /* 2026-09-09: si la ventana FIBA comparte ancla con una del continental (chocaAm, 01r), el continental va primero:
        su día es el de la fecha f+1, antes de la jornada 1 */
@@ -10139,6 +10142,286 @@ function misJuegosAM(e) {
   }
   return out;
 }
+/* ══ 01p2 — LAS CARTAS DE LA SELECCIÓN (§12, su línea 7: "probablemente podamos crear algunas
+   cards sobre las situaciones de selección") ═══════════════════════════════════════════════
+   Las seis situaciones que sólo existen porque existe la selección: la primera llamada, el
+   club que no te quiere prestar, la ventana que se jugó sin vos, el himno, el viaje de
+   veinte horas y la medalla. Ninguna repite lo que la pantalla ya dice: la pantalla dice
+   QUÉ pasó, la carta pregunta qué hacés vos con eso.
+   ⚠️ Van con el nombre del país adentro sacado de SELECCIONES: una carta no escribe "Argentina". */
+const CARTAS_SELECCION = [
+ { id:'sel_primera_llamada', de:'seleccion', peso:150, maxVeces:1, edadMin:17, fondo:'despacho',
+   cuando:(c)=>c.seleccion&&c.selJugados===0,   // 2026-09-09: la PRIMERA de verdad (antes: sin torneos, y salía al que llevaba cuatro ventanas)
+   gancho:L('Suena un número que no tenés agendado. Es el ayudante del entrenador de la mayor: te quieren en la próxima ventana. Cortás y te quedás mirando el teléfono como si fuera a sonar de nuevo para desdecirse.','A number you do not have saved rings. It is the assistant of the senior national team coach: they want you for the next window. You hang up and stare at the phone as if it were going to ring again to take it back.','Toca um número que você não tem na agenda. É o auxiliar do técnico da seleção principal: querem você na próxima janela. Você desliga e fica olhando o telefone como se fosse tocar de novo para se desdizer.'),
+   opciones:[
+     {tipo:'segura',label:L('Avisarle al DT del club','Tell your club coach','Avisar o técnico do clube'),desenlaces:[{p:100,remate:null,texto:L('Se lo decís antes de que se entere por otro lado. Te da la mano y te dice que no vuelvas roto.','You tell him before he hears it somewhere else. He shakes your hand and tells you not to come back broken.','Você conta antes que ele saiba por outro lado. Ele te dá a mão e diz para não voltar quebrado.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('No decirle a nadie hasta la lista oficial','Tell nobody until the official list','Não contar a ninguém até a lista oficial'),desenlaces:[
+       {p:55,remate:L('La lista','The list','A lista'),texto:L('Sale el martes y tu apellido está ahí. El vestuario se entera con vos y te aplauden en el medio de la práctica.','It comes out on Tuesday and your name is there. The locker room finds out with you and they applaud in the middle of practice.','Sai na terça e o seu sobrenome está lá. O vestiário descobre junto com você e te aplaudem no meio do treino.'),ef:{rel:{plantel:8,hinchada:6}}},
+       {p:45,remate:L('Se filtró','It leaked','Vazou'),texto:L('El jueves un periodista lo publica y el DT se entera por Twitter. No te dice nada, que es peor.','On Thursday a reporter publishes it and the coach finds out on Twitter. He says nothing to you, which is worse.','Na quinta um jornalista publica e o técnico descobre pelo Twitter. Ele não te diz nada, que é pior.'),ef:{rel:{dt:-6}}}]}]},
+
+ /* 2026-09-09: `sel_el_club_no_suelta` se retiró — desde §12.28 en las ligas que no paran ELEGÍS (la carta de la ventana), y el
+    motivo 'club' que la disparaba ya no lo produce nadie; su texto ("tu club no libera y está en su derecho") contradecía la regla. */
+ { id:'sel_se_jugo_sin_vos', de:'seleccion', peso:110, maxVeces:2, edadMin:18, fondo:'vestuario',
+   cuando:(c)=>c.selAfuera&&c.selCerca,
+   gancho:L('La ventana se jugó y vos la viste por televisión, en tu casa, con la camiseta de tu club puesta. En la conferencia le preguntan al entrenador por vos y contesta tres palabras: "lo estamos siguiendo".','The window was played and you watched it on television, at home, wearing your club shirt. At the press conference they ask the coach about you and he answers three words: "we are watching him".','A janela foi jogada e você assistiu pela televisão, em casa, com a camisa do seu clube. Na coletiva perguntam ao técnico sobre você e ele responde três palavras: "estamos acompanhando".'),
+   opciones:[
+     {tipo:'segura',label:L('Volver el lunes y no hablar del tema','Come back Monday and drop it','Voltar na segunda e não falar disso'),desenlaces:[{p:100,remate:null,texto:L('Nadie te pregunta y vos no contás. El sábado metés veintiuno.','Nobody asks and you do not bring it up. On Saturday you drop twenty-one.','Ninguém pergunta e você não conta. No sábado você faz vinte e um.'),ef:{rel:{plantel:1}}}]},
+     {tipo:'apuesta',label:L('Mandarle tus videos al cuerpo técnico','Send your tape to their staff','Mandar seus vídeos para a comissão'),desenlaces:[
+       {p:50,remate:L('Contestaron','They answered','Responderam'),texto:L('A los cuatro días te contesta el ayudante con dos líneas y una pregunta sobre tu pie de pivote. Que te pregunten ya es estar adentro.','Four days later the assistant answers with two lines and a question about your pivot foot. Being asked is already being inside.','Quatro dias depois o auxiliar responde com duas linhas e uma pergunta sobre o seu pé de pivô.'),ef:{skills:{vision:2},rel:{dt:3}}},
+       {p:50,remate:L('Visto','Seen','Visto'),texto:L('Dos tildes azules y nada más. Una semana después borrás el chat, y el DT de tu club te pregunta por qué entrenás mirando el teléfono.','Two blue ticks and nothing else. A week later you delete the chat, and your club coach asks why you train staring at your phone.','Dois tiques azuis e nada mais. Uma semana depois você apaga a conversa, e o técnico do clube pergunta por que você treina olhando o telefone.'),ef:{rel:{dt:-3}}}]}]},
+
+ { id:'sel_el_himno', de:'seleccion', peso:130, maxVeces:1, edadMin:17, fondo:'vestuario',
+   cuando:(c)=>c.proximoSeleccion&&c.selJugados===0,   // 2026-09-09: el himno es del debut
+   gancho:L('Antes de salir, el utilero te da la camiseta doblada con tu apellido arriba del número. Pesa lo mismo que cualquier otra. En el pasillo el capitán te dice al oído: "el himno lo cantás, aunque no te salga".','Before going out, the kit man hands you the folded shirt with your name above the number. It weighs the same as any other. In the tunnel the captain says in your ear: "you sing the anthem, even if it comes out badly".','Antes de sair, o roupeiro te entrega a camisa dobrada com seu sobrenome acima do número. Pesa o mesmo que qualquer outra. No túnel o capitão diz no seu ouvido: "o hino você canta, mesmo que saia mal".'),
+   opciones:[
+     {tipo:'segura',label:L('Cantarlo mirando al piso','Sing it looking at the floor','Cantar olhando para o chão'),desenlaces:[{p:100,remate:null,texto:L('Lo cantás entero. Cuando levantás la cabeza ya está la pelota en el aire.','You sing all of it. When you lift your head the ball is already in the air.','Você canta inteiro. Quando levanta a cabeça a bola já está no ar.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('Buscar a tu familia en la tribuna','Look for your family in the stands','Procurar sua família na arquibancada'),desenlaces:[
+       {p:60,remate:L('Los encontraste','You found them','Você achou'),texto:L('Están en el codo, arriba. Tu vieja te ve y se tapa la cara. Salís a jugar con eso adentro y no te sale una mal.','They are up in the corner. Your mother sees you and covers her face. You go out to play with that inside you and nothing comes out wrong.','Estão no canto, lá em cima. Sua mãe te vê e tapa o rosto. Você entra em quadra com isso dentro e não erra uma.'),ef:{skills:{tiro:2},energia:6}},
+       {p:40,remate:L('No los viste','You did not see them','Você não viu'),texto:L('Son once mil personas y todas tienen la misma camiseta. Cuando terminás de buscar, ya empezó el partido y vos todavía no.','It is eleven thousand people and they all wear the same shirt. When you stop looking, the game has started and you have not.','São onze mil pessoas e todas usam a mesma camisa. Quando você para de procurar, o jogo começou e você não.'),ef:{energia:-12,rel:{plantel:-2}}}]}]},
+
+ { id:'sel_veinte_horas', de:'seleccion', peso:100, maxVeces:2, edadMin:18, fondo:'vestuario',
+   cuando:(c)=>c.selVentana&&c.proximoSeleccion,   // 2026-09-09: "el partido es mañana" sólo con el partido de selección por delante
+   gancho:L('Dos escalas, veinte horas y una valija que no llegó. El partido es mañana a las nueve de la noche y el hotel tiene el aire acondicionado en dieciséis grados.','Two layovers, twenty hours and a suitcase that did not arrive. The game is tomorrow at nine at night and the hotel has the air conditioning at sixteen degrees.','Duas escalas, vinte horas e uma mala que não chegou. O jogo é amanhã às nove da noite e o hotel está com o ar-condicionado a dezesseis graus.'),
+   opciones:[
+     {tipo:'segura',label:L('Dormir hasta la hora del micro','Sleep until the bus leaves','Dormir até a hora do ônibus'),desenlaces:[{p:100,remate:null,texto:L('Catorce horas. Te despertás sin saber en qué país estás, pero con piernas.','Fourteen hours. You wake up not knowing what country you are in, but with legs.','Catorze horas. Você acorda sem saber em que país está, mas com pernas.'),ef:{energia:9}}]},
+     {tipo:'apuesta',label:L('Ir al gimnasio del hotel a soltar','Hit the hotel gym to loosen up','Ir à academia do hotel para soltar'),desenlaces:[
+       {p:55,remate:L('Se te fue el viaje','The trip left your body','A viagem saiu do corpo'),texto:L('Cuarenta minutos de bicicleta y elongación. Al otro día sos el único del plantel que no camina como si tuviera setenta años.','Forty minutes on the bike and stretching. The next day you are the only one on the roster who does not walk like he is seventy.','Quarenta minutos de bicicleta e alongamento. No dia seguinte você é o único do elenco que não anda como se tivesse setenta anos.'),ef:{skills:{fisico:2},energia:6}},
+       {p:45,remate:L('La espalda','The back','As costas'),texto:L('El viaje ya te había endurecido todo y el gimnasio lo terminó. Jugás con una banda en la cintura.','The trip had already stiffened everything and the gym finished the job. You play with a strap around your waist.','A viagem já tinha endurecido tudo e a academia terminou o serviço. Você joga com uma faixa na cintura.'),ef:{energia:-14}}]}]},
+
+ { id:'sel_la_medalla', de:'seleccion', peso:140, maxVeces:2, edadMin:19, fondo:'vestuario', receso:true,   // 2026-09-09: entra al pool del receso (estaba muerta: sólo se sorteaba en la regular)
+   cuando:(c)=>c.fase==='receso'&&c.selMedallaHoy,
+   gancho:L('Volviste con la medalla en el bolsillo del pantalón, envuelta en una remera. En el aeropuerto hay ciento cincuenta personas esperando y un canal. Te preguntan si te la vas a poner para la foto.','You came back with the medal in your trouser pocket, wrapped in a t-shirt. At the airport there are a hundred and fifty people waiting and a TV crew. They ask if you are going to put it on for the photo.','Você voltou com a medalha no bolso da calça, embrulhada numa camiseta. No aeroporto há cento e cinquenta pessoas esperando e um canal de TV. Perguntam se você vai colocá-la para a foto.'),
+   opciones:[
+     {tipo:'segura',label:L('Ponértela y saludar','Put it on and wave','Colocar e acenar'),desenlaces:[{p:100,remate:null,texto:L('Diez minutos de fotos. A la noche la dejás arriba de la heladera y ahí se queda tres años.','Ten minutes of photos. At night you leave it on top of the fridge and there it stays for three years.','Dez minutos de fotos. À noite você deixa em cima da geladeira e ali fica três anos.'),ef:{rel:{hinchada:4}}}]},
+     {tipo:'apuesta',label:L('Dársela a quien te llevó a entrenar de pibe','Give it to whoever drove you to practice as a kid','Dar para quem te levava ao treino quando criança'),desenlaces:[
+       {p:70,remate:L('En el club de barrio','At the neighbourhood club','No clube do bairro'),texto:L('La dejás en la vitrina del club donde empezaste, con una foto tuya de doce años al lado. El video lo ve todo el país.','You leave it in the trophy case of the club where you started, with a photo of you at twelve beside it. The whole country sees the video.','Você deixa na vitrine do clube onde começou, com uma foto sua aos doze anos ao lado. O vídeo o país inteiro vê.'),ef:{rel:{hinchada:12},plataX:1}},
+       {p:30,remate:L('El malentendido','The misunderstanding','O mal-entendido'),texto:L('En tu club actual lo leen como que el de barrio te importa más. Tardan un mes en decírtelo y te lo dicen mal.','At your current club they read it as the old one mattering more. It takes them a month to tell you and they tell you badly.','No seu clube atual entendem que o do bairro importa mais. Demoram um mês para te dizer e dizem mal.'),ef:{rel:{hinchada:-4,plantel:-2}}}]}]},
+];
+/* ══ 01p3 — LA COPA INTERCONTINENTAL FIBA (§2z27.3, 2026-09-11, co-diseñada por chat) ════════════════════════
+   El campeón de la Liga de las Américas la juega EN LA PRETEMPORADA SIGUIENTE, como CLUB: si te fuiste en el mercado,
+   la jugaron sin vos; si llegaste a un club que la ganó, la jugás vos. Es el techo del club en el juego.
+   Research (Wikipedia es/en, 2026-09-11): desde 2023 son 6 equipos en sede única, en septiembre — dos grupos de 3 a una
+   vuelta, los primeros a la final, los segundos por el tercer puesto (el partido por el quinto puesto real se sacó: su
+   corte, "un partido sin nada en juego"). Clasifican los campeones de la BCL Americas, la Champions de Europa, la BAL de
+   África, la Champions de Asia, la NBL de Oceanía y el combinado de la G League (fijo). La Euroliga no manda a nadie.
+   2024 y 2025 en Singapur (Unicaja campeón las dos, G League United subcampeón), 2026 en Pekín.
+
+   Cinco placeholders con nombre real, sacados de las últimas ediciones, que ROTAN POR CARRERA con la semilla (dos
+   carreras no ven la misma copa); la sede rota aparte. Cuando entre una liga de esos continentes a El Draft, su
+   placeholder se reemplaza por el campeón real sin tocar el resto.
+
+   Las cuatro líneas: (1) examina lo mismo que el continental —jugar entre ligas, de visitante siempre— con el techo del
+   mundo enfrente; (2) presupuesto: tres partidos en cuatro días, una semana antes de la fecha 1 (días F1−9, −8 y −6),
+   con un día de descanso entre el grupo y la definición; la energía arranca en 100 (§2z197: la pretemporada deja en 100)
+   y llega a la fecha 1 con cuatro días de descanso; (3) cancha neutral para todos (dado 1 y 1, como el Final Four de
+   §2z194) salvo que la sede sea la ciudad de un participante; (4) los bombos: Europa y la G League cabezas de serie en
+   grupos distintos, Oceanía y las Américas en el segundo bombo, África y Asia en el tercero — así el grupo tuyo trae
+   siempre un grande y uno accesible, y ganar la copa pide ganarle a Europa o a la G League en la final.
+
+   ⚠️ Clase 6 de CLAUDE.md: esta pieza vive FUERA del cierre del lobby. Habla con el lobby con la MISMA forma que el
+   continental (tipo 'americas' con `ic:true`): el pre, las casacas, el grifo, la energía y las líneas ya saben leerla.
+   Las etapas llevan prefijo `ic-` para que el fixture no las confunda con las del continental (etapa+n es la clave). */
+
+const IC_TXT = {
+  nombre: L('COPA INTERCONTINENTAL', 'INTERCONTINENTAL CUP', 'COPA INTERCONTINENTAL'),
+  corto: L('INTERCONTINENTAL', 'INTERCONTINENTAL', 'INTERCONTINENTAL'),
+};
+/* las fuerzas en NUESTRA escala (Franca 67 · Boca 66): Europa arriba de todos, la G League apenas debajo, Oceanía a la
+   altura del campeón de las Américas, África y Asia debajo. Ganarla es difícil y posible. */
+const CLUBES_INTERCONTINENTAL = [
+  /* Europa · Champions League */
+  { id: 'ICUNI', sigla: 'UNI', nombre: 'Unicaja', ciudad: 'Málaga', apodo: null, color: '#0B7A3B', color2: '#5A2D82', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICTEN', sigla: 'TEN', nombre: 'Lenovo Tenerife', corto: 'Tenerife', ciudad: 'La Laguna', apodo: null, color: '#0F1F5C', color2: '#F2C300', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICBUR', sigla: 'BUR', nombre: 'San Pablo Burgos', corto: 'Burgos', ciudad: 'Burgos', apodo: null, color: '#1B3A8C', color2: '#FFFFFF', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICRYT', sigla: 'RYT', nombre: 'Rytas', ciudad: 'Vilna', apodo: null, color: '#0D0D0D', color2: '#E30613', fuerza: 72, rival: null, pais: 'lt', cont: 'europa' },
+  /* África · Basketball Africa League */
+  { id: 'ICAHL', sigla: 'AHL', nombre: 'Al Ahli Trípoli', corto: 'Al Ahli', ciudad: 'Trípoli', apodo: null, color: '#0B8A3E', color2: '#FFFFFF', fuerza: 62, rival: null, pais: 'ly', cont: 'africa' },
+  { id: 'ICPET', sigla: 'PET', nombre: 'Petro de Luanda', corto: 'Petro', ciudad: 'Luanda', apodo: null, color: '#F5C400', color2: '#1B4FA5', fuerza: 62, rival: null, pais: 'ao', cont: 'africa' },
+  { id: 'ICRSS', sigla: 'RSS', nombre: 'Tigers RSSB', ciudad: 'Kigali', apodo: null, color: '#1E6BB8', color2: '#FFD200', fuerza: 62, rival: null, pais: 'rw', cont: 'africa' },
+  /* Asia · Champions League Asia */
+  { id: 'ICUTS', sigla: 'UTS', nombre: 'Utsunomiya Brex', corto: 'Utsunomiya', ciudad: 'Utsunomiya', apodo: null, color: '#F5C400', color2: '#1A1A1A', fuerza: 60, rival: null, pais: 'jp', cont: 'asia' },
+  { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi', ciudad: 'Beirut', apodo: null, color: '#0A8F3C', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
+  { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', corto: 'Shanghai', ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
+  /* Oceanía · NBL */
+  { id: 'ICTAS', sigla: 'TAS', nombre: 'Tasmania JackJumpers', corto: 'JackJumpers', ciudad: 'Hobart', apodo: null, color: '#0A6E4F', color2: '#F5C400', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
+  { id: 'ICILL', sigla: 'ILL', nombre: 'Illawarra Hawks', corto: 'Illawarra', ciudad: 'Wollongong', apodo: null, color: '#D8202C', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },
+  /* el combinado de la G League: fijo, siempre está */
+  { id: 'ICGLU', sigla: 'GLU', nombre: 'NBA G League United', corto: 'G League United', ciudad: 'Nueva York', apodo: null, color: '#0F1F5C', color2: '#C8102E', fuerza: 69, rival: null, pais: 'us', cont: 'gleague' },
+];
+const IC_CONTINENTES = ['europa', 'africa', 'asia', 'oceania', 'gleague'];
+/* la sede rota por carrera; es neutral salvo que sea la ciudad de un participante (juega de local) */
+const IC_SEDES = [
+  { ciudad: 'Singapur', pais: 'sg' }, { ciudad: 'Pekín', pais: 'cn' }, { ciudad: 'Shanghái', pais: 'cn' },
+  { ciudad: 'El Cairo', pais: 'eg' }, { ciudad: 'La Laguna', pais: 'es' },
+];
+/* los días, relativos al día de la fecha 1 de la liga: tres de grupo (cada equipo descansa uno) · descanso · la
+   definición · cuatro días · fecha 1. Un equipo nunca juega dos veces el mismo día (si no, el segundo partido tuyo del
+   día se lo llevaría el relato: la lección del 2026-09-11). */
+const IC_DIAS = { grupo: [-9, -8, -7], definicion: -5 };
+const IC_VENTANAS = 4;   // 3 de grupo + la definición
+
+function clubIC(id) { return CLUBES_INTERCONTINENTAL.find((c) => c.id === id) || null; }
+
+/** Nace la copa. `campeon` es el club de las Américas (vos u otro), con su fuerza; `semillaCarrera` elige los placeholders
+ *  (rotan por CARRERA, no por temporada: la misma carrera ve la misma Europa dos años seguidos, que es lo real); `anio` el
+ *  de la temporada que arranca; `dia1` el día de la fecha 1 en el calendario de la liga (diaDeFecha). */
+function crearIntercontinental(semillaCarrera, anio, campeon, dia1) {
+  const rng = rngFor(semillaCarrera, 'intercontinental', 'sorteo');
+  const campo = [{ id: campeon.id, fuerza: campeon.fuerza, cont: 'americas' }];
+  for (const cont of IC_CONTINENTES) {
+    const pool = CLUBES_INTERCONTINENTAL.filter((c) => c.cont === cont);
+    const c = pool[rng.int(0, pool.length - 1)];
+    campo.push({ id: c.id, fuerza: c.fuerza, cont });
+  }
+  const sede = IC_SEDES[(rng.int(0, IC_SEDES.length - 1) + Math.max(0, anio - 2026)) % IC_SEDES.length];
+  const de = (cont) => campo.find((c) => c.cont === cont).id;
+  /* los bombos (línea 4): cabezas Europa y G League; segundo Oceanía y Américas; tercero África y Asia — sorteados de a par */
+  const lado = rng.int(0, 1), lado2 = rng.int(0, 1), lado3 = rng.int(0, 1);
+  const grupos = {
+    A: [lado ? de('gleague') : de('europa'), lado2 ? de('americas') : de('oceania'), lado3 ? de('asia') : de('africa')],
+    B: [lado ? de('europa') : de('gleague'), lado2 ? de('oceania') : de('americas'), lado3 ? de('africa') : de('asia')],
+  };
+  /* el campeón de las Américas va PRIMERO en su grupo: juega los días 1 y 2 y descansa el 3 — así el día en que descansás
+     lo juega el relato después de tu segundo partido, y el próximo que ves es siempre tuyo (proximoIntercontinental no
+     mueve nada: un getter con efectos rompía el pre) */
+  for (const g of ['A', 'B']) { const i = grupos[g].indexOf(campeon.id); if (i > 0) { const a = grupos[g]; [a[0], a[i]] = [a[i], a[0]]; } }
+  const fuerzas = {}; for (const c of campo) fuerzas[c.id] = c.fuerza;
+  const juegos = [];
+  for (const g of ['A', 'B']) {
+    const [a, b, c] = grupos[g];
+    /* tres días de grupo, un partido por día: a-b · a-c · b-c (cada uno descansa un día) */
+    juegos.push({ grupo: g, etapa: 'ic-grupo', n: 1, local: a, visita: b, ptsLocal: 0, ptsVisita: 0, jugado: false });
+    juegos.push({ grupo: g, etapa: 'ic-grupo', n: 2, local: a, visita: c, ptsLocal: 0, ptsVisita: 0, jugado: false });
+    juegos.push({ grupo: g, etapa: 'ic-grupo', n: 3, local: b, visita: c, ptsLocal: 0, ptsVisita: 0, jugado: false });
+  }
+  const dias = { grupo: IC_DIAS.grupo.map((d) => dia1 + d), definicion: dia1 + IC_DIAS.definicion };
+  return {
+    v: 1, anio, sede, campo: campo.map((c) => c.id), fuerzas, grupos, juegos,
+    definicion: null,     // [{etapa:'ic-final'|'ic-tercero', local, visita, pts…, jugado}] cuando el grupo cerró
+    dias, idx: 0,         // 0 · 1 · 2 = los tres días de grupo · 3 = la definición (la próxima ventana sin resolver)
+    fase: 'grupo', campeon: null, tercero: null, ultimoDia: 0,
+  };
+}
+
+/** La ventana k con la forma que el lobby lee (`ventana.dia` manda en la energía y el pre). */
+function ventanaIC(ic, k) {
+  if (k === 3) return { etapa: 'ic-def', n: 1, f: 0, dia: ic.dias.definicion };
+  return { etapa: 'ic-grupo', n: k + 1, f: 0, dia: ic.dias.grupo[k] };
+}
+function tablaGrupoIC(ic, g) {
+  const res = ic.juegos.filter((j) => j.grupo === g && j.jugado).map((j) => ({ local: j.local, visita: j.visita, ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita }));
+  return tabla(res, ic.grupos[g].map((id) => ({ id, nombre: id })));
+}
+function miJuegoIC(ic, k, mi) {
+  if (k < 3) return ic.juegos.find((j) => j.etapa === 'ic-grupo' && j.n === k + 1 && !j.jugado && (j.local === mi || j.visita === mi)) || null;
+  return (ic.definicion || []).find((j) => !j.jugado && (j.local === mi || j.visita === mi)) || null;
+}
+/* ¿te queda algún partido por jugar en la copa? (para saber si los días en que descansás los juega el relato) */
+function quedaIC(ic, mi) {
+  if (ic.fase === 'terminado') return false;
+  if (ic.juegos.some((j) => !j.jugado && (j.local === mi || j.visita === mi))) return true;
+  if (ic.fase === 'grupo') return ic.grupos.A.includes(mi) || ic.grupos.B.includes(mi);   // el grupo no cerró: todavía podés estar en la definición
+  return (ic.definicion || []).some((j) => !j.jugado && (j.local === mi || j.visita === mi));
+}
+/** Tu PRÓXIMO partido de la copa, con la forma de `miProximo` (tipo 'americas' + ic). Sólo antes de la fecha 1. */
+function proximoIntercontinental(e) {
+  const ic = e.intercontinental;
+  if (!ic || ic.fase === 'terminado' || e.fase !== 'regular' || (e.fechaJugada || 0) > 0) return null;
+  const j = miJuegoIC(ic, ic.idx, e.miClubId);
+  if (!j) return null;
+  const local = j.local === e.miClubId, rival = local ? j.visita : j.local;
+  const sedeDe = (id) => { const c = clubIC(id); return !!c && c.ciudad === ic.sede.ciudad; };
+  const neutral = !sedeDe(e.miClubId) && !sedeDe(rival);
+  const jugados = ic.juegos.filter((x) => x.jugado && (x.local === e.miClubId || x.visita === e.miClubId)).length + (ic.definicion || []).filter((x) => x.jugado && (x.local === e.miClubId || x.visita === e.miClubId)).length;
+  const v = ventanaIC(ic, ic.idx);
+  return { tipo: 'americas', ic: true, etapa: j.etapa, ventana: v, rival, local: false, neutral, ciudad: ic.sede.ciudad,   // el campeón de las Américas nunca es la sede
+    juego: jugados + 1, total: 3, grupo: j.grupo || null };
+}
+function simularJuegoIC(rng, ic, local, visita) {
+  let pl = puntosDe(rng, ic.fuerzas[local], ic.fuerzas[visita], 1);
+  let pv = puntosDe(rng, ic.fuerzas[visita], ic.fuerzas[local], 1);
+  while (pl === pv) { pl += rng.int(4, 12); pv += rng.int(4, 12); }
+  return [pl, pv];
+}
+function cerrarGrupoIC(ic, mi) {
+  const pA = tablaGrupoIC(ic, 'A').map((f) => f.id), pB = tablaGrupoIC(ic, 'B').map((f) => f.id);
+  ic.definicion = [
+    { etapa: 'ic-final', local: pA[0], visita: pB[0], ptsLocal: 0, ptsVisita: 0, jugado: false },
+    { etapa: 'ic-tercero', local: pA[1], visita: pB[1], ptsLocal: 0, ptsVisita: 0, jugado: false },
+  ];
+  ic.fase = 'definicion';
+  if (![pA[0], pB[0], pA[1], pB[1]].includes(mi)) ic.miFase = 'grupo';   // tercero de tu grupo: la copa terminó para vos
+}
+/** Resuelve UNA ventana (k = ic.idx): los partidos de ese día, el tuyo con `miJuego` si lo jugaste vos. */
+function jugarVentanaIC(e, k, miJuego) {
+  const ic = e.intercontinental, mi = e.miClubId;
+  const rng = rngFor(e.semilla, 'intercontinental', k);
+  const lote = k < 3 ? ic.juegos.filter((j) => j.etapa === 'ic-grupo' && j.n === k + 1 && !j.jugado) : (ic.definicion || []).filter((j) => !j.jugado);
+  let usado = false;
+  for (const j of lote) {
+    const mio = j.local === mi || j.visita === mi;
+    if (mio && miJuego && !usado) {
+      const soyLocal = j.local === mi;
+      j.ptsLocal = soyLocal ? miJuego.ptsNos : miJuego.ptsRiv; j.ptsVisita = soyLocal ? miJuego.ptsRiv : miJuego.ptsNos;
+    } else [j.ptsLocal, j.ptsVisita] = simularJuegoIC(rng, ic, j.local, j.visita);
+    j.jugado = true;
+    if (mio) { anotarLineaIC(e, j, usado ? null : miJuego, rng); usado = true; }
+  }
+  if (k === 2) cerrarGrupoIC(ic, mi);
+  if (k === 3) {
+    const f = ic.definicion.find((j) => j.etapa === 'ic-final'), t3 = ic.definicion.find((j) => j.etapa === 'ic-tercero');
+    ic.campeon = f.ptsLocal > f.ptsVisita ? f.local : f.visita;
+    ic.tercero = t3.ptsLocal > t3.ptsVisita ? t3.local : t3.visita;
+    ic.fase = 'terminado';
+    ic.miFase = ic.campeon === mi ? 'campeon' : [f.local, f.visita].includes(mi) ? 'final' : ic.tercero === mi ? 'tercero' : 'cuarto';
+  }
+}
+/* tu línea: como la del continental (suma a la temporada, marcada `am` + `ic`) */
+function anotarLineaIC(e, j, miJuego, rng) {
+  let linea, minutos;
+  if (miJuego) { linea = miJuego.linea; minutos = linea.min; }
+  else { minutos = rng.int(22, 34); linea = lineaSimulada(rng, e.skills, minutos, e.forma); }
+  const mi = e.miClubId;
+  e.misPartidos.push({ am: true, ic: true, etapa: j.etapa, n: j.n || 1, rival: j.local === mi ? j.visita : j.local, minutos, pts: linea.pts, ast: linea.ast, rob: linea.rob, ...extrasDe(linea),
+    esc: linea.esc || 1, jugado: !!miJuego, rating: miJuego ? linea.rating : undefined });
+  sumarLinea(e.miLinea, linea, minutos);
+}
+/** Las ventanas que quedaron atrás las juega el relato (la llama `jugarFecha` antes de la fecha 1). */
+function avanzarIntercontinental(e) {
+  const ic = e.intercontinental;
+  if (!ic || ic.fase === 'terminado') return;
+  while (ic.idx < IC_VENTANAS && ic.fase !== 'terminado') { jugarVentanaIC(e, ic.idx, null); ic.idx++; }
+}
+/** Tu partido de la copa, jugado con los dedos: va a la ventana que el pre ofreció (la lección de 2026-09-11). */
+function jugarJuegoIntercontinental(e, miJuego, vRef) {
+  const ic = e.intercontinental;
+  if (!ic || ic.fase === 'terminado') return;
+  let k = ic.idx;
+  if (vRef) { const kRef = vRef.etapa === 'ic-def' ? 3 : (vRef.n || 1) - 1; if (kRef >= ic.idx) { while (ic.idx < kRef) { jugarVentanaIC(e, ic.idx, null); ic.idx++; } k = kRef; } }
+  jugarVentanaIC(e, k, miJuego);
+  ic.idx = k + 1;
+  /* el día en que descansás (el 3 del grupo) lo juega el relato acá, así el próximo que ves es el tuyo; si quedaste tercero
+     no queda nada tuyo y el resto lo resuelve `jugarFecha` antes de la fecha 1 */
+  while (ic.idx < IC_VENTANAS && ic.fase !== 'terminado' && !miJuegoIC(ic, ic.idx, e.miClubId) && quedaIC(ic, e.miClubId)) { jugarVentanaIC(e, ic.idx, null); ic.idx++; }
+}
+/** Tus partidos de la copa, jugados y por jugar, para el fixture: [{etapa, n, f:0, dia, rival, local, neutral, res|null, ic:true}]. */
+function misJuegosIC(e) {
+  const ic = e.intercontinental, mi = e.miClubId, out = [];
+  if (!ic) return out;
+  for (const j of ic.juegos) {
+    if (j.local !== mi && j.visita !== mi) continue;
+    out.push({ ic: true, etapa: j.etapa, n: j.n, f: 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+      res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
+  }
+  for (const j of (ic.definicion || [])) {
+    if (j.local !== mi && j.visita !== mi) continue;
+    out.push({ ic: true, etapa: j.etapa, n: 1, f: 0, dia: ic.dias.definicion, rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+      res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
+  }
+  return out;
+}
+/** El fixture y el HOY leen los dos torneos juntos (etapa+n es la clave: las de la copa llevan `ic-`). */
+function misJuegosAMyIC(e) { return [...misJuegosIC(e), ...(e.americas ? misJuegosAM(e) : [])]; }
 /* ══ §2z29 LA IDENTIDAD EMERGENTE — el arquetipo que el juego te pone leyendo tus skills Y cómo
    jugás (§2m.2: "arrancás En formación y el juego te va encasillando"). Pieza PURA (sin DOM ni
    i18n): la lee el lobby y la prueba `tools-carrera/identidad-check.mjs`.
@@ -19813,7 +20096,7 @@ function clubDeCualquierLiga(id){
   for(const l in LIGAS){ const c=clubPorId(LIGAS[l].clubes,id); if(c) return c; }
   /* §12: una selección se resuelve como un club (ficha con sigla, nombre y colores), así el
      escudo, el pre, los muñecos y el marcador funcionan sin tocar una línea de esos módulos */
-  return clubPorId(CLUBES_INVITADOS_AMERICAS,id)||clubDeSeleccion(id,torneoSelActivo());
+  return clubPorId(CLUBES_INVITADOS_AMERICAS,id)||clubPorId(CLUBES_INTERCONTINENTAL,id)||clubDeSeleccion(id,torneoSelActivo());   // §2z27.3
 }
 /* el torneo que se está jugando ahora (para el equipo B de Estados Unidos en la AmeriCup) */
 function torneoSelActivo(){ return (C&&C.selTorneo&&C.selTorneo.fase!=='terminado')?C.selTorneo.torneo:null; }
@@ -19834,13 +20117,17 @@ const est=()=>C.temporada;
    liga que la juegan cargan el desgaste −2 en la fase regular (medido allá). */
 const AM_TXT={
   nombre:L('LIGA DE LAS AMÉRICAS','AMERICAS LEAGUE','LIGA DAS AMÉRICAS'),
+  /* §2z27.3: las etapas de la Copa Intercontinental hablan por el mismo canal (tipo 'americas' + ic) */
+  'ic-grupo':L('GRUPO','GROUP','GRUPO'), 'ic-final':L('LA FINAL','THE FINAL','A FINAL'), 'ic-tercero':L('TERCER PUESTO','THIRD PLACE','TERCEIRO LUGAR'), 'ic-def':L('LA DEFINICIÓN','THE DECIDER','A DECISÃO'),
   grupo:L('GRUPO','GROUP','GRUPO'),
   segunda:L('SEGUNDA FASE','SECOND ROUND','SEGUNDA FASE'),
   cuartos:L('CUARTOS','QUARTERFINALS','QUARTAS'),
   semifinal:L('SEMIFINAL','SEMIFINALS','SEMIFINAL'),
   final:L('LA FINAL','THE FINAL','A FINAL'),
 };
-const amEtapaTxt=(etapa,grupo)=>etapa==='grupo'?t(AM_TXT.grupo)+' '+grupo:t(AM_TXT[etapa]||L(etapa));
+const amEtapaTxt=(etapa,grupo)=>(etapa==='grupo'||etapa==='ic-grupo')?t(AM_TXT.grupo)+' '+grupo:t(AM_TXT[etapa]||L(etapa));
+/* §2z27.3: el nombre de la competencia de un partido con forma de continental: la copa o la liga */
+const compAM=(o)=>o&&o.ic?t(IC_TXT.nombre):t(AM_TXT.nombre);
 /* la segunda línea del continental: el partido del grupo, o la serie */
 /* §2z82 (su regla 2026-09-06: "el partido contra el mejor rival del grupo de la continental también debería ser clave"):
    en el grupo, el cruce con el más fuerte de tu grupo (por fuerza, que es lo único común entre ligas) es clave —
@@ -19863,6 +20150,9 @@ function amCondicionTxt(){
   return t(L('PASÁS GANANDO POR '+c.m+' O MÁS','THROUGH IF YOU WIN BY '+c.m+' OR MORE','PASSA GANHANDO POR '+c.m+' OU MAIS'));
 }
 function amPorqueTxt(o){
+  /* §2z27.3: la copa — el partido n de 3 y el grupo; la final y el tercer puesto se dicen solos */
+  if(o.ic) return o.etapa==='ic-grupo' ? t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||3)+' · '+t(AM_TXT.grupo)+' '+o.grupo
+    : t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||3)+' · '+t(IC_TXT.corto);
   if(o.etapa==='grupo'){ const cond=amCondicionTxt();
     return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||4)+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
@@ -19880,6 +20170,19 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
   for(const c of campo) if(c.liga===ligaId&&e.fuerzas[c.id]!==undefined) e.fuerzas[c.id]-=AMERICAS_DESGASTE;
   if(!campo.some(c=>c.id===e.miClubId)) return;
   e.americas=crearAmericas(e.semilla,campo,e.miClubId,e.fechasTotales,e.ritmo);   // 2026-09-10: con el calendario de días, para anclar con aire
+}
+/* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
+   `C.icPendiente` lo deja el cierre de la temporada; si en el mercado te fuiste, la juegan sin vos (no se arma). */
+function instalarIntercontinental(e,pend,anio){
+  e.intercontinental=null;
+  if(!pend||!pend.club||pend.club!==e.miClubId) return;
+  const cl=clubDe(pend.club); if(!cl) return;
+  const fuerza=(e.fuerzas&&e.fuerzas[pend.club]!==undefined)?e.fuerzas[pend.club]:cl.fuerza;
+  e.intercontinental=crearIntercontinental(C.semilla,anio,{id:pend.club,fuerza},diaDeFecha(e.semilla,1,e.ritmo));
+}
+function guardarCampeonAmericas(){
+  const e=est(), am=e&&e.americas;
+  C.icPendiente=am&&am.campeon?{club:am.campeon,anio:C.anio}:null;
 }
 /* la tabla de la temporada que cierra, guardada para la puerta del año que viene */
 function guardarTablaFinal(){
@@ -19915,7 +20218,7 @@ const AMERICAS_PASAN=2;
 /** El país de un club: los invitados lo traen; el resto lo dice su liga. */
 const PAIS_LIGA={federal:'ar',argentina:'ar',nacional:'ar',lub:'uy',nbb:'br',hs:'us',ncaa:'us',nba:'us'};
 function paisDeClub(id){
-  const inv=clubPorId(CLUBES_INVITADOS_AMERICAS,id); if(inv) return inv.pais;
+  const inv=clubPorId(CLUBES_INVITADOS_AMERICAS,id)||clubPorId(CLUBES_INTERCONTINENTAL,id); if(inv) return inv.pais;   // §2z27.3
   for(const l in LIGAS) if(clubPorId(LIGAS[l].clubes,id)) return PAIS_LIGA[l]||null;
   return null;
 }
@@ -20958,8 +21261,8 @@ function misFechas(){
   for(const f of out){ f.dia=diaDeFecha(e.semilla,f.fecha,est().ritmo); f.key=f.fecha; }
   /* §2z27: los continentales entran al fixture en su ventana (después de la fecha f), el
      día siguiente; llevan `am` y la fila los dibuja con el 🌎 en vez de la F */
-  if(e.americas) for(const j of misJuegosAM(e)){
-    if(!j.f) continue;
+  if(e.americas||e.intercontinental) for(const j of misJuegosAMyIC(e)){   // §2z27.3: la copa de la pretemporada entra con f=0, antes de la fecha 1
+    if(j.f===undefined||j.f===null) continue;
     out.push({am:true,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,
       res:j.res?{ptsLocal:j.res.ptsLocal,ptsVisita:j.res.ptsVisita}:null,dia:j.dia||diaDeFecha(e.semilla,j.f,est().ritmo)+1});
   }
@@ -21263,7 +21566,7 @@ function pasarHasta(sig,alFinal){
    ⚠️ No se abre si el relato no jugó nada tuyo: un velo vacío es peor que el cartelito. */
 function abrirPasoParte(jugados,despues){
   if(!jugados||!jugados.length) return false;
-  const e=est(), amJ=(e.americas?misJuegosAM(e):[]);
+  const e=est(), amJ=misJuegosAMyIC(e);
   const filas=jugados.map(p=>{
     if(p.po||p.sel) return null;   // los playoffs y la selección tienen su propio velo
     const j=p.am?amJ.find(x=>x.etapa===p.etapa&&x.n===p.n):null;
@@ -21491,7 +21794,7 @@ function pintaLobby(){
        con el prefijo el chip se partía en dos renglones (medido a 375) */
     $l('lobChip').innerHTML=anioTxt()+' · <b>'+selCuandoTxt(prox,true)+'</b>';   // §12
   } else if(e.fase==='regular'&&prox&&prox.tipo==='americas'){
-    $l('lobChip').innerHTML=anioTxt()+' · '+t(AM_TXT.nombre)+' · <b>'+amEtapaTxt(prox.etapa,prox.grupo)+'</b>';
+    $l('lobChip').innerHTML=anioTxt()+' · '+compAM(prox)+' · <b>'+amEtapaTxt(prox.etapa,prox.grupo)+'</b>';
   } else if(e.fase==='regular'){
     /* el chip del boceto ("SEMANA 14 · FECHA 20/26") por fin tiene trabajo: la semana
        es la del calendario de días (§2q) — la misma que gobierna el cupo de entrenar */
@@ -21523,7 +21826,7 @@ function pintaLobby(){
     /* §2z170 (su caza 2026-09-08: "«Último: Tuyos:» se ve rarísimo, y creo que viene de siempre"): venía del
        continental — el marcador del último no miraba los partidos `am`, quedaba vacío y el renglón salía con las dos
        etiquetas pegadas. Ahora el continental también trae su marcador; y sin marcador, "Tuyos:" no se escribe. */
-    const marcAM=()=>{ const j=ultimo.am?misJuegosAM(e).find(x=>x.etapa===ultimo.etapa&&x.n===ultimo.n):null;
+    const marcAM=()=>{ const j=ultimo.am?misJuegosAMyIC(e).find(x=>x.etapa===ultimo.etapa&&x.n===ultimo.n):null;
       return j&&j.res?{local:j.local?miIdU:j.rival, visita:j.local?j.rival:miIdU, ptsLocal:j.res.ptsLocal, ptsVisita:j.res.ptsVisita}:null; };
     const marc=ultimo.am ? marcAM()
       : ultimo.sel
@@ -21622,7 +21925,7 @@ function pintaLobby(){
       $l('lobHoyPorque').textContent=selPorqueTxt(prox,e);
     } else if(prox.tipo==='americas'){
       /* §2z27: el continental — la competencia y la etapa arriba, el grupo o la serie abajo */
-      $l('lobHoyCuando').textContent=t(AM_TXT.nombre)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
+      $l('lobHoyCuando').textContent=compAM(prox)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
       $l('lobHoyRival').textContent=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase();
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=amPorqueTxt(prox);
@@ -21760,7 +22063,7 @@ function pintaLobby(){
   } else if(prox.tipo==='americas'&&prox.etapa!=='grupo'){
     /* §2z27: la LLAVE del continental es clave; el grupo (su corte) se ofrece como una fecha más,
        con PASAR LA SEMANA y SALTAR AL CLAVE — el que quiere pasar la temporada no juega cuatro de más */
-    cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('JUGAR · LIGA DE LAS AMÉRICAS','PLAY · AMERICAS LEAGUE','JOGAR · LIGA DAS AMÉRICAS'))+'</button>';
+    cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+(prox.ic?t(L('JUGAR · INTERCONTINENTAL','PLAY · INTERCONTINENTAL','JOGAR · INTERCONTINENTAL')):t(L('JUGAR · LIGA DE LAS AMÉRICAS','PLAY · AMERICAS LEAGUE','JOGAR · LIGA DAS AMÉRICAS')))+'</button>';   // §2z27.3
     $l('lobBJugar').addEventListener('click',()=>abrirPre(prox));
   } else if(proxEsClave){
     cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('JUGAR EL PRÓXIMO · PARTIDO CLAVE','PLAY NEXT · BIG GAME','JOGAR O PRÓXIMO · JOGO CHAVE'))+'</button>';
@@ -22248,7 +22551,7 @@ function abrirPre(objetivo){
     $l('lobPreSalteo').textContent='';
   } else if(objetivo.tipo==='americas'){
     /* §2z27: el continental — la competencia arriba, el grupo o la serie abajo, los minutos con ella */
-    $l('lobPreFecha').textContent=t(AM_TXT.nombre)+' · '+amEtapaTxt(objetivo.etapa,objetivo.grupo);
+    $l('lobPreFecha').textContent=compAM(objetivo)+' · '+amEtapaTxt(objetivo.etapa,objetivo.grupo);
     $l('lobPrePorque').textContent=amPorqueTxt(objetivo);
     $l('lobPreSalteo').textContent='';
   } else {
@@ -22445,10 +22748,10 @@ terminar=function(){
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
         const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha
           :o.tipo==='serie'?t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego
-          :o.tipo==='americas'?t(AM_TXT.nombre):'';
+          :o.tipo==='americas'?compAM(o):'';
         /* §2z97 (su caza: "salió cortado lo de abajo del score"): sin el nombre de tu club — el escudo ya dice de quién
            son los chips (§2z12.5), y "BOCA JUNIORS · LIGA DE LAS AMÉRICAS · vs FUERZA REGIA" no entraba en 375 */
-        h=escuditoDe(club)+'<span>'+(comp?comp+' · ':'')+vsTxt(o.local)+nomCorto(o.rival).toUpperCase()+'</span>'+escudito(o.rival);   // 2026-09-10 (su caza): el escudo del rival, al mismo tamaño
+        h=escuditoDe(club)+'<span>'+(comp?comp+' · ':'')+vsTxt(o.local,o.neutral)+nomCorto(o.rival).toUpperCase()+'</span>'+escudito(o.rival);   // 2026-09-10 (su caza): el escudo del rival, al mismo tamaño · §2z27.3: en neutral dice «vs», no «en»
       }
       d.innerHTML=h; d.classList.remove('oculto'); } }
   /* §2z101: LA BARRA VA Y VUELVE. Se dibuja el tramo del nivel en que TERMINÁS: si perdiste la estrella, el tramo
@@ -22506,6 +22809,12 @@ function cierreDeSerie(p,gano){
      siento que hay cosas que van por default a ese cartel"): el cierre del GRUPO tiene su card, como la serie. Sos
      siempre el primero de tu grupo (01p) y jugás las cuatro ventanas, así que en tu último partido los demás ya se
      jugaron y la misma cuenta de §2z163 dice si pasaste con tu marcador real. */
+  /* §2z27.3: la final de la Copa Intercontinental cierra con su card (el techo del club); el tercer puesto y el grupo, sin card */
+  if(p&&p.ic){
+    if(p.etapa!=='ic-final') return null;
+    return gano?{txt:t(L('¡CAMPEONES INTERCONTINENTALES!','INTERCONTINENTAL CHAMPIONS!','CAMPEÕES INTERCONTINENTAIS!')),tono:'oro'}
+               :{txt:t(L('SUBCAMPEONES INTERCONTINENTALES','INTERCONTINENTAL RUNNERS-UP','VICE-CAMPEÕES INTERCONTINENTAIS')),tono:'mal'};
+  }
   if(p&&p.tipo==='americas'&&p.etapa==='grupo'){
     const e=est(), am=e&&e.americas; if(!am||am.fase!=='grupo') return null;
     const c=condicionGrupoAM(am,e.miClubId,AMERICAS_PASAN); if(!c) return null;
@@ -22615,6 +22924,7 @@ function registrarResultado(){
   const antes=e.fechaJugada;
   let amAviso=null;   // §2z27: lo que el continental te dice al volver al vestuario
   const diaUltAMPrevio=e.americas&&e.americas.ultimoDia||0;   // 2026-09-10: el día del continental ANTERIOR (ultimoDia se pisa abajo con el de hoy)
+  const diaUltICPrevio=e.intercontinental&&e.intercontinental.ultimoDia||0;   // §2z27.3
   let dbetaAviso=null;   // §2z105: el escalón de la beta, anunciado
   if(enPartido&&enPartido.tipo==='fecha'){
     avanzarHastaFecha(e,enPartido.fecha);
@@ -22642,17 +22952,23 @@ function registrarResultado(){
     /* 2026-09-09: sin titular — el PARTE de la ventana ("¡CLASIFICAMOS AL MUNDIAL!" / "NOS QUEDAMOS AFUERA") ya lo dice */
   } else if(enPartido&&enPartido.tipo==='americas'){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
+    if(enPartido.ic){   // §2z27.3: la copa de la pretemporada
+      jugarJuegoIntercontinental(e,miJuego,enPartido.ventana);
+      e.intercontinental.ultimoDia=enPartido.ventana.dia;
+    } else {
     const faseAM=e.americas.fase;
     jugarJuegoAmericas(e,miJuego,enPartido.ventana);   // 2026-09-11: a la ventana que el pre ofreció
     e.americas.ultimoDia=diaAmericas(e,enPartido.ventana);   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
     alDiaTrasSeleccion(e);   // §2z88: la ventana del continental era la que frenaba el ponerse al día
+    }
     /* §2z166: el cierre del grupo ya lo dijo la card del cierre (cierreDeSerie); acá no va más el toast */
   }
   /* la energía vuelve por DÍA de descanso real (§2q b2b/giras): los días entre tu último
      partido y éste, leídos del calendario. En playoffs, cada juego son DIAS_PO. §2z27: el
      continental va en el medio del hueco de su ventana (2026-09-10, `v.dia`), y la fecha que sigue descuenta esos días. */
-  const diaUltAM=e.americas&&e.americas.ultimoDia||0;
+  const diaUltAM=Math.max(e.americas&&e.americas.ultimoDia||0, e.intercontinental&&e.intercontinental.ultimoDia||0);   // §2z27.3: la copa también cuenta para la fecha 1
   const dias=enPartido.tipo==='seleccion' ? 3
+    : enPartido.ic ? Math.max(1,enPartido.ventana.dia-(diaUltICPrevio||enPartido.ventana.dia-1))   // §2z27.3: la pretemporada te deja en 100; entre partidos, los días reales
     : enPartido.tipo==='americas' ? Math.max(1,diaAmericas(e,enPartido.ventana)-Math.max(diaDeFecha(e.semilla,enPartido.ventana.f,e.ritmo),diaUltAMPrevio))   // la final del Final Four: 1 día después de la semi
     : faseAntes==='regular'&&antes<e.fechaJugada
     ? Math.max(1,diaDeFecha(e.semilla,e.fechaJugada,est().ritmo)-Math.max(antes>0?diaDeFecha(e.semilla,antes,est().ritmo):0,diaUltAM))
@@ -22775,6 +23091,7 @@ function otraTemporada(destino){
      y la de playoffs) — el dato de carrera que hasta hoy se tiraba al dar vuelta la página */
   (C.historial=C.historial||[]).push({anio:C.anio,ligaId:C.ligaId,club:est().miClubId,liga:{...est().miLinea},po:{...est().miLineaPO},nota:notaPromAnterior||null,campeon:!!(est().playoffs&&est().playoffs.campeon===est().miClubId)});   // §2z196: el título queda anotado (para el cierre de carrera)
   guardarTablaFinal();   // §2z27: la puerta del continental del año que viene
+  guardarCampeonAmericas();   // §2z27.3: la puerta de la Copa Intercontinental
   /* la VENTANA DE FIN DE TEMPORADA (§2q) evalúa el rol antes de dar vuelta la página,
      y los timers del entrenamiento se reinician con el calendario nuevo */
   const en=C.jugador.entreno; en.ultimo={}; en.decay={}; en.semana=0; en.usadas=0;
@@ -22815,6 +23132,7 @@ function otraTemporada(destino){
     playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(C.temporada,C.ligaId,C.anio,C.tablaFinal);   // §2z27
+  instalarIntercontinental(C.temporada,C.icPendiente,C.anio); C.icPendiente=null;   // §2z27.3
   C.selAviso=null; C.selTorneo=null;   // §12: el receso quedó atrás
   instalarSeleccion(C.temporada,C.jugador,C.ligaId,C.anio,C.semilla,C.seleccion);   // §12
   C.jugador.edad++;
@@ -23396,6 +23714,11 @@ const BANDERAS={
   br:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#12b45c"/><path d="M15 2.43 L27.45 10 L15 17.57 L2.55 10 Z" fill="#ffd028"/><circle cx="15" cy="10" r="5" fill="#3168e8"/></svg>')+"')",size:'100% 100%'},
   uy:{image:'radial-gradient(circle closest-side at 24% 26%,#ffd028 0 46%,transparent 47%),linear-gradient(#f2f4f8,#f2f4f8),linear-gradient(#f2f4f8 0 12%,#8cc3ec 12% 25%,#f2f4f8 25% 37%,#8cc3ec 37% 50%,#f2f4f8 50% 62%,#8cc3ec 62% 75%,#f2f4f8 75% 87%,#8cc3ec 87%)',size:'100% 100%, 48% 52%, 100% 100%',position:'0 0, top left, 0 0'},
   es:{image:'linear-gradient(#e5253a 0 25%,#ffd028 25% 75%,#e5253a 75%)'},
+  /* §2z27.3: los países de la Copa Intercontinental que no estaban */
+  ly:{image:'linear-gradient(#e5253a 0 25%,#1a1a1a 25% 75%,#12b45c 75%)'},
+  rw:{image:'linear-gradient(#2ea3d9 0 50%,#ffd028 50% 75%,#12b45c 75%)'},
+  lb:{image:'linear-gradient(#e5253a 0 25%,#f2f4f8 25% 75%,#e5253a 75%)'},
+  sg:{image:'linear-gradient(#e5253a 0 50%,#f2f4f8 50%)'},
   it:{image:'linear-gradient(90deg,#12b45c 0 33%,#fff 33% 66%,#f04553 66%)'},
   gr:{image:'linear-gradient(#1f7bd4 0 22%,#fff 22% 44%,#1f7bd4 44% 66%,#fff 66% 88%,#1f7bd4 88%)'},
   lt:{image:'linear-gradient(#ffd028 0 33%,#12b45c 33% 66%,#e5253a 66%)'},
@@ -23784,6 +24107,7 @@ const icono=(kind,size)=>'<svg class="ico" viewBox="0 0 24 24" width="'+(size||1
 const PREMIO_TXT={
   campeon:['copa',L('CAMPEÓN','CHAMPION','CAMPEÃO')],
   americas:['globo',L('CAMPEÓN DE LAS AMÉRICAS','AMERICAS CHAMPION','CAMPEÃO DAS AMÉRICAS')],   // §2z27
+  intercontinental:['globo',L('CAMPEÓN INTERCONTINENTAL','INTERCONTINENTAL CHAMPION','CAMPEÃO INTERCONTINENTAL')],   // §2z27.3: el techo del club
   mvp_finales:['corona',L('MVP DE LAS FINALES','FINALS MVP','MVP DAS FINAIS')],
   mvp:['corona',L('MVP DE LA LIGA','LEAGUE MVP','MVP DA LIGA')],
   joven:['novato',L('MEJOR JOVEN','BEST YOUNG PLAYER','MELHOR JOVEM')],
@@ -23825,14 +24149,14 @@ const iconoDe=(clave,ligaId,size)=>icono(clave==='campeon'&&ligaId==='nba'?'anil
    para decirte qué es cada uno, y que puedas expandir". Resumida: la grilla de El Draft
    (FinDeCarrera: casillero 46×40, ícono 28, ×N); tocar uno lo nombra; VER TODO abre la lista
    entera (una fila por logro y liga, tocar abre el detalle por año). Sin card ni score: no paga. ══ */
-const DE_CLUB=new Set(['campeon','americas','ascenso']);
+const DE_CLUB=new Set(['campeon','americas','intercontinental','ascenso']);
 /* §12: los de la selección tampoco llevan liga (son de tu país) y las medallas son "con tu
    equipo" — la selección ES un equipo, y así la vitrina las agrupa donde el jugador las busca */
 /* ⚠️ se arma SOLA a partir del catálogo: agregar un torneo nuevo no puede exigir acordarse de
    tocar tres listas (el Eurobasket lo probó, 2026-09-04). */
 const MEDALLAS_SEL=new Set(Object.keys(PREMIO_TXT).filter(k=>/^seleccion_(oro|plata|bronce)_/.test(k)));
 for(const k of MEDALLAS_SEL) DE_CLUB.add(k);
-const SIN_LIGA=new Set(['americas','mvp_americas']);   // el continental no lleva liga en el nombre
+const SIN_LIGA=new Set(['americas','mvp_americas','intercontinental']);   // el continental no lleva liga en el nombre
 for(const k of Object.keys(PREMIO_TXT)) if(ES_SELECCION_CLAVE(k)) SIN_LIGA.add(k);
 /* el orden de El Draft (vitrina.ts ORDEN) sobre las ligas que tenemos: la NBA manda, la cima de
    afuera (acá las Américas) entre los premios de la NBA y las ligas por división, el ascenso al final */
@@ -23843,7 +24167,7 @@ function rangoPieza(clave,ligaId){
      el título que no se compra con un pase manda sobre el que sí) */
   const arriba=['seleccion_oro_jjoo','seleccion_oro_mundial','seleccion_mvp_jjoo','seleccion_mvp_mundial',
     'seleccion_plata_jjoo','seleccion_bronce_jjoo','seleccion_plata_mundial','seleccion_bronce_mundial',
-    'campeon@nba','mvp@nba','mvp_finales@nba','campeon@ncaa','quinteto@nba','joven@nba','americas','mvp_americas',
+    'intercontinental','campeon@nba','mvp@nba','mvp_finales@nba','campeon@ncaa','quinteto@nba','joven@nba','americas','mvp_americas',
     'seleccion_oro_continental','seleccion_mvp_continental','seleccion_plata_continental','seleccion_bronce_continental',
     'seleccion_oro_eurobasket','seleccion_mvp_eurobasket','seleccion_plata_eurobasket','seleccion_bronce_eurobasket',
     'seleccion_quinteto_jjoo','seleccion_quinteto_mundial','seleccion_goleador_jjoo','seleccion_goleador_mundial',
@@ -23937,6 +24261,7 @@ function asegurarPremios(){
   C.premiadoAnio=C.anio;
   const e=est(), mt=miTabla(e);
   const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc);   // §2z45: contra el campo de la liga
+  if(e.intercontinental&&e.intercontinental.campeon===e.miClubId) nuevos.push({clave:'intercontinental'});   // §2z27.3
   if(e.americas&&e.americas.campeon===e.miClubId){   // §2z27
     nuevos.push({clave:'americas'});
     /* §2z28 el MVP de las Américas: campeón con nota ≥7 en al menos tres partidos de LLAVE (el molde del MVP de las finales) */
@@ -24470,7 +24795,7 @@ window.__carrera={
   abrirMercado, mostrarCarta:CARTAS.mostrarCarta, get poolGeneral(){ return CARTAS.poolGeneral(); }, CARTAS,
   comoLeFue: (lg,id,anio)=>comoLeFue(SEMILLA_MUNDO,lg,id,anio),
   aplicarEscalera, clubesDeCarrera, padronInicial, ligaDelClubEnPadron, otraTemporada,   // §2z7 + arnés
-  instalarAmericas,   // §2z27 (arnés)
+  instalarAmericas, instalarIntercontinental, crearIntercontinental, misJuegosIC, CLUBES_INTERCONTINENTAL,   // §2z27 · §2z27.3 (arnés)
   /* el circuito de vuelta al vestuario, para poder probarlo sin jugar los 40 minutos */
   registrarResultado, get enPartido(){ return enPartido; }, set enPartido(x){ enPartido=x; }, abrirPre,
   instalarSeleccion, SELECCIONES, SEL_JUGABLES, hayEliminatorias, torneoDelReceso,

@@ -9797,6 +9797,7 @@ function ventanasAmericas(F, semilla, ritmo, desde, lista) {
 }
 /* las partidas que ya venían: las ventanas por jugar se re-anclan con la regla nueva; las jugadas quedan */
 function reanclarAmericas(am, F, semilla, ritmo, fechaJugada) {
+  religarLlaveAM(am);   // 2026-09-12: al cargar, las dos listas de la llave vuelven a ser una
   if (!am || am.fase === 'terminado' || !semilla) return false;
   const lista = listaVentanasAM(am);   // §2z27.2: cada torneo se re-ancla con SU lista
   if (am.ventanas.length !== lista.length && am.idx >= 7) return false;   // 2026-09-10: las 13 viejas con semis al mejor de 3 ya armadas, como estaban
@@ -9991,6 +9992,19 @@ function cerrarGruposAM(am, mi) {
   else am.miFase = 'cuartos';
 }
 
+/* ⚠️ 2026-09-12 (su beta, con las capturas en la mano: el HOY decía SERIE 1-0 · JUEGO 2 y la llave 0-0; el fixture sin el
+   juego 1 que él había jugado): `llave.series` (las vivas) y `llave.seriesJugadas` (las que se dibujan) nacen apuntando a los
+   MISMOS objetos, pero al guardar y cargar la partida (JSON) se vuelven dos copias — el partido se anotaba en una y la
+   pantalla leía la otra. Se religan: cada entrada de seriesJugadas pasa a ser el objeto vivo de `series` si es la misma
+   serie (ronda + alta + baja). Se llama al cargar y en cada lectura/escritura, que es barato. */
+function religarLlaveAM(am) {
+  const ll = am && am.llave; if (!ll || !ll.series || !ll.seriesJugadas) return;
+  for (let i = 0; i < ll.seriesJugadas.length; i++) {
+    const sj = ll.seriesJugadas[i];
+    const viva = ll.series.find((s) => s !== sj && s.ronda === sj.ronda && s.alta === sj.alta && s.baja === sj.baja);
+    if (viva) ll.seriesJugadas[i] = viva;
+  }
+}
 function cerrarRondaAM(am, mi) {
   const ll = am.llave;
   if (!ll.series.every((s) => s.ganador)) throw new Error('una serie de la Liga de las Américas quedó abierta al cerrar la ronda');
@@ -10018,6 +10032,7 @@ function cerrarRondaAM(am, mi) {
  *  ventana sigue abierta hasta que lo juegues (o lo juegue el relato al pasar la semana). */
 function jugarVentanaAM(e, v, miJuego) {
   const am = e.americas, mi = e.miClubId;
+  religarLlaveAM(am);
   const rng = rngFor(e.semilla, 'americas', v.etapa, v.n);
   if (v.etapa === 'grupo') {
     let miPendiente = false, usado = false;
@@ -10124,6 +10139,7 @@ function jugarJuegoAmericas(e, miJuego, vRef) {
 function miSerieAM(e) {
   const am = e.americas;
   if (!am || !am.llave) return null;
+  religarLlaveAM(am);
   return am.llave.series.find((s) => !s.ganador && (s.alta === e.miClubId || s.baja === e.miClubId)) || null;
 }
 
@@ -10132,6 +10148,7 @@ function miSerieAM(e) {
 function misJuegosAM(e) {
   const am = e.americas, mi = e.miClubId, out = [];
   if (!am) return out;
+  religarLlaveAM(am);
   const vDe = (etapa, n) => am.ventanas.find((v) => v.etapa === etapa && v.n === n) || null;
   const fDe = (etapa, n) => (vDe(etapa, n) || {}).f, dDe = (etapa, n) => { const v = vDe(etapa, n); return v && v.f ? diaAmericas(e, v) : null; };
   let k = 0;

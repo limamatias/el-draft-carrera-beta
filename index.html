@@ -23456,14 +23456,17 @@ function pintaTienda(){
    cadenas. Crece como lista, en su lugar. La vidriera no cambia. */
 function pintaTuyo(){
   const J=C.jugador, box=$l('lobTuyo'); if(!box) return;
-  /* §2z184: la lista de lo que tenés, cada cosa con lo que hace en una frase. Sin la fila de números. */
+  /* §2z184: la lista de lo que tenés. 2026-09-12 (su caza: "¿acá se van a ir acumulando TODAS las cosas? va a desbordar; y la
+     prosa abajo de cada cosa se ve muy rara"): UNA FILA POR CADENA, sin frases — en las que reemplazan (vehículo, casa) tu
+     mejor escalón; en el staff y el lujo, los nombres juntos. Cuatro filas como máximo. Lo que da cada cosa ya lo dice la
+     vidriera (§2y: no se repite). */
   let h='', n=0;
   for(const k of ['staff','vehiculo','casa','lifestyle']){
     const m=mejorDe(J,k);
-    for(const it of ESCALERA[k]){ if(!tieneItem(J,it.id)) continue; n++;
-      const vale=(k==='staff'||k==='lifestyle')||it===m;   // en las cadenas que reemplazan, sólo el mejor aporta
-      h+='<div class="fila-tienda cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span>'
-        +'<span class="txt"><span class="nom">'+t(it.nom)+'</span><span class="ef">'+(vale?fraseItem(k,it,J):'')+'</span></span></div>'; }
+    const mios=ESCALERA[k].filter(it=>tieneItem(J,it.id)&&((k==='staff'||k==='lifestyle')||it===m));
+    if(!mios.length) continue; n+=mios.length;
+    h+='<div class="fila-tienda cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span>'
+      +'<span class="txt"><span class="nom">'+mios.map(it=>t(it.nom)).join(' · ')+'</span></span></div>';
   }
   if(!n) h+='<div class="fila-item"><span class="desc">'+t(L('Todavía nada','Nothing yet','Ainda nada'))+'</span></div>';
   box.innerHTML=h;

@@ -213,6 +213,13 @@
   #compra.entra{animation:compraEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
   #compra.entra .compraIco{animation:compraIco .5s cubic-bezier(.2,.9,.3,1.3) both}
   #compra.sale{animation:compraSale .4s ease-in both}
+  /* 2026-09-12 el momento del nivel nuevo: el mismo idioma que el de la compra (entra, respira, se va sola) y los mismos keyframes */
+  #nivelMom{z-index:31;background:rgba(8,11,19,.86);gap:8px;cursor:pointer}
+  #nivelMom .nivelMomEst{font-size:64px;font-weight:700;line-height:1;color:#f2c94c;text-shadow:0 0 24px rgba(242,201,76,.55)}
+  #nivelMom h1{font-size:34px;letter-spacing:2px;line-height:1.05;color:#f2c94c}
+  #nivelMom.entra{animation:compraEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
+  #nivelMom.entra .nivelMomEst{animation:compraIco .5s cubic-bezier(.2,.9,.3,1.3) both}
+  #nivelMom.sale{animation:compraSale .4s ease-in both}
   @keyframes compraEntra{from{opacity:0}to{opacity:1}}
   @keyframes compraIco{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
   @keyframes compraSale{to{opacity:0}}
@@ -1708,6 +1715,13 @@
   <div class="rotulo" data-l-en="IT'S YOURS" data-l-pt="É SEU">ES TUYO</div>
   <h1 id="compraTxt"></h1>
   <div class="linea" id="compraSub"></div>
+</div>
+<!-- 2026-09-12 EL MOMENTO DEL NIVEL NUEVO (su caza con captura: "se comprimió todo, demasiadas cosas juntas… propongo que el
+     NUEVO NIVEL sea siempre un momento, algo transitorio"): la estrella y la frase sobre el cierre del partido, en el idioma del
+     momento de la compra. Se va sola; un toque la apura. -->
+<div class="velo oculto" id="nivelMom">
+  <div class="nivelMomEst" id="nivelMomEst"></div>
+  <h1 id="nivelMomTxt"></h1>
 </div>
 <div class="velo oculto" id="titular">
   <div class="rotulo" id="titularRot"></div>
@@ -5977,7 +5991,11 @@ function ofertaDe(J, ligaId, club, notaProm) {
   /* 2026-09-09 (su corte: "el jugador tiene que cobrar en NBA lo que cobraría allá, así la escalera tiene sentido"): en la beta
      el jugador es "bueno para la liga" (Dbeta), así que cobra A NIVEL y sin techo de estrella */
   const enBeta = J.dbeta !== undefined;
-  const fN = enBeta ? 1 : 1 + 0.15 * Math.max(-3, Math.min(3, (J.nivel || 1) - nivelEsperado(ligaId, club)));
+  /* 2026-09-12 (su caza: "los contratos son bajos con respecto a la tienda y cada nuevo contrato me aumenta MUY poco"; su corte:
+     "vamos por 1"): en la beta las estrellas SUMAN PARA ARRIBA — +15 % por cada una sobre el nivel que espera el club, hasta 3 —
+     y nunca restan (el Dbeta ya es bueno para la liga). La renegociación es por estrella nueva (§2z161): cada contrato sube. */
+  const dNivel = Math.max(-3, Math.min(3, (J.nivel || 1) - nivelEsperado(ligaId, club)));
+  const fN = 1 + 0.15 * (enBeta ? Math.max(0, dNivel) : dNivel);
   /* ⚠️ y el ±35% ahora SE CUMPLE: la cuenta suponía abanicos angostos, pero la NCAA va de 23 a 68
      de fuerza (mediana 57) y la NBA de 36 a 70, así que el club más flojo terminaba en 0,15 — o
      sea cobrando el 15% de la base. De los 306 clubes sólo 12 se caían del rango (8 de la NCAA y
@@ -12439,7 +12457,9 @@ function pintarAjustes(){
   $('#vAro').textContent=(dif.aroH*100).toFixed(1).replace('.',',')+t(L('% de la pantalla','% of the screen','% da tela'));
 }
 pintarAjustes();
-$('#btnAjustes').onclick=()=>$('#ajustes').classList.toggle('oculto');
+/* 2026-09-12 (su caza: "en el registro de ajustes dice 2/2 pero tuve unos cuantos más"): el panel se pintaba al cargar y al
+   arrancar el partido, no al ABRIRLO — el registro de los dados mostraba el número de antes de la prensa. Se repinta al abrirse. */
+$('#btnAjustes').onclick=()=>{ const a=$('#ajustes'); a.classList.toggle('oculto'); if(!a.classList.contains('oculto')) pintarAjustes(); };
 $('#btnPausa').onclick=()=>{
   if(G.fase==='intro'||G.fase==='fin'||G.pausa) return;
   G.pausa=true; G.pausaT0=performance.now();
@@ -22859,8 +22879,12 @@ function pintaLobby(){
   /* §2z45: el aviso de la carrera al MVP / el Juego de las Estrellas, sólo cuando pasó algo y hasta la próxima fecha */
   const av=e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada&&carreraActiva(e)?e.avisoMVP.txt:'';
   $l('lobGoteo3').innerHTML=av; $l('lobGoteo3').classList.toggle('oculto',!av);
-  const avOx=e.avisoOxido&&e.avisoOxido.fecha===e.fechaJugada?e.avisoOxido.txt:'';   // 2026-09-10: el óxido aplicado, hasta la próxima fecha
-  const avDb=e.avisoDbeta&&e.avisoDbeta.fecha===e.fechaJugada?e.avisoDbeta.txt:'';   // 2026-09-12: el escalón de la beta, en el goteo
+  /* 2026-09-12 (su caza: "el cartel de «tres partidazos» quedó clavado en el lobby; ¿algo se congela en postemporada?"): los
+     avisos del goteo duraban "hasta la próxima fecha", y en los playoffs la fecha no avanza — quedaban para siempre. Ahora se
+     van también con el próximo partido jugado (`pj`); en la regular, la fecha los sigue cerrando como antes. */
+  const vigente=(a)=>!!a&&a.fecha===e.fechaJugada&&(a.pj==null||(C.pjCarrera||0)<=a.pj);
+  const avOx=vigente(e.avisoOxido)?e.avisoOxido.txt:'';   // 2026-09-10: el óxido aplicado, hasta la próxima fecha
+  const avDb=vigente(e.avisoDbeta)?e.avisoDbeta.txt:'';   // 2026-09-12: el escalón de la beta, en el goteo
   const av4=[avOx,avDb].filter(Boolean).join('<br>');
   $l('lobGoteo4').innerHTML=av4; $l('lobGoteo4').classList.toggle('oculto',!av4);
   // HOY: el próximo (o el estado de la llave / el cierre)
@@ -23741,7 +23765,11 @@ terminar=function(){
   const nivelEl=document.getElementById('finNivel');
   nivelEl.classList.add('oculto'); nivelEl.textContent='';
   nivelEl.classList.toggle('perdida',bajo);
-  if(nivelDespues>nivelAntes){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
+  /* 2026-09-12 (su caza con captura: "se comprimió todo, demasiadas cosas juntas… propongo que el NUEVO NIVEL sea siempre un
+     momento, algo transitorio"): la estrella nueva deja el renglón de la planilla y pasa a ser un MOMENTO sobre el cierre, cuando
+     la barra ya se llenó (momentoNivel). Si para entonces el cierre ya se fue, no sale. */
+  if(nivelDespues>nivelAntes){ const nv=nivelDespues; clearTimeout(nivelMomTimer);
+    nivelMomTimer=setTimeout(()=>{ const f=document.getElementById('fin'); if(f&&!f.classList.contains('oculto')) momentoNivel(nv); }, tBarra+900); }
   /* §2z145 (su caza 2026-09-08: "perdiste la estrella en un cartelito rojo chiquito, tapando otras cosas"): la
      estrella perdida se anuncia igual que la nueva —el mismo renglón del cierre, en rojo—, no con el toast del lobby */
   else if(bajo){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('PERDISTE LA ESTRELLA','YOU LOST THE STAR','PERDEU A ESTRELA')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
@@ -23969,7 +23997,7 @@ function registrarResultado(){
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
   const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada,e.semilla,e.ritmo):[];   // §2z90: el óxido cuenta semanas, y las semanas las sabe el calendario
-  if(caidos.length) e.avisoOxido={fecha:e.fechaJugada,txt:textoOxido(caidos)};   // 2026-09-10: queda en el goteo hasta la próxima fecha
+  if(caidos.length) e.avisoOxido={fecha:e.fechaJugada,pj:(C.pjCarrera||0)+1,txt:textoOxido(caidos)};   // pj: el partido de hoy (se cuenta dos líneas abajo)   // 2026-09-10: queda en el goteo hasta la próxima fecha
   /* §2z29: la ventana de los últimos jugados con los dedos y la identidad emergente */
   C.pjCarrera=(C.pjCarrera||0)+1;
   C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-IDENTIDAD_VENTANA);
@@ -23985,7 +24013,7 @@ function registrarResultado(){
     else if(J.dbeta<dAntes) dbetaAviso={txt:t(L('Tres flojos seguidos: te aflojan la marca.','Three poor in a row: they ease up on you.','Três fracos seguidos: aliviam a marcação.'))};
     /* 2026-09-12 (su corte: "ese toast es justamente lo que se pasa por arriba; debería decirlo en la parte del lobby donde
        mostramos cosas"): el escalón queda en el goteo del vestuario hasta la próxima fecha, como el óxido. El toast se va. */
-    if(dbetaAviso){ e.avisoDbeta={fecha:e.fechaJugada,txt:dbetaAviso.txt}; dbetaAviso=null; }
+    if(dbetaAviso){ e.avisoDbeta={fecha:e.fechaJugada,pj:C.pjCarrera,txt:dbetaAviso.txt}; dbetaAviso=null; }
     betaEvento('partido',{fecha:enPartido.fecha||null,tipo:enPartido.tipo,nota:rating,gano:G.nos>G.riv,min:miJuego.linea.min,
       pts:G.pts,ast:G.ast,dbeta:dAntes,dbetaDespues:J.dbeta,energia:Math.round(J.energia)});
   }
@@ -24488,6 +24516,17 @@ function momentoCompra(cad,it){
   const cerrar=()=>{ clearTimeout(compraTimer); v.classList.remove('entra'); v.classList.add('sale'); setTimeout(()=>v.classList.add('oculto'),400); };
   v.onclick=cerrar;
   clearTimeout(compraTimer); compraTimer=setTimeout(cerrar,2200);
+}
+/* 2026-09-12 EL MOMENTO DEL NIVEL NUEVO: la estrella y la frase, 2,2 s y se va; un toque la apura (el idioma de momentoCompra) */
+let nivelMomTimer=null, nivelMomCierre=null;
+function momentoNivel(nv){
+  const v=document.getElementById('nivelMom'); if(!v) return;
+  document.getElementById('nivelMomEst').textContent='★'+nv;
+  document.getElementById('nivelMomTxt').textContent=t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!'));
+  v.classList.remove('oculto','sale'); v.classList.add('entra');
+  const cerrar=()=>{ clearTimeout(nivelMomCierre); v.classList.remove('entra'); v.classList.add('sale'); setTimeout(()=>v.classList.add('oculto'),400); };
+  v.onclick=cerrar;
+  clearTimeout(nivelMomCierre); nivelMomCierre=setTimeout(cerrar,2200);
 }
 function comprarItem(id){
   if(id==='lata') return comprarLata();

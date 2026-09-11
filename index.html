@@ -9730,7 +9730,7 @@ const AMERICAS_DESGASTE = 2;   // al club, en su liga, el año que juega los dos
  * es al mejor de 3: cada ventana juega UN juego de cada serie viva. */
 /* 2026-09-10 (su ok, con el formato real de la BCL Americas 2025-26 delante): cuartos al mejor de 3 con localía 1-2 (el
  * juego 1 en la cancha del peor sembrado, el 2 y el 3 en la del mejor), y un FINAL FOUR en una sola sede: semis a partido
- * único y la final al día siguiente. La sede es el semifinalista con mejor récord en la copa (grupo + cuartos). Del tercer puesto no se juega. Nueve
+ * único y la final al día siguiente, con el TERCER PUESTO entre los perdedores de las semis (2026-09-12). La sede es el semifinalista con mejor récord en la copa (grupo + cuartos). Nueve
  * ventanas: 4 de grupo, 3 de cuartos, la semi y la final — la final comparte la fecha ancla de la semi y cae al día
  * siguiente (ventanasAmericas). Las partidas que ya venían con las 13 ventanas viejas y semis empezadas siguen como
  * estaban (reanclarAmericas no las toca). */
@@ -9758,7 +9758,10 @@ const AMERICAS_BURBUJA = 2;   // días de la burbuja: tus dos partidos en dos d�
 const AMERICAS_RONDAS = ['cuartos', 'semifinal', 'final'];
 const AMERICAS_MEJOR_DE = 3;   // los cuartos
 const AMERICAS_MEJOR_DE_RONDA = { cuartos: 3, semifinal: 1, final: 1 };
-const mejorDeAM = (ronda) => AMERICAS_MEJOR_DE_RONDA[ronda] || AMERICAS_MEJOR_DE;
+const mejorDeAM = (ronda) => ronda === 'tercero' ? 1 : (AMERICAS_MEJOR_DE_RONDA[ronda] || AMERICAS_MEJOR_DE);
+/* 2026-09-12 (su corte, mirando el Final Four real de 2026: Nacional–Flamengo por el bronce): el TERCER PUESTO se juega, a partido
+   único, en la ventana de la final (`etapa 'final'`); la serie se llama 'tercero' y vive fuera del árbol de AMERICAS_RONDAS */
+const ventanaDeSerieAM = (nombre) => nombre === 'tercero' ? 'final' : nombre;
 /* la localía de un juego: al mejor de 3 es 1-2 (el 1 en la del peor sembrado); a partido único, la sede del Final Four
    si es de uno de los dos, y si no el mejor sembrado (sólo para el dado del local) */
 function localDeJuegoAM(am, s, nro) {
@@ -9951,7 +9954,7 @@ function miJuegoAmericas(am, v, mi) {
   }
   if (!am.llave) return null;
   const s = am.llave.series.find((x) => !x.ganador && (x.alta === mi || x.baja === mi));
-  if (!s || s.nombre !== v.etapa || s.juegos.length >= s.mejorDe) return null;
+  if (!s || ventanaDeSerieAM(s.nombre) !== v.etapa || s.juegos.length >= s.mejorDe) return null;
   return { serie: s, nro: s.juegos.length + 1 };
 }
 
@@ -10070,12 +10073,14 @@ function religarLlaveAM(am) {
 function cerrarRondaAM(am, mi) {
   const ll = am.llave;
   if (!ll.series.every((s) => s.ganador)) throw new Error('una serie de la Liga de las Américas quedó abierta al cerrar la ronda');
-  const vivos = ll.series.map((s) => s.ganador);
-  if (vivos.length === 1) {
-    am.campeon = vivos[0]; am.fase = 'terminado';
+  if (ll.series.some((s) => s.nombre === 'final')) {   // la última ronda: la final y el tercer puesto
+    const f = ll.series.find((s) => s.nombre === 'final'), t3 = ll.series.find((s) => s.nombre === 'tercero');
+    am.campeon = f.ganador; am.tercero = t3 ? t3.ganador : null; am.fase = 'terminado';
     if (am.campeon === mi) am.miFase = 'campeon';
+    else if (t3 && (t3.alta === mi || t3.baja === mi)) am.miFase = t3.ganador === mi ? 'tercero' : 'cuarto';
     return;
   }
+  const vivos = ll.series.filter((s) => s.nombre !== 'tercero').map((s) => s.ganador);
   ll.ronda++;
   const nombre = AMERICAS_RONDAS[ll.ronda];
   const series = [];
@@ -10084,6 +10089,11 @@ function cerrarRondaAM(am, mi) {
     const [p, q] = am.fuerzas[vivos[i]] >= am.fuerzas[vivos[i + 1]] ? [vivos[i], vivos[i + 1]] : [vivos[i + 1], vivos[i]];
     series.push({ ronda: ll.ronda, nombre, alta: p, baja: q, mejorDe: mejorDeAM(nombre), ganAlta: 0, ganBaja: 0, juegos: [], ganador: null });
   }
+  if (nombre === 'final') {   // el tercer puesto: los dos que perdieron la semi, el mismo día que la final
+    const perd = ll.series.map((s) => (s.ganador === s.alta ? s.baja : s.alta));
+    const [p, q] = am.fuerzas[perd[0]] >= am.fuerzas[perd[1]] ? [perd[0], perd[1]] : [perd[1], perd[0]];
+    series.push({ ronda: ll.ronda, nombre: 'tercero', alta: p, baja: q, mejorDe: 1, ganAlta: 0, ganBaja: 0, juegos: [], ganador: null });
+  }
   ll.series = series; ll.seriesJugadas.push(...series);
   /* el Final Four: la sede es el semifinalista con MEJOR RÉCORD EN LA COPA (grupo + cuartos: ganados, después diferencia de
      puntos, después la fuerza) — su corte 2026-09-12 ("¿no podría ser por cómo le fue en la copa, en vez de la fuerza? mejor
@@ -10091,7 +10101,7 @@ function cerrarRondaAM(am, mi) {
      Boca, Maracanãzinho 2025 para Flamengo): el que llega mejor es la aproximación jugable. */
   if (nombre === 'semifinal') ll.sede = vivos.slice().sort((a, b) => { const ra = recordCopaAM(am, a), rb = recordCopaAM(am, b);
     return (rb.g - ra.g) || (rb.dif - ra.dif) || (am.fuerzas[b] - am.fuerzas[a]); })[0];
-  if (!am.eliminado) am.miFase = nombre;
+  if (!am.eliminado) { const mia = series.find((s) => s.alta === mi || s.baja === mi); if (mia) am.miFase = mia.nombre; }
 }
 
 /** Resuelve UNA ventana: todos sus partidos, el tuyo con `miJuego` si lo jugaste vos. Devuelve si la ventana quedó
@@ -10122,7 +10132,7 @@ function jugarVentanaAM(e, v, miJuego) {
     return true;
   }
   for (const s of am.llave.series) {
-    if (s.ganador || s.nombre !== v.etapa) continue;
+    if (s.ganador || ventanaDeSerieAM(s.nombre) !== v.etapa) continue;
     const meta = Math.ceil(s.mejorDe / 2);
     const nro = s.juegos.length + 1;
     const local = localDeJuegoAM(am, s, nro);
@@ -10140,7 +10150,7 @@ function jugarVentanaAM(e, v, miJuego) {
     else if (s.ganBaja >= meta) s.ganador = s.baja;
     if (mio) {
       anotarLineaAM(e, s.nombre, nro, mio && s.alta === mi ? s.baja : s.alta, miJuego, rng);
-      if (s.ganador && s.ganador !== mi) { am.eliminado = true; am.miFase = s.nombre === 'final' ? 'final' : s.nombre; }
+      if (s.ganador && s.ganador !== mi) { am.eliminado = s.nombre !== 'semifinal'; am.miFase = s.nombre === 'tercero' ? 'cuarto' : s.nombre; }   // perder la semi no te saca: queda el tercer puesto
     }
   }
   if (!am.ventanas.some((w) => w.etapa === v.etapa && w.n > v.n)) {
@@ -10229,7 +10239,7 @@ function misJuegosAM(e) {
   }
   if (am.llave) for (const s of am.llave.seriesJugadas) {
     if (s.alta !== mi && s.baja !== mi) continue;
-    s.juegos.forEach((j) => out.push({ etapa: s.nombre, n: j.juego, f: fDe(s.nombre, j.juego), dia: dDe(s.nombre, j.juego), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
+    s.juegos.forEach((j) => out.push({ etapa: s.nombre, n: j.juego, f: fDe(ventanaDeSerieAM(s.nombre), j.juego), dia: dDe(ventanaDeSerieAM(s.nombre), j.juego), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
       res: { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } }));
     /* 2026-09-10 (su caza: "juego por cuartos y me dice sólo el J1; es al mejor de 3, debería decir el J2 y el J3 si hace
        falta"): la serie abierta lista TODOS los juegos que le quedan; los que no están asegurados llevan `siHaceFalta`
@@ -10240,7 +10250,7 @@ function misJuegosAM(e) {
       /* 2026-09-12: los juegos que faltan se fechan en las ventanas de la ronda QUE QUEDAN (desde am.idx), no en la n-ésima —
          con una ventana perdida, el juego 1 salía fechado en una ventana ya pasada (su captura: «en Gimnasia 28 ENE —» detrás
          de dos fechas jugadas). Si faltan ventanas, el juego va sin fecha: la ventana extra nace cuando haga falta. */
-      const restantes = am.ventanas.slice(am.idx).filter((w) => w.etapa === s.nombre);
+      const restantes = am.ventanas.slice(am.idx).filter((w) => w.etapa === ventanaDeSerieAM(s.nombre));
       for (let nro = s.juegos.length + 1, i = 0; nro <= s.mejorDe; nro++, i++) {
         const localId = localDeJuegoAM(am, s, nro), w = restantes[i] || null;
         const sedeF = s.mejorDe === 1 ? (am.llave.sede || null) : null, rivalF = s.alta === mi ? s.baja : s.alta;
@@ -20386,6 +20396,7 @@ const AM_TXT={
   cuartos:L('CUARTOS','QUARTERFINALS','QUARTAS'),
   semifinal:L('SEMIFINAL','SEMIFINALS','SEMIFINAL'),
   final:L('LA FINAL','THE FINAL','A FINAL'),
+  tercero:L('TERCER PUESTO','THIRD PLACE','TERCEIRO LUGAR'),   // 2026-09-12: se juega, fuera del árbol
 };
 const amEtapaTxt=(etapa,grupo)=>(etapa==='grupo'||etapa==='ic-grupo')?t(AM_TXT.grupo)+' '+grupo:t(AM_TXT[etapa]||L(etapa));
 /* §2z27.3: el nombre de la competencia de un partido con forma de continental: la copa o la liga */
@@ -20479,8 +20490,10 @@ function lineaAmericas(e){
      cortaba con puntos suspensivos — el renglón es de una línea. El 🌎 nombra al torneo; el texto
      tiene el largo del renglón de la liga de arriba ("Eliminados en CUARTOS (1–3 vs X)"). */
   if(am.miFase==='grupo') return '<br>'+icono('globo',14)+' '+t(L('Liga de las Américas: afuera en el grupo','Americas League: out in the group stage','Liga das Américas: fora na fase de grupos'));
+  if(am.tercero===mi) return '<br>'+icono('globo',14)+' '+t(L('Liga de las Américas: TERCER PUESTO','Americas League: THIRD PLACE','Liga das Américas: TERCEIRO LUGAR'));   // 2026-09-12
   const u=(am.llave.seriesJugadas||[]).filter(x=>x.ganador&&(x.alta===mi||x.baja===mi)).pop();
   if(!u) return '';
+  if(u.nombre==='tercero') return '<br>'+icono('globo',14)+' '+t(L('Liga de las Américas: cuartos, perdido el tercer puesto vs ','Americas League: fourth, lost the bronze game vs ','Liga das Américas: quartos, perdido o terceiro lugar vs '))+nom(u.alta===mi?u.baja:u.alta);
   const miG=u.alta===mi?u.ganAlta:u.ganBaja, riG=u.alta===mi?u.ganBaja:u.ganAlta;
   return '<br>'+icono('globo',14)+' '+t(L('Eliminados en ','Out in ','Eliminados na '))+t(AM_TXT[u.nombre]||L(u.nombre))+' ('+miG+'–'+riG+' vs '+nom(u.alta===mi?u.baja:u.alta)+')';
 }
@@ -20607,6 +20620,8 @@ function htmlAmericas(e,g){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
+      /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"): la caja sola, con su título */
+      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true}):''; })()
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
       +'<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>';

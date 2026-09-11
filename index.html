@@ -11905,13 +11905,16 @@ const CARTAS_SALIDA=[
     avise y te haga decidir algo — declarar sobre la presión de jugar de local, o el apoyo de la gente"): sale cuando el
     torneo es EN TU CASA (selección anfitriona, o tu club es la sede del Final Four). La ventaja de local ya está en el
     grifo (0 contra +2/+4); la carta la agranda o te la come. */
- { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.6, fondo:'tunel',
+ /* 2026-09-12 (su caza, con la sede del Final Four por récord: "es un montón; que la del 100 % diga «el rival afloja» es una locura,
+    sobre todo cuando ya hay efecto de localía"): la localía ya la paga el grifo. La segura es sólo de hinchada; la apuesta ganada
+    te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y sale menos: chance 0,6 → 0,35. */
+ { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.35, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.anfitrion&&(c.salida.tipo==='seleccion'||c.salida.tipo==='americas'),
    gancho:(c)=>L('Torneo en casa: '+c.salida.competencia+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. La sala de prensa está llena y todos preguntan lo mismo: "¿Pesa jugar de local?"','Home tournament: '+c.salida.competencia+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The press room is packed and everyone asks the same thing: "Does playing at home weigh on you?"','Torneio em casa: '+c.salida.competencia+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. A sala de imprensa está cheia e todos perguntam a mesma coisa: "Pesa jogar em casa?"'),
    opciones:[
-     {tipo:'segura',label:L('"La gente empuja"','"The crowd carries us"','"A torcida empurra"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y lo creés. En la entrada en calor el estadio ya canta.','You say it and you believe it. By warm-ups the arena is already singing.','Você diz e acredita. No aquecimento o ginásio já canta.'),ef:{rel:{hinchada:3},partido:{fuerzaRival:-2}}}]},
+     {tipo:'segura',label:L('"La gente empuja"','"The crowd carries us"','"A torcida empurra"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y lo creés. En la entrada en calor el estadio ya canta.','You say it and you believe it. By warm-ups the arena is already singing.','Você diz e acredita. No aquecimento o ginásio já canta.'),ef:{rel:{hinchada:3}}}]},
      {tipo:'apuesta',label:L('"Acá no nos gana nadie"','"Nobody beats us here"','"Aqui ninguém ganha da gente"'),desenlaces:[
-       {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{rel:{hinchada:5},partido:{fuerzaRival:-4,fuego:1}}},
+       {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
        {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y el rival la pegó en su vestuario. Salen a callarte.','You read it on the big screen and the other team taped it in their locker room. They come out to shut you up.','Você lê no telão e o rival colou no vestiário. Eles saem para te calar.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
  { id:'sal_final_sel', de:'salida', peso:300, repite:true, chance:0.95, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='seleccion'&&c.salida.final,

@@ -20594,7 +20594,7 @@ function icAnunciado(e,clubId){
 }
 function notaICPendiente(e,clubId){
   const ic=icAnunciado(e,clubId); if(!ic) return '';
-  const quien=(clubId&&clubId!==e.miClubId)?(ic.club.corto||ic.club.nombre).toUpperCase()+' · ':'';
+  const quien=(ic.club.corto||ic.club.nombre).toUpperCase()+' · ';   // 2026-09-12 (su corte: "¿por qué no dice que lo jugamos nosotros?"): el que la juega, siempre
   return '<div class="cajNota">'+quien+t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
         +'<div class="cajNota">'+t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo+': '+ic.rivales.map(x=>x.toUpperCase()).join(' · ')+'</div>';
 }

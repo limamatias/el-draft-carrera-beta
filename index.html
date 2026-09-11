@@ -5727,7 +5727,7 @@ function misionHud(m, G) {
   if (m.tipo === 'porcentaje') {
     const tiros = G.tiros || 0, ac = G.aciertos || 0;
     const como = !tiros ? L('TODAVÍA NO TIRASTE', 'NO SHOTS YET', 'AINDA NÃO ARREMESSOU')[id]
-      : ac + '/' + tiros + ' · ' + L('VAS ', 'AT ', 'VAI ')[id] + Math.round(100 * ac / tiros) + ' %';
+      : L('VAS ', 'AT ', 'VAI ')[id] + Math.round(100 * ac / tiros) + ' %';   // 2026-09-12 (su caza: "el 1/1 de más… tanto texto"): los tiros ya están en la statline
     return m.meta + ' ' + L(`% DE TIRO (MÍN. ${PORCENTAJE_MIN_TIROS})`, `% SHOOTING (MIN. ${PORCENTAJE_MIN_TIROS})`, `% DE ARREMESSO (MÍN. ${PORCENTAJE_MIN_TIROS})`)[id] + ' <b>' + como + '</b>';
   }
   if (m.meta === 0) return misionNombre(m)[id] + ' <b>' + (misionCumplida(m, G) ? '✓' : '✗') + '</b>';

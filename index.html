@@ -20341,7 +20341,10 @@ function htmlAmericas(e,g){
   if(am.llave){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})
-      +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>';
+      +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
+      /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
+         campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
+      +'<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>';
   }
   return h;
 }
@@ -22853,7 +22856,9 @@ function cierreDeSerie(p,gano){
   if(p.tipo==='americas'){
     /* §2z27: la serie del continental cierra con su nombre — para el que se queda, el título es el techo */
     if(!gano){ txt=t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(AM_TXT[s.nombre]||L(s.nombre)); tono='mal'; }
-    else if(s.nombre==='final'){ txt=t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')); tono='oro'; }
+    else if(s.nombre==='final'){ txt=t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')); tono='oro';
+      /* §2z27.3: el título trae su puerta escrita (la regla del juego, no una aclaración) */
+      return {txt,tono,miGan,riGan,lbl:t(L('CLASIFICADOS A LA COPA INTERCONTINENTAL','QUALIFIED FOR THE INTERCONTINENTAL CUP','CLASSIFICADOS PARA A COPA INTERCONTINENTAL'))}; }
     else { txt=t(L('SERIE GANADA','SERIES WON','SÉRIE VENCIDA')); tono='ok'; }
     return {txt,tono,miGan,riGan};
   }

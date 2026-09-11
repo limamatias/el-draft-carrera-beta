@@ -20430,7 +20430,7 @@ function amPorqueTxt(o){
     return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||4)+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
   /* 2026-09-12 (su caza: "SERIE 0-0 · JUEGO 1 · AL MEJOR DE 1 es rarísimo"): el Final Four es a partido único, y lo dice así */
-  if(s.mejorDe===1) return t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'))+(o.sede?' · '+((clubDe(o.sede)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase():'');
+  if(s.mejorDe===1) return t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'));   // 2026-09-12 (su captura: «EN CASA · LA BOCA» y «PARTIDO ÚNICO · LA BOCA»): la ciudad ya está en el renglón de arriba, acá no se repite
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
 function ordenAnioPasado(ligaId,anio,tablaFinal){

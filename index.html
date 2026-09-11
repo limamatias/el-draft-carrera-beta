@@ -3255,8 +3255,17 @@ const RECETAS_ESCUDO = {
   ALBS: { pattern: 'liso' },
   FLAM: { pattern: 'rayas' },
   TIBA: { pattern: 'banda', colors: ['#355498', '#ED1C24', '#FFFFFF'] },   // 2026-09-12 (su pedido: "bastante rojo en su identidad"): banda roja sobre azul, filete blanco   // 2026-09-12: las rayas rojinegras (no estaba entre las 116 de El Draft y caía en liso)
-  ICSHA: { pattern: 'banda', colors: ['#1A3D8F', '#F58220', '#F58220'] },   // 2026-09-12 (su pedido: "que el escudo al menos tenga naranja"): banda y filete naranjas sobre el azul de los Sharks
-  ICGLU: { pattern: 'estrella', colors: ['#F58220', '#FFFFFF'] },   // 2026-09-12 (su pedido: "naranja y blanco"): la estrella blanca del UNITED sobre naranja
+  /* 2026-09-12 LA COPA INTERCONTINENTAL, repasada con la plancha (sus pedidos uno por uno). El escudo va por receta y la
+     camiseta por color/color2: pueden ser distintos (Unicaja: escudo verde y blanco, camiseta verde y violeta). Ninguno con
+     banda azul: se lee Boca. */
+  ICUNI: { pattern: 'diagonal', colors: ['#0B7A3B', '#FFFFFF'] },   // "el escudo verde y blanco"
+  ICTEN: { pattern: 'aro', colors: ['#3E9BD8', '#F2C300'] },   // "más tirando a celeste que azul oscuro"
+  ICBUR: { pattern: 'franjas', colors: ['#1B3A8C', '#FFFFFF', '#F07F1E'] },   // "le falta naranja": el filete
+  ICAHL: { pattern: 'aro', colors: ['#0B8A3E', '#C9A227', '#FFFFFF'] },   // "le falta dorado": el aro
+  ICPET: { shape: 'redondel', pattern: 'aro', colors: ['#F5C400', '#1B4FA5', '#D8202C'] },   // "el del círculo, más que el cruzado, y con rojo": el filete
+  ICRIY: { pattern: 'liso', colors: ['#23338F', '#F5C400', '#F5C400'] },   // su escudo: azul con el marco amarillo, no verde
+  ICSHA: { pattern: 'diagonal', colors: ['#1A3D8F', '#F58220', '#FFFFFF'] },   // "que tenga naranja" y "que no sea igual al de Boca": diagonal naranja, filete blanco
+  ICGLU: { pattern: 'estrella', colors: ['#F58220', '#FFFFFF'] },   // "naranja y blanco": la estrella blanca del UNITED sobre naranja
   AMAN: { pattern: 'banda' },
   ARJU: { pattern: 'diagonal' },
   ATEN: { pattern: 'cuartos', colors: ['#FFFFFF', '#31993F'] },   // 2026-09-12 (su pedido: el escudo verde y blanco a cuartos, no un verde plano como Ferro)
@@ -10514,17 +10523,17 @@ const IC_TXT = {
    altura del campeón de las Américas, África y Asia debajo. Ganarla es difícil y posible. */
 const CLUBES_INTERCONTINENTAL = [
   /* Europa · Champions League */
-  { id: 'ICUNI', sigla: 'UNI', nombre: 'Unicaja', ciudad: 'Málaga', apodo: null, color: '#0B7A3B', color2: '#5A2D82', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
-  { id: 'ICTEN', sigla: 'TEN', nombre: 'Lenovo Tenerife', corto: 'Tenerife', ciudad: 'La Laguna', apodo: null, color: '#0F1F5C', color2: '#F2C300', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICUNI', sigla: 'UNI', nombre: 'Unicaja Málaga', ciudad: 'Málaga', apodo: null, color: '#0B7A3B', color2: '#5A2D82', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
+  { id: 'ICTEN', sigla: 'TEN', nombre: 'La Laguna Tenerife', corto: 'Tenerife', ciudad: 'La Laguna', apodo: null, color: '#0F1F5C', color2: '#F2C300', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
   { id: 'ICBUR', sigla: 'BUR', nombre: 'San Pablo Burgos', corto: 'Burgos', ciudad: 'Burgos', apodo: null, color: '#1B3A8C', color2: '#FFFFFF', fuerza: 72, rival: null, pais: 'es', cont: 'europa' },
-  { id: 'ICRYT', sigla: 'RYT', nombre: 'Rytas', ciudad: 'Vilna', apodo: null, color: '#0D0D0D', color2: '#E30613', fuerza: 72, rival: null, pais: 'lt', cont: 'europa' },
+  { id: 'ICRYT', sigla: 'RYT', nombre: 'Vilnius Rytas', ciudad: 'Vilna', apodo: null, color: '#0D0D0D', color2: '#E30613', fuerza: 72, rival: null, pais: 'lt', cont: 'europa' },
   /* África · Basketball Africa League */
   { id: 'ICAHL', sigla: 'AHL', nombre: 'Al Ahli Trípoli', corto: 'Al Ahli', ciudad: 'Trípoli', apodo: null, color: '#0B8A3E', color2: '#FFFFFF', fuerza: 62, rival: null, pais: 'ly', cont: 'africa' },
   { id: 'ICPET', sigla: 'PET', nombre: 'Petro de Luanda', corto: 'Petro', ciudad: 'Luanda', apodo: null, color: '#F5C400', color2: '#1B4FA5', fuerza: 62, rival: null, pais: 'ao', cont: 'africa' },
-  { id: 'ICRSS', sigla: 'RSS', nombre: 'Tigers RSSB', ciudad: 'Kigali', apodo: null, color: '#1E6BB8', color2: '#FFD200', fuerza: 62, rival: null, pais: 'rw', cont: 'africa' },
+  { id: 'ICRSS', sigla: 'RSS', nombre: 'RSSB Tigers', ciudad: 'Kigali', apodo: null, color: '#1E6BB8', color2: '#FFD200', fuerza: 62, rival: null, pais: 'rw', cont: 'africa' },
   /* Asia · Champions League Asia */
   { id: 'ICUTS', sigla: 'UTS', nombre: 'Utsunomiya Brex', corto: 'Utsunomiya', ciudad: 'Utsunomiya', apodo: null, color: '#F5C400', color2: '#1A1A1A', fuerza: 60, rival: null, pais: 'jp', cont: 'asia' },
-  { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi', ciudad: 'Beirut', apodo: null, color: '#0A8F3C', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
+  { id: 'ICRIY', sigla: 'RIY', nombre: 'Al Riyadi Club Beirut', ciudad: 'Beirut', apodo: null, color: '#23338F', color2: '#F5C400', fuerza: 60, rival: null, pais: 'lb', cont: 'asia' },
   { id: 'ICSHA', sigla: 'SHA', nombre: 'Shanghai Sharks', corto: 'Shanghai Sharks', ciudad: 'Shanghái', apodo: null, color: '#1A3D8F', color2: '#F58220', fuerza: 60, rival: null, pais: 'cn', cont: 'asia' },
   /* Oceanía · NBL */
   { id: 'ICTAS', sigla: 'TAS', nombre: 'Tasmania JackJumpers', corto: 'JackJumpers', ciudad: 'Hobart', apodo: null, color: '#0A6E4F', color2: '#F5C400', fuerza: 63, rival: null, pais: 'au', cont: 'oceania' },

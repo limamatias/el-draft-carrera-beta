@@ -198,6 +198,29 @@
   /* §2z11 en el partido: el fin y la pausa usan el tamaño de PORTADA para el título (42, es EL
      momento) y el CTA de la escala (48/20). La portada misma (JUGAR) no entra y queda con .velo button. */
   #fin h1,#pausa h1{font-size:42px}
+  /* 2026-09-12 (su captura: «¡SOBRE LA CHICHARRA!» partido en dos renglones): el título del cierre va en UNO — si no entra,
+     15-guion `ajustarTituloFin` le baja el cuerpo */
+  #fin h1{white-space:nowrap;max-width:100%;overflow:hidden}
+  #fin{gap:10px}
+  /* LA PLANILLA EN GRILLA (su ok a la maqueta): siete stats siempre —cuatro arriba (PTS · AST · TIROS · LIBRES), tres abajo
+     (ROB · TAP · PÉR)—, el cero en gris; debajo los hechos de la noche con la marca en una columna de ancho fijo (alineadas) */
+  #finNota .finStats{width:100%;display:flex;flex-direction:column;gap:8px}
+  #finNota .grilla{display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+  #finNota .grilla .st{grid-column:span 3;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:10px;
+       padding:6px 0 5px;text-align:center;opacity:0;animation:entra .3s ease-out forwards}
+  #finNota .grilla .st.b{grid-column:span 4}
+  #finNota .grilla .st b{display:block;font-size:22px;line-height:1.05;color:var(--tinta);font-variant-numeric:tabular-nums}
+  #finNota .grilla .st b.mal{color:var(--mal)} #finNota .grilla .st b.cero{color:#6b7488}
+  #finNota .grilla .st span{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
+  #finNota .objs{display:flex;flex-direction:column;gap:3px}
+  #finNota .objs .r{display:flex;align-items:center;gap:8px;font-size:13px;letter-spacing:1px;color:var(--tinta2);font-weight:600;
+       padding:0 4px;opacity:0;animation:entra .3s ease-out forwards}
+  #finNota .objs .r span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #finNota .objs .r b{flex:none;min-width:18px;text-align:center}
+  #finNota .objs .ok{color:var(--ok)} #finNota .objs .mal{color:var(--mal)}
+  #finNota .punRels{display:flex;align-items:center;justify-content:center;gap:14px}
+  #finNota .punRels .rels{flex-direction:column;gap:4px}
+  #finNota .punRels .chip{height:22px;padding:0 10px;font-size:12px;justify-content:space-between;min-width:104px}
   /* §2z169: el titular — sobre el lobby (8) y debajo de las cartas (45) */
   #titular{z-index:30;background:rgba(8,11,19,.9)}
   /* 2026-09-12 el momento de la compra: entra con el ícono creciendo, se queda un respiro y se va sola */
@@ -220,6 +243,8 @@
   #nivelMom.entra{animation:compraEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
   #nivelMom.entra .nivelMomEst{animation:compraIco .5s cubic-bezier(.2,.9,.3,1.3) both}
   #nivelMom.sale{animation:compraSale .4s ease-in both}
+  /* la estrella perdida (su ok: "perdiste la estrella tiene que ser un momento"): el mismo momento, en rojo */
+  #nivelMom.perdida .nivelMomEst,#nivelMom.perdida h1{color:var(--mal);text-shadow:0 0 24px rgba(224,108,90,.45)}
   @keyframes compraEntra{from{opacity:0}to{opacity:1}}
   @keyframes compraIco{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
   @keyframes compraSale{to{opacity:0}}
@@ -299,9 +324,6 @@
   #finNota .chip b.ok{color:var(--ok)} #finNota .chip b.mal{color:var(--mal)}
   #finNota .barraExp,#cuerpoNota .barraExp{display:flex;align-items:center;gap:8px;width:100%;opacity:0;animation:entra .3s ease-out forwards}
   /* §2z19: la card del cierre de serie — ancho completo, entra última (después de la barra) */
-  #finNota .nivelNuevo{font-size:22px;font-weight:700;letter-spacing:3px;color:#f2c94c;text-align:center;width:100%;
-       text-shadow:0 0 18px rgba(242,201,76,.55);opacity:0;animation:entra .35s ease-out forwards}
-  #finNota .nivelNuevo.perdida{color:var(--mal);text-shadow:0 0 18px rgba(224,108,90,.45)}   /* §2z145 */
   #finNota .serie{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:10px 12px;border-radius:12px;
        background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.35);opacity:0;animation:entra .3s ease-out forwards;text-align:center}
   #finNota .serie .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
@@ -1738,13 +1760,16 @@
   <div class="linea" id="finLinea"></div>
   <!-- §2z12: la nota y la barra de ★n a ★n+1 (sólo en la carrera; 18b la pinta al terminar) -->
   <div id="finNota" class="oculto">
-    <div class="planilla" id="finPlanilla"></div>
-    <div class="puntuacion" id="finPuntuacion"><span class="lbl" data-l-en="MATCH RATING" data-l-pt="PONTUAÇÃO">PUNTUACIÓN</span><b id="finNotaNum"></b></div>
-    <div class="rels" id="finRels"></div>
+    <!-- 2026-09-12 (su caza con captura: "se comprimió todo, demasiadas cosas juntas"; su ok a la maqueta): las siete stats en
+         grilla, SIEMPRE (con su 0), y debajo los hechos de la noche (misión, la última); la puntuación al lado de las relaciones.
+         La estrella nueva y la perdida ya no son renglón: son momentos (#nivelMom). -->
+    <div class="finStats" id="finPlanilla"></div>
+    <div class="punRels">
+      <div class="puntuacion" id="finPuntuacion"><span class="lbl" data-l-en="MATCH RATING" data-l-pt="PONTUAÇÃO">PUNTUACIÓN</span><b id="finNotaNum"></b></div>
+      <div class="rels" id="finRels"></div>
+    </div>
     <div class="barraExp" id="finBarra"><span id="finEstA"></span><div class="pista"><i id="finBarraAntes"></i><i id="finBarraAhora"></i><i id="finBarraPerdida"></i></div><span id="finEstB"></span></div>
-    <!-- §2z140: la estrella nueva se anuncia (su caza: "si hay algo que te anuncia que subiste de nivel ni lo sentí") -->
-    <div class="nivelNuevo oculto" id="finNivel"></div>
-    <!-- §2z19: LA CARD DEL CIERRE DE SERIE (su ok 2026-09-02) — sólo el partido que cierra tu serie -->
+    <!-- §2z19: LA CARD DEL CIERRE DE SERIE (su ok 2026-09-02) — sólo el partido que cierra tu serie; el remate, antes de SEGUIR -->
     <div class="serie oculto" id="finSerie"><span class="lbl" id="finSerieLbl"></span><b id="finSerieTxt"></b></div>
   </div>
   <button id="btnOtra" data-l-en="ANOTHER GAME" data-l-pt="OUTRA PARTIDA">OTRO PARTIDO</button>
@@ -17464,6 +17489,14 @@ function terminar(){
     (G.ptsAsist?t(L(`<br><span style="font-size:15px;opacity:.75">Entre puntos y asistencias generaste ${G.pts+G.ptsAsist}.</span>`,`<br><span style="font-size:15px;opacity:.75">Points plus assists, you created ${G.pts+G.ptsAsist}.</span>`,`<br><span style="font-size:15px;opacity:.75">Entre pontos e assistências você gerou ${G.pts+G.ptsAsist}.</span>`)):``);
   $('#cFin').textContent=t(L(`Partidos: ${rachas()} · récord de racha: ${record()}`,`Games: ${rachas()} · streak record: ${record()}`,`Jogos: ${rachas()} · recorde de sequência: ${record()}`));
   $('#fin').classList.remove('oculto');
+  ajustarTituloFin();
+}
+/* 2026-09-12 (su captura: «¡SOBRE LA CHICHARRA!» partido en dos renglones apretaba todo el cierre): el título va en UN renglón;
+   si no entra, baja el cuerpo de a 2 px hasta 26. Se mide con el velo ya visible (clase 4 de CLAUDE.md). */
+function ajustarTituloFin(){
+  const h=document.getElementById('finTitulo'); if(!h) return;
+  h.style.fontSize=''; let fs=parseFloat(getComputedStyle(h).fontSize)||42;
+  while(h.scrollWidth>h.clientWidth+1 && fs>26){ fs-=2; h.style.fontSize=fs+'px'; }
 }
 function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
@@ -23699,17 +23732,15 @@ terminar=function(){
   /* LA PLANILLA SE REVELA FILA POR FILA (la mecánica de NSS, video 1: Chances → Goals →
      Assists → Passes → Match Rating con destello → BOSS/TEAM/FANS con sus deltas → la barra
      de estrella). El dibujo es el nuestro. */
-  const filas=[[t(L('PUNTOS','POINTS','PONTOS')),G.pts],[t(L('ASISTENCIAS','ASSISTS','ASSISTÊNCIAS')),G.ast],
-    [t(L('TIROS','FIELD GOALS','ARREMESSOS')),G.aciertos+'/'+G.tiros]];
-  if(G.fta) filas.push([t(L('LIBRES','FREE THROWS','LANCES')),G.ftm+'/'+G.fta]);
-  if(G.robos) filas.push([t(L('ROBOS','STEALS','ROUBOS')),G.robos]);
-  /* las pérdidas se muestran si hubo (su caza 2026-09-05: la misión era «2 pérdidas como máximo» y la planilla no las decía) */
-  if(G.perdidas) filas.push([t(L('PÉRDIDAS','TURNOVERS','PERDAS')),'<span class="mal">'+G.perdidas+'</span>']);
-  /* §2z51: el desmarque flojo (devoluciones robadas, tiros forzados al pasador) lo cobra la nota a 0,15 cada uno y NO se
-     muestra (su corte: "la composición del score no le importa a nadie, o si le importa, no debería saberla") */
-  if(G.tapas) filas.push([t(L('TAPAS','BLOCKS','TOCOS')),G.tapas]);
-  /* RACHA se fue de la planilla (su caza 2026-09-02: "no se entiende qué es y no aporta") */
-  if(G.sub) filas.push([t(L('TE SACARON','BENCHED','TE TIRARAM')),'<span class="mal">'+G.sub+'</span>']);
+  /* 2026-09-12 LA PLANILLA ES UNA GRILLA (su caza con captura: "se comprimió todo, demasiadas cosas juntas"; su ok a la maqueta
+     con sus correcciones: "debería ir tipo ROB 0" — las siete stats SIEMPRE, con su cero; los libres adentro; las pérdidas al
+     final). Cambia de largo sólo por los hechos de la noche (misión, la última). TE SACARON se fue (su pregunta: "ni siquiera sé
+     por qué figura ahí"): el relato ya lo dijo en el momento («TE SACAN — el DT no te vio una buena»). [clave, valor, ceroTxt, mala] */
+  /* §2z51: el desmarque flojo lo cobra la nota y NO se muestra · RACHA se fue de la planilla (2026-09-02) */
+  const stats=[[L('PTS','PTS','PTS'),G.pts||0],[L('AST','AST','AST'),G.ast||0],[L('TIROS','FG','ARREM'),(G.aciertos||0)+'/'+(G.tiros||0),!G.tiros],
+    [L('LIBRES','FT','LANCES'),(G.ftm||0)+'/'+(G.fta||0),!G.fta],[L('ROB','STL','ROU'),G.robos||0],[L('TAP','BLK','TOC'),G.tapas||0],
+    [L('PÉR','TO','ERR'),G.perdidas||0,false,true]];
+  const filas=[];
   if(mision) filas.push([t(L('MISIÓN','MISSION','MISSÃO'))+' · '+misionMetaCorta(mision),'<span class="'+(mision.ok?'ok':'mal')+'">'+(mision.ok?'✓':'✗')+'</span>']);
   /* §2z99: la última fue tuya — un hecho de la noche, como la misión */
   if(G.clutch) filas.push([t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')),'<span class="'+(G.clutch.anoto?'ok':'mal')+'">'+(G.clutch.anoto?'✓':'✗')+'</span>']);
@@ -23727,9 +23758,12 @@ terminar=function(){
     document.getElementById('finVeredictoTxt').textContent=veredicto==='figura'?t(L('FUISTE LA FIGURA','YOU WERE THE STAR','VOCÊ FOI O CRAQUE')):t(L('NO ESTUVISTE','YOU WEREN’T THERE','VOCÊ NÃO ESTEVE'));
     setTimeout(()=>ver.classList.add('oculto'),VEREDICTO_MS);
   } else ver.classList.add('oculto');
-  const PASO=140, tNota=base+filas.length*PASO+250, tRels=tNota+700, tBarra=tRels+500;
-  document.getElementById('finPlanilla').innerHTML=filas.map((f,i)=>
-    '<div class="r" style="animation-delay:'+(base+i*PASO)+'ms"><span>'+f[0]+'</span><b>'+f[1]+'</b></div>').join('');
+  /* la grilla entra de a una celda (más rápido que los renglones: son siete) y después los hechos de la noche */
+  const PASO=140, PASO_ST=60, tHechos=base+stats.length*PASO_ST, tNota=tHechos+filas.length*PASO+250, tRels=tNota+700, tBarra=tRels+500;
+  document.getElementById('finPlanilla').innerHTML='<div class="grilla">'+stats.map(([k,v,ceroTxt,mala],i)=>
+      '<div class="st'+(i>=4?' b':'')+'" style="animation-delay:'+(base+i*PASO_ST)+'ms"><b class="'+(mala&&v>0?'mal':(ceroTxt||v===0)?'cero':'')+'">'+v+'</b><span>'+t(k)+'</span></div>').join('')+'</div>'
+    +(filas.length?'<div class="objs">'+filas.map((f,i)=>
+      '<div class="r" style="animation-delay:'+(tHechos+i*PASO)+'ms"><span>'+f[0]+'</span><b>'+f[1]+'</b></div>').join('')+'</div>':'');
   const pun=document.getElementById('finPuntuacion'); pun.style.animationDelay=tNota+'ms';
   document.getElementById('finNotaNum').textContent=fdec(rating);
   const chip=(k,v)=>'<span class="chip"><span>'+k+'</span><b class="'+(v>0?'ok':v<0?'mal':'')+'">'+(v>0?'+':'')+v+'</b></span>';
@@ -23762,17 +23796,13 @@ terminar=function(){
   document.getElementById('finEstA').textContent='★'+nivBarra;
   /* §2z140 (su caza 2026-09-07: "si hay algo que te anuncia que subiste de nivel ni lo sentí"): la barra llenándose
      era todo el anuncio. Cuando la estrella es nueva, después de la barra sale el renglón dorado ★n+1 — NUEVO NIVEL. */
-  const nivelEl=document.getElementById('finNivel');
-  nivelEl.classList.add('oculto'); nivelEl.textContent='';
-  nivelEl.classList.toggle('perdida',bajo);
   /* 2026-09-12 (su caza con captura: "se comprimió todo, demasiadas cosas juntas… propongo que el NUEVO NIVEL sea siempre un
      momento, algo transitorio"): la estrella nueva deja el renglón de la planilla y pasa a ser un MOMENTO sobre el cierre, cuando
      la barra ya se llenó (momentoNivel). Si para entonces el cierre ya se fue, no sale. */
-  if(nivelDespues>nivelAntes){ const nv=nivelDespues; clearTimeout(nivelMomTimer);
-    nivelMomTimer=setTimeout(()=>{ const f=document.getElementById('fin'); if(f&&!f.classList.contains('oculto')) momentoNivel(nv); }, tBarra+900); }
-  /* §2z145 (su caza 2026-09-08: "perdiste la estrella en un cartelito rojo chiquito, tapando otras cosas"): la
-     estrella perdida se anuncia igual que la nueva —el mismo renglón del cierre, en rojo—, no con el toast del lobby */
-  else if(bajo){ nivelEl.textContent='★'+nivelDespues+' · '+t(L('PERDISTE LA ESTRELLA','YOU LOST THE STAR','PERDEU A ESTRELA')); nivelEl.style.animationDelay=(tBarra+900)+'ms'; nivelEl.classList.remove('oculto'); }
+  if(nivelDespues!==nivelAntes){ const nv=nivelDespues, perdio=bajo; clearTimeout(nivelMomTimer);   // la perdida también (su ok: "tiene que ser un momento")
+    nivelMomTimer=setTimeout(()=>{ const f=document.getElementById('fin'); if(f&&!f.classList.contains('oculto')) momentoNivel(nv,perdio); }, tBarra+900); }
+  /* §2z145 (su caza 2026-09-08: "perdiste la estrella en un cartelito rojo chiquito") → 2026-09-12: la estrella perdida se anuncia
+     igual que la nueva, y las dos ya no son renglón del cierre: son el momento de arriba (momentoNivel, en rojo si se perdió) */
   document.getElementById('finEstB').textContent='★'+(nivBarra+1);
   const barra=document.getElementById('finBarra'); barra.style.animationDelay=tRels+'ms';
   const antes=document.getElementById('finBarraAntes'), ahora=document.getElementById('finBarraAhora'), perdida=document.getElementById('finBarraPerdida');
@@ -24519,10 +24549,11 @@ function momentoCompra(cad,it){
 }
 /* 2026-09-12 EL MOMENTO DEL NIVEL NUEVO: la estrella y la frase, 2,2 s y se va; un toque la apura (el idioma de momentoCompra) */
 let nivelMomTimer=null, nivelMomCierre=null;
-function momentoNivel(nv){
+function momentoNivel(nv,perdio){
   const v=document.getElementById('nivelMom'); if(!v) return;
+  v.classList.toggle('perdida',!!perdio);
   document.getElementById('nivelMomEst').textContent='★'+nv;
-  document.getElementById('nivelMomTxt').textContent=t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!'));
+  document.getElementById('nivelMomTxt').textContent=perdio?t(L('PERDISTE LA ESTRELLA','YOU LOST THE STAR','PERDEU A ESTRELA')):t(L('¡NUEVO NIVEL!','NEW LEVEL!','NOVO NÍVEL!'));
   v.classList.remove('oculto','sale'); v.classList.add('entra');
   const cerrar=()=>{ clearTimeout(nivelMomCierre); v.classList.remove('entra'); v.classList.add('sale'); setTimeout(()=>v.classList.add('oculto'),400); };
   v.onclick=cerrar;

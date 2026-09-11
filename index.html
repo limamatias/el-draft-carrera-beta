@@ -11298,10 +11298,11 @@ function campoTorneo(torneo, clasifAm, fuera) {
   return clasifAm.slice(0, 4);
 }
 
-/** Nace el torneo. `pais` es el tuyo (puede no estar en el campo: entonces no hay torneo). */
+/** Nace el torneo. `pais` es el tuyo (puede no estar en el campo: entonces no hay torneo).
+ *  §12.31: `pais` null es el torneo sin nadie tuyo, que sólo arma `simularTorneoSel`. */
 function crearTorneoSel(semilla, torneo, pais, campo, anio) {
   const F = SEL_FORMATOS[torneo];
-  if (!F || campo.indexOf(pais) < 0) return null;
+  if (!F || (pais !== null && campo.indexOf(pais) < 0)) return null;
   const rng = rngFor(semilla, 'seleccion', 'torneo', torneo);
   const t = { tipo: 'torneo', torneo, pais, campo: campo.slice(), fase: F.porGrupo ? 'grupo' : 'llave',
     grupos: {}, juegos: [], llave: null, idx: 0, miFase: null, medalla: null, campeon: null, mis: [], anio: anio || 0, semilla: String(semilla || '').replace(/-sel\d+$/, '') };
@@ -11846,20 +11847,49 @@ function cuposJJOOAm(clasifMundial, preo) {
   return out.slice(0, SEL_JJOO_CUPOS_AM);
 }
 
-/** Hasta dónde llegó cada selección del torneo (0 = campeón). Sirve para saber quiénes son
- *  los dos de América que entran solos a los Juegos. */
-function ordenFinalSel(t) {
-  const R = { cuartos: 4, semifinal: 3, final: 1, bronce: 3 };
-  const rank = {};
-  for (const id of t.campo) rank[id] = 5;
+/* §12.31 AMÉRICA EN EL MUNDIAL (2026-09-12, su corte): la clasificación final puesto por puesto, como la de la FIBA — primero la
+   ronda a la que llegaste, después el récord en el torneo (ganados, diferencia) y recién al final la fuerza. Hasta hoy, adentro
+   de una misma ronda decidía la fuerza en el papel y la segunda fase del Mundial empataba con el grupo: entre dos americanos
+   eliminados en cuartos, el directo a los Juegos era el más fuerte, no el que había ganado más.
+   Adentro de una ronda todos jugaron la misma cantidad de partidos, así que los ganados se comparan directo. */
+const SEL_RONDA_NIVEL = { oro: 0, plata: 1, bronce: 2, cuarto: 3, semifinal: 4, cuartos: 5, segunda: 6, grupo: 7 };
+function clasificacionFinalSel(t) {
+  const f = {};
+  const fila = (id) => (f[id] ||= { id, ronda: 'grupo', pg: 0, pp: 0, pf: 0, pc: 0 });
+  const suma = (a, b, pa, pb) => {
+    const x = fila(a), y = fila(b);
+    x.pf += pa; x.pc += pb; y.pf += pb; y.pc += pa;
+    if (pa > pb) { x.pg++; y.pp++; } else { y.pg++; x.pp++; }
+  };
+  const sube = (id, r) => { const x = fila(id); if (SEL_RONDA_NIVEL[r] < SEL_RONDA_NIVEL[x.ronda]) x.ronda = r; };
+  for (const id of t.campo) fila(id);
+  /* el partido arrastrado a la segunda fase es UN juego (tiene `grupo` y `g2`): se cuenta una vez */
+  for (const g of t.juegos) if (g.jugado) suma(g.local, g.visita, g.ptsLocal, g.ptsVisita);
+  for (const g of SEL_LETRAS2) for (const id of ((t.grupos && t.grupos[g]) || [])) sube(id, 'segunda');
   if (t.llave) for (const s of t.llave.jugadas) {
     if (!s.jugado) continue;
-    const v = R[s.nombre] !== undefined ? R[s.nombre] : 5;
-    for (const id of [s.alta, s.baja]) rank[id] = Math.min(rank[id], v);
-    if (s.nombre === 'final') rank[s.ganador] = 0;
-    if (s.nombre === 'bronce') rank[s.ganador] = 2;
+    suma(s.alta, s.baja, s.ptsAlta, s.ptsBaja);
+    if (s.nombre === 'final') { sube(s.ganador, 'oro'); sube(s.perdedor, 'plata'); }
+    else if (s.nombre === 'bronce') { sube(s.ganador, 'bronce'); sube(s.perdedor, 'cuarto'); }
+    else { sube(s.alta, s.nombre); sube(s.baja, s.nombre); }
   }
-  return t.campo.slice().sort((a, b) => rank[a] - rank[b] || SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
+  const out = t.campo.map((id) => f[id]).sort((a, b) => SEL_RONDA_NIVEL[a.ronda] - SEL_RONDA_NIVEL[b.ronda]
+    || b.pg - a.pg || (b.pf - b.pc) - (a.pf - a.pc) || SELECCIONES[b.id].fuerza - SELECCIONES[a.id].fuerza || (a.id < b.id ? -1 : 1));
+  out.forEach((x, i) => { x.puesto = i + 1; });
+  return out;
+}
+/** El orden final (ids). Sirve para saber quiénes son los dos de América que entran solos a los Juegos. */
+function ordenFinalSel(t) {
+  return clasificacionFinalSel(t).map((x) => x.id);
+}
+/** §12.31: un torneo que se juega SIN VOS (tu país no clasificó, o no te llamaron). Con tu país en el campo se arma con él —mismo
+ *  sorteo y misma sede que el que anunció la pestaña— y tus partidos se simulan como los de cualquiera; tu línea se tira. */
+function simularTorneoSel(semilla, torneo, pais, campo, anio, e) {
+  const t = crearTorneoSel(semilla, torneo, campo.indexOf(pais) >= 0 ? pais : null, campo, anio);
+  if (!t) return null;
+  terminarTorneoSel(t, e);
+  t.mis = [];
+  return t;
 }
 /** Los de América en el orden en que terminaron el Mundial. */
 function topAmericaSel(t) {
@@ -21118,16 +21148,16 @@ function torneoAnunciado(e){
   const fuera=(torneo==='mundial'&&clasif.indexOf(pais)<0)?pais:null;
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   let cual=torneo;
-  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
-  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
+  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mundialTopDe(mem)||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
   if(!campo||campo.indexOf(pais)<0) return {cual,anio:C.anio+1,afuera:true};
   const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
   const rivales=t.miGrupo?t.grupos[t.miGrupo].filter(x=>x!==pais):(t.llave?t.llave.series.filter(s=>s.alta===pais||s.baja===pais).map(s=>s.alta===pais?s.baja:s.alta):[]);
   const sede=sedeDe(t,t.miGrupo?'grupo':'semifinal',t.miGrupo);
   const ids=t.miGrupo?t.grupos[t.miGrupo].slice():campo.slice();   // el preolímpico: los cuatro, que es la pregunta ("¿quién va?")
-  const directos=(cual==='jjoo'||cual==='preolimpico')?directosJJOO(mem.mundialTop||clasifAm):null;
+  const directos=(cual==='jjoo'||cual==='preolimpico')?directosJJOO(mundialTopDe(mem)||clasifAm):null;
   return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,ids,sede,directos,afuera:false};
 }
 function torneoRecesoDe(){
@@ -21153,11 +21183,11 @@ function torneoRecesoDe(){
      cupos de América son los dos directos + el ganador del preolímpico + uno por fuerza (cuposJJOOAm), y el preolímpico
      se juega UNA vez por ciclo (`mem.preo.anio`), lo hayas ganado o no */
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
-  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
-  const campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
+  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mundialTopDe(mem)||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  const campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera);
-  if(campo.indexOf(pais)<0){ C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }
+  if(campo.indexOf(pais)<0){ if(cual==='mundial') mundialSinVos(campo,e); C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }   /* §12.31: el Mundial se juega sin vos */
   /* §12.21 (su corte: "si jugaste eliminatorias o X parte de ellas, deberías ir al torneo"): tres ventanas jugadas
      este año te llevan casi seguro (+0,4); y el DT de la selección pesa como en las ventanas */
   const jugadas=ventanasJugadasSel(e.seleccion);   // 2026-09-09: las de la parte A también (viajan en ventanasPrevias)
@@ -21167,7 +21197,7 @@ function torneoRecesoDe(){
     :convocatoria(cual==='preolimpico'?'jjoo':cual==='eurobasket'?'continental':cual,miMedia(C.jugador),pais,!!mem.yaEstuvo,
     rngFor(C.semilla,'seleccion','torneo',C.anio),(jugadas>=3?0.4:jugadas>=1?0.15:0)+bonoDtSel(C.jugador.relSel));
   if(c.llamado) relSelDe(C.jugador,c.gap);   // §12.20: la primera convocatoria abre tus relaciones con la selección
-  if(!c.llamado){ C.selTorneoHecho=C.anio; C.selAviso={clave:c.cerca?'cerca':'nivel',torneo:cual,pais}; guardar(); return null; }
+  if(!c.llamado){ if(cual==='mundial') mundialSinVos(campo,e); C.selTorneoHecho=C.anio; C.selAviso={clave:c.cerca?'cerca':'nivel',torneo:cual,pais}; guardar(); return null; }   /* §12.31 */
   C.selTorneo=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1);   // §2z194: el año del torneo elige la sede
   mem.yaEstuvo=true; guardar();
   return C.selTorneo;
@@ -21201,13 +21231,32 @@ function proximoSelTorneo(){
   return proximoSelTorneo();   // el preolímpico ganado abre los Juegos, en el mismo receso
 }
 
+/* §12.31 AMÉRICA EN EL MUNDIAL (2026-09-12): el Mundial se anota SIEMPRE —jugado por vos o simulado sin vos, con la misma
+   semilla— y con su año. Antes `mundialTop` se escribía sólo al cerrar un Mundial tuyo: si no ibas, los directos a los Juegos
+   salían del de hace cuatro años. `mundialRank` guarda a los seis de América para la caja del ranking. */
+function anotarMundial(t){
+  const mem=memSel(), am=clasificacionFinalSel(t).filter(f=>SELECCIONES[f.id].cont==='am');
+  mem.mundialTop=am.map(f=>f.id); mem.mundialAnio=t.anio;
+  mem.mundialRank={anio:t.anio,filas:am.map(f=>({id:f.id,puesto:f.puesto,ronda:f.ronda,pg:f.pg,pp:f.pp}))};
+}
+function mundialSinVos(campo,e){
+  const t=simularTorneoSel(C.semilla+'-sel'+C.anio,'mundial',C.jugador.nacionalidad||'ar',campo,C.anio+1,e);
+  if(t) anotarMundial(t);
+}
+/* los directos se leen del Mundial de ESTE ciclo: la temporada de los Juegos es la del año del Mundial. Un save de antes de
+   §12.31 no tiene año y se lee como antes. */
+function mundialTopDe(mem){
+  if(!mem||!mem.mundialTop) return null;
+  return (mem.mundialAnio===undefined||mem.mundialAnio===C.anio)?mem.mundialTop:null;
+}
+
 /** Se acabó tu torneo: se juega lo que falta, se anota la medalla y —si era el preolímpico
  *  y lo ganaste— se abre el que viene. */
 function cerrarTorneoReceso(){
   const t=C.selTorneo; if(!t) return;
   terminarTorneoSel(t,est());
   const mem=memSel();
-  if(t.torneo==='mundial') mem.mundialTop=topAmericaSel(t);
+  if(t.torneo==='mundial') anotarMundial(t);
   const gano=t.torneo==='preolimpico'&&t.campeon===t.pais;
   if(t.torneo==='preolimpico') mem.preo={anio:C.anio,ganador:t.campeon,campo:(t.campo||[]).slice()};   // 2026-09-09: quién lo ganó y quiénes lo jugaron (cuposJJOOAm)
   /* el preolímpico no es un torneo del palmarés: es la puerta a los Juegos */

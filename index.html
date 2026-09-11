@@ -2306,7 +2306,7 @@
   </div>
 </div>
 
-<script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"}};</script>
+<script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* ══════════════════════════════════════════════════════════════════════════
    EL CARTEL DE ERROR — lo primero que corre, a propósito.
@@ -23423,6 +23423,12 @@ function pintaSecciones(){
   const bVC=$l('lobVerCarrera'); if(bVC) bVC.classList.toggle('oculto',esBeta());
   $l('lobCarreraTit').textContent=t(L('TU CARRERA','YOUR CAREER','SUA CARREIRA'));
   const chip=$l('lobBetaChip'); if(chip){ chip.classList.toggle('oculto',!esBeta());   // §7.1
+    /* 2026-09-12 (su pedido: "para MI beta poné el medidor, para saber dónde estoy; eso lo sacamos antes de subirlo"): con
+       `MODO_BETA.medidor` (lo pone armar-beta.mjs para el artifact; publicar-beta-pages.sh lo apaga al copiar) el chip dice
+       la Dbeta y el escalón. Los testers nunca lo ven. */
+    if(window.MODO_BETA&&window.MODO_BETA.medidor&&esBeta()){ const J=C.jugador, d0=dbetaInicial(C.ligaId), techo=dbetaTecho(C.ligaId);
+      const esc=Math.round((J.dbeta-d0)/DBETA.sube), tot=Math.round((techo-d0)/DBETA.sube);
+      chip.textContent='BETA · D '+J.dbeta+' · '+esc+'/'+tot; } else chip.textContent='BETA';
     /* su corte 2026-09-10: el chip con el MISMO ancho que la caja de MEDIA (que mide por contenido e idioma), centrado sobre ella */
     const mb=document.querySelector('#lobby .mediaBox'); if(esBeta()&&mb&&mb.offsetWidth) chip.style.width=mb.offsetWidth+'px'; }
   pintaEntrenar();

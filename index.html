@@ -13986,6 +13986,7 @@ c.addEventListener('pointerdown',e=>{
      y el rival la agarra. Tocás, se mueve. No tocás, la pierde. */
   if(G.scr){ const s=G.scr;
     if(s.vos && s.mi===G.vos){ const d0=dist(G.vos,s.t);
+      (s.fantasmas=s.fantasmas||[]).push({x:G.vos.x, y:G.vos.y, t:performance.now()});   // §2z198.2: el fantasma del tranco
       if(d0>1){ const paso=Math.min(d0, 22+2*(dif.fis||3)); G.vos.x+=(s.t.x-G.vos.x)/d0*paso;
         G.vos.y=Math.max(G.vos.y+(s.t.y-G.vos.y)/d0*paso, aro().y+20*ESC()); }
       s.trancos=(s.trancos||0)+1; flash(G.vos); }
@@ -15283,7 +15284,8 @@ function corteEscena(){
    preocupa que la mayoría sean rebote + bandeja": por eso al ganarla la marca se re-planta ENTRE vos y el aro
    (resolverRebote) y su grandote sigue en el aro — la segunda chance no es un carril libre. */
 const REBOTE_ZONA=0.55;
-const REBOTE_PICO=2000, REBOTE_PICO_PRIMERA=2600;   // §2z198.1: cuánto pica la pelota en la pelea (ms)
+const REBOTE_PICO=2400, REBOTE_PICO_PRIMERA=3000;   // §2z198.1: cuánto pica la pelota en la pelea (ms) · §2z198.2: 2,4 (su caza: «no reacciono a tiempo»)
+const REBOTE_RIVAL_ESPERA=600;                      // §2z198.2: el rival arranca a la pelota 0,6 s después — tu tiempo de lectura
 const REBOTE_RIVAL_V=92;                            // §2z198.1: el rival en la pelea (px/s); tu grandote por relato sigue a 116 contra él
 function reboteTrasBailar(esc, txtEllos){
   if(!enCancha(esc)) return false;   // afuera es afuera (04/10)
@@ -18242,7 +18244,8 @@ function frame(now){
       /* §2z198: cuando corrés VOS, el cuerpo apenas se arrastra (15 px/s) — los trancos los ponen tus toques (10-gesto);
          tu grandote, por relato, a 92 como siempre */
       const vBase=s.vos?15:92;
-      mv(s.mi,vBase*dt); mv(s.su,(s.vos?REBOTE_RIVAL_V:116)*dt);   // §2z198.1: contra vos el rival corre a 92
+      mv(s.mi,vBase*dt);
+      if(!s.vos || now-s.t0>REBOTE_RIVAL_ESPERA) mv(s.su,(s.vos?REBOTE_RIVAL_V:116)*dt);   // §2z198.1: contra vos el rival corre a 92 · §2z198.2: y arranca 0,6 s después (tu tiempo de lectura)
       /* ⚠️ 2026-09-11 (su caza desde el celular: "nadie agarró la pelota, fuimos los dos y nos quedamos ahí" — el partido
          colgado, sin salida): `mv` clampea el cuerpo a y ≥ aro+20·ESC, pero la pelota puede caer AL COSTADO del aro a la
          altura del aro (esc.y entre aro−8·ESC y aro+6·ESC, §2z159 la deja real) — ahí ningún cuerpo llega a <14·ESC de ella
@@ -18839,7 +18842,19 @@ function frame(now){
             /* y trota reubicándose con la vida del ataque */
             || !!(co.vida&&co.vida.meta&&dist(co,co.vida.meta)>5)});
     });
-    if(G.suelo&&!G.pelota&&!G.pelotaEn){ const q=aPantalla(G.suelo); pelotita(q.x,q.y,7,1); }
+    if(G.suelo&&!G.pelota&&!G.pelotaEn){ const q=aPantalla(G.suelo); pelotita(q.x,q.y,7,1);
+      /* §2z198.2 (su caza 2026-09-12: "nunca leo que tengo que tocar, no reacciono a tiempo, y si reacciono no siento que
+         haya pasado nada"): el aviso vivía arriba, en el relato, lejos de la pelota. Ahora está EN la pelota: un anillo que
+         se cierra con el tiempo que queda hasta que pica, y «¡TOCÁ!» debajo, grande. Y cada toque deja un fantasma del
+         muñeco donde estaba, así el tranco se ve aunque dure un instante. */
+      if(G.scr&&G.scr.vos){ const s=G.scr, pico=s.pico||1100, f=clamp(1-(now-s.t0)/pico,0,1);
+        ctx.save(); ctx.strokeStyle='rgba(255,150,51,.9)'; ctx.lineWidth=3;
+        ctx.beginPath(); ctx.arc(q.x,q.y,14+46*f,0,Math.PI*2); ctx.stroke();
+        ctx.fillStyle='rgba(255,150,51,.95)'; ctx.font='700 22px Barlow Condensed'; ctx.textAlign='center';
+        ctx.fillText(t(L('¡TOCÁ!','TAP!','TOQUE!')), q.x, q.y+14+46*f+24);
+        for(const fz of (s.fantasmas||[])){ const a=clamp(1-(now-fz.t)/450,0,1); if(!a) continue; const p=aPantalla(fz);
+          ctx.globalAlpha=a*0.45; ctx.fillStyle='#e9ecf3'; ctx.beginPath(); ctx.arc(p.x,p.y,12,0,Math.PI*2); ctx.fill(); }
+        ctx.restore(); } }
     if(G.pelotaEn&&!G.pelota){ const q=aPantalla(G.pelotaEn); pelotita(q.x+14,q.y-4,7,1); }
     /* boteando, LA PELOTA se ve adelantada: es tu bote viajando, y es lo que se pincha */
     const bolaSep = G.fase==='conduzco' && G.bola && dist(G.bola,G.vos)>12;

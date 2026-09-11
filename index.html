@@ -22122,7 +22122,7 @@ function pintaLobby(){
     } else if(prox.tipo==='americas'){
       /* §2z27: el continental — la competencia y la etapa arriba, el grupo o la serie abajo */
       $l('lobHoyCuando').textContent=compAM(prox)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
-      $l('lobHoyRival').innerHTML=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase()+(prox.ic?'':' '+banderita(prox.rival));   // 2026-09-12 (su caza): la banderita del rival, como en la tabla
+      $l('lobHoyRival').innerHTML=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase()+' '+banderita(prox.rival);   // 2026-09-12 (su caza): la banderita del rival, sólo en las copas internacionales (acá el próximo es siempre continental o Intercontinental)
       $l('lobHoyPorque').style.display='';
       $l('lobHoyPorque').textContent=amPorqueTxt(prox);
     } else {

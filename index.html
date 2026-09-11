@@ -20590,7 +20590,7 @@ function htmlBracket(rondas,esperadas,mi,opts){
     const todos=ss.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]); const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
     let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
     ss.forEach((s,i)=>{ const x=(i%2)*(BW+GX), top=Math.floor(i/2)*(BH+GY), mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
-      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span><span class="w">'+g+'</span></div>';
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+g+'</span></div>';   // 2026-09-12: banderas y «yo» también en la grilla (el tercer puesto)
       h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,s.ganAlta)+fila(s.baja,s.ganBaja)+'</div>'; });
     return h+'</div></div>'; }
   const nCols=esperadas.length;
@@ -20664,11 +20664,12 @@ function htmlAmericas(e,g){
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
-      /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"): la caja sola, con su título */
-      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true}):''; })()
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
-      +'<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>';
+      +'<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>'
+      /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
+         había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
+      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })();
   }
   return h;
 }

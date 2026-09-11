@@ -776,7 +776,8 @@
      promedio y el SEGUIR— entra al final, para que el ojo lea los marcadores antes de poder salir. */
   #pasoJuegos .fila-item,#pasoTuyo,#pasoOk{opacity:0;animation:entra .32s ease-out forwards}
   #pasoJuegos .fila-item .desc{display:flex;align-items:center;gap:6px;min-width:0}
-  #pasoJuegos .fila-item .desc .escudito{flex:none}
+  #pasoJuegos .fila-item .desc .escudito{flex:none;width:18px;height:18px;display:inline-flex}   /* 2026-09-12 (su caza: faltaba el escudito): fuera de #lobby no tenía tamaño */
+  #selParte #partePos .fila-item .desc{color:var(--tinta)}   /* 2026-09-12 (su caza: «ARGENTINA muy apagado») */
   /* ⚠️ la clase entera, no sólo la mía: el parte de la VENTANA (§12) ya pintaba <b class="g">/<b class="p">
      y nunca hubo regla — los marcadores de la selección salían en tinta como cualquier número. */
   /* §2z181 el cuerpo y el bolsillo: la barra de energía con la marca de dónde estabas antes del partido */
@@ -6383,7 +6384,8 @@ const CARTAS_PRENSA=[
 
  { id:'prensa_sel_pase', repite:true, evento:true,
    cuando:(c)=>c.u.seleccion&&c.u.seleccion.cierraElim&&c.u.seleccion.pase,
-   gancho:L('Clasificados. Diez partidos en dos temporadas, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games over two seasons, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em duas temporadas, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
+   /* 2026-09-12 (su caza): en la beta las cinco ventanas caen en UNA temporada (§7.1) */
+   gancho:(c)=>(typeof $C==='function'&&$C()&&$C().jugador&&$C().jugador.dbeta!==undefined)?L('Clasificados. Diez partidos en una temporada, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games in one season, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em uma temporada, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'):L('Clasificados. Diez partidos en dos temporadas, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games over two seasons, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em duas temporadas, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
    opciones:[
      {tipo:'segura',label:L('Agradecer y devolverlo','Say thanks and hand it back','Agradecer e devolver'),desenlaces:[{p:100,remate:null,texto:L('Veinte segundos y se lo devolvés. El entrenador te lo agradece con la mano en el hombro.','Twenty seconds and you hand it back. The coach thanks you with a hand on your shoulder.','Vinte segundos e você devolve. O técnico agradece com a mão no seu ombro.'),ef:{rel:{dt:4}}}]},
      {tipo:'apuesta',label:L('Hablar de los que jugaron las ventanas','Talk about the ones who played the windows','Falar dos que jogaram as janelas'),desenlaces:[
@@ -21751,7 +21753,7 @@ function abrirPasoParte(jugados,despues){
     : g===0?t(L('PERDIMOS LAS '+n,'WE LOST ALL '+n,'PERDEMOS OS '+n))
     : t(L('GANAMOS '+g+' DE '+n,'WE WON '+g+' OF '+n,'GANHAMOS '+g+' DE '+n));
   tit.className=g===n?'oro':g===0?'mal':'';
-  $l('pasoTag').textContent=t(L('LO QUE PASÓ','WHAT HAPPENED','O QUE ACONTECEU'));   // 2026-09-10 (su caza: "el relato" es jerga nuestra)
+  { const cl=clubDe(e.miClubId); $l('pasoTag').innerHTML=(cl?escudito(cl.id)+' '+cl.nombre.toUpperCase()+' · ':'')+t(L('LO QUE PASÓ','WHAT HAPPENED','O QUE ACONTECEU')); }   // 2026-09-10 (su caza: "el relato" es jerga nuestra) · 2026-09-12: con tu club (su caza)
   const paso=220;
   $l('pasoJuegos').innerHTML=filas.map((x,i)=>
     '<div class="fila-item" style="animation-delay:'+(i*paso)+'ms"><span class="desc">'
@@ -21766,7 +21768,7 @@ function abrirPasoParte(jugados,despues){
       ? t(L('Vos: ','You: ','Você: '))+'<b>'+fdec(mias.reduce((a,x)=>a+x.pts,0)/mias.length)+' PTS · '
         +fdec(mias.reduce((a,x)=>a+x.ast,0)/mias.length)+' AST</b>'
       : '')
-    +(sinVos?(mias.length?' · ':'')+t(L('estabas con la selección','you were on NT duty','você estava com a seleção')):'');
+    +(sinVos?(mias.length?' · ':'')+t(L('ESTABAS CON LA SELECCIÓN','YOU WERE ON NT DUTY','VOCÊ ESTAVA COM A SELEÇÃO')):'');   // 2026-09-12 (su caza: en minúscula se veía rarísima)
   const ok=$l('pasoOk');
   ok.style.animationDelay=(n*paso)+'ms';
   ok.onclick=()=>{ $l('pasoParte').classList.add('oculto'); if(despues) despues(); };

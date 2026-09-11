@@ -20584,7 +20584,7 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
    el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
    quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
 function icAnunciado(e,clubId){
-  const id=clubId||e.miClubId, anio=esBeta()?C.anio:C.anio+1;
+  const id=clubId||e.miClubId, anio=C.anio+1;   // 2026-09-12 (su caza: "¿no sería septiembre de 2027? estoy en la 2026-27"): la copa es del septiembre siguiente, también en la beta
   const cl=clubDe(id); if(!cl) return null;
   const fuerza=(e.fuerzas&&e.fuerzas[id]!==undefined)?e.fuerzas[id]:cl.fuerza;
   const so=sorteoIC(C.semilla,anio,{id,fuerza});
@@ -20618,7 +20618,7 @@ function proxICBeta(e){
     const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario;
     const fin=cal&&cal.playoffsHasta?diaDeTemporada(cal,cal.playoffsHasta):diaDeFecha(e.semilla,e.fechasTotales,e.ritmo)+30;
     const cl=clubDe(e.miClubId), fuerza=(e.fuerzas&&e.fuerzas[e.miClubId]!==undefined)?e.fuerzas[e.miClubId]:cl.fuerza;
-    e.intercontinental=crearIntercontinental(C.semilla,C.anio,{id:e.miClubId,fuerza},fin+100);   // días F−9…F−5 → tres meses después del cierre: septiembre
+    e.intercontinental=crearIntercontinental(C.semilla,C.anio+1,{id:e.miClubId,fuerza},fin+100);   // días F−9…F−5 → tres meses después del cierre: septiembre del año siguiente (mismo año que el anuncio)
     e.intercontinental.post=true;
     guardar();
   }

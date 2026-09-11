@@ -15379,7 +15379,9 @@ function lanzar(zona){
        lectura estática dijera devolver (la pelota grande ya lo anuncia en el gajo). */
     /* la intención se lee EN el punto de recepción: si el pase lo hace correr (>50px),
        la Q que decide es la del lugar adonde va, no la del lugar del que sale */
-    let vaATirar=tiraElCompi(compi, dist(cae,compi)>50 ? cae : undefined);
+    G.giroPase=giroDe(compi,cae);   // 2026-09-12: el pase atrás cuesta un giro (14)
+    const msArm=armadoDe(forma,compi)+(G.giroPase?GIRO_MS:0);
+    let vaATirar=tiraElCompi(compi, dist(cae,compi)>50 ? cae : undefined, msArm);
     if(forma==='abajo' && !vaATirar && G.posClock>800 && lobLibera(compi,cae)) vaATirar=true;
     /* §2z25: el TENSO corto al que tenés cerca también lo libera (el cartel ya lo dijo) */
     if(forma==='medio' && !vaATirar && G.posClock>800 && paseRapidoLibera(compi,cae)) vaATirar=true;
@@ -15418,7 +15420,7 @@ function lanzar(zona){
       /* §2z38.4 (su caza: "se la pasé quedando SOLO y me la pasó… no tira nunca"): al que CORTA la
          intención se le sellaba al soltar, con su perseguidor todavía encima (Q 0,18); llega libre y
          devolvía. El que corre se juzga AL RECIBIR, donde está y con los defensores donde quedaron. */
-      if(G.corrida && G.corrida.j===compi && !vaATirar) vaATirar=tiraElCompi(compi,cae);
+      if(G.corrida && G.corrida.j===compi && !vaATirar) vaATirar=tiraElCompi(compi,cae,msArm);
       /* el alley-oop de mentira se fue (hallazgo suyo: pasarle al estático que después
          vuelca NO es un alley-oop). El de verdad — la señal del corte y el pase al espacio —
          es un desbloqueo de carrera, anotado en DISEÑO. Al principio, nadie se mueve solo. */
@@ -15429,7 +15431,7 @@ function lanzar(zona){
       if(!carrera){ G.suelo=cae;
         correr(compi,{x:cae.x,y:cae.y},Math.min(0.5,aCompi/190),()=>{ G.suelo=null;
           recibe(compi,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],
-            (G.corrida&&G.corrida.j===compi)?tiraElCompi(compi,cae):vaATirar); }); return; }
+            (G.corrida&&G.corrida.j===compi)?tiraElCompi(compi,cae,msArm):vaATirar); }); return; }
       // la pelota rueda con la carrera ya lanzada: la gana el que llegue primero
       vuelo(cae,carrera.rod,0.04,0.4,()=>{
         const rod=carrera.rod;
@@ -16310,7 +16312,23 @@ function calidadDesde(p,esVos){
    que se ve: lo que quedó afuera del frame no juega. */
 function enFrame(j){ const q=aPantalla(j);
   return q.x>20 && q.x<W-20 && q.y>hudH*0.6 && q.y<H-14; }
-function tiraElCompi(compi,p){
+/* 2026-09-12 (su caza: "hay jugadas donde alguien está solo por muy poco, tarda dos años en tirar y tiene a alguien encima, y
+   sale «estaba solo»; y el pase atrás para que quede con más espacio en la vida real es un giro raro"): dos reglas.
+   (1) «SOLO» MIRA EL ARMADO: a cada defensor se le descuenta lo que corre mientras el receptor arma (el mismo sprint de
+   cierraAlArmado: max(55, 2·def) px/s desde los 380 ms de lectura). Un tenso a media (272 ms) no cambia nada; un globo a un
+   triple (920 ms) le regala 35 px al cierre con def 32: el que estaba a menos de ~100 px ya no es solo. Las odds del solo
+   siguen selladas (§2z52): lo que cambia es que la declaración ya miró hacia adelante.
+   (2) EL GIRO: si la caída queda detrás del receptor (contra su corrida, o más lejos del aro que él por más de medio cuerpo),
+   el armado suma 350 ms (`giroDe`), y con (1) eso alcanza para que el que tenía a alguien cerca deje de estar solo. El relato
+   lo dice al tirar («de espaldas al aro: gira y la tira»). Perillas: GIRO_MS y el sprint del cierre. */
+const GIRO_MS=350;
+function giroDe(compi,cae){
+  if(!cae) return false;
+  const c=G.corrida;
+  if(c&&c.j===compi&&!c.llego){ const dx=cae.x-compi.x, dy=cae.y-compi.y; return (dx*(c.meta.x-compi.x)+dy*(c.meta.y-compi.y))<0 && Math.hypot(dx,dy)>8*ESC(); }
+  return dist(cae,aro())>dist(compi,aro())+15*ESC();
+}
+function tiraElCompi(compi,p,msArmado){
   /* p = DÓNDE recibe (su reporte 2026-08-24: le tiró el pase pasado al poste, el big
      corrió al punto y quedó SOLO de mid-range... y le devolvió — la intención se sellaba
      al soltar con la Q del lugar VIEJO, al lado de su marca: el pase pasado, cuyo único
@@ -16326,7 +16344,9 @@ function tiraElCompi(compi,p){
   /* §2z127: el que viene cerrando y llega en <0,6 s (el armado) no cuenta como "nadie" */
   const ct=G.cierraTarde;
   const llegaPronto=(d)=>!!(ct && ct.df===d && ct.j===compi && (dist(d,p)-34*ESC())/Math.max(1,ct.v)<0.6);
-  if(G.defs.every(d=>dist(d,p)>60*ESC() && !llegaPronto(d))) return true;
+  const ms=msArmado===undefined?armadoDe('medio',compi):msArmado;   // sin dato, el tenso: el cartel de apuntar promete lo mejor
+  const cubre=Math.max(55,dif.def*2)*Math.max(0,ms-380)/1000;         // lo que el cierre corre durante el armado
+  if(G.defs.every(d=>dist(d,p)-cubre>60*ESC() && !llegaPronto(d))) return true;
   const qCompi=calidadDesde(p,false), qTuya=calidadDesde(G.vos,true);
   /* tira si su tiro es BUENO en sí (amarillo alto para arriba), o decente Y claramente
      mejor que el tuyo — libertad y posición en un solo número */
@@ -16464,7 +16484,10 @@ function recibe(compi,forma,txt,va){
     },350);
     return;
   }
-  const abierto = (va!==undefined) ? va : tiraElCompi(compi);
+  const giro=!!G.giroPase; G.giroPase=false;   // lo dejó lanzar() al soltar
+  const armMs=armadoDe(forma,compi)+(giro?GIRO_MS:0);
+  if(giro&&txt) txt=t(L('Se la tiraste atrás: giró y te la devolvió.','You threw it behind him: he turned and gave it back.','Você jogou atrás: ele girou e devolveu.'));
+  const abierto = (va!==undefined) ? va : tiraElCompi(compi,undefined,armMs);
   /* EL QUE ESTÁ CERCA CON EL CAMINO LIBRE NO TIRA DE PARADO: DEFINE (su regla del deporte
      2026-08-23: "nadie erra eso... si el camino al aro está libre, tiene que correr y
      definir — a 2 metros del aro no te frenás a tirar un jumper"): juzgábamos TODA
@@ -16517,9 +16540,9 @@ function recibe(compi,forma,txt,va){
     return;
   }
   if(abierto){
-    relato(t(L('¡Quedó solo — la tira él!','He\'s wide open — he takes it!','Ficou livre — ele arremessa!')),true);
-    /* el armado hereda la altura del pase y el tiro que es; la defensa cierra mientras */
-    const arm=armadoDe(forma,compi);
+    relato(giro?t(L('De espaldas al aro: gira y la tira.','Back to the basket: he turns and shoots.','De costas para a cesta: gira e arremessa.')):t(L('¡Quedó solo — la tira él!','He\'s wide open — he takes it!','Ficou livre — ele arremessa!')),true);
+    /* el armado hereda la altura del pase y el tiro que es; la defensa cierra mientras (y el giro, si se la tiraste atrás) */
+    const arm=armMs;
     cierraAlArmado(compi,arm);
     const pDeclarado=pSolo(compi);   // §2z52: lo que el cartel dijo es lo que pasa — las odds del solo, selladas al declararlo
     setTimeout(()=>{
@@ -19475,7 +19498,7 @@ function frame(now){
           const estable=(k,val)=>{ const s=G._cartel||(G._cartel={});
             if(s[k]!==val){ s[k]=val; s[k+'T']=now; }
             return val && (now-s[k+'T']>130); };
-          const va=estable('va', tiraElCompi(compiB, dCB>50 ? b.p : undefined));   // la MISMA recepción
+          const va=estable('va', tiraElCompi(compiB, dCB>50 ? b.p : undefined, armadoDe('medio',compiB)+(giroDe(compiB,b.p)?GIRO_MS:0)));   // la MISMA recepción; el giro del pase atrás también (2026-09-12)
           /* EL TERCER ESTADO DEL CONTRATO (su chequeo 2026-08-28, el hermano del arreglo
              del port): si el pase va a LLEGAR con el reloj muerto, la recepción hace la
              chicharra ("la tira como puede") — y el cartel lo tiene que decir ANTES, no
@@ -20717,7 +20740,7 @@ function htmlAmericas(e,g){
   /* 2026-09-10 (sus cazas: "el nombre del grupo arriba de la tablita duplica el switch; «pasan 2 a cuartos» va abajo y más
      chico; lo mismo para lo que está al lado de LA LLAVE; y LA LLAVE en naranja"): la tabla arranca sin cabecera, la regla
      va debajo como nota chica; la llave lleva su título solo y el formato como nota debajo */
-  tablaGrupoAM(am,g).forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); });
+  { const tg=tablaGrupoAM(am,g); tg.forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); }); h+=notaDesempate(tg); }
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
   if(am.llave){
@@ -20726,7 +20749,9 @@ function htmlAmericas(e,g){
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
-      +'<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>'
+      +'<div class="cajNota">'+(am.campeon===e.miClubId
+          ? t(L('CLASIFICADOS A LA COPA INTERCONTINENTAL · SEPTIEMBRE DE ','QUALIFIED FOR THE INTERCONTINENTAL CUP · SEPTEMBER ','CLASSIFICADOS PARA A COPA INTERCONTINENTAL · SETEMBRO DE '))+(C.anio+1)+' · '+t(L('SEDE Y GRUPOS SE SORTEAN EN LA PRETEMPORADA','VENUE AND GROUPS DRAWN IN PRESEASON','SEDE E GRUPOS SORTEADOS NA PRÉ-TEMPORADA'))   // 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega")
+          : t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL')))+'</div>'
       /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
          había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
       +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })();
@@ -21861,15 +21886,15 @@ function pintaTablaFull(){
   let z=opciones.includes(zonaTablaSel)?zonaTablaSel:(bkLiga&&e.fase==='playoffs'&&zonaTablaSel===null?PO:(mia||(bkLiga?'__tabla':null)));
   if(bkLiga&&!e.zonas&&z!==PO) z='__tabla';
   const pestanas=bkLiga?(e.zonas?[PO,...e.zonas]:[PO,'__tabla']):(e.zonas||[]);
-  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
+  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):zonaTxt(x);
   tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',pestanas.length>3);
   tabs.innerHTML=pestanas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+nomTab(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
   if(z===PO){ full.innerHTML=bkLiga; return; }
-  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k); return; }
+  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const tz=tablaZona(e,z);
-  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k);
+  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
 }
 /**
  * §2z44 LAS LÍNEAS DE LA TABLA (su pedido 2026-09-05: *"pensemos cómo se ven las cosas en tablas de
@@ -21898,6 +21923,14 @@ function claseCorte(k,pos,n){
   return c;
 }
 /* la leyenda al pie de la tabla plena (su corte: "en el panel rompe la tabla"): sólo lo que esta liga tiene */
+/* 2026-09-12 (su captura: segundos con el mismo récord y mejor diferencia — "nada lo dice y parece bugueado"): el desempate es
+   ganados → historial entre ellos → diferencia entre ellos → diferencia global (01e `tabla`). Cuando dos vecinos empatan en
+   ganados y el de arriba tiene PEOR diferencia global, el orden lo decidió el historial, y la tabla lo dice. Es una regla
+   del juego, no una aclaración: sin la nota se lee como error. */
+function notaDesempate(tb){
+  const decidioH2H=(tb||[]).some((f,i)=>i>0&&tb[i-1].pg===f.pg&&((tb[i-1].pf-tb[i-1].pc)<(f.pf-f.pc)));
+  return decidioH2H?'<div class="cajNota">'+t(L('EMPATE EN GANADOS: DESEMPATA EL HISTORIAL ENTRE ELLOS','TIED ON WINS: HEAD-TO-HEAD BREAKS THE TIE','EMPATE EM VITÓRIAS: DESEMPATA O CONFRONTO DIRETO'))+'</div>':'';
+}
 function leyendaTabla(k){
   if(!k) return '';
   const it=[];
@@ -23436,6 +23469,12 @@ function registrarResultado(){
       pts:G.pts,ast:G.ast,dbeta:dAntes,dbetaDespues:J.dbeta,energia:Math.round(J.energia)});
   }
   const ult=ultimoPartido(cierre,e);   // §2z26: lo que la prensa puede leer, capturado antes de soltar enPartido
+  /* 2026-09-12 (su caza: "gané la Copa de las Américas y no vi nada que me diga GANASTE; ni card ni nada"): `amAviso` estaba
+     declarado y nunca se asignaba — el titular del continental era código muerto. El título tiene su velo de oro, con la línea
+     que faltaba: la Copa Intercontinental, cuándo se juega. */
+  if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
+    amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
+             sub:t(L('Clasificados a la Copa Intercontinental de septiembre de ','Qualified for the Intercontinental Cup in September ','Classificados para a Copa Intercontinental de setembro de '))+(C.anio+1)+'.'};
   /* ⚠️ §12: SI HAY CEREMONIA, LA PRENSA VA DESPUÉS. El circuito llama a la prensa antes de
      volver al vestuario, y el vestuario es el que abre la ceremonia — o sea que el diario te
      contaba la medalla antes de que la vieras. Acá se guarda y la dispara el SEGUIR del velo. */
@@ -23446,10 +23485,12 @@ function registrarResultado(){
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
   const chicos=()=>{ if(caidos.length) avisar(textoOxido(caidos));
     if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),caidos.length?2200:0); };   // §2z105: después del otro aviso, no encima
-  if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,'',chicos);   // §2z169: la noticia grande, en su velo
+  if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,amAviso.sub||'',chicos);   // §2z169: la noticia grande, en su velo
   else chicos(); };
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
-  const sigue=()=>{ if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch)) volverAlLobby(); };
+  /* 2026-09-12: el TÍTULO tampoco espera la cadencia («nunca dos seguidos»): la carta del campeón de las Américas se salteaba si
+     hubo prensa después de la semi */
+  const sigue=()=>{ if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch||!!(ult.americas&&ult.americas.campeon)||!!(ult.serie&&ult.serie.tono==='oro'))) volverAlLobby(); };
   if(!abrirCuerpo(sigue)) sigue();   // §2z181: el cuerpo y el bolsillo, después de la statline y antes del diario
 }
 /* ══ §2z181 EL CUERPO Y EL BOLSILLO (2026-09-10, su corte: *"NSS te muestra cuánto baja en el partido y después, en una

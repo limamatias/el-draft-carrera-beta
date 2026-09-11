@@ -843,6 +843,14 @@
   #lobby .bkLine{position:absolute;background:rgba(154,164,184,.4)}
   /* §2z171 v2 (su corte: "debería haber algún corte entre la llave y el grupo, más con todo el espacio que tenemos") */
   #lobby .cajTag.bkSig{margin-top:14px;padding-top:12px;border-top:1px solid rgba(154,164,184,.18)}
+  /* 2026-09-12 (su corte: "un mínimo más de formato, está todo muy plano"): EL TORNEO QUE VIENE (la Intercontinental, el Mundial…)
+     en una caja con el idioma de las del bracket — la línea de cuándo y dónde, el grupo, y una fila por equipo con escudo */
+  #lobby .bkBox.queViene{position:static;width:min(100%,300px);height:auto;margin:6px auto 0;padding:7px 10px 8px;gap:1px}
+  #lobby .queViene .bkRow{height:22px;font-size:12.5px}
+  #lobby .queViene .bkRow.cab{height:18px;font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
+  #lobby .queViene .bkRow.cab+.bkRow:not(.cab){margin-top:2px}
+  #lobby .queViene .bkRow.yo{font-weight:700}
+  #lobby .queViene .bkRow .escudito{width:16px;height:16px}
   #lobby .fix .r.amTit{color:var(--tinta2);font-weight:600;margin-top:8px;font-size:11px;letter-spacing:1.6px}   /* §12.25: VENTANA n como cabecera */
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */
@@ -20583,6 +20591,13 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
 /* 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega"; y "¡la sede no se sortea en la pretemporada!"):
    el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
    quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
+/* la caja del TORNEO QUE VIENE: {linea, cab, ids, mi, esc(id), nom(id), ban(id)?} */
+function htmlQueViene(o){
+  let h='<div class="bkBox vos queViene"><div class="bkRow cab"><span class="sig">'+o.linea+'</span></div>';
+  if(o.cab) h+='<div class="bkRow cab"><span class="sig">'+o.cab+'</span></div>';
+  for(const id of o.ids) h+='<div class="bkRow'+(id===o.mi?' yo':'')+'">'+o.esc(id)+'<span class="sig">'+o.nom(id)+'</span>'+(o.ban?o.ban(id):'')+'</div>';
+  return h+'</div>';
+}
 function icAnunciado(e,clubId){
   const id=clubId||e.miClubId, anio=C.anio+1;   // 2026-09-12 (su caza: "¿no sería septiembre de 2027? estoy en la 2026-27"): la copa es del septiembre siguiente, también en la beta
   const cl=clubDe(id); if(!cl) return null;
@@ -20590,13 +20605,15 @@ function icAnunciado(e,clubId){
   const so=sorteoIC(C.semilla,anio,{id,fuerza});
   const g=so.grupos.A.includes(id)?'A':'B';
   const nomIC=(id2)=>{ const c=clubIC(id2); return c?(c.corto||c.nombre):id2; };
-  return {anio, sede:so.sede, grupo:g, club:cl, rivales:so.grupos[g].filter(x=>x!==id).map(nomIC)};
+  return {anio, sede:so.sede, grupo:g, club:cl, ids:so.grupos[g].slice(), rivales:so.grupos[g].filter(x=>x!==id).map(nomIC)};
 }
 function notaICPendiente(e,clubId){
   const ic=icAnunciado(e,clubId); if(!ic) return '';
-  const quien=(ic.club.corto||ic.club.nombre).toUpperCase()+' · ';   // 2026-09-12 (su corte: "¿por qué no dice que lo jugamos nosotros?"): el que la juega, siempre
-  return '<div class="cajNota">'+quien+t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
-        +'<div class="cajNota">'+t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo+': '+ic.rivales.map(x=>x.toUpperCase()).join(' · ')+'</div>';
+  /* 2026-09-12 (su corte: "un mínimo más de formato"): la caja del torneo que viene — cuándo y dónde, el grupo, los tres con escudo
+     (el que la juega siempre nombrado: "¿por qué no dice que lo jugamos nosotros?") */
+  const nomIC=(id)=>{ const c=clubIC(id)||clubDe(id); return c?(c.corto||c.nombre):id; };
+  return htmlQueViene({linea:t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase(), cab:t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo,
+    ids:ic.ids, mi:e.miClubId, esc:(id)=>escudito(id), nom:(id)=>nomIC(id)});
 }
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
    `C.icPendiente` lo deja el cierre de la temporada; si en el mercado te fuiste, la juegan sin vos (no se arma). */
@@ -21011,9 +21028,11 @@ function htmlSeleccion(e){
       : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+', CUANDO TERMINE LA TEMPORADA CON TU CLUB','WORLD CUP '+aM+' ONCE YOUR CLUB SEASON ENDS','O MUNDIAL '+aM+', QUANDO TERMINAR A TEMPORADA COM SEU CLUBE')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
     else { const an=torneoAnunciado(e);
       if(an&&!an.afuera){
-        h+=tit(nombreTorneoSel(an.cual)+' '+an.anio);
-        h+='<div class="cajNota">'+t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():'')+' · '+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
-        if(an.rivales.length) h+='<div class="cajNota">'+(an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal||L('SEMIFINAL','SEMIFINAL','SEMIFINAL')))+': '+an.rivales.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+'</div>';
+        const pais=C.jugador.nacionalidad||'ar';
+        h+='<div class="cajTag bkSig">'+nombreTorneoSel(an.cual)+' '+an.anio+'</div>';
+        h+=htmlQueViene({linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), cab:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
+          ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), nom:(id)=>nombreSelCorto(id)});
+        h+='<div class="cajNota">'+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
       } }
   }
   if(t2){
@@ -21079,7 +21098,8 @@ function torneoAnunciado(e){
   const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
   const rivales=t.miGrupo?t.grupos[t.miGrupo].filter(x=>x!==pais):(t.llave?t.llave.series.filter(s=>s.alta===pais||s.baja===pais).map(s=>s.alta===pais?s.baja:s.alta):[]);
   const sede=sedeDe(t,t.miGrupo?'grupo':'semifinal',t.miGrupo);
-  return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,sede,afuera:false};
+  const ids=t.miGrupo?t.grupos[t.miGrupo].slice():[pais,...rivales];
+  return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,ids,sede,afuera:false};
 }
 function torneoRecesoDe(){
   const e=est(); if(!e||e.fase!=='terminada') return null;   // §12.2 v2: la beta cae en la parte B y juega el Mundial al final

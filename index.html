@@ -6208,7 +6208,7 @@ function salidaDe(o){
   s.clave=!!(o.porqueCal||(o.tipo==='fecha'&&typeof elegirCalientes==='function'&&elegirCalientes(e).find(c=>c.fecha===o.fecha)));
   if(o.tipo==='serie'&&o.serie){ const sr=o.serie, mine=sr.alta===mi?sr.ganAlta:sr.ganBaja, riv=sr.alta===mi?sr.ganBaja:sr.ganAlta, need=Math.ceil(sr.mejorDe/2);
     s.cierro=mine===need-1; s.meCierran=riv===need-1; s.decisivo=s.cierro&&s.meCierran; s.barrida=s.cierro&&riv===0&&need>=3; s.final=sr.nombre==='final'; }
-  if(o.tipo==='seleccion') s.final=o.etapa==='final';
+  if(o.tipo==='seleccion'||o.tipo==='americas') s.final=o.etapa==='final';   // 2026-09-12: la final de las Américas también es LA final
   /* §2z40.1 (su pedido: "el clásico contra [rival]", "la final de [competencia]"): nombres para la prosa */
   const rc=clubDe(o.rival); s.rival=rc?(rc.corto||rc.nombre):'';
   s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?t(L('la Liga de las Américas','the Americas League','a Liga das Américas')):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
@@ -11907,10 +11907,10 @@ const CARTAS_SALIDA=[
     grifo (0 contra +2/+4); la carta la agranda o te la come. */
  /* 2026-09-12 (su caza, con la sede del Final Four por récord: "es un montón; que la del 100 % diga «el rival afloja» es una locura,
     sobre todo cuando ya hay efecto de localía"): la localía ya la paga el grifo. La segura es sólo de hinchada; la apuesta ganada
-    te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y su segunda vuelta ("en la final no me salió ninguna; en un partido
-    que no pasa seguido debería salir siempre, atenuada"): en el Final Four (semi · final · tercer puesto) y en la fase final de la
-    selección sale SIEMPRE; en el grupo y las eliminatorias, una de tres. */
- { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:(c)=>['semifinal','final','tercero','cuartos'].includes(c.salida.etapa)?1:0.35, fondo:'tunel',
+    te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y sale menos: chance 0,6 → 0,35. Su tercera vuelta ("en la
+    final SÍ tiene que salir algo, pero no la misma carta cuatro rondas seguidas"): la final de las Américas tiene SUS cartas
+    (`sal_final_am_*`, abajo, chance 1); ésta sigue ocasional, y el sorteo no repite la última carta vista. */
+ { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.35, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.anfitrion&&(c.salida.tipo==='seleccion'||c.salida.tipo==='americas'),
    gancho:(c)=>L('Torneo en casa: '+c.salida.competencia+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. La sala de prensa está llena y todos preguntan lo mismo: "¿Pesa jugar de local?"','Home tournament: '+c.salida.competencia+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The press room is packed and everyone asks the same thing: "Does playing at home weigh on you?"','Torneio em casa: '+c.salida.competencia+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. A sala de imprensa está cheia e todos perguntam a mesma coisa: "Pesa jogar em casa?"'),
    opciones:[
@@ -11918,6 +11918,23 @@ const CARTAS_SALIDA=[
      {tipo:'apuesta',label:L('"Acá no nos gana nadie"','"Nobody beats us here"','"Aqui ninguém ganha da gente"'),desenlaces:[
        {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
        {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y el rival la pegó en su vestuario. Salen a callarte.','You read it on the big screen and the other team taped it in their locker room. They come out to shut you up.','Você lê no telão e o rival colou no vestiário. Eles saem para te calar.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
+ /* 2026-09-12 LA FINAL DE LAS AMÉRICAS (su pedido): dos cartas con prosa propia, siempre sale una */
+ { id:'sal_final_am_1', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
+   gancho:(c)=>L('La final de '+c.salida.competencia+', contra '+c.salida.rival+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. El presidente baja al vestuario y te da la mano sin decir nada.','The '+c.salida.competencia+' final, against '+c.salida.rival+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The club president comes down to the locker room and shakes your hand without a word.','A final d'+c.salida.competencia.slice(1)+', contra '+c.salida.rival+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. O presidente desce ao vestiário e te dá a mão sem dizer nada.'),
+   opciones:[
+     {tipo:'segura',label:L('"Un partido más"','"Just another game"','"Mais um jogo"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís en voz baja y te lo creés hasta el salto inicial.','You say it under your breath and believe it until the tip-off.','Você diz baixinho e acredita até a bola ao alto.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('"Hoy se gana"','"Tonight we win"','"Hoje a gente ganha"'),desenlaces:[
+       {p:55,remate:L('Bandera','Banner','Bandeira'),texto:L('La frase la repite el estadio entero antes del himno. Salís empujado.','The whole arena repeats the line before the anthem. You walk out carried.','O ginásio inteiro repete a frase antes do hino. Você entra empurrado.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
+       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante durante el calentamiento y se te cierra la garganta. Ellos la leyeron también.','You read it on the big screen during warm-ups and your throat tightens. They read it too.','Você lê no telão durante o aquecimento e a garganta fecha. Eles leram também.'),ef:{rel:{dt:-2},partido:{fuerzaRival:2}}}]}]},
+ { id:'sal_final_am_2', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
+   gancho:(c)=>L('La final de '+c.salida.competencia+'. En el túnel se escucha la tribuna a través de la pared, y el capitán te pregunta si estás.','The '+c.salida.competencia+' final. In the tunnel you can hear the crowd through the wall, and the captain asks if you are ready.','A final d'+c.salida.competencia.slice(1)+'. No túnel dá para ouvir a torcida através da parede, e o capitão pergunta se você está pronto.'),
+   opciones:[
+     {tipo:'segura',label:L('Respirar diez segundos','Breathe for ten seconds','Respirar dez segundos'),desenlaces:[{p:100,remate:null,texto:L('Cerrás los ojos. Cuando los abrís sos el primero de la fila.','You close your eyes. When you open them you are first in line.','Você fecha os olhos. Quando abre, é o primeiro da fila.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Dámela desde el arranque"','"Give me the ball from the tip"','"Me dá a bola desde o início"'),desenlaces:[
+       {p:55,remate:L('El capitán asiente','The captain nods','O capitão assente'),texto:L('Se lo dice al DT en la puerta. La primera jugada es para vos.','He tells the coach at the door. The first play is yours.','Ele fala com o técnico na porta. A primeira jogada é sua.'),ef:{rel:{plantel:3},partido:{fuego:1}}},
+       {p:45,remate:L('Apurado','Rushed','Apressado'),texto:L('Salís con la cabeza a mil. El DT te lo nota en el primer tiempo muerto.','You come out with your head racing. The coach notices in the first timeout.','Você entra com a cabeça a mil. O técnico percebe no primeiro tempo técnico.'),ef:{rel:{dt:-2}}}]}]},
  { id:'sal_final_sel', de:'salida', peso:300, repite:true, chance:0.95, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='seleccion'&&c.salida.final,
    gancho:(c)=>L('La final. '+c.salida.competencia+', con la camiseta del país. Te preguntan qué le dirías al pibe que eras.','The final. '+c.salida.competencia+', in the national shirt. They ask what you would tell the kid you were.','A final. '+c.salida.competencia+', com a camisa do país. Perguntam o que você diria para o garoto que era.'),

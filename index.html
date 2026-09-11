@@ -4654,7 +4654,12 @@ function scoreDelPartido(jugador, ligaId, rival, miClub, local) {
  * umbral donde el cierre deja de esperar tu toque, `gat:'tiempo'`; al tope en 30 partidos de 82).
  * Y su segunda vuelta el mismo día ("NBA pondría un poco más alto el techo, repito; si está roto ese nivel lo ajustamos
  * cuando lleguemos"): **44** — def 58, reloj 10 s, cierre por tiempo; al tope en 36 partidos de 82. */
-const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 44 }, piso: 4, ventana: 3, bien: 7, mal: 5 };
+const DBETA = { arranque: { nacional: 8, nba: 10 }, sube: 3, baja: 2, techo: { nacional: 26, nba: 44 }, piso: 4, ventana: 3, bien: 7, mal: 5,
+  /* 2026-09-12 (su pedido, en el techo con media 64 y entrenando: "pasada la dificultad que tengo ahora, con 5 partidos seguidos a
+     nivel alto, 8,5, que te siga subiendo"): la SEGUNDA ESCALERA, arriba del techo — cinco seguidos con promedio ≥ 8,5 suben otro
+     escalón, cuatro más hasta el techo2. Bajar sigue igual (tres flojos). */
+  ventana2: 5, bien2: 8.5, techo2: { nacional: 38, nba: 56 } };
+const dbetaTecho2 = (ligaId) => DBETA.techo2[ligaId] !== undefined ? DBETA.techo2[ligaId] : 38;
 const dbetaTecho = (ligaId) => DBETA.techo[ligaId] !== undefined ? DBETA.techo[ligaId] : 26;
 function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DBETA.arranque[ligaId] : 8; }
 /* §2z104 (su corte 2026-09-07: "debería subir un escalón después de tres partidos seguidos… pero después necesitar 3
@@ -4662,14 +4667,16 @@ function dbetaInicial(ligaId) { return DBETA.arranque[ligaId] !== undefined ? DB
  * malos seguidos"): la ventana son los partidos jugados DESDE el último escalón (`desde`: cuántos van), no los últimos
  * 3 a secas — con la ventana deslizante, tres buenos disparaban un escalón por partido. Devuelve {dbeta, desde}. Al
  * tope desde el arranque: 6 escalones × 3 partidos = 18 partidos (LNB 8→26, NBA 10→26). */
-function pasoDbeta(dbeta, notas, desde, techo) {
+function pasoDbeta(dbeta, notas, desde, techo, techo2) {
   techo = techo === undefined ? 26 : techo;
+  techo2 = techo2 === undefined ? techo : techo2;
   desde = (desde || 0) + 1;
-  const u = (notas || []).filter((n) => n !== undefined && n !== null).slice(-DBETA.ventana);
-  if (desde < DBETA.ventana || u.length < DBETA.ventana) return { dbeta, desde };
-  const prom = u.reduce((s, n) => s + n, 0) / u.length;
-  if (prom >= DBETA.bien) return { dbeta: Math.min(techo, dbeta + DBETA.sube), desde: 0 };
-  if (prom < DBETA.mal) return { dbeta: Math.max(DBETA.piso, dbeta - DBETA.baja), desde: 0 };
+  const arriba = dbeta >= techo;   // en la segunda escalera: ventana de 5 y 8,5 para subir; para bajar, los 3 de siempre
+  const vSube = arriba ? DBETA.ventana2 : DBETA.ventana, bien = arriba ? DBETA.bien2 : DBETA.bien;
+  const todas = (notas || []).filter((n) => n !== undefined && n !== null);
+  const u = todas.slice(-vSube), u3 = todas.slice(-DBETA.ventana);
+  if (desde >= vSube && u.length >= vSube && u.reduce((s, n) => s + n, 0) / u.length >= bien) return { dbeta: Math.min(techo2, dbeta + DBETA.sube), desde: 0 };
+  if (desde >= DBETA.ventana && u3.length >= DBETA.ventana && u3.reduce((s, n) => s + n, 0) / u3.length < DBETA.mal) return { dbeta: Math.max(DBETA.piso, dbeta - DBETA.baja), desde: 0 };
   return { dbeta, desde };
 }
 
@@ -23188,11 +23195,11 @@ function registrarResultado(){
   /* §7.1 la dificultad dinámica de la beta: un escalón por partido, sobre las últimas 3 notas */
   if(esBeta()){
     const dAntes=J.dbeta;
-    { const p=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating),J.dbetaDesde,dbetaTecho(C.ligaId)); J.dbeta=p.dbeta; J.dbetaDesde=p.desde; }   // §2z104 · §2z105
+    { const p=pasoDbeta(J.dbeta,C.ultimosJugados.map(l=>l.rating),J.dbetaDesde,dbetaTecho(C.ligaId),dbetaTecho2(C.ligaId)); J.dbeta=p.dbeta; J.dbetaDesde=p.desde; }   // §2z104 · §2z105 · 2026-09-12: la segunda escalera
     /* §2z105 (su pedido: "comunicar al pasar que jugaste bien algunos partidos seguidos y va a subir la dificultad;
        si no, de la nada te cuesta más y es frustrante"): el escalón se anuncia al volver al vestuario */
     /* copia corta: el toast es nowrap a 14,5 px (clase 1 de CLAUDE.md, left:50%) — 43 caracteres entran en 375 */
-    if(J.dbeta>dAntes) dbetaAviso={txt:t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
+    if(J.dbeta>dAntes) dbetaAviso={txt:dAntes>=dbetaTecho(C.ligaId)?t(L('Cinco grandes seguidos: te marcan como a una figura.','Five big ones in a row: they guard you like a star.','Cinco grandes seguidos: te marcam como a um craque.')):t(L('Tres buenos seguidos: te marcan más fuerte.','Three good in a row: they guard you harder.','Três bons seguidos: te marcam mais forte.')),tono:'oro'};
     else if(J.dbeta<dAntes) dbetaAviso={txt:t(L('Tres flojos seguidos: te aflojan la marca.','Three poor in a row: they ease up on you.','Três fracos seguidos: aliviam a marcação.'))};
     /* 2026-09-12 (su corte: "ese toast es justamente lo que se pasa por arriba; debería decirlo en la parte del lobby donde
        mostramos cosas"): el escalón queda en el goteo del vestuario hasta la próxima fecha, como el óxido. El toast se va. */
@@ -23525,7 +23532,7 @@ function pintaSecciones(){
     /* 2026-09-12 (su pedido: "para MI beta poné el medidor, para saber dónde estoy; eso lo sacamos antes de subirlo"): con
        `MODO_BETA.medidor` (lo pone armar-beta.mjs para el artifact; publicar-beta-pages.sh lo apaga al copiar) el chip dice
        la Dbeta y el escalón. Los testers nunca lo ven. */
-    if(window.MODO_BETA&&window.MODO_BETA.medidor&&esBeta()){ const J=C.jugador, d0=dbetaInicial(C.ligaId), techo=dbetaTecho(C.ligaId);
+    if(window.MODO_BETA&&window.MODO_BETA.medidor&&esBeta()){ const J=C.jugador, d0=dbetaInicial(C.ligaId), techo=dbetaTecho2(C.ligaId);
       const esc=Math.round((J.dbeta-d0)/DBETA.sube), tot=Math.round((techo-d0)/DBETA.sube);
       chip.textContent='D'+J.dbeta+' · '+esc+'/'+tot; chip.style.whiteSpace='nowrap'; chip.style.width='auto'; } else chip.textContent='BETA';
     /* su corte 2026-09-10: el chip con el MISMO ancho que la caja de MEDIA (que mide por contenido e idioma), centrado sobre ella */

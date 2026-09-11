@@ -9680,11 +9680,27 @@ const AMERICAS_DESGASTE = 2;   // al club, en su liga, el año que juega los dos
  * ventanas: 4 de grupo, 3 de cuartos, la semi y la final — la final comparte la fecha ancla de la semi y cae al día
  * siguiente (ventanasAmericas). Las partidas que ya venían con las 13 ventanas viejas y semis empezadas siguen como
  * estaban (reanclarAmericas no las toca). */
+/* §2z27.2 (2026-09-11, su research con la Liga de Chile de El Draft delante y el formato real de la BCLA 2025-26 —
+ * Nacional · Flamengo · Obras: Paysandú, Río, Buenos Aires): la fase de grupos son TRES VENTANAS-BURBUJA, cada una en la
+ * cancha de uno de los tres del grupo, y en cada una jugás contra tus dos rivales — seis partidos, cada par se cruza tres
+ * veces. Una burbuja es en tu casa (los dos de local), dos de visitante (uno de visita, uno neutral). El torneo lleva
+ * `formato: 2`; las partidas que ya venían con el torneo armado (cuatro ventanas a ida y vuelta, `AMERICAS_VENTANAS_V1`)
+ * siguen con el suyo hasta que termine — nada de lo viejo se toca. */
 const AMERICAS_VENTANAS = [
+  ['grupo', 0.20], ['grupo', 0.32], ['grupo', 0.44],
+  ['cuartos', 0.55], ['cuartos', 0.58], ['cuartos', 0.61],
+  ['semifinal', 0.80], ['final', 0.80],
+];
+const AMERICAS_VENTANAS_V1 = [
   ['grupo', 0.20], ['grupo', 0.28], ['grupo', 0.36], ['grupo', 0.44],
   ['cuartos', 0.55], ['cuartos', 0.58], ['cuartos', 0.61],
   ['semifinal', 0.80], ['final', 0.80],
 ];
+const AMERICAS_FORMATO = 2;
+const AMERICAS_GRUPO_JUEGOS = 6;   // tus partidos de grupo en el formato 2 (4 en el viejo)
+const listaVentanasAM = (am) => (am && am.formato === AMERICAS_FORMATO) ? AMERICAS_VENTANAS : AMERICAS_VENTANAS_V1;
+const ultimaGrupoAM = (am) => listaVentanasAM(am).filter((v) => v[0] === 'grupo').length;
+const AMERICAS_BURBUJA = 2;   // días de la burbuja: tus dos partidos en dos días seguidos (el de los otros dos comparte el primer día); pide un hueco ≥ 3
 const AMERICAS_RONDAS = ['cuartos', 'semifinal', 'final'];
 const AMERICAS_MEJOR_DE = 3;   // los cuartos
 const AMERICAS_MEJOR_DE_RONDA = { cuartos: 3, semifinal: 1, final: 1 };
@@ -9730,24 +9746,28 @@ function fechaConAire(F, f, semilla, ritmo, quedan, ult) {
   if (mejorH < 2) for (let k = f - 1; k > (ult || 0); k--) if (huecoDe(F, k, semilla, ritmo) >= 2) return k;
   return mejor;
 }
-function ventanasAmericas(F, semilla, ritmo, desde) {
+function ventanasAmericas(F, semilla, ritmo, desde, lista) {
+  lista = lista || AMERICAS_VENTANAS;
+  const burbuja = lista === AMERICAS_VENTANAS;   // §2z27.2: las ventanas de grupo son burbujas de tres días
   const out = desde ? desde.hechas.slice() : [];
   let ult = desde ? desde.ult : 0;
   const cont = {};
   for (const v of out) cont[v.etapa] = (cont[v.etapa] || 0) + 1;
-  for (const [etapa, fr] of AMERICAS_VENTANAS.slice(out.length)) {
+  for (const [etapa, fr] of lista.slice(out.length)) {
     let f = Math.round(fr * F);
     if (etapa === 'final' && out.length && out[out.length - 1].etapa === 'semifinal') f = ult;   // el Final Four: misma fecha ancla que la semi
     else {
       if (f <= ult) f = ult + 1;
-      f = fechaConAire(F, f, semilla, ritmo, AMERICAS_VENTANAS.length - out.length - 1, ult);
+      f = fechaConAire(F, f, semilla, ritmo, lista.length - out.length - 1, ult);
     }
     ult = f;
     cont[etapa] = (cont[etapa] || 0) + 1;
     /* el día: el medio del hueco (hueco 4 → +2: liga · descanso · continental · descanso · liga; hueco 2 → +1, el único
        día libre). Sin calendario (chequeadores viejos), sin día: diaAmericas cae al día siguiente */
     const h = semilla && typeof diaDeFecha === 'function' ? huecoDe(F, f, semilla, ritmo) : 0;
-    out.push(h > 0 ? { etapa, n: cont[etapa], f, dia: diaDeFecha(semilla, f, ritmo) + Math.max(1, Math.ceil(h / 2)) } : { etapa, n: cont[etapa], f });
+    /* la burbuja arranca al día siguiente de la fecha: liga · día 1 · día 2 · día 3 · liga (hueco ≥ 4) */
+    const esB = burbuja && etapa === 'grupo';
+    out.push(h > 0 ? { etapa, n: cont[etapa], f, dia: diaDeFecha(semilla, f, ritmo) + (esB ? 1 : Math.max(1, Math.ceil(h / 2))) } : { etapa, n: cont[etapa], f });
   }
   /* segunda pasada, de atrás para adelante: las ventanas del final llegan encadenadas (F−4, F−3, F−2) y si una cae en
      un hueco de un día no tiene adónde ir hacia adelante — se corre HACIA ATRÁS a la fecha más cercana con un día libre
@@ -9757,24 +9777,30 @@ function ventanasAmericas(F, semilla, ritmo, desde) {
   if (semilla && typeof diaDeFecha === 'function') for (let i = out.length - 1; i >= desdeI; i--) {
     const v = out[i]; if (v.etapa === 'final') continue;   // la final va con la semi
     const sig = out.slice(i + 1).find((w) => w.etapa !== 'final');
-    const techo = sig ? sig.f - 1 : v.f, piso = desde ? desde.ult : 0;   // las jugadas no se mueven: ninguna nueva baja de la última jugada
-    const minH = v.etapa === 'semifinal' ? 3 : 2;   // la semi necesita dos días libres: ella y la final
+    const prev = out.slice(0, i).filter((w) => w.etapa !== 'final').pop();   // §2z27.2: tampoco se pisa a la ventana anterior (dos en la misma fecha)
+    const techo = sig ? sig.f - 1 : v.f, piso = Math.max(desde ? desde.ult : 0, prev ? prev.f : 0);   // las jugadas no se mueven: ninguna nueva baja de la última jugada
+    const minH = v.etapa === 'semifinal' ? 3 : (burbuja && v.etapa === 'grupo') ? AMERICAS_BURBUJA + 1 : 2;   // la semi necesita dos días libres: ella y la final; la burbuja, tres
     let k = Math.min(v.f, techo);
     while (k > piso && huecoDe(F, k, semilla, ritmo) < minH) k--;   // sólo hacia atrás: el orden y el tope F−2 se conservan
     if (k > piso) v.f = k;
   }
   for (let i = desdeI; i < out.length; i++) { const v = out[i];
     if (v.etapa === 'final' && i > 0 && out[i - 1].etapa === 'semifinal') { v.f = out[i - 1].f; if (out[i - 1].dia) v.dia = out[i - 1].dia + 1; continue; }
-    const h = huecoDe(F, v.f, semilla, ritmo); if (semilla && h > 0) v.dia = diaDeFecha(semilla, v.f, ritmo) + (v.etapa === 'semifinal' ? (h >= 5 ? 2 : 1) : Math.max(1, Math.ceil(h / 2))); }   // la semi: con hueco de 5 entra descanso · semi · final · descanso
+    const h = huecoDe(F, v.f, semilla, ritmo); if (semilla && h > 0) v.dia = diaDeFecha(semilla, v.f, ritmo) + (v.etapa === 'semifinal' ? (h >= 5 ? 2 : 1) : (burbuja && v.etapa === 'grupo') ? 1 : Math.max(1, Math.ceil(h / 2))); }   // la semi: con hueco de 5 entra descanso · semi · final · descanso
   if (out[out.length - 1].f > F - 2) throw new Error('la Liga de las Américas no entra en ' + F + ' fechas');
   return out;
 }
 /* las partidas que ya venían: las ventanas por jugar se re-anclan con la regla nueva; las jugadas quedan */
-function reanclarAmericas(am, F, semilla, ritmo) {
+function reanclarAmericas(am, F, semilla, ritmo, fechaJugada) {
   if (!am || am.fase === 'terminado' || !semilla) return false;
-  if (am.ventanas.length !== AMERICAS_VENTANAS.length && am.idx >= 7) return false;   // 2026-09-10: las 13 viejas con semis al mejor de 3 ya armadas, como estaban
-  const hechas = am.ventanas.slice(0, am.idx), ult = hechas.length ? hechas[hechas.length - 1].f : 0;
-  const nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult });
+  const lista = listaVentanasAM(am);   // §2z27.2: cada torneo se re-ancla con SU lista
+  if (am.ventanas.length !== lista.length && am.idx >= 7) return false;   // 2026-09-10: las 13 viejas con semis al mejor de 3 ya armadas, como estaban
+  /* 2026-09-11 (su caza en la beta: jugó los cuartos contra Gimnasia "y el partido NO EXISTIÓ"; el fixture lo tenía el 28 de
+     enero cuando él ya había jugado el 1 y el 2 de febrero): el piso era la última ventana JUGADA, así que una ventana
+     pendiente podía re-anclarse a una fecha que la liga ya había pasado — se ofrecía con fecha vieja, el descanso se
+     contaba hasta la fecha siguiente (12 días) y el orden del calendario quedaba roto. El piso es también la fecha jugada. */
+  const hechas = am.ventanas.slice(0, am.idx), ult = Math.max(hechas.length ? hechas[hechas.length - 1].f : 0, fechaJugada || 0);
+  let nuevas; try { nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult }, lista); } catch (err) { return false; }   // si ya no entran, se quedan como están
   const cambio = nuevas.some((v, i) => !am.ventanas[i] || am.ventanas[i].f !== v.f || am.ventanas[i].dia !== v.dia);
   if (cambio) am.ventanas = nuevas;
   return cambio;
@@ -9829,17 +9855,26 @@ function crearAmericas(semilla, campo, miClubId, F, ritmo) {
     const i = grupos[g].indexOf(miClubId);
     if (i >= 0) { miGrupo = g; if (i > 0) { const a = grupos[g]; [a[0], a[i]] = [a[i], a[0]]; } }
   }
-  /* los seis partidos de cada grupo sobre las cuatro ventanas: a (vos, si es el tuyo) juega
-     las cuatro; b y c se cruzan ida y vuelta en la 2 y la 3 */
+  /* §2z27.2: los nueve partidos de cada grupo sobre TRES burbujas — la 1 en la cancha de b, la 2 en la de c y la 3 en
+     la tuya (a): el cierre del grupo en casa. En cada burbuja: día 1 los otros dos y tu primero, día 2 tu segundo, así tu
+     último partido del grupo es el último del grupo y «qué necesitás» (condicionGrupoAM) tiene cuenta honesta. Dos días
+     por burbuja (hueco ≥ 3: liga · día 1 · día 2 · liga; medido: con tres días la LNB no tenía hueco en el 40 % de las
+     burbujas). El local del partido es la sede si juega; si no, cancha neutral. */
   const juegosGrupo = [];
   for (const g of AMERICAS_GRUPOS) {
     const [a, b, c] = grupos[g];
-    const patron = [[1, a, b], [2, c, a], [2, b, c], [3, b, a], [3, c, b], [4, a, c]];
-    for (const [n, local, visita] of patron) juegosGrupo.push({ grupo: g, n, local, visita, ptsLocal: 0, ptsVisita: 0, jugado: false });
+    const sedes = [b, c, a];
+    sedes.forEach((sede, i) => {
+      const n = i + 1;
+      const par = (x, y, d) => { const local = sede === y ? y : x; const visita = local === x ? y : x;
+        juegosGrupo.push({ grupo: g, n, d, sede, local, visita, neutral: sede !== x && sede !== y, ptsLocal: 0, ptsVisita: 0, jugado: false }); };
+      par(b, c, 0); par(a, b, 0); par(a, c, 1);
+    });
   }
   return {
+    formato: AMERICAS_FORMATO,
     campo: campo.map((c) => c.id), fuerzas, ligaDe, grupos, miGrupo,
-    ventanas: ventanasAmericas(F, semilla, ritmo), idx: 0,   // la próxima ventana sin resolver
+    ventanas: ventanasAmericas(F, semilla, ritmo, null, AMERICAS_VENTANAS), idx: 0,   // la próxima ventana sin resolver
     juegosGrupo,
     llave: null,          // {series:[], seriesJugadas:[], ronda}
     fase: 'grupo',        // 'grupo' | 'llave' | 'terminado'
@@ -9874,7 +9909,15 @@ function proximoAmericas(e) {
   if (!j) return null;
   if (v.etapa === 'grupo') {
     const local = j.local === e.miClubId;
-    return { tipo: 'americas', etapa: 'grupo', ventana: v, rival: local ? j.visita : j.local, local, juego: v.n, grupo: am.miGrupo };
+    if (am.formato === AMERICAS_FORMATO) {
+      /* §2z27.2: el número de juego es el tuyo (1..6), no el de la ventana; el día es el de ESTE partido dentro de la
+         burbuja (la ventana viaja copiada con ese día: la energía y el pre lo leen de ahí); la cancha, la de la sede */
+      const juego = am.juegosGrupo.filter((x) => x.grupo === am.miGrupo && x.jugado && (x.local === e.miClubId || x.visita === e.miClubId)).length + 1;
+      const vJ = { ...v, dia: diaAmericas(e, v) + (j.d || 0) };
+      return { tipo: 'americas', etapa: 'grupo', ventana: vJ, rival: local ? j.visita : j.local, local, neutral: !!j.neutral, sede: j.sede,
+        anfitrion: j.sede === e.miClubId, juego, total: AMERICAS_GRUPO_JUEGOS, grupo: am.miGrupo };
+    }
+    return { tipo: 'americas', etapa: 'grupo', ventana: v, rival: local ? j.visita : j.local, local, juego: v.n, total: 4, grupo: am.miGrupo };
   }
   const s = j.serie;
   const localId = localDeJuegoAM(am, s, j.nro), sede = s.mejorDe === 1 ? (am.llave.sede || null) : null;
@@ -9965,26 +10008,31 @@ function cerrarRondaAM(am, mi) {
   if (!am.eliminado) am.miFase = nombre;
 }
 
-/** Resuelve UNA ventana: todos sus partidos, el tuyo con `miJuego` si lo jugaste vos. */
+/** Resuelve UNA ventana: todos sus partidos, el tuyo con `miJuego` si lo jugaste vos. Devuelve si la ventana quedó
+ *  COMPLETA: en la burbuja (§2z27.2) jugaste con los dedos UNO de tus dos partidos, el otro queda pendiente y la
+ *  ventana sigue abierta hasta que lo juegues (o lo juegue el relato al pasar la semana). */
 function jugarVentanaAM(e, v, miJuego) {
   const am = e.americas, mi = e.miClubId;
   const rng = rngFor(e.semilla, 'americas', v.etapa, v.n);
   if (v.etapa === 'grupo') {
-    for (const j of am.juegosGrupo) {
-      if (j.n !== v.n || j.jugado) continue;
+    let miPendiente = false, usado = false;
+    const orden = am.juegosGrupo.filter((j) => j.n === v.n && !j.jugado).sort((x, y) => (x.d || 0) - (y.d || 0));
+    for (const j of orden) {
       const mio = j.local === mi || j.visita === mi;
-      if (mio && miJuego) {
+      if (mio && miJuego && !usado) {
         const soyLocal = j.local === mi;
         j.ptsLocal = soyLocal ? miJuego.ptsNos : miJuego.ptsRiv;
         j.ptsVisita = soyLocal ? miJuego.ptsRiv : miJuego.ptsNos;
-      } else {
-        [j.ptsLocal, j.ptsVisita] = simularJuegoAM(rng, am, j.local, j.visita);
+      } else if (mio && miJuego) { miPendiente = true; continue; }   // el otro tuyo de la burbuja: queda para la próxima
+      else {
+        [j.ptsLocal, j.ptsVisita] = simularJuegoAM(rng, am, j.local, j.visita, !!j.neutral);
       }
       j.jugado = true;
-      if (mio) anotarLineaAM(e, 'grupo', v.n, j.local === mi ? j.visita : j.local, miJuego, rng);
+      if (mio) { anotarLineaAM(e, 'grupo', v.n, j.local === mi ? j.visita : j.local, usado ? null : miJuego, rng); usado = true; }
     }
-    if (v.n === 4) cerrarGruposAM(am, mi);
-    return;
+    if (miPendiente) return false;
+    if (v.n === ultimaGrupoAM(am)) cerrarGruposAM(am, mi);
+    return true;
   }
   for (const s of am.llave.series) {
     if (s.ganador || s.nombre !== v.etapa) continue;
@@ -10009,6 +10057,7 @@ function jugarVentanaAM(e, v, miJuego) {
     }
   }
   if (!am.ventanas.some((w) => w.etapa === v.etapa && w.n > v.n)) cerrarRondaAM(am, mi);   // la última ventana de la ronda la cierra
+  return true;
 }
 
 /**
@@ -10021,14 +10070,29 @@ function avanzarAmericas(e, hastaF, miJuego) {
   const am = e.americas;
   if (!am || am.fase === 'terminado') return;
   while (am.idx < am.ventanas.length && am.ventanas[am.idx].f <= hastaF && am.fase !== 'terminado') {
-    jugarVentanaAM(e, am.ventanas[am.idx], miJuego);
+    const completa = jugarVentanaAM(e, am.ventanas[am.idx], miJuego);
+    if (!completa) return;   // §2z27.2: tu segundo partido de la burbuja queda ofrecido; la ventana no se cierra
     miJuego = null;
     am.idx++;
   }
 }
 
-/** Tu partido continental, jugado con los dedos: resuelve la ventana que se te ofreció. */
-function jugarJuegoAmericas(e, miJuego) {
+/** Tu partido continental, jugado con los dedos: resuelve la ventana que se te ofreció.
+ *  2026-09-11 (su caza: el partido jugado "no existió"): el resultado va a LA VENTANA QUE EL PRE TE OFRECIÓ (`vRef`, la que
+ *  viajó en `enPartido.ventana`), no a "la que tenga f ≤ fechaJugada" — si entre el pre y el final la ventana cambió de
+ *  fecha (un re-anclado, una fecha que el relato jugó), el partido que jugaste con los dedos se perdía en silencio. */
+function jugarJuegoAmericas(e, miJuego, vRef) {
+  const am = e.americas;
+  if (am && vRef && am.fase !== 'terminado') {
+    const k = am.ventanas.findIndex((w) => w.etapa === vRef.etapa && w.n === vRef.n);
+    if (k >= am.idx) {
+      while (am.idx < k && am.fase !== 'terminado') { jugarVentanaAM(e, am.ventanas[am.idx], null); am.idx++; }   // las que quedaron atrás las juega el relato
+      if (am.fase === 'terminado') return;
+      const completa = jugarVentanaAM(e, am.ventanas[k], miJuego);
+      if (completa) am.idx = k + 1;
+      return;
+    }
+  }
   avanzarAmericas(e, e.fechaJugada, miJuego);
 }
 
@@ -10046,9 +10110,13 @@ function misJuegosAM(e) {
   if (!am) return out;
   const vDe = (etapa, n) => am.ventanas.find((v) => v.etapa === etapa && v.n === n) || null;
   const fDe = (etapa, n) => (vDe(etapa, n) || {}).f, dDe = (etapa, n) => { const v = vDe(etapa, n); return v && v.f ? diaAmericas(e, v) : null; };
+  let k = 0;
   for (const j of am.juegosGrupo) {
     if (j.grupo !== am.miGrupo || (j.local !== mi && j.visita !== mi)) continue;
-    out.push({ etapa: 'grupo', n: j.n, f: fDe('grupo', j.n), dia: dDe('grupo', j.n), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
+    k++;
+    const dia = dDe('grupo', j.n);
+    out.push({ etapa: 'grupo', n: am.formato === AMERICAS_FORMATO ? k : j.n, ventana: j.n, f: fDe('grupo', j.n), dia: dia === null ? null : dia + (j.d || 0), rival: j.local === mi ? j.visita : j.local, local: j.local === mi,
+      neutral: !!j.neutral, sede: j.sede || null,   // §2z27.2
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   if (am.llave) for (const s of am.llave.seriesJugadas) {
@@ -19685,7 +19753,7 @@ function cargarCarrera(n){
       for(const k of ['nombre','corto','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
-    if(c.temporada&&c.temporada.americas) reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo);   // 2026-09-10: las ventanas por jugar, con aire
+    if(c.temporada&&c.temporada.americas) reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo,c.temporada.fechaJugada);   // 2026-09-11: nunca a una fecha ya jugada   // 2026-09-10: las ventanas por jugar, con aire
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
        fecha f+1 y la 2 tres días después. Las del receso ya los traen. */
@@ -19796,7 +19864,7 @@ function amCondicionTxt(){
 }
 function amPorqueTxt(o){
   if(o.etapa==='grupo'){ const cond=amCondicionTxt();
-    return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' 4'+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
+    return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||4)+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
   return t(L('SERIE','SERIES','SÉRIE'))+' '+miGan+'–'+riGan+' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+s.mejorDe;
 }
@@ -22575,7 +22643,7 @@ function registrarResultado(){
   } else if(enPartido&&enPartido.tipo==='americas'){
     /* §2z27: el continental resuelve su ventana (tu juego con tu resultado, el resto simulado) */
     const faseAM=e.americas.fase;
-    jugarJuegoAmericas(e,miJuego);
+    jugarJuegoAmericas(e,miJuego,enPartido.ventana);   // 2026-09-11: a la ventana que el pre ofreció
     e.americas.ultimoDia=diaAmericas(e,enPartido.ventana);   /* ⚠️ ANTES del al-día: lee la fecha en la que se jugó la ventana */
     alDiaTrasSeleccion(e);   // §2z88: la ventana del continental era la que frenaba el ponerse al día
     /* §2z166: el cierre del grupo ya lo dijo la card del cierre (cierreDeSerie); acá no va más el toast */

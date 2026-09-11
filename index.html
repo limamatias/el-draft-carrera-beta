@@ -5796,7 +5796,7 @@ function misionPerdida(m, G) {
 function misionValor(m, G) {
   /* §2z39.30 (su corte: "la misión de UN ROBO es un montón; debería ser «robo o tapa»"): la clave sigue
      siendo `robos` (las carreras guardadas la tienen), pero cuenta robos + tapas */
-  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: G.defGanadas || 0, perdidas: G.perdidas, racha: G.fuegoMax || 0,
+  return { puntos: G.pts, asistencias: G.ast, triples: G.triples, robos: G.defGanadas || 0, perdidas: G.perdidas, racha: G.rachaTirosMax || 0,   // 2026-09-12: canastas de campo seguidas, no la racha del fuego (que una pérdida apaga)
            perdidas4: G.perdidasQ4 || 0, pedidas: G.pedidasResueltas || 0, sinPedir: G.pedidasUsadas || 0,
            porcentaje: (G.tiros || 0) >= PORCENTAJE_MIN_TIROS ? Math.round(100 * (G.aciertos || 0) / G.tiros) : 0 }[m.tipo] || 0;
 }
@@ -12387,7 +12387,7 @@ const G = {
   nos:0, riv:0, cuarto:1, reloj:RELOJ_CUARTO,
   pts:0, ast:0, ptsAsist:0, tiros:0, aciertos:0, triples:0, tiros3:0,
   ftm:0, fta:0, libres:null,
-  fuego:0, fuegoMax:0, fuegoRegalo:0, pedidas:3, pedidasUsadas:0, pedidasResueltas:0, perdidasQ4:0, enPedida:false,
+  fuego:0, fuegoMax:0, fuegoRegalo:0, rachaTiros:0, rachaTirosMax:0, pedidas:3, pedidasUsadas:0, pedidasResueltas:0, perdidasQ4:0, enPedida:false,
   posClock:0, posMax:9000,
   vos:{x:0,y:0}, comps:[], defs:[], marca:null,
   drag:null, pend:null, dedo:null, tiro:null, pelota:null, pelotaEn:null,
@@ -12437,6 +12437,10 @@ const bonoFuego=()=> G.fuego>=6?1.20 : G.fuego>=5?1.13 : G.fuego>=ENFUEGO?1.07 :
 const rachaReal=()=>Math.max(0,G.fuego-(G.fuegoRegalo||0));
 function prendeFuego(){
   G.fuego++; G.fuegoMax=Math.max(G.fuegoMax,rachaReal());
+  /* 2026-09-12 (su caza: "4/4 de campo y la misión de 3 seguidas en 2/3"): la misión contaba la racha del FUEGO, que también se
+     apaga con una pérdida — dos canastas, una pérdida, dos canastas daban 2. Las SEGUIDAS de la misión son canastas de campo
+     seguidas: sólo las corta errar (`apagaFuego(true)` desde una pérdida no las toca), y el ritmo prestado de una carta no suma. */
+  G.rachaTiros=(G.rachaTiros||0)+1; G.rachaTirosMax=Math.max(G.rachaTirosMax||0,G.rachaTiros);
   if(G.fuego===CALENTANDO) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Estás entrando en ritmo.',"You're heating up.",'Está pegando ritmo.')),true); }, 750);
   /* §2z109 (su caza 2026-09-07: "metí el tiro en la última y justo quedé on fire: me salieron las dos imágenes
      juntas"): sobre la chicharra el partido terminó — el momento es el de la volcada (15), y el fuego no tiene futuro */
@@ -12445,7 +12449,7 @@ function prendeFuego(){
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
 }
-function apagaFuego(){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; }   // §2z114: la próxima racha se vuelve a anunciar
+function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0; }   // §2z114: la próxima racha se vuelve a anunciar
 
 /* ══════════ EL DUELO CON MEMORIA (§2b) ══════════
    Tu marca es UN tipo que se acuerda: la postura mueve SU DISTANCIA (no su velocidad — las
@@ -16498,7 +16502,7 @@ function perderPelota(txt,titulo,sinV,ajena){
   if(titulo) veredicto(titulo,'mal');
   if(!ajena){ G.perdidas=(G.perdidas||0)+1; if((G.cuarto||1)>=4) G.perdidasQ4=(G.perdidasQ4||0)+1; }   // la planilla no perdona (su caza 2026-08-28) · 2026-09-10: la misión del último cuarto
   G.suelo=null; G.corre=null; G.pelotaEn=null; G.paseVivo=null;
-  apagaFuego(); aprende('robo');
+  apagaFuego(true); aprende('robo');   // la pérdida apaga el fuego, no las SEGUIDAS de la misión
   relato(txt,false); finPosesion(false,ajena?t(L('Se perdió en la devolución.','Lost on the return pass.','Perdeu-se na devolução.'))
                                             :t(L('La perdiste.','You lost it.','Você perdeu ela.')));
 }
@@ -17034,7 +17038,7 @@ function terminar(){
 }
 function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
-    triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
+    triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
     intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});
   G.duelo=nuevoDuelo();

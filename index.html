@@ -20353,7 +20353,14 @@ function htmlBracket(rondas,esperadas,mi,opts){
     const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
     h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<92&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
     col.series.forEach((s,i)=>{ const top=cy(k,i)-BH/2;
-      if(!s){ h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>'; return; }
+      if(!s){
+        /* 2026-09-12 (su caza: "el partido 2 se cerró y la serie también, ¿no deberían ya ir publicándose los que pasaron de
+           ronda?"): la ronda que sigue nace recién cuando cierran todas, pero el que ya pasó tiene su lugar — se escribe en
+           la casilla vacía apenas cierra su serie (la de arriba sale del par de arriba, la de abajo del de abajo). */
+        const prevS=k>0?cols[k-1].series:[], pA=prevS[2*i]||null, pB=prevS[2*i+1]||null;
+        const prov=(ps)=>{ const g=ps&&ps.ganador; return g?'<div class="bkRow'+(g===mi?' yo':'')+'">'+escudito(g)+'<span class="sig">'+sig(g)+'</span>'+(opts.banderas?banderita(g):'')+'<span class="w"></span></div>'
+                                                      :'<div class="bkRow"><span class="sig">—</span></div>'; };
+        h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px">'+prov(pA)+prov(pB)+'</div>'; return; }
       const mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
       const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+g+'</span></div>';   // 2026-09-10: la bandera del país en la llave del continental (su pedido; medido: 14+5+15+5+21+5+14 = 79 de 82)
       const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;

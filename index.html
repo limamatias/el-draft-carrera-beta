@@ -21009,6 +21009,12 @@ function htmlSeleccion(e){
     if(!el.fin) h+='<div class="r amTit nota"><span class="pos"></span><span class="club"><span class="nom">'+(parte==='A'
       ? t(L('SIGUEN EN EL RECESO Y CIERRAN LA TEMPORADA QUE VIENE','CONTINUE IN THE OFFSEASON AND CLOSE NEXT SEASON','SEGUEM NO RECESSO E FECHAM NA PRÓXIMA TEMPORADA'))+'<br>'+t(L('EL MUNDIAL '+aM+', AL TERMINAR LA TEMPORADA SIGUIENTE','WORLD CUP '+aM+' ONCE NEXT SEASON ENDS','O MUNDIAL '+aM+', AO TERMINAR A PRÓXIMA TEMPORADA'))
       : (mesUlt?t(L('CIERRAN EN '+mesUlt,'CLOSE IN '+mesUlt,'FECHAM EM '+mesUlt)):t(L('CIERRAN ESTA TEMPORADA','CLOSE THIS SEASON','FECHAM NESTA TEMPORADA')))+'<br>'+t(L('EL MUNDIAL '+aM+', CUANDO TERMINE LA TEMPORADA CON TU CLUB','WORLD CUP '+aM+' ONCE YOUR CLUB SEASON ENDS','O MUNDIAL '+aM+', QUANDO TERMINAR A TEMPORADA COM SEU CLUBE')))+'</span></span></div>';   // 2026-09-10 (su caza): dos líneas, una idea por línea
+    else { const an=torneoAnunciado(e);
+      if(an&&!an.afuera){
+        h+=tit(nombreTorneoSel(an.cual)+' '+an.anio);
+        h+='<div class="cajNota">'+t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():'')+' · '+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
+        if(an.rivales.length) h+='<div class="cajNota">'+(an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal||L('SEMIFINAL','SEMIFINAL','SEMIFINAL')))+': '+an.rivales.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+'</div>';
+      } }
   }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
@@ -21051,6 +21057,30 @@ function htmlSeleccion(e){
 function memSel(){ if(!C.seleccion) C.seleccion={yaEstuvo:false,torneos:[]}; return C.seleccion; }
 
 /** ¿Qué torneo te toca ahora en el receso? Lo crea la primera vez y lo devuelve después. */
+/* 2026-09-12 (su pedido, la misma clase que la Intercontinental: "terminan las eliminatorias y que te dé más info del grupo, y
+   de cuándo se juega"): el torneo del receso es determinista una vez cerradas las eliminatorias —qué torneo (el ciclo), el
+   campo (los clasificados), el sorteo (semilla + año) y la sede— así que la pestaña lo DICE meses antes. Es la misma cuenta
+   que torneoRecesoDe, sin efectos: no convoca, no anota, no guarda. Si el país quedó afuera, lo dice la línea del ciclo. */
+const SEL_MES_TXT={mundial:L('AGOSTO','AUGUST','AGOSTO'),continental:L('AGOSTO','AUGUST','AGOSTO'),eurobasket:L('AGOSTO','AUGUST','AGOSTO'),jjoo:L('JULIO','JULY','JULHO'),preolimpico:L('JULIO','JULY','JULHO')};
+function torneoAnunciado(e){
+  if(!e||!e.seleccion||!e.seleccion.fin||C.selTorneo) return null;
+  const mem=memSel(), pais=C.jugador.nacionalidad||'ar'; if(!SELECCIONES[pais]) return null;
+  const torneo=torneoDelReceso(C.anio,pais); if(!torneo) return null;
+  const clasif=e.seleccion.clasificados||mem.clasificados||[];
+  const clasifAm=clasifAmericaDe({clasificados:clasif});
+  const fuera=(torneo==='mundial'&&clasif.indexOf(pais)<0)?pais:null;
+  const preoJugado=mem.preo&&mem.preo.anio===C.anio;
+  let cual=torneo;
+  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mem.mundialTop||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mem.mundialTop||clasifAm,pais)
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mem.mundialTop||clasifAm,preoJugado?mem.preo:null),fuera)
+    :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
+  if(!campo||campo.indexOf(pais)<0) return {cual,anio:C.anio+1,afuera:true};
+  const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
+  const rivales=t.miGrupo?t.grupos[t.miGrupo].filter(x=>x!==pais):(t.llave?t.llave.series.filter(s=>s.alta===pais||s.baja===pais).map(s=>s.alta===pais?s.baja:s.alta):[]);
+  const sede=sedeDe(t,t.miGrupo?'grupo':'semifinal',t.miGrupo);
+  return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,sede,afuera:false};
+}
 function torneoRecesoDe(){
   const e=est(); if(!e||e.fase!=='terminada') return null;   // §12.2 v2: la beta cae en la parte B y juega el Mundial al final
   if(proximoSelVerano()) return null;   // §12.2 v2: las ventanas del receso van antes que el torneo

@@ -3154,7 +3154,7 @@ const LIGAS = {
      * madre del reglamento); la final de llave NO se rotula ascenso hasta que la
      * escalera de clubes conecte las ligas (§2z5, precedente del play-out de la LNB). */
     nombre: 'Liga Federal', clubes: CLUBES_FEDERAL, fechas: 18,
-    regen: 3, lata: 0.4, esc: 0, palancas: {}, ptsRef: 76, reloj: 600, ritmo: 'espaciado',
+    regen: 2, lata: 0.4, esc: 0, palancas: {}, ptsRef: 76, reloj: 600, ritmo: 'espaciado',
     zonas: ZONAS_FEDERAL, fechasPorZona: true, vecindario: VECINDARIO_FEDERAL,
     playoffs: {
       formato: 'federal',
@@ -3173,7 +3173,7 @@ const LIGAS = {
   argentina: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 31], regularHasta: [3, 28], playoffsHasta: [6, 15], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Argentina', allstar: true, clubes: CLUBES_ARGENTINA, fechas: 34, // ida y vuelta por zona (17 clubes, con libre)
-    regen: 4, lata: 0.6, esc: 8, palancas: {}, ptsRef: 78, reloj: 600,
+    regen: 3, lata: 0.6, esc: 8, palancas: {}, ptsRef: 78, reloj: 600,
     zonas: ['norte', 'sur'],
     playoffs: {
       clasifican: 12, directos: 4, // por zona
@@ -3189,7 +3189,7 @@ const LIGAS = {
   nacional: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [9, 24], regularHasta: [4, 19], playoffsHasta: [6, 20], diasPO: 5, recesos: [[[12, 22], [1, 5]]], fiba: true },
     nombre: 'Liga Nacional', allstar: true, clubes: CLUBES_NACIONAL, fechas: 38,
-    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
+    regen: 2, lata: 0.85, esc: 18, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     playoffs: {
       clasifican: 12, directos: 4,
       /* §2z7: el PLAY-OUT entre los dos últimos, al mejor de 5, se juega a la par de la
@@ -3206,7 +3206,7 @@ const LIGAS = {
   hs: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [12, 1], regularHasta: [2, 27], playoffsHasta: [3, 15], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'Secundaria EE.UU.', clubes: CLUBES_HS, fechas: 22,
-    regen: 4, lata: 0.4, esc: 0, palancas: {}, ptsRef: 62, reloj: 600, amateur: true,
+    regen: 3, lata: 0.4, esc: 0, palancas: {}, ptsRef: 62, reloj: 600, amateur: true,
     // el torneo del cierre: cuatro clasifican, a partido único — la final de la secundaria
     playoffs: { clasifican: 4, directos: 0, rondas: [
       { nombre: 'semifinal', mejorDe: 1 }, { nombre: 'final', mejorDe: 1 },
@@ -3215,7 +3215,7 @@ const LIGAS = {
   ncaa: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [11, 3], regularHasta: [3, 15], playoffsHasta: [4, 6], diasPO: 5, recesos: [[[12, 23], [12, 27]]] },
     nombre: 'NCAA', clubes: CLUBES_NCAA, fechas: 31, zonas: ['este', 'oeste'],
-    regen: 4, lata: 0.6, esc: 14, palancas: {}, ptsRef: 72, reloj: 600, amateur: true,
+    regen: 3, lata: 0.6, esc: 14, palancas: {}, ptsRef: 72, reloj: 600, amateur: true,
     // EL TORNEO (March Madness a nuestra escala): 8 por región, TODO a partido único
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'octavos', mejorDe: 1, porZona: true }, { nombre: 'cuartos', mejorDe: 1, porZona: true },
@@ -3229,7 +3229,7 @@ const LIGAS = {
     // `fechas: 32` re-copiado de allá (2026-09-01): 22 de todos contra todos + los 10 del
     // hexagonal — "el número real de partidos que juega un equipo de arriba", textual.
     nombre: 'Liga Uruguaya', allstar: true, clubes: CLUBES_LUB, fechas: 32,
-    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 78, reloj: 600,
+    regen: 2, lata: 0.85, esc: 18, palancas: {}, ptsRef: 78, reloj: 600,
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 7 },
     ] },
@@ -3239,7 +3239,7 @@ const LIGAS = {
     // el formato REAL del NBB, copiado de El Draft (FORMATO_DEL_SUR.liga_brasil):
     // clasifican 16, cuatro rondas TODAS al mejor de 5 — como La Liga Argentina
     nombre: 'NBB', allstar: true, clubes: CLUBES_NBB, fechas: 38,
-    regen: 3, lata: 0.85, esc: 18, palancas: {}, ptsRef: 84, reloj: 600, ritmo: 'apretado',
+    regen: 2, lata: 0.85, esc: 18, palancas: {}, ptsRef: 84, reloj: 600, ritmo: 'apretado',
     playoffs: { clasifican: 16, directos: 0, rondas: [
       { nombre: 'octavos', mejorDe: 5 }, { nombre: 'cuartos', mejorDe: 5 },
       { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 5 },
@@ -3248,7 +3248,7 @@ const LIGAS = {
   euroliga: {
     /* §2z83: research/CALENDARIOS.md */ calendario: { arranque: [10, 1], regularHasta: [4, 15], playoffsHasta: [5, 30], diasPO: 5, recesos: [[[12, 24], [12, 26]]], fiba: true },
     nombre: 'Euroliga', clubes: CLUBES_EUROLIGA, fechas: 34,
-    regen: 3, lata: 0.85, esc: 26, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
+    regen: 2, lata: 0.85, esc: 26, palancas: {}, ptsRef: 80, reloj: 600, ritmo: 'apretado',
     // la Final Four es A PARTIDO ÚNICO — es el formato real, no un redondeo
     playoffs: { clasifican: 8, directos: 0, rondas: [
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 1 }, { nombre: 'final', mejorDe: 1 },
@@ -6377,9 +6377,14 @@ function cartaDeSalida(o,seguir){
   const ctx={...ctxCarta(),salida:salidaDe(o)}, s=cartasEstado();
   const clave=(o.tipo||'')+(o.fecha||'')+(o.etapa||'')+(o.juego||'')+(o.ventana?o.ventana.n:'');
   const rng=rngFor($C().semilla,'salida',$C().anio,clave);
-  const cand=pool.filter(c=>cartaElegible(c,ctx,s)&&rng.chance(c.chance===undefined?1:(typeof c.chance==='function'?c.chance(ctx):c.chance)));   // 2026-09-12: `chance` puede mirar la situación (la carta del anfitrión: siempre en el Final Four, a veces en el grupo)
-  if(!cand.length) return false;
-  const c=sortearCarta(cand,ctx,rng); if(!c) return false;
+  /* 2026-09-11 (su caza: «dos finales seguidas me salió la del utilero; la misma dos veces seguidas pierde la gracia»): la carta de
+     la salida anterior no vuelve en la siguiente, ni aunque sea la única candidata (sortearCarta sólo la evita si hay otra). El mismo
+     partido re-entrado sí la ve (la clave); una salida sin carta limpia la memoria. */
+  const ult=s.ultSalida;
+  const cand=pool.filter(c=>!(ult&&ult.id===c.id&&ult.clave!==clave)&&cartaElegible(c,ctx,s)&&rng.chance(c.chance===undefined?1:(typeof c.chance==='function'?c.chance(ctx):c.chance)));   // 2026-09-12: `chance` puede mirar la situación (la carta del anfitrión: siempre en el Final Four, a veces en el grupo)
+  if(!cand.length){ s.ultSalida=null; return false; }
+  const c=sortearCarta(cand,ctx,rng); if(!c){ s.ultSalida=null; return false; }
+  s.ultSalida={id:c.id, clave};
   salidaEnSel=o.tipo==='seleccion';
   const cc=typeof c.gancho==='function'?{...c,gancho:c.gancho(ctx)}:c;   // §2z40.1: el gancho puede leer el contexto
   const e=est(), pais=$C().jugador.nacionalidad||'ar';
@@ -11423,7 +11428,7 @@ function tablaSel(x, grupo) {
  * Las diez eliminatorias no pueden ser diez partidos que no cambian nada.
  * `fuera` es el país que se quedó afuera en las eliminatorias de ESTE ciclo.
  */
-function campoTorneo(torneo, clasifAm, fuera) {
+function campoTorneo(torneo, clasifAm, fuera, clasifEu) {   // §12.32: `clasifEu` es el orden europeo del Mundial (opcional)
   if (torneo === 'continental') return SEL_CONTINENTAL.am.slice(0, SEL_FORMATOS.continental.equipos);
   if (torneo === 'eurobasket') return SEL_CONTINENTAL.eu.slice(0, SEL_FORMATOS.eurobasket.equipos);
   /* ⚠️ el corte va con SEL_FORMATOS.equipos, no con un 16 escrito a mano: cuando el Mundial
@@ -11438,7 +11443,22 @@ function campoTorneo(torneo, clasifAm, fuera) {
     }
     return campo.slice(0, SEL_FORMATOS.mundial.equipos);
   }
-  if (torneo === 'jjoo') return clasifAm.slice(0, SEL_JJOO_CUPOS_AM).concat(SEL_JJOO_FIJOS).slice(0, SEL_FORMATOS.jjoo.equipos);
+  if (torneo === 'jjoo') {
+    /* §12.32: el campo es el de siempre (4 de América + los 8 del resto del mundo) y lo único que cambia es ESPAÑA: entra sólo si
+       quedó entre los dos mejores europeos del Mundial. Si no, deja su lugar al mejor europeo del ranking que no esté ya —el
+       cupo no se pierde y los Juegos siguen siendo de 12—. Sin ranking europeo, nada de esto corre: España es fija, como antes. */
+    const campo = clasifAm.slice(0, SEL_JJOO_CUPOS_AM).concat(SEL_JJOO_FIJOS);
+    if (clasifEu && clasifEu.length && directosEuropa(clasifEu).indexOf('es') < 0) {
+      const i = campo.indexOf('es');
+      if (i >= 0) {
+        campo.splice(i, 1);
+        const resto = clasifEu.concat(SEL_CONTINENTAL.eu.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza));
+        const entra = resto.find((id) => id !== 'es' && campo.indexOf(id) < 0);
+        if (entra) campo.push(entra);
+      }
+    }
+    return campo.slice(0, SEL_FORMATOS.jjoo.equipos);
+  }
   return clasifAm.slice(0, 4);
 }
 
@@ -11966,8 +11986,22 @@ function directosJJOO(clasifMundial) {
 /* 2026-09-12 (lo cazó leer §12.31; su "arreglá lo de España"): la puerta de los Juegos preguntaba sólo por los directos de
    AMÉRICA, así que España —fija de los Juegos— caía al preolímpico, que excluye a las fijas, y "no clasificaba" nunca. Van
    directo los dos de América por el Mundial y las fijas (que representan a los clasificados del resto del mundo). */
-function vaDirectoJJOO(pais, clasifMundial) {
-  return SEL_JJOO_FIJOS.indexOf(pais) >= 0 || directosJJOO(clasifMundial).indexOf(pais) >= 0;
+/* §12.32 (2026-09-11, su corte: "España tiene que clasificar en base a cómo le fue en el Mundial"): Europa también sale del
+   Mundial — los DOS mejores europeos van directo, como los dos de América, y España deja de ser fija. Los otros siete fijos
+   siguen representando al resto del mundo. Sin ranking europeo guardado, España vuelve a ser fija: la regla vieja es el
+   fallback y una partida de antes no se rompe. */
+const SEL_JJOO_DIRECTOS_EU = 2;
+function directosEuropa(clasifEu) {
+  return (clasifEu || []).slice(0, SEL_JJOO_DIRECTOS_EU);
+}
+function fijoJJOO(pais, clasifEu) {
+  if (SEL_JJOO_FIJOS.indexOf(pais) < 0) return false;
+  return !(pais === 'es' && clasifEu && clasifEu.length);
+}
+function vaDirectoJJOO(pais, clasifMundial, clasifEu) {
+  if (fijoJJOO(pais, clasifEu)) return true;
+  if (SELECCIONES[pais] && SELECCIONES[pais].cont === 'eu') return directosEuropa(clasifEu).indexOf(pais) >= 0;
+  return directosJJOO(clasifMundial).indexOf(pais) >= 0;
 }
 /* §12.30 EL PREOLÍMPICO REAL (2026-09-12, su pedido: "¿por qué no armamos los torneos cruzados reales, con placeholders para los
    países no jugables, como el Mundial?"): el OQT de la FIBA son cuatro torneos de SEIS en julio, con países de distintos
@@ -11975,11 +12009,14 @@ function vaDirectoJJOO(pais, clasifMundial) {
    americano más fuerte que tampoco fue directo, el anfitrión si es elegible, y el resto de otros continentes —dos europeos,
    uno de Asia/Oceanía, uno de África— sorteados por semilla entre los que no están ya en los Juegos (SEL_JJOO_FIJOS). Los
    otros tres preolímpicos no se juegan: sus ganadores ya viven en los fijos de los Juegos. */
-function campoPreolimpico(clasifMundial, pais, semilla, anio) {
-  const directos = directosJJOO(clasifMundial);
+function campoPreolimpico(clasifMundial, pais, semilla, anio, clasifEu) {
+  /* §12.32: los que ya están en los Juegos no juegan el preolímpico — los dos directos de América, los dos de Europa y los fijos
+     que sigan siéndolo. Con ranking europeo, España puede caer acá como cualquiera. */
+  const directos = directosJJOO(clasifMundial).concat(directosEuropa(clasifEu));
+  const yaEstan = (id) => directos.indexOf(id) >= 0 || fijoJJOO(id, clasifEu);
   const campo = [];
-  const mete = (id) => { if (id && SELECCIONES[id] && campo.indexOf(id) < 0 && directos.indexOf(id) < 0 && SEL_JJOO_FIJOS.indexOf(id) < 0) campo.push(id); };
-  if (pais && SELECCIONES[pais] && SELECCIONES[pais].cont === 'am') mete(pais);
+  const mete = (id) => { if (id && SELECCIONES[id] && campo.indexOf(id) < 0 && !yaEstan(id)) campo.push(id); };
+  if (pais && SELECCIONES[pais]) mete(pais);   // §12.32: el tuyo, sea de donde sea
   /* el anfitrión juega (la sede sale del pool de sedes, por carrera) */
   const s = anfitrionSel('preolimpico', anio || 0, semilla || '');
   const host = s.ids.indexOf(pais) >= 0 ? pais : s.ids[Math.abs(hashStr(pais || '')) % s.ids.length];
@@ -12500,6 +12537,7 @@ $('#btnReanudar').onclick=()=>{
   if(G.barraFx) G.barraFx.hasta+=delta;
   if(G.toco) G.toco+=delta;
   if(G.desmarque) G.desmarque.hasta+=delta;
+  if(G.desmarque&&G.desmarque.sp){ const s=G.desmarque.sp; if(s.toco!=null) s.toco+=delta; if(s.reacc!=null) s.reacc+=delta; }   /* §2z207 */
   if(G.flashJ) G.flashJ.hasta+=delta;
   if(G.pend) G.pend.t0+=delta;
   if(G.corrida) G.corrida.arranca+=delta;
@@ -12887,7 +12925,10 @@ function sortearEscenaDef(){
 function txtSit(){ return (G.esDrill && window.drillEsVision && window.drillEsVision()) ? t(L('ENCONTRÁ EL PASE','FIND THE PASS','ACHA O PASSE')) : (G.esDrill && window.drillEsTiro && window.drillEsTiro()) ? t(L('TIRÁ','SHOOT','ARREMESSA')) : t(L('TIRÁ O PASÁ','SHOOT OR PASS','ARREMESSA OU PASSA')); }   // §2z39.21: en el drill de tiro la píldora dice TIRÁ
 /* §2z198.3 (su corte 2026-09-12: "sí, también se cambia"): RECIBIR ES BOTE NUEVO — después de una devolución, en una posesión de
    parado, podés botear, y la píldora seguía en TIRÁ O PASÁ. Dice JUGÁ. Los drills y los tutoriales conservan la suya. */
-function pildoraDevuelta(){ if(G.tipo!=='decision'||G.esDrill||G.tut) return; const sit=$('#sit'); sit.textContent=t(L('JUGÁ','PLAY','JOGA')); sit.className=''; }
+/* 2026-09-11 (su caza en SIN PELOTA: «cuando la recibís dice JUGÁ en gris… pero es una con dribble; el dribble se comunica con
+   verde o no se entiende»): recibir es bote nuevo, y el color ES el verbo (§2z102). La píldora va en verde, acá y en la
+   devolución de siempre — la misma clase que quedó anotada en §2z198.3. */
+function pildoraDevuelta(){ if(G.tipo!=='decision'||G.esDrill||G.tut) return; const sit=$('#sit'); sit.textContent=t(L('JUGÁ','PLAY','JOGA')); sit.className='carril'; }
 /* §2z39: LAS DOS CASAS DEL GRANDOTE, del lado `lado`: el rincón corto (short corner) y el codo.
    Las dos fuera del rectángulo de la pintura (pintura().w/2 = 0,31·R3 de ancho; 0,80·R3 de alto). */
 function casasDelBig(lado){ const a=aro(); return [ {x:a.x+lado*R3()*0.52, y:a.y+R3()*0.22}, {x:a.x+lado*R3()*0.36, y:a.y+R3()*0.86} ]; }
@@ -13078,6 +13119,16 @@ function sortearTipo(esPedida){
 /* §2z203 LA VÍA LIBRE TIENE LIBRETOS: los pesos y las perillas del perseguidor y de la ayuda temprana (las cuatro líneas, en DISEÑO) */
 const CARRIL_LIBRETOS={regalo:0.20, perseguidor:0.40, ayuda:0.40};
 const CARRIL_PERSEG_GAP=72, CARRIL_PERSEG_V=150, CARRIL_PERSEG_ESPERA=600, CARRIL_AYUDA_LEE=450;
+/* §2z207 SIN PELOTA: las perillas (las cuatro líneas, en DISEÑO). En el partido, apagada hasta que la juegue en el banco. */
+const SIN_PELOTA_EN_PARTIDO=true;   // 2026-09-11: la jugó en el banco y la aprobó (v8), así que entra al partido
+/* v2 (su caza jugándola: «es MUY fácil desmarcarte… es como un regalo»): el listón de LIBRE sube de 45 a 55·ESC — casi dos
+   cuerpos —, tu marca lee más rápido y corre a tu velocidad (14), y el protector baja si cortás al aro (18). */
+/* §2z212 v3 (su video 2026-09-11: «las jugadas donde no tenés a nadie muy cerca son un regalo, las otras no te desmarcás nunca
+   porque tu defensa se mueve muy rápido»; y su pregunta: «¿por qué en el desmarque te movés más rápido que en el resto de
+   dribbles?», con su corte «la bajaría un poco en ambos»): correr SIN pelota pasa de 210 a 170 px/s —conduciendo avanzás a ~120,
+   así que sigue siendo más rápido, pero no el doble— en la jugada nueva Y en el desmarque de siempre. */
+const VEL_DESMARQUE=170;
+const SINP={ventana:2500, lectura:1500, leeMs:250, libre:55, postura:34, cuerpo:26, enPartido:0.50};
 function armarPosesion(){
   G._hintContado=false;   // el hint de arrastre cuenta por posesión (18-frame)
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
@@ -13104,8 +13155,20 @@ function armarPosesion(){
      aplicaba si la anterior también era carril. El tipo se sortea ACÁ y abajo se usa el mismo (sortearTipo no lee la posición). */
   const tipoNuevo = (G.beat && G.beat.tipo) ? G.beat.tipo : sortearTipo(!!(G.beat && G.beat.pedida));
   if(tipoNuevo==='carril' && r<R3()*0.95) r=R3()*rnd(0.95,1.12);
-  G.vos = { x: clamp(a.x + Math.sin(ang)*r, MARG()+16, W-MARG()-16),
-            y: Math.min(Math.max(a.y + Math.cos(ang)*r, a.y + H*0.045), pisoVos()) };
+  /* §2z209 (su caza 2026-09-11: «en el tirá o pasá hay muchas que son doble largo estando SOLO… estás PEGADO a la línea y son
+     dobles. No siempre tiene que ser triple, si no nadie tira un doble»): en el teléfono el radio mínimo es ~0,84·R3, así que TODO
+     doble nacía pegado al arco. La franja muerta (0,85–1,02·R3) se reparte: media distancia de verdad (0,62–0,85) o detrás de la
+     línea (1,02–1,15), 40/60. Y el ÁNGULO se acomoda al ancho en vez de que el clamp en x acorte el radio (el precedente del drill
+     de visión): a 375 la esquina quedaba 0,3 px ADENTRO del triple y a 430 afuera — geometría que dependía del teléfono. */
+  let angV=ang;
+  if(tipoNuevo==='decision' && !beatDesde && !(G.beat&&G.beat.drill)){
+    const rr=r/R3();
+    if(rr>0.85 && rr<1.02) r=R3()*(Math.random()<0.40 ? rnd(0.62,0.85) : rnd(1.02,1.15));
+    const xMax=W/2-MARG()-16;
+    if(Math.abs(Math.sin(angV))*r>xMax) angV=Math.sign(angV)*Math.asin(Math.min(1,xMax/r));
+  }
+  G.vos = { x: clamp(a.x + Math.sin(angV)*r, MARG()+16, W-MARG()-16),
+            y: Math.min(Math.max(a.y + Math.cos(angV)*r, a.y + H*0.045), pisoVos()) };
   /* §2z39.4 + §2z39.13 EL DRILL DE VISIÓN NACE AFUERA DEL ARCO Y EN LUGARES DISTINTOS (su caza: "empezás
      siempre en el mismo lugar" — a los ángulos anchos 1,1·R3 no entraba en el ancho de la cancha y todo
      caía al fallback del frente): el ángulo se sortea en ±0,8 (nunca el córner: la cámara ancha es otro
@@ -13171,6 +13234,9 @@ function armarPosesion(){
   /* el DRILL no muta (revisión 2026-08-29): la posesión de práctica es la que pidió el
      drill — sin bloqueo sorteado, el skill entrenado es el único examinado */
   if(G.tipo==='decision' && !(G.beat&&(G.beat.final||G.beat.heredada||G.beat.drill)) && Math.random()<0.30) G.tipo='bloqueo';
+  /* §2z207 SIN PELOTA: prendida, la mitad de las MARCADO que no son cortina (la pedida es tuya con la pelota: no) */
+  if(G.tipo==='decision' && !G.tut && !esPedida && !(G.beat&&(G.beat.final||G.beat.heredada||G.beat.drill))
+     && (SIN_PELOTA_EN_PARTIDO||window.SIN_PELOTA_PRUEBA) && Math.random()<SINP.enPartido) G.tipo='sinPelota';
   G.beat=null;
   /* CONTINUIDAD (su avance confuso: "hubo transición y no sé si tenía que seguir corriendo"):
      la posesión ganada cruzando arranca DONDE CRUZASTE, no en un lugar nuevo — el cuerpo
@@ -13336,6 +13402,21 @@ function armarPosesion(){
   /* §2z129: la marca de la válvula de la sacada, a un cuerpo de él del lado de la pelota */
   if(G.tipo==='sacada' && G.comps[2]){ const cv=G.comps[2], dV=Math.max(1,dist(cv,G.vos));
     G.defs.push({ x: cv.x+(G.vos.x-cv.x)/dV*30*ESC()+rnd(-5,5), y: cv.y+(G.vos.y-cv.y)/dV*30*ESC()+rnd(-5,5) }); }
+  /* §2z207 SIN PELOTA: la tiene el abierto en el ala de enfrente (a ≥ 1,0·R3: más cerca sale la rotación del protector), vos en tu
+     ala con tu marca en su postura (NIEGA · FLOTA) y el grandote en el rincón corto DEL LADO DE LA PELOTA. Cuatro líneas en DISEÑO. */
+  G.spLibreto=null;
+  if(G.tipo==='sinPelota'){
+    const ladoV=Math.random()<0.5?1:-1, eS=ESC();
+    G.vos={x:a.x+ladoV*R3()*rnd(0.62,0.78), y:Math.min(a.y+R3()*rnd(0.62,0.80), pisoVos())};
+    const pas={x:a.x-ladoV*R3()*rnd(0.60,0.72), y:Math.min(a.y+R3()*rnd(0.80,0.92), pisoVos()), big:false};
+    const cb=casasDelBig(-ladoV)[0], big={x:cb.x+rnd(-6,6), y:cb.y+rnd(-6,6), big:true};
+    G.comps=[big, pas];
+    G.spLibreto=(G.spForzar==='niega'||G.spForzar==='flota') ? G.spForzar : (Math.random()<0.5?'niega':'flota');
+    const po=posturaSinPelota(G.spLibreto,G.vos,pas);
+    G.marca={x:G.vos.x+po.x*SINP.postura*eS, y:G.vos.y+po.y*SINP.postura*eS};
+    const haciaAro=(p,dd)=>{ const q=Math.max(1,dist(p,a)); return {x:p.x+(a.x-p.x)/q*dd, y:p.y+(a.y-p.y)/q*dd}; };
+    G.defs=[G.marca, haciaAro(pas,34*eS), {...haciaAro(big,34*eS), big:true}];
+  }
   /* LA POSESIÓN HEREDADA HEREDA EL ELENCO (su reporte 2026-08-23: "los jugadores no
      quedan en la misma posición que pasaron al ataque en la transición"): tras el cruce
      del avance o el cierre del contra, cada uno queda DONDE SU CARRERA LO DEJÓ — nada
@@ -13805,7 +13886,7 @@ function armarPosesion(){
      desmarcado — esto tiene que ser un juego a lo NSS". Por eso LA AYUDA se sortea por
      posesión (big 55%, perímetro 45%): el que ayuda se hunde hacia la pintura y deja a
      su hombre LIBRE — el desmarcado existe endógenamente, en un lugar distinto cada vez. */
-  if(['decision','carril','cierre','bloqueo'].includes(G.tipo)){
+  if(['decision','carril','cierre','bloqueo','sinPelota'].includes(G.tipo)){   // §2z207: SIN PELOTA reparte para cuando recibís (el desmarque no mueve la base)
     G.asig=new Map();
     /* §2z39.2: el big rival elige PRIMERO (si no, un perimetral se llevaba al grandote por cercanía) */
     for(const df of [...G.defs].sort((x,y)=>(y.big?1:0)-(x.big?1:0))){ if(df===G.marca) continue;
@@ -13885,7 +13966,7 @@ function armarPosesion(){
   G.rot=null;   // §2z39.1: la rotación al aro arranca con la pelota adentro
   G.cierreVolado=null; G.cierraTarde=null; G.veloDrill=null;   // §2z127
   if(G.tipo!=='avance') G.transicion=null;
-  if(G.tipo!=='slalom'){ G.slalom=null; G.camCentro=null; }
+  if(G.tipo!=='slalom'){ G.slalom=null; G.camCentro = G.tipo==='sinPelota' ? (G.vos.x+G.comps[1].x)/2 : null; }   // §2z207: entre vos y el pasador
   encuadrar(!!beatDesde);   // la heredada desliza; el spawn nuevo corta
   /* (va DESPUÉS del reseteo y DESPUÉS de encuadrar: enPantalla necesita la cámara de ESTA posesión —
      §2z38.2, su caza: se desmarcó uno fuera de la ventana que veía) */
@@ -13901,7 +13982,7 @@ function armarPosesion(){
        desmarcarse SALE SOLO — una flechita corta pegada al cuerpo dice para dónde, y a los
        900 + (1100 − 60·vis) ms arranca. Tocarlo lo manda YA; arrastrar desde él le cambia el
        destino. Ninguno de los dos hace falta: lo tuyo es pasársela a tiempo. */
-    if(G.asig){ const vis=dif.vis===undefined?3:dif.vis;
+    if(G.asig && G.tipo!=='sinPelota'){ const vis=dif.vis===undefined?3:dif.vis;   // §2z207: en SIN PELOTA el que se desmarca sos vos
       if(G.esDrill || (CORTE_EN_PARTIDO && !heredada && Math.random()<0.10+0.015*vis)){   // §2z39.20: la heredada no sortea corte (el elenco quedó donde su carrera lo dejó)
         /* en el DRILL el abierto tiene que estar a la vista: la cámara se centra en vos y si caés de su
            lado, él queda afuera del cuadro y el único que puede cortar es el grandote a la pintura llena */
@@ -14015,6 +14096,17 @@ function armarPosesion(){
       : t(L('Vienen ellos: mantené apretado y deslizá.',"They're coming: hold down and slide.",'Eles vêm: segura apertado e desliza.')), true);   // un renglón (su caza 2026-09-03: tapaba el aro)
     G.fase='defiendo'; G.pelotaEn=G.defensa.portador;
     G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0; }
+  else if(G.tipo==='sinPelota'){
+    /* §2z207: la tiene él y arranca el desmarque — tu marca, su cuerpo y la lectura del compañero viven en 14 (tickSinPelota) */
+    veredicto(t(L('¡DESMARCATE!','GET OPEN!','DESMARQUE-SE!')),'neu',1200);
+    sit.textContent=t(L('SIN PELOTA','OFF THE BALL','SEM BOLA')); sit.className='carril';
+    explicar('sinPelota',t(L('Arrastrá para moverte: cuando quedes libre, te la pasa.','Drag to move: once you are open, he passes it.','Arraste para se mover: quando ficar livre, ele passa.')), false);
+    const pas=G.comps[1], ahora=performance.now();
+    G.fase='desmarque'; G.pelotaEn=pas; G.carreraVos=null; G.flickIni=null;
+    G.desmarque={hasta:ahora+SINP.lectura+SINP.ventana, compi:pas, forma:null,
+      txt:t(L('Te la tiró igual.','He threw it to you anyway.','Ele passou mesmo assim.')),
+      sp:{libreto:G.spLibreto, t0:ahora, toco:null, reacc:null, lee:null}};
+  }
   else if(G.tipo==='bloqueo'){
     /* 2026-09-10 (su duda sobre «te suben una pantalla»: "no sé si se entiende o es vocabulario interno"; su elección): UNA
        palabra en todo el juego, CORTINA — la que dicen los relatores acá y la que ya usaba la defensa. Y el texto de la
@@ -14497,6 +14589,7 @@ c.addEventListener('pointerdown',e=>{
     G.joy={x0:P.x, y0:P.y, x:P.x, y:P.y}; return; }
   if(G.fase==='desmarque'||(G.fase==='vuelo'&&G.paseVivo)){
     try{c.setPointerCapture(e.pointerId)}catch{}
+    tocoSinPelota();   /* §2z207: tu primer toque arranca la paciencia del compañero */
     G.flickIni=P; return; }
   /* boteando, cada apoyada del dedo abre un arrastre nuevo (en cualquier lado de la pantalla) */
   if(G.fase==='conduzco' && dif.drive==='toques'){
@@ -14734,6 +14827,16 @@ function clampMundoJugable(x,y){
    tiempo real, pasado el segundo pase cada ida y vuelta PIERDE reloj neto. Escalera
    opinable. */
 function pisoDevolucion(){ return [4500,3000,2600][Math.min(G.pasesPos||0,2)]; }
+/* 2026-09-11 (su caza: «si estás dribbleando y te agarran DE ATRÁS, la prosa dice "te chocaste con la defensa"»): el choque se
+   nombra según de dónde vino el que te la sacó — el defensor más cercano contra para dónde ibas (el rumbo del bote, o la pelota) */
+function textoChoque(){
+  let df=null, dm=1e9; for(const x of G.defs){ const q=dist(x,G.vos); if(q<dm){ dm=q; df=x; } }
+  const dB=G.bola?dist(G.bola,G.vos):0;
+  const hacia=G.rumbo || (dB>2 ? {x:(G.bola.x-G.vos.x)/dB, y:(G.bola.y-G.vos.y)/dB} : null);
+  const atras=!!(df&&hacia&&dm>0.5&&((df.x-G.vos.x)*hacia.x+(df.y-G.vos.y)*hacia.y)/dm<=-0.5);
+  return atras ? t(L('Te la sacaron de atrás conduciendo.','They stripped you from behind on the drive.','Roubaram por trás durante a condução.'))
+               : t(L('Te chocaste con la defensa conduciendo.','You ran into the defense on the drive.','Você trombou na defesa durante a condução.'));
+}
 function boteDeEscena(){
   return G.tipo==='carril'||G.tipo==='avance'||G.tipo==='contra'||G.tipo==='bloqueo'
       || G.tipo==='slalom' || G.esFinal || !!G.devuelta;
@@ -14861,7 +14964,17 @@ function apuntar(dx,dy,largo){
     let dd0=dirT-dirA; while(dd0>Math.PI)dd0-=2*Math.PI; while(dd0<-Math.PI)dd0+=2*Math.PI;
     eAs=dd0; eA=Math.abs(dd0);
   }
-  G.tiro={blanco:mejor, potencia:largo*escalaGesto(), drive:false, eA, eAs};
+  /* §2z210 (su pregunta 2026-09-11: «los pases largos deberían mejorar precisión con visión, ¿eso pasa?» — no pasaba: VISIÓN
+     prendía guías y nada más): en el PASE LARGO (>1·R3) la visión te acerca la fuerza a la justa —hasta un 40 % del error con
+     visión 10—, o sea que la pelota cae más cerca de donde apuntaste. El tiro no se toca (esa memoria es del pulgar), y como se
+     corrige ACÁ, la píldora TAPADO mira la misma caída que va a pasar. */
+  let pot=largo*escalaGesto();
+  if(mejor && mejor.tipo!=='tiro' && mejor.p){
+    const dB=dist(G.vos,mejor.p);
+    if(dB>R3()){ const justaB=potPara(dB), vis=dif.vis===undefined?3:dif.vis;
+      pot=justaB+(pot-justaB)*(1-0.04*vis); }
+  }
+  G.tiro={blanco:mejor, potencia:pot, drive:false, eA, eAs};
   G.bobAmp=(dist(G.marca,G.vos)<70*ESC()?34:20) + dif.def*0.25;
   if(dif.tiro2==='timing' && mejor.tipo==='tiro'){
     /* el TIRO va al MEDIDOR; el PASE conserva la pelota (su vuelta jugando 2026-08-22:
@@ -15463,7 +15576,10 @@ function lanzar(zona){
        corre y vos te podés mover (el flick del desmarque) — el precio del pase es el
        tiempo real que tarda, UNA sola vez. Los descuentos fijos murieron con esta regla. */
     G.paseVivo='ida';
-    if(t.blanco.tipo==='lob'){
+    /* 2026-09-11 (su caza: «¿el alley oop puede salir con pases picados o al pecho? debería ser sólo con colgados»): el blanco del
+       lob lo decide dónde cae y la forma se elige después — no se miraba. Sólo el globo es alley; picado o tenso al anillo es el
+       pase al espacio de siempre (el que rueda la corre y sigue de largo). */
+    if(t.blanco.tipo==='lob' && forma==='abajo'){   /* el colgado es `abajo` (NOMBRE.pase: arriba = Picado · medio = Tenso · abajo = Globeado) */
       /* EL ALLEY OOP (co-diseñado 2026-08-28): el globo al espacio de al lado del aro
          para el que rueda. Por arriba NADIE lo toca (la pelota se roba donde se alcanza)
          — se resuelve entero EN LA CAÍDA: defensor a <30·ESC del punto = MANOTEADO (su
@@ -15524,6 +15640,11 @@ function lanzar(zona){
     let dur=d/700, arco=0.12;
     if(forma==='arriba'){ dur=d/470; arco=0.05; }
     if(forma==='abajo'){  dur=d/360; arco=0.9; }
+    /* §2z210 (su caza 2026-09-11: «hay pases picados que salen bien a lo largo de toda la cancha»; su ok a las dos): el picado
+       cruzando la cancha no existe. Pasado 0,9·R3 (unos 6 m) PIERDE: viaja más lento y la ventana donde se roba se agranda
+       (0,25–0,90 del carril en vez de 0,40–0,80), así la píldora TAPADO lo avisa ANTES de soltar. De cerca, igual que siempre. */
+    const picadoLargo = forma==='arriba' && d>R3()*0.9;
+    if(picadoLargo) dur=d/380;
     /* LA PELOTA SE ROBA DONDE SE ALCANZA (su regla 2026-08-28: "¿el bombeado es igual de
        difícil de interceptar en todo lugar?" — no debería, y de paso el globeado era
        IRROBABLE en todos lados): la altura del vuelo decide dónde hay manos. El TENSO
@@ -15537,7 +15658,7 @@ function lanzar(zona){
        cierre del volado de abajo (¿llega el defensor a tiempo?), que mira el tiempo y no un radio fijo;
        queda sólo la salida (0-25 %, la mano levantada delante tuyo). (2) El que persigue al que corta
        corre de espaldas a la pelota: no roba en el vuelo, en ninguna forma. */
-    const zonasR = forma==='abajo' ? [[0,0.25]] : forma==='medio' ? [[0,1]] : [[0.4,0.8]];
+    const zonasR = forma==='abajo' ? [[0,0.25]] : forma==='medio' ? [[0,1]] : picadoLargo ? [[0.25,0.9]] : [[0.4,0.8]];   // §2z210: el picado largo se roba en casi todo el pique
     for(const df of [G.defs[1],G.defs[2]]){
       if(!df || dist(df,desde)<40) continue;
       if(forma==='abajo' && G.corrida && df===G.corrida.ch && !G.corrida.llego) continue;   // de espaldas, corriendo al otro: el GLOBO le pasa por arriba (su precisión: un tenso a la altura del cuerpo lo para igual)
@@ -15676,7 +15797,10 @@ function lanzar(zona){
       const rod={x:cae.x+Math.cos(dir)*R, y:cae.y+Math.sin(dir)*R};   // sin clamp: si rueda afuera, ES afuera
       /* a la pelota dividida se le CORRE de verdad: el doble del sprint del cierre (64px/s
        era caminar — la primera prueba dio carreras de 6s). Constante nueva, a calibrar. */
-      const vCarrera=Math.max(120, dif.def*3.5);
+      /* §2z210 (su caza 2026-09-11: «los pases al espacio hacen que los jugadores salgan corriendo más rápido de lo normal…
+         con los colgados siempre llega alguien demasiado rápido»): a def 64 esto daba 224 px/s — MÁS que el sprint más rápido
+         que existe en el juego (190, el de la transición que «nunca te alcanza corriendo», §2z147). Va topeado ahí. */
+      const vCarrera=clamp(dif.def*3.5, 120, 190);
       /* VOS NO CORRÉS TU PROPIO PASE (su reporte 2026-08-25: "¿ir a buscar qué? no puede
          levantar su propio pase" — el autopase ya era violación; correrlo era absurdo) */
       let cC=null,dC=1e9; for(const j of G.comps){ const q=dist(j,rod); if(q<dC){dC=q;cC=j;} }
@@ -16469,12 +16593,112 @@ function lobVuelta(desde,hasta){
   const alcanza=Math.max(55,dif.def*2)*(dist(desde,hasta)/360);
   return dd-26*ESC()>alcanza && (dd-alcanza)>55*ESC();
 }
+/* §2z207 SIN PELOTA — la inversa del corte: la tiene él, te desmarcás vos y ÉL decide el pase (las cuatro líneas, en DISEÑO).
+   La postura de tu marca ES la lectura: NIEGA (arriba, del lado de la pelota) o FLOTA (hundida hacia el aro). */
+/* §2z212 v4 ⚠️ (su caza, la que destrabó todo: «en el desmarque que estás solo, tu defensor aparece ATRÁS tuyo. Si estuvieras vos
+   del lado de la línea de 3, o sea más lejos del aro que él, ya algo resolvería»): la v1 armaba NIEGA con una componente que lo
+   ALEJABA del aro (û(vos−aro)), así que quedaba atrás tuyo y el corte a la bandeja no tenía a nadie en el camino: por eso era un
+   regalo. Un defensor NUNCA queda más lejos del aro que su hombre. La postura son dos componentes y la radial siempre apunta AL
+   ARO: cuánto te niega la línea de pase (de costado, perpendicular al aro) y cuánto te cierra el camino. NIEGA te tapa la línea y
+   algo el aro; FLOTA se hunde al aro y te regala la línea. El examen cambia de «salí por el otro lado» a elegir entre la puerta de
+   atrás —que ahora hay que ganarle— y abrirte, que paga tiro en vez de bandeja. */
+function posturaSinPelota(libreto,vos,pasador){
+  const a=aro(), u=(p,q)=>{ const d=Math.max(1,dist(p,q)); return {x:(q.x-p.x)/d, y:(q.y-p.y)/d}; };
+  const r=u(vos,a), b=u(vos,pasador);
+  const pr=b.x*r.x+b.y*r.y, t={x:b.x-r.x*pr, y:b.y-r.y*pr};   // lo que «hacia la pelota» tiene de COSTADO
+  const tl=Math.hypot(t.x,t.y)||1, tn={x:t.x/tl, y:t.y/tl};
+  const kl = libreto==='flota' ? 0.25 : 0.85, kr = libreto==='flota' ? 1.00 : 0.50;
+  const x=tn.x*kl+r.x*kr, y=tn.y*kl+r.y*kr, L2=Math.hypot(x,y)||1;
+  return {x:x/L2, y:y/L2};
+}
+/* el carril de SIN PELOTA: el de siempre (C4) más TU marca — en la devolución no cuenta (vive en el destino y la recepción
+   protegida la cuida); acá es justamente lo que se examina */
+function carrilSinPelota(desde,hasta){
+  const c=carrilVuelta(desde,hasta), e=ESC(), dM=dist(G.marca,hasta);
+  const pM = dM<=30*e ? 0.9 : dM<SINP.libre*e ? lerp(0.6,0.25,(dM-30*e)/((SINP.libre-30)*e)) : 0;
+  return pM>c.p ? {p:pM, df:G.marca} : c;
+}
+/* §2z212 v6 (su caza: «si cortás hacia el aro, que el big se mueva tan rápido hace que el que tiene la pelota nunca te la
+   quiera pasar; nunca estás realmente libre»): LIBRE pedía a TODOS los defensores lejos, y el protector bajando al aro rompía eso
+   siempre — al cortador se le pasa igual y después definís contestado, que es lo que hace el básquet. Ahora mira a TU MARCA (el
+   listón de siempre) y a que el carril esté limpio; cualquier otro cuenta sólo si te está ENCIMA (un cuerpo). El big que baja te
+   cuesta la definición, no el pase. */
+/* §2z212 v7 (su caza con video: «siempre que cortás hacia el aro no te la pasan… esa jugada, que es la más intuitiva, no sale
+   nunca» — medido en los frames: casi todas cerraban en «No tenía el pase limpio: la tira él»): pedía CARRIL PERFECTO y cortando a
+   la pintura eso no pasa jamás, porque ahí viven el protector que baja, tu grandote y el que ayuda. En el deporte ese pase existe:
+   va picado o por arriba y el riesgo lo cobra el ROBO, no la negativa. Ahora te la tira con el carril algo pisado (p < 0,35) o si
+   entra el globo; y ADENTRO (a menos de 0,55·R3 del aro) el listón de libre baja a 45·ESC — cortando alcanza con ganarle el
+   cuerpo, no hace falta el aire de un tiro. */
+function libreSinPelota(pasador){
+  const e=ESC(), adentro=dist(G.vos,aro())<R3()*0.55;
+  const r=(adentro?45:SINP.libre)*e, cuerpo=30*e;
+  if(dist(G.marca,G.vos)<r) return false;
+  if(G.defs.some(d=>d!==G.marca && dist(d,G.vos)<cuerpo)) return false;
+  return carrilVuelta(pasador,G.vos).p<0.35 || lobVuelta(pasador,G.vos);
+}
+/* tu primer toque arranca la paciencia del compañero (hasta ahí corre la lectura) */
+function tocoSinPelota(){
+  const dm=G.desmarque; if(!dm||!dm.sp||dm.sp.toco!=null) return;
+  dm.sp.toco=performance.now(); dm.hasta=Math.min(dm.hasta, dm.sp.toco+SINP.ventana);
+}
+/* el frame del desmarque en SIN PELOTA: tu marca espera tu primera carrera, reacciona tarde y persigue SU POSTURA (no a vos: la
+   brecha que ganaste por el lado bueno no se cierra); su cuerpo no se atraviesa; y el compañero te la da cuando quedás libre */
+function tickSinPelota(dm,dt,now){
+  const sp=dm.sp, e=ESC();
+  /* §2z207 v2 (su caza jugándola: «es MUY fácil desmarcarte, nadie te corre a ninguna velocidad muy grande… es un regalo»): tu
+     marca reaccionaba en medio segundo y corría más lento que vos, así que cualquier arranque alcanzaba. Ahora lee a
+     `450 − 4·def` ms (290 con def 40) y corre a `(0,88 + 0,003·def)` de tu velocidad: a def 40 te iguala, arriba te recupera. */
+  if(G.carreraVos && sp.reacc==null){ tocoSinPelota(); sp.reacc=now+Math.max(0,450-4*dif.def); }
+  /* §2z212 v5 ⚠️ (su caza: «la marca NO SE PIERDE, siempre es tu espejo; podés hacer movimientos para todos lados que siempre
+     está un paso adelante tuyo»): perseguía tu posición EXACTA recalculada cada cuadro — un espejo perfecto, sin retardo ni
+     inercia, donde cambiar de dirección no le costaba nada. Las dos cosas que la hacen perderse, y las dos escalan con `def`
+     (su pregunta: «esto tiene que depender de la dificultad del juego, ¿no?»):
+       · RETARDO: persigue dónde estabas hace `380 − 2·def` ms (348 con def 16, 268 con def 56), no dónde estás.
+       · INERCIA: su velocidad no salta, acelera a `700 + 8·def` px/s² — un cambio de dirección tuyo la hace derrapar.
+     La velocidad tope sigue abajo de la tuya (0,78 + 0,003·def, tope 0,95 de VEL_DESMARQUE). */
+  sp.rastro=sp.rastro||[]; sp.rastro.push({t:now,x:G.vos.x,y:G.vos.y});
+  while(sp.rastro.length>2 && now-sp.rastro[0].t>900) sp.rastro.shift();
+  const lag=Math.max(120,380-2*dif.def);
+  const ref=sp.rastro.find(p=>now-p.t<=lag)||{x:G.vos.x,y:G.vos.y};
+  const po=posturaSinPelota(sp.libreto,G.vos,dm.compi);
+  if(sp.reacc!=null && now>=sp.reacc){
+    const poR=posturaSinPelota(sp.libreto,ref,dm.compi);
+    const meta={x:ref.x+poR.x*SINP.postura*e, y:ref.y+poR.y*SINP.postura*e};
+    const vMax=Math.min(0.95,0.78+0.003*dif.def)*VEL_DESMARQUE, d=dist(G.marca,meta);
+    sp.v=sp.v||{x:0,y:0};
+    const des = d>1 ? {x:(meta.x-G.marca.x)/d*Math.min(vMax,d/Math.max(dt,0.016)), y:(meta.y-G.marca.y)/d*Math.min(vMax,d/Math.max(dt,0.016))} : {x:0,y:0};
+    /* v6 (su caza: «un cambio de ritmo no paga casi nada, el jugador se recupera rápido»): 700+8·def daba 1148 px/s² en
+       estrella —invertir la marcha le costaba 0,14 s, o sea nada—. A la mitad: 430 con def 16, 630 con def 56, que son ~0,25 s
+       de derrape. Ahí está el paso que gana el quiebre. */
+    const acc=(350+5*dif.def)*dt;
+    sp.v.x+=clamp(des.x-sp.v.x,-acc,acc); sp.v.y+=clamp(des.y-sp.v.y,-acc,acc);
+    G.marca.x+=sp.v.x*dt; G.marca.y=Math.max(G.marca.y+sp.v.y*dt, pisoDef());
+  }
+  /* §2z212 v3 (su video: «las jugadas donde no tenés a nadie muy cerca son un regalo»): el protector lee TU corte apenas entrás
+     a 0,75·R3 —sin pelota, es lo único que la defensa mira— y no con el retardo del drive; el frame (18) lo baja desde ahí. */
+  if(!G.rot && dist(G.vos,aro())<R3()*0.75){
+    let prot=null; if(G.asig) for(const [df,co] of G.asig) if(co&&co.big&&df.big) prot=df;
+    if(prot) G.rot={t0:now, df:prot, suave:false, leido:now+200};
+  }
+  const rC=SINP.cuerpo*e, dv=dist(G.vos,G.marca);
+  if(dv<rC){ const ux=dv>0.5?(G.vos.x-G.marca.x)/dv:-po.x, uy=dv>0.5?(G.vos.y-G.marca.y)/dv:-po.y;
+    const q=clampMundoJugable(G.marca.x+ux*rC, G.marca.y+uy*rC); G.vos.x=q.x; G.vos.y=q.y; }
+  if(sp.lee==null && sp.toco!=null && libreSinPelota(dm.compi)){
+    sp.lee=now; dm.hasta=Math.min(dm.hasta, now+SINP.leeMs);
+    dm.txt=t(L('Te desmarcaste: te la dio.','You got open: he found you.','Você se desmarcou: ele te achou.'));
+  }
+}
 /* EL PASADOR TAMBIÉN DECIDE (§2z4.1): con el carril muerto no la regala — la tira él, con
    el modelo único de todos (§2e). Pegado al aro DEFINE (la regla del deporte: nadie erra
    eso de parado), lejos es su tiro por Q. Sin asistencia: la jugada es suya. */
 function tiraSolo(compi){
   G.pelotaEn=null; G.paseVivo=null; G.malDesmarque=(G.malDesmarque||0)+1;   // §2z51: lo forzaste vos, que no te desmarcaste
-  relato(t(L('No tenía el pase limpio: la tira él.','No clean pass there: he takes it himself.','Não tinha passe limpo: ele arremessa.')),true);
+  /* §2z212 v8 (su caza al aprobar la jugada: «cuando tira solo no tiene que ser asistencia tuya»): en SIN PELOTA la pelota NUNCA
+     fue tuya — no hay pase que premiar. En el resto del juego sigue valiendo §2z25 («se la diste vos y la metió, aunque haya
+     definido porque no tenía cómo devolvértela»), que es corte suyo del 2026-09-02. */
+  const mio = G.tipo!=='sinPelota';
+  relato(t(mio?L('No tenía el pase limpio: la tira él.','No clean pass there: he takes it himself.','Não tinha passe limpo: ele arremessa.')
+              :L('Nunca te encontró libre: la tira él.','He never found you open: he takes it himself.','Nunca te achou livre: ele arremessa.')),true);
   const a=aro(), dA=dist(compi,a);
   if(dA<R3()*0.55){
     posar(compi,'bandeja',a,900);
@@ -16482,9 +16706,10 @@ function tiraSolo(compi){
       const p=Math.min(0.96, 0.6+calidadDesde(compi,false)*0.42);
       /* §2z25 (su caza 2026-09-02): se la diste vos y la metió — ES asistencia, aunque
          haya definido porque no tenía cómo devolvértela */
-      if(Math.random()<p){ canastaFx(); G.nos+=2; G.ast++; G.ptsAsist+=2; marcador(); aprende('pase');
-        veredicto(t(L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!')),'ok');
-        finPosesion(true,t(L('No había pase de vuelta: definió él. Asistencia tuya.','No pass back: he finished it. Your assist.','Não tinha passe de volta: ele finalizou. Assistência sua.'))); }
+      if(Math.random()<p){ canastaFx(); G.nos+=2; if(mio){ G.ast++; G.ptsAsist+=2; aprende('pase'); } marcador();
+        veredicto(t(mio?L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!'):L('LA METIÓ ÉL','HE SCORED','ELE FEZ')),mio?'ok':'neu');
+        finPosesion(true,t(mio?L('No había pase de vuelta: definió él. Asistencia tuya.','No pass back: he finished it. Your assist.','Não tinha passe de volta: ele finalizou. Assistência sua.')
+                              :L('Nunca te encontró libre: definió él.','He never found you open: he finished it himself.','Nunca te achou livre: ele finalizou.'))); }
       else { G.pasesTiro=(G.pasesTiro||0)+(p>=0.75?1.5:1);   /* §2z39.41: el pase que terminó en tiro suma aunque la erre; solo, más */  veredicto(t(L('¡La dejó en el aro!','He left it on the rim!','Deixou no aro!')),'mal');
         finPosesion(false,t(L('No había pase: definió él y no entró.','No pass on: he went himself and missed.','Não tinha passe: ele tentou e errou.'))); }
     });
@@ -16492,9 +16717,10 @@ function tiraSolo(compi){
     posar(compi,'tira',a,1000);
     vuelo({x:compi.x,y:compi.y},{...a},0.5,Math.max(0.3,dA/520),()=>{
       const p=pMeteNPC(compi,false);
-      if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; G.ast++; G.ptsAsist+=v; marcador(); aprende('pase');
-        veredicto(t(L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!')),'ok');
-        finPosesion(true,t(L('No había pase de vuelta: la tiró él y entró. Asistencia tuya.','No pass back: he shot it and it fell. Your assist.','Não tinha passe de volta: ele arremessou e caiu. Assistência sua.'))); }
+      if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; if(mio){ G.ast++; G.ptsAsist+=v; aprende('pase'); } marcador();
+        veredicto(t(mio?L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!'):L('LA METIÓ ÉL','HE SCORED','ELE FEZ')),mio?'ok':'neu');
+        finPosesion(true,t(mio?L('No había pase de vuelta: la tiró él y entró. Asistencia tuya.','No pass back: he shot it and it fell. Your assist.','Não tinha passe de volta: ele arremessou e caiu. Assistência sua.')
+                              :L('Nunca te encontró libre: la tiró él y entró.','He never found you open: he took it and hit it.','Nunca te achou livre: ele arremessou e caiu.'))); }
       else { G.pasesTiro=(G.pasesTiro||0)+(p>=0.75?1.5:1);   /* §2z39.41: el pase que terminó en tiro suma aunque la erre; solo, más */  veredicto(t(L('La tiró él y no entró','He took it and missed','Ele arremessou e errou')),'mal');
         finPosesion(false,t(L('No había pase: la tiró él y no entró.','No pass on: he shot it and missed.','Não tinha passe: ele arremessou e errou.'))); }
     });
@@ -16872,9 +17098,13 @@ function recibe(compi,forma,txt,va){
   if(abierto){
     relato(giro?t(L('De espaldas al aro: gira y la tira.','Back to the basket: he turns and shoots.','De costas para a cesta: gira e arremessa.')):t(L('¡Quedó solo — la tira él!','He\'s wide open — he takes it!','Ficou livre — ele arremessa!')),true);
     /* el armado hereda la altura del pase y el tiro que es; la defensa cierra mientras (y el giro, si se la tiraste atrás) */
-    const arm=armMs;
+    /* §2z210 (su caza 2026-09-11: «cuando un jugador está picando o algo de eso, tira MOVIÉNDOSE… eso debería penalizar el tiro o
+       que tarde en tirar»): el que recibe EN CARRERA frena antes de tirar —280 ms, el precio de parar y armar, el mismo que te
+       cuesta a vos el toque seco— y el tiro vale menos. El que recibe parado, igual que siempre. */
+    const FRENO=280, enCarrera=!!(G.corre&&G.corre.j===compi)||!!(G.corres&&G.corres.some(cr=>cr.j===compi&&cr.t<1));
+    const arm=armMs+(enCarrera?FRENO:0);
     cierraAlArmado(compi,arm);
-    const pDeclarado=pSolo(compi);   // §2z52: lo que el cartel dijo es lo que pasa — las odds del solo, selladas al declararlo
+    const pDeclarado=pSolo(compi)*(enCarrera?0.85:1);   // §2z52: lo que el cartel dijo es lo que pasa — las odds del solo, selladas al declararlo
     setTimeout(()=>{
       const p=pDeclarado;
       G.pelotaEn=null; posar(compi,'tira',aro(),1000);
@@ -18159,14 +18389,18 @@ function jugador(p,eq,opts={}){
     ctx.beginPath(); ctx.arc(p.x,p.y+2,19,0,Math.PI*2); ctx.stroke(); }
   // los PIES asoman bajo el torso y trotan a contratiempo de los brazos
   const fase=performance.now()/95 + i*1.7;
-  const fw = corre ? Math.sin(fase)*5*s : 0;
+  /* 2026-09-11 (su caza: «post alley oop la prosa dice "la volcó"… creo recordar que el compañero hace una bandeja, o no tiene
+     animación de volcarla»): SÍ volcaba —los dos brazos al hierro— pero seguía TROTANDO, y el trote es lo que se lee. El que
+     vuelca está en el aire: las piernas se juntan (jt) y no se hamacan. */
+  const corriendo = corre && !volcada;
+  const fw = corriendo ? Math.sin(fase)*5*s : 0;
   /* VOLCANDO las piernas se juntan (está en el aire); bandejeando siguen trotando */
   const jt = volcada ? 0.55 : 1;
   ctx.fillStyle='#241f31';
   ctx.beginPath(); ctx.ellipse(p.x-4.5*s*jt,p.y+12.5*s+fw,2.8*s,4*s,0,0,Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(p.x+4.5*s*jt,p.y+12.5*s-fw,2.8*s,4*s,0,0,Math.PI*2); ctx.fill();
   // brazos: casaca con REMATE DE PIEL (la mano); al correr se hamacan a contratiempo
-  const sw = corre ? Math.sin(fase)*4*s : 0;
+  const sw = corriendo ? Math.sin(fase)*4*s : 0;
   const brazo=(lado,bx,by)=>{
     ctx.strokeStyle=eq; ctx.lineWidth=4.5*s; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(p.x+lado*8*s,p.y); ctx.lineTo(bx,by); ctx.stroke();
@@ -18400,7 +18634,7 @@ function frame(now){
     if(G.fase==='desmarque'&&G.desmarque){
       /* la carrera del empujón: corrés al punto del toque a la velocidad de siempre */
       if(G.carreraVos){
-        const vJ=210*dt, m=G.carreraVos, dd=dist(m,G.vos);
+        const vJ=VEL_DESMARQUE*dt, m=G.carreraVos, dd=dist(m,G.vos);
         if(dd>4){ G.vos.x+=(m.x-G.vos.x)/dd*Math.min(vJ,dd); G.vos.y+=(m.y-G.vos.y)/dd*Math.min(vJ,dd); }
         else G.carreraVos=null;
       }
@@ -18409,9 +18643,11 @@ function frame(now){
          velocidad plena mientras la pelota estaba en OTRO — en el básquet real ese
          defensor mira la pelota y se relaja. A media máquina, tu empujón de 210px/s
          compra separación DE VERDAD y llegás a la devolución con el aire que te ganaste. */
-      const vM=G.tutQuieto?0:dif.def*0.55*dt, dM=dist(G.marca,G.vos);   // §7.1: en el tutorial de pasar, quietos
-      if(dM>26*ESC()){ G.marca.x+=(G.vos.x-G.marca.x)/dM*vM;
-        G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/dM*vM, pisoDef()); }   // §2z117 v2
+      /* §2z207 SIN PELOTA: tu marca no mira la pelota — te defiende en su postura, tiene cuerpo, y el compañero lee (14) */
+      if(G.desmarque.sp) tickSinPelota(G.desmarque,dt,now);
+      else { const vM=G.tutQuieto?0:dif.def*0.55*dt, dM=dist(G.marca,G.vos);   // §7.1: en el tutorial de pasar, quietos
+        if(dM>26*ESC()){ G.marca.x+=(G.vos.x-G.marca.x)/dM*vM;
+          G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/dM*vM, pisoDef()); } }   // §2z117 v2
       if(!dif.clkOff) G.posClock-=dt*1000;   // el reloj corre SIEMPRE: nada de saltos ocultos (bug cazado por él)
       if(now>=G.desmarque.hasta){
         const dm=G.desmarque; G.desmarque=null; G.pelotaEn=null; G.fase='vuelo';
@@ -18419,10 +18655,12 @@ function frame(now){
         /* C4 (§2z4.1): EL PASADOR DECIDE al soltar — carril muerto: no la regala, la tira
            él; dudoso: lo intenta y puede salir robado (el relato nombra el error, distinto
            según quién la cortó); limpio: te la da. Sellado al soltar, como todo. */
-        const cvV=carrilVuelta(dm.compi,G.vos);
+        const cvV=dm.sp ? carrilSinPelota(dm.compi,G.vos) : carrilVuelta(dm.compi,G.vos);   /* §2z207: en SIN PELOTA tu marca cuenta */
         const lobV=cvV.p>=0.65 && lobVuelta(dm.compi,G.vos);   // §2z39.20: carril muerto, pero el globo llega
         if(lobV) dm.txt=t(L('Te la globeó por arriba.','He lobbed it over the top.','Ele jogou o balão por cima.'));
-        if(cvV.p>=0.65 && !lobV){
+        /* §2z212 v7: si te LEYÓ libre, la pelota sale — lo que el cartel dijo es lo que pasa. El riesgo del carril lo cobra el
+           robo, abajo; tirar él queda para cuando nunca te vio libre. */
+        if(cvV.p>=0.65 && !lobV && !(dm.sp&&dm.sp.lee!=null)){
           tiraSolo(dm.compi);
         } else if(!lobV && cvV.p>0 && Math.random()<cvV.p){
           const corteV=puntoSeg(cvV.df,dm.compi,G.vos);
@@ -18458,6 +18696,10 @@ function frame(now){
              tiempo (su regla), nunca robado al recibir — el aire se re-arma y la marca no
              puede estar ya adentro del rango del manotazo */
           G.toco=null;
+          /* §2z207 (medido: quieto recibías igual 1 de 3 veces, y con el respiro de la devolución encima): en SIN PELOTA la
+             recepción sólo es PROTEGIDA si el compañero te vio libre. Si te la tiró igual, la recibís marcado y sin reloj nuevo. */
+          const sinLeer=!!(dm.sp&&dm.sp.lee==null);
+          if(!sinLeer)
           { const dM=dist(G.marca,G.vos), piso=55*ESC();
             if(dM<piso){ const an=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x)||0;
               G.marca.x=G.vos.x+Math.cos(an)*piso;
@@ -18465,8 +18707,9 @@ function frame(now){
           /* Y EL RELOJ SE RE-ARMA AL PISO QUE DECAE (su regla 2026-08-28: el segundo
              movimiento tiene que dar tiempo de JUGAR, pero sin ping-pong): 4,5s la
              primera devolución, 3s la segunda, 2,6s después — ver pisoDevolucion(). */
-          G.posClock=Math.max(G.posClock, pisoDevolucion());
+          if(!sinLeer) G.posClock=Math.max(G.posClock, pisoDevolucion());   /* §2z207: el que te tira igual no te da reloj nuevo */
           G.pasesPos=(G.pasesPos||0)+1;
+          if(G.tipo==='sinPelota') G.tipo='decision';   /* §2z207: recibida, es una posesión de las de siempre (bote nuevo, JUGÁ) */
           G.devuelta=true; G.levanto=false; pildoraDevuelta();   // recibir es bote nuevo · §2z198.3: la píldora lo dice
           G.paseVivo=null;
           G.fase='espera';
@@ -18482,7 +18725,7 @@ function frame(now){
        queda afuera: su bloque de chicharra ya es el dueño de ese reloj. */
     if(G.fase==='vuelo' && G.paseVivo){
       if(!dif.clkOff && !G.esFinal) G.posClock=Math.max(0, G.posClock-dt*1000);
-      if(G.carreraVos){ const vJ=210*dt, mv0=G.carreraVos, ddv0=dist(mv0,G.vos);
+      if(G.carreraVos){ const vJ=VEL_DESMARQUE*dt, mv0=G.carreraVos, ddv0=dist(mv0,G.vos);
         if(ddv0>4){ G.vos.x+=(mv0.x-G.vos.x)/ddv0*Math.min(vJ,ddv0);
                     G.vos.y+=(mv0.y-G.vos.y)/ddv0*Math.min(vJ,ddv0); }
         else G.carreraVos=null; }
@@ -18637,7 +18880,7 @@ function frame(now){
         else if(Math.random()<0.40){ flash(df);
           irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); break; }
         else { flash(df); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
-          perderPelota(t(L('Te chocaste con la defensa conduciendo.','You ran into the defense on the drive.','Você trombou na defesa durante a condução.')),null,true); break; }
+          perderPelota(textoChoque(),null,true); break; }
       }
       /* la ventana del contra mide tu DUDA, no tu corrida (su ok 2026-08-25): boteando en
          el contra el reloj corre a la mitad — el que corre derecho llega */
@@ -19095,7 +19338,7 @@ function frame(now){
         if(Math.random()<0.40){ flash(cu);
           irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
         else { flash(cu); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
-          perderPelota(t(L('Te chocaste con la defensa conduciendo.','You ran into the defense on the drive.','Você trombou na defesa durante a condução.')),null,true); }
+          perderPelota(textoChoque(),null,true); }
       }
     }
     /* §2z127: el que no llegó a la recepción SIGUE cerrando al receptor mientras tenga la pelota, hasta un cuerpo */
@@ -19117,7 +19360,10 @@ function frame(now){
          contacto pesa menos (aguantás más, manotea menos). */
       let suave=false;
       if(!prot){ let dMin=R3()*0.80; for(const df of G.defs){ if(df===G.marca||df===G.custodio) continue; const dd=dist(df,a7); if(dd<dMin){ dMin=dd; prot=df; } } suave=!!prot; }
-      const portador = G.pelotaEn && G.comps.includes(G.pelotaEn) ? G.pelotaEn : (G.fase==='conduzco'||G.fase==='espera'||G.fase==='apunto') ? G.vos : null;
+      /* §2z207 v2 (su caza: «nadie te corre… ni hay movimiento del resto; es como un regalo»): en SIN PELOTA el que entra a la
+         pintura sos VOS, sin pelota — el protector lee TU corte, no al que la tiene (que está afuera, a 1,0·R3). */
+      const portador = (G.desmarque&&G.desmarque.sp) ? G.vos
+        : G.pelotaEn && G.comps.includes(G.pelotaEn) ? G.pelotaEn : (G.fase==='conduzco'||G.fase==='espera'||G.fase==='apunto') ? G.vos : null;
       /* §2z72 b (su regla 2026-09-06: "el protector no tiene que SALIR a cortar, tiene que moverse alrededor del aro
          para cubrirlo; si salen a cortarte se rompe todo"): ya no sprinta hacia el portador. Cuando la pelota se
          acerca (<0,95·R3; suelta a >1,10, histéresis) lee tarde y TROTA a un punto de cobertura entre la pelota y
@@ -19152,7 +19398,10 @@ function frame(now){
           /* §2z134 (su insistencia 2026-09-07: "el big del aro se mueve DEMASIADO rápido; me salió a cortar mucho más rápido de
              lo que me muevo yo"): §2z72 b dice TROTA, y trotaba a 90–150 px/s continuos contra tu empujón de 210 a ráfagas —
              se lo ve más rápido que vos. Ahora 60–110 px/s (def 16 → 60, def 50 → 80, tope 110); el suave, ×0,7. */
-          const vP=Math.min(110,Math.max(60,(dif.def||16)*1.6))*(G.rot.suave?0.7:1)*dt, dM=dist(prot,meta);
+          /* §2z212 v4: cortando SIN pelota, el protector no trota — CIERRA (el sprint de cierre de siempre, 2·def, piso 120).
+             Vos vas a 170 y él salía a 60-110: llegabas antes siempre, que es el regalo que él cazó. */
+          const sinP=!!(G.desmarque&&G.desmarque.sp);
+          const vP=(sinP?Math.max(120,(dif.def||16)*2):Math.min(110,Math.max(60,(dif.def||16)*1.6))*(G.rot.suave?0.7:1))*dt, dM=dist(prot,meta);
           if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
           if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;
             /* §2z39.19 (su regla: "no sólo el nivel del rival, sino el tuyo — a favor"): el FÍSICO decide el
@@ -19260,7 +19509,7 @@ function frame(now){
           else if(Math.random()<0.40){ flash(P.d);
             irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
           else { flash(P.d); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
-            perderPelota(t(L('Te chocaste con la defensa conduciendo.','You ran into the defense on the drive.','Você trombou na defesa durante a condução.')),null,true); }
+            perderPelota(textoChoque(),null,true); }
         } else mv3(P.d, P.dMeta, 190);
       }
       else if(P.defensa==='blitz' && G.fase!=='conduzco'){
@@ -19273,7 +19522,12 @@ function frame(now){
        (a mitad de camino: su hombre queda LIBRE, el desmarcado del sorteo). Los guiones
        (cortina, roll, custodio, contención del conduzco) PISAN la base; cuando terminan,
        el jugador vuelve a la regla — nadie queda congelado nunca. */
+    /* §2z212 v4 (su caza sobre el video: «si nacés con tu marcador cerca tenés que darle la vuelta, pero la ayuda no llega;
+       si nacés solo es el corte al aro completamente solo… no sé si es tema de TU velocidad, sino del resto del juego»): en el
+       desmarque de SIN PELOTA el mundo estaba CONGELADO —se movía tu marca y nadie más—, así que cualquier corte terminaba en
+       bandeja sola. La base endógena corre también ahí: cada defensor va a su puesto y el que sorteó AYUDA se hunde a la pintura. */
     if(G.asig && !G.tutQuieto && (G.fase==='espera'||G.fase==='apunto'   // §7.1: en el tutorial de pasar nadie se mueve
+                  ||(G.desmarque&&G.desmarque.sp)
                   ||(G.tipo==='bloqueo'&&G.fase==='conduzco'))){
       const a5=aro();
       for(const df of G.defs){
@@ -19942,7 +20196,9 @@ function frame(now){
         if(p>1.06) soltarMedidor(); }              // te pasaste: se fue sola, larga
       if(G.medidor){
         dibujarBarra(pts,md,p,1);
-        if(!md.t0){ const B=pts[0];
+        /* 2026-09-11 (su caza: «que a esta altura la barra diga "apretá y soltá" como instrucción debería durar poco, como otras
+           cosas que ya limitamos»): es una pista de la cancha, y las pistas viven los primeros PISTAS_PARTIDOS partidos (05) */
+        if(!md.t0 && pistasTempranas()){ const B=pts[0];
           ctx.fillStyle='rgba(233,236,243,.75)'; ctx.font='600 15px Barlow Condensed';
           ctx.textAlign='center';
           /* ⚠️ EL CARTEL SEGUÍA MANDÁNDOLO AL VERDE CUANDO NO HABÍA VERDE (encontrado
@@ -20604,6 +20860,11 @@ const tieneItem=(J,id)=>!!(J.mejoras&&J.mejoras[id])||(id==='trainer'&&!!(J.entr
 /* el mejor escalón que tenés de una cadena (las compras son en orden, así que es el último tuyo) */
 const mejorDe=(J,cadena)=>{ let m=null; for(const it of ESCALERA[cadena]) if(tieneItem(J,it.id)) m=it; return m; };
 const siguienteDe=(J,cadena)=>ESCALERA[cadena].find(it=>!tieneItem(J,it.id))||null;
+/* §2z211 (su caza 2026-09-11: «la barra cierra en 100 y en el lobby estoy en 80… ¿pero dónde te lo dan?»): el descanso se cobraba
+   DENTRO de la cuenta del próximo partido, así que el número que veías —y con el que jugabas— nunca lo tenía. Ahora lo cobra el
+   velo del cierre, y los días ya cobrados quedan anotados en `nrgDias`: ningún otro camino (el cierre, pasar la semana, la ronda
+   que sigue sin vos) los paga dos veces. */
+function diasSinCobrar(n){ const J=C.jugador, ya=J.nrgDias||0, usa=Math.max(0,n-ya); J.nrgDias=Math.max(0,ya-n); return usa; }
 const regenDe=()=>{ const J=C.jugador; let r=regenClub();
   for(const k of ['vehiculo','casa','staff']){ const m=mejorDe(J,k); if(m&&m.regen) r+=m.regen; }
   return r; };
@@ -20823,6 +21084,9 @@ function cargarCarrera(n){
     /* 2026-09-12: la llave del club y la de la selección vuelven a ser una (clase 20), y los juegos de playoffs de antes de
        §2z204 recuperan su paso (el día en el fixture) */
     if(c.temporada&&c.temporada.playoffs){ religarLlavePO(c.temporada); fecharPasosPO(c.temporada); }
+    /* 2026-09-11 (su caza: «TRES PARTIDAZOS» otra vez al salir a la final, y seguía en 8/10): los avisos del goteo guardados antes
+       de llevar `pj` (480e012) no tienen con qué irse en playoffs, donde la fecha no avanza. Sin `pj`, se van al cargar. */
+    if(c.temporada) for(const k of ['avisoDbeta','avisoOxido']){ const av=c.temporada[k]; if(av&&av.pj==null) delete c.temporada[k]; }
     if(c.selTorneo) religarLlaveSel(c.selTorneo);
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
@@ -21538,9 +21802,9 @@ function torneoAnunciado(e){
   const fuera=(torneo==='mundial'&&clasif.indexOf(pais)<0)?pais:null;
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   let cual=torneo;
-  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm)) cual='preolimpico';
-  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
+  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm,mundialEuDe(mem))) cual='preolimpico';   // §12.32
+  let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1,mundialEuDe(mem))
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem))
     :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
   if(!campo||campo.indexOf(pais)<0) return {cual,anio:C.anio+1,afuera:true};
   const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
@@ -21573,9 +21837,9 @@ function torneoRecesoDe(){
      cupos de América son los dos directos + el ganador del preolímpico + uno por fuerza (cuposJJOOAm), y el preolímpico
      se juega UNA vez por ciclo (`mem.preo.anio`), lo hayas ganado o no */
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
-  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm)) cual='preolimpico';
-  const campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
+  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm,mundialEuDe(mem))) cual='preolimpico';   // §12.32
+  const campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1,mundialEuDe(mem))
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem))
     :campoTorneo(cual,clasifAm,fuera);
   if(campo.indexOf(pais)<0){ if(cual==='mundial') mundialSinVos(campo,e); C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }   /* §12.31: el Mundial se juega sin vos */
   /* §12.21 (su corte: "si jugaste eliminatorias o X parte de ellas, deberías ir al torneo"): tres ventanas jugadas
@@ -21627,6 +21891,8 @@ function proximoSelTorneo(){
 function anotarMundial(t){
   const mem=memSel(), am=clasificacionFinalSel(t).filter(f=>SELECCIONES[f.id].cont==='am');
   mem.mundialTop=am.map(f=>f.id); mem.mundialAnio=t.anio;
+  /* §12.32: el orden de los EUROPEOS también se anota — de ahí salen los dos que van directo a los Juegos */
+  mem.mundialEu=clasificacionFinalSel(t).filter(f=>SELECCIONES[f.id].cont==='eu').map(f=>f.id);
   mem.mundialRank={anio:t.anio,filas:am.map(f=>({id:f.id,puesto:f.puesto,ronda:f.ronda,pg:f.pg,pp:f.pp}))};
 }
 function mundialSinVos(campo,e){
@@ -21638,6 +21904,11 @@ function mundialSinVos(campo,e){
 function mundialTopDe(mem){
   if(!mem||!mem.mundialTop) return null;
   return (mem.mundialAnio===undefined||mem.mundialAnio===C.anio)?mem.mundialTop:null;
+}
+/* §12.32: el ranking europeo del mismo Mundial. Sin él (una partida de antes), España vuelve a ser fija */
+function mundialEuDe(mem){
+  if(!mem||!mem.mundialEu) return null;
+  return (mem.mundialAnio===undefined||mem.mundialAnio===C.anio)?mem.mundialEu:null;
 }
 
 /** Se acabó tu torneo: se juega lo que falta, se anota la medalla y —si era el preolímpico
@@ -22557,7 +22828,7 @@ function pasarHasta(sig,alFinal){
      partidos que el relato juega por vos CUESTAN lo mismo que jugarlos, con sus minutos. Primero el descanso, tope 100,
      después el costo, como en el cierre. */
   const costoSalteo=jugados.filter(p=>!p.conSeleccion&&!p.sel).reduce((a,p)=>a+costoJugar(p.minutos||0,C.ligaId,false),0);
-  C.jugador.energia=Math.max(0,Math.min(100,C.jugador.energia+regenDe()*dias)-costoSalteo);
+  C.jugador.energia=Math.max(0,Math.min(100,C.jugador.energia+regenDe()*diasSinCobrar(dias))-costoSalteo);   /* §2z211 */
   guardar(); pintaLobby(); irLob('hoy');
   /* §12: pasar la semana también puede cerrar una ventana FIBA, y acá no se pasa por
      abrirLobby — sin esto el parte quedaba armado y no lo veías hasta el próximo partido */
@@ -22661,7 +22932,7 @@ function cerrarSinVos(){
   }
   let n=0;
   while(e.fase==='playoffs'&&!miSerie(e)&&++n<80){ semanaDePlayoffs(e); dias+=diasPO(); }
-  if(dias>0) C.jugador.energia=Math.min(100,C.jugador.energia+regenDe()*dias);
+  if(dias>0) C.jugador.energia=Math.min(100,C.jugador.energia+regenDe()*diasSinCobrar(dias));   /* §2z211 */
   guardar();
 }
 /* §2z45 LA CARRERA AL MVP en pantalla. `carreraDe(e)` es el ranking de hoy con nombres; `revisarCarrera(e)`
@@ -23219,7 +23490,7 @@ function pintaEntrenar(){
   $l('lobby').classList.toggle('plena',!!escaleraAbierta);
   /* "0/2" no es una frase (su caza 2026-09-02): sin sesiones, se dice */
   const cupoTxt=e.fase!=='regular'
-      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('No se entrena: estás en postemporada.','No training: you are in the postseason.','Não se treina: você está na pós-temporada.')))   // §2z19: el contrato, no una aclaración
+      ? (e.fase==='terminada'?t(L('No se entrena: estás en el receso.','No training: you are in the offseason.','Não se treina: você está no recesso.')):t(L('No se entrena: estás en postemporada.','No training: you are in the postseason.','Não se treina: você está na pós-temporada.')))   // §2z19: el contrato, no una aclaración
       : libres<=0
       ? t(L('Esta semana no te quedan sesiones.','No sessions left this week.','Esta semana não restam sessões.'))
       : t(L('Esta semana te quedan <b>','This week you have <b>','Esta semana restam <b>'))+libres+'/'+SESIONES_POR_SEMANA+'</b>'
@@ -23364,7 +23635,7 @@ function entrenar(k,nivelPedido){
      selección, no en el gimnasio del club — y el mensaje lo dice con ese nombre */
   if(e.fase!=='regular'){ avisar(t(C.selTorneo
     ? L('Estás con la Selección: no hay gimnasio.','You are with the national team: no gym.','Você está com a Seleção: sem academia.')
-    : e.fase==='terminada'?L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')
+    : e.fase==='terminada'?L('No se entrena: estás en el receso.','No training: you are in the offseason.','Não se treina: você está no recesso.')
     : L('No se entrena: estás en postemporada.','No training: you are in the postseason.','Não se treina: você está na pós-temporada.'))); return; }   // §2z19
   if(sesionesRestantes(J,e.semilla,proximaFecha(),est().ritmo)<=0){
     avisar(t(L('Sin sesiones esta semana: jugá y volvé.','No sessions left this week: play on and come back.','Sem sessões esta semana: joga e volta.'))); return; }
@@ -24015,7 +24286,7 @@ function registrarResultado(){
      descansaste al salir a la cancha. Sumarlos después del costo, en la misma cuenta,
      te devolvía a 100 con el primer partido (día 6 × 6 = +36 contra 22 de costo) y con
      cualquier semana espaciada. Ahora: primero el descanso, TOPE 100, y recién el costo. */
-  { const eDesc=Math.min(100,J.energia+regenDe()*dias), costo=costoJugar(minutosJugados(),C.ligaId,enPartido&&enPartido.tipo==='seleccion');
+  { const eDesc=Math.min(100,J.energia+regenDe()*diasSinCobrar(dias)), costo=costoJugar(minutosJugados(),C.ligaId,enPartido&&enPartido.tipo==='seleccion');   // §2z211: los días que ya cobró el velo no se pagan dos veces
     J.energia=Math.max(0,eDesc-costo);
     const con=(C&&C.contrato)||{partido:PAGO_PARTIDO,ganar:PAGO_VICTORIA}, gano=G.nos>G.riv, misOk=!!(cierre.mision&&cierre.mision.ok);
     /* §2z181: lo que el velo del cuerpo y el bolsillo cuenta después de la statline (se arma acá, se abre en el circuito) */
@@ -24051,6 +24322,10 @@ function registrarResultado(){
   /* 2026-09-12 (su caza: "gané la Copa de las Américas y no vi nada que me diga GANASTE; ni card ni nada"): `amAviso` estaba
      declarado y nunca se asignaba — el titular del continental era código muerto. El título tiene su velo de oro, con la línea
      que faltaba: la Copa Intercontinental, cuándo se juega. */
+  /* 2026-09-11 (su caza: «ganamos la Copa de las Américas y en el palmarés sólo tengo el Juego de las Estrellas»): los títulos de
+     equipo entraban recién con FIN DE TEMPORADA (asegurarPremios, que ahora no duplica); la Copa entra apenas la ganás. */
+  if(e.americas&&e.americas.campeon===e.miClubId&&!(C.palmares||[]).some(p=>p.anio===C.anio&&p.clave==='americas'))
+    (C.palmares=C.palmares||[]).push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'americas'});
   if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
     amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
              sub:(()=>{ const ic=icAnunciado(e); return ic?t(L('Copa Intercontinental: septiembre de ','Intercontinental Cup: September ','Copa Intercontinental: setembro de '))+ic.anio+t(L(', en ',', in ',', em '))+ic.sede.ciudad+'.':''; })()};
@@ -24119,6 +24394,9 @@ function abrirCuerpo(despues){
   $l('cuerpoEnergia').innerHTML=h;
   setTimeout(()=>pinta(p.despues),T1);
   if(dias!==null||hastaPre) setTimeout(()=>pinta(Math.min(100,p.despues+rec)),T2);
+  /* §2z211: y el descanso se COBRA ACÁ, que es donde se ve (su caza: «la barra cierra en 100 y en el lobby estoy en 80»). Los
+     días quedan anotados en nrgDias para que la cuenta del próximo partido no los pague de nuevo. */
+  if(rec>0){ const J=C.jugador; J.energia=Math.min(100,p.despues+rec); J.nrgDias=(J.nrgDias||0)+(dias||0); guardar(); }
   const total=p.pago.partido+p.pago.ganar+p.pago.mision; let n=0;
   const plata=(desc,val,cls)=>fila(desc,'',fplata(val),cls,T3+(n++)*PASO);
   let q=plata(t(L('Partido','Game','Jogo')),p.pago.partido,'');
@@ -25351,7 +25629,10 @@ function pintaPalmares(){
     caja.innerHTML=grilla(vit.filter(g=>!DE_CLUB.has(g.clave)),t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL')))
       +grilla(vit.filter(g=>DE_CLUB.has(g.clave)),t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES')))
       +'<div class="trofeoDice">'+(sel?'<b>'+nombrePieza(sel)+'</b><span>'+lineaPieza(sel)+'</span>':'')+'</div>'
-      +'<div class="verMas" data-pal="todo">'+t(L('VER TODO','SEE ALL','VER TUDO'))+'</div>';
+      /* 2026-09-11 (su caza: «te da VER TODO cuando tenés una sola cosa»): la vista completa agrega los años de cada pieza y las que
+         no entran en la fila; si ninguna se ganó más de una vez y todo entra, no hay nada más que ver */
+      +(vit.some(g=>g.items.length>1)||vit.filter(g=>!DE_CLUB.has(g.clave)).length>FILA_TROFEOS||vit.filter(g=>DE_CLUB.has(g.clave)).length>FILA_TROFEOS
+        ? '<div class="verMas" data-pal="todo">'+t(L('VER TODO','SEE ALL','VER TUDO'))+'</div>' : '');
     caja.querySelectorAll('.trofeo').forEach(b=>{ b.onclick=()=>{ palSel=palSel===b.dataset.k?null:b.dataset.k; pintaPalmares(); }; });
   } else {
     const ind=vit.filter(g=>!DE_CLUB.has(g.clave)), eq=vit.filter(g=>DE_CLUB.has(g.clave));
@@ -25375,7 +25656,7 @@ function asegurarPremios(){
     const llave=e.misPartidos.filter(p=>p.am&&p.etapa!=='grupo'&&p.rating!==undefined);
     if(llave.length>=3&&llave.reduce((s,p)=>s+p.rating,0)/llave.length>=7) nuevos.push({clave:'mvp_americas'});
   }
-  for(const p of nuevos) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});
+  for(const p of nuevos) if(!C.palmares.some(q=>q.anio===C.anio&&q.clave===p.clave)) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});   // 2026-09-11: la Copa ya pudo entrar al ganarla
   /* §2z28 el ascenso: la escalera de ESTE receso (ya aplicada, §2z7) subió a tu club — se guarda con la liga DESTINO */
   const esc=C.ultimaEscalera;
   if(esc&&esc.anio===C.anio){

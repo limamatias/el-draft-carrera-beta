@@ -3243,7 +3243,7 @@ const RECETAS_ESCUDO = {
   TIBA: { pattern: 'banda', colors: ['#355498', '#ED1C24', '#FFFFFF'] },   // 2026-09-12 (su pedido: "bastante rojo en su identidad"): banda roja sobre azul, filete blanco   // 2026-09-12: las rayas rojinegras (no estaba entre las 116 de El Draft y caía en liso)
   AMAN: { pattern: 'banda' },
   ARJU: { pattern: 'diagonal' },
-  ATEN: { pattern: 'liso' },
+  ATEN: { pattern: 'cuartos', colors: ['#FFFFFF', '#31993F'] },   // 2026-09-12 (su pedido: el escudo verde y blanco a cuartos, no un verde plano como Ferro)
   ATL: { pattern: 'diagonal' },
   BASK: { pattern: 'franjas' },
   BAYE: { pattern: 'mitades' },
@@ -3393,6 +3393,7 @@ function escudoSVG(c, extra) {
   let pat = '';
   if (pattern === 'banda') pat = '<rect x="-2" y="27" width="68" height="17" fill="' + b + '" ' + filo + '/>';
   else if (pattern === 'franjas') pat = [10, 23, 36, 49].map((x) => '<rect x="' + x + '" y="-2" width="8" height="76" fill="' + b + '" ' + filo + '/>').join('');
+  else if (pattern === 'cuartos') pat = '<rect x="32" y="-2" width="34" height="38" fill="' + b + '" ' + filo + '/><rect x="-2" y="36" width="34" height="38" fill="' + b + '" ' + filo + '/>';   // 2026-09-12: los cuatro cuadros (Atenas)
   else if (pattern === 'rayas') pat = [12, 28, 44, 60].map((y) => '<rect x="-2" y="' + y + '" width="68" height="8" fill="' + b + '" ' + filo + '/>').join('');   // 2026-09-12: rayas HORIZONTALES (su pedido: Flamengo "rojo plano con borde negro")
   else if (pattern === 'mitades') pat = '<rect x="32" y="-2" width="34" height="76" fill="' + b + '" ' + filo + '/>';
   else if (pattern === 'diagonal') pat = '<path d="M-10 52 L44 -10 L66 -10 L4 72 Z" fill="' + b + '" ' + filo + '/>';

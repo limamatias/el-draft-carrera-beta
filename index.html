@@ -20084,11 +20084,11 @@ function avisoSeleccion(e){
   if(!el||!av||el.fin) return '';
   const v=el.ventanas[el.idx]; if(!v||v.n!==av.n) return '';
   const pais=SELECCIONES[el.pais].nombre;
-  if(av.clave==='convocado') return t(L('¡TE CONVOCARON! ','YOU GOT THE CALL! ','VOCÊ FOI CONVOCADO! '))+pais+' · '+t(SEL_TXT.ventana)+' '+v.n;
+  if(av.clave==='convocado') return t(L('¡TE CONVOCARON! ','YOU GOT THE CALL! ','VOCÊ FOI CONVOCADO! '))+pais+' · '+t(SEL_TXT.ventana)+'\u00a0'+v.n;
   const por=v.motivo==='club'?t(L('Tu club no te suelta.','Your club won\'t release you.','Seu clube não te libera.'))
     :v.motivo==='cerca'?t(L('Te miraron, pero esta vez no.','They watched you, but not this time.','Te olharam, mas desta vez não.'))
     :t(L('Esta vez no te llamaron.','No call this time.','Desta vez não te chamaram.'));
-  return t(L('Te caíste de ','You dropped out of ','Você caiu de '))+pais+' · '+t(SEL_TXT.ventana)+' '+v.n+'. '+por;
+  return t(L('Te caíste de ','You dropped out of ','Você caiu de '))+pais+' · '+t(SEL_TXT.ventana)+'\u00a0'+v.n+'. '+por;
 }
 
 /** El chip y el renglón del próximo, cuando el próximo es de la selección. */
@@ -20096,7 +20096,7 @@ function selCuandoTxt(prox,chip){
   /* en el chip va corto (no entra en un renglón); el nombre entero va en el PRE y en el parte */
   /* 2026-09-11 (medido a 375: hasta «ELIMINATORIAS · FRANCIA 2031 · VENTANA 1» partía el chip en dos): el CHIP no dice el
      Mundial —lo dice el renglón del HOY, justo abajo, con la forma corta «ELIMINATORIAS · CATAR 2027 · VENTANA 4»— */
-  if(prox.etapa==='eliminatorias') return (chip?t(SEL_TXT.eliminatorias):elimTxtCorto())+' · '+t(SEL_TXT.ventana)+' '+prox.ventana.n;
+  if(prox.etapa==='eliminatorias') return (chip?t(SEL_TXT.eliminatorias):elimTxtCorto())+' · '+t(SEL_TXT.ventana)+'\u00a0'+prox.ventana.n;
   if(prox.etapa==='grupo') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.grupo)+' '+prox.grupo;
   if(prox.etapa==='segunda') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.segunda)+' '+prox.grupo;
   return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT[prox.etapa]||L(prox.etapa));
@@ -20337,14 +20337,14 @@ function armarParteVentana(e,n){
   }).filter(Boolean);
   const mias=e.misPartidos.filter(p=>p.sel&&jornadasDeVentana(n).indexOf(p.n)>=0);
   const vN=el.ventanas.find(v=>v.n===n)||{};   // §12.21: la ventana que se cerró, no la que viene — por NÚMERO: en la parte B el arreglo trae sólo la quinta y `[n-1]` daba undefined ("No te convocaron" con tus dos partidos arriba, 2026-09-09)
-  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una
+  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una   /* 2026-09-11 (su caza: «VENTANA / 4/5» partido en dos): el espacio entre VENTANA y el número no rompe, acá y en los otros cinco */
     juegos:js,mias:mias.map(p=>({pts:p.pts,ast:p.ast,min:p.minutos,rating:p.rating})),
     tabla:tablaSel(el).map(f=>({id:f.id,pg:f.pg,pp:f.pp})),fin:!!el.fin,pase:!!el.pase};
 }
 function abrirParteVentana(p){
   if(!p) return false;
   $l('parteBandera').innerHTML=banderaDe(p.pais,64);
-  $l('parteTag').textContent=elimTxt()+' · '+t(SEL_TXT.ventana)+' '+p.n+'/'+p.total;
+  $l('parteTag').textContent=elimTxt()+' · '+t(SEL_TXT.ventana)+'\u00a0'+p.n+'/'+p.total;
   const g=p.juegos.filter(x=>x.mios>x.sus).length;
   const tit=$l('parteTit');
   /* el título es lo que pasó con TU PAÍS, no con vos: la selección es de todos */
@@ -20554,7 +20554,7 @@ function htmlFixtureSeleccion(){
   let h='', vAct=null;
   for(const f of fs.filas){ const m=f.match(/data-ventana="(\d+)"/); const v=m?m[1]:null;
     if(v&&v!==vAct){ vAct=v; const pas=/data-pasada="1"/.test(f);
-      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(SEL_TXT.ventana)+' '+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(SEL_TXT.ventana)+'\u00a0'+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
     h+=f; }
   return h;
 }
@@ -22173,7 +22173,7 @@ function abrirPre(objetivo){
     /* §2z39.63 (su captura: "ELIMINATORIAS AL MUNDIAL 2027 · VENTANA 1" partía la píldora en dos renglones y
        separaba el VOLVER): la píldora dice ELIMINATORIAS · VENTANA n — a qué Mundial ya lo dice el lobby */
     $l('lobPreFecha').textContent=objetivo.etapa==='eliminatorias'
-      ? elimTxt()+' · '+t(SEL_TXT.ventana)+' '+objetivo.ventana.n   // 2026-09-10 (su pedido): «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» — en las chicas envuelve (su corte: pantalla intermedia, con aire)
+      ? elimTxt()+' · '+t(SEL_TXT.ventana)+'\u00a0'+objetivo.ventana.n   // 2026-09-10 (su pedido): «ELIMINATORIAS · MUNDIAL CATAR 2027 · VENTANA 4» — en las chicas envuelve (su corte: pantalla intermedia, con aire)
       : selCuandoTxt(objetivo);
     $l('lobPrePorque').textContent=selPorqueTxt(objetivo,e);   // §12.20/§2z39.64: los minutos de TU rol van con el DT
     /* "Tu club juega sin vos." vivía acá (su caza: "en la prepartido no tiene sentido") — lo dice el fixture */
@@ -22370,7 +22370,7 @@ terminar=function(){
   { const d=document.getElementById('finDonde'); if(d){ const o=enPartido, pais=C.jugador.nacionalidad||'ar';
       let h='';
       if(o.tipo==='seleccion'){
-        const comp=o.etapa==='eliminatorias'?t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+' '+(o.ventana?o.ventana.n:'')
+        const comp=o.etapa==='eliminatorias'?t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+'\u00a0'+(o.ventana?o.ventana.n:'')
           :selTorneoTxt(o.torneo)+' · '+t(SEL_TXT[o.etapa]||L(o.etapa||''));
         h=escuditoDe(clubDeSeleccion(pais))+'<span>'+comp+' · '+vsTxt(o.local)+nombreSelCorto(o.rival).toUpperCase()+'</span>'+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también
       } else {

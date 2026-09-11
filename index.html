@@ -1637,6 +1637,8 @@
   <input type="range" id="rVis" min="0" max="10" step="1">
   <label data-l-en="Handling — drive and finish: " data-l-pt="Domínio — condução e finalização: ">Manejo — conducción y definición: <span id="vMan"></span></label>
   <input type="range" id="rMan" min="0" max="10" step="1">
+  <h2 data-l-en="CARD DICE" data-l-pt="DADOS DAS CARTAS">DADOS DE LAS CARTAS</h2>
+  <div id="ajDados" style="font-size:13px;color:var(--tinta2);letter-spacing:.5px">—</div>
 </div>
 
 <!-- LA INTRO ES UN BOTÓN (su corte 2026-08-23: "un choclazo de texto al arrancar no hace
@@ -6161,6 +6163,11 @@ function elegirCarta(i){
   let r=rng.next()*100, d=o.desenlaces[o.desenlaces.length-1];
   for(const x of o.desenlaces){ r-=x.p; if(r<=0){ d=x; break; } }
   aplicarEfectos(d.ef);
+  /* 2026-09-12 (su teoría: "me sale siempre la rama buena del 55 %; vamos registrando"): cada dado de una APUESTA queda anotado
+     en la carrera —la carta, la p de la rama buena y si salió—, y las perillas (⚙) muestran «a favor X de N · esperado Y». La
+     rama buena es la primera de la opción (así están escritas todas). El registro va en la carrera guardada: sobrevive a la
+     recarga y a las sesiones. */
+  if(o.tipo==='apuesta'&&o.desenlaces.length>1){ s.dados=s.dados||[]; s.dados.push({id:c.id,p:o.desenlaces[0].p,ok:d===o.desenlaces[0],anio:$C().anio}); }
   s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio; s.ultimaId=c.id;
   guardar();
   /* §2z39.53 EL DADO (su caza en el video: "el dado no tiene emoción; mirá cómo está en El Draft"): la
@@ -12233,6 +12240,13 @@ dif.toque=0.20;
 const SLIDERS=[['rPos','vPos','pos'],['rDef','vDef','def'],['rClk','vClk','clk'],['rDist','vDist','dist'],
                ['rTiro','vTiro','tiro'],['rVis','vVis','vis'],['rMan','vMan','man']];
 function pintarAjustes(){
+  /* 2026-09-12: el registro de los dados de las cartas (01k), para su teoría de que salen a favor de más */
+  { const el=document.getElementById('ajDados');
+    if(el){ let dd=null; try{ const K=window.__carrera; const C=K?K.C:null; dd=C&&C.cartas&&C.cartas.dados; }catch(e){ dd=null; }
+      if(!dd||!dd.length) el.textContent='—';
+      else { const n=dd.length, fav=dd.filter(x=>x.ok).length, esp=dd.reduce((a,x)=>a+(x.p||0)/100,0);
+        el.textContent=t(L('A favor ','In your favor ','A favor '))+fav+'/'+n+' · '+t(L('esperado ','expected ','esperado '))+esp.toFixed(1)
+          +' · '+dd.slice(-8).map(x=>x.p+(x.ok?'✓':'✗')).join(' '); } } }
   for(const [r,v,k] of SLIDERS){ $('#'+r).value=dif[k];
     $('#'+v).textContent = k==='dist' ? (dif[k]<34?t(L('cerca','close','perto')):dif[k]<67?t(L('media','mid','média')):t(L('lejos','deep','longe'))) : dif[k]; }
   document.querySelectorAll('#gatBtns button').forEach(x=>x.classList.toggle('activo',x.dataset.g===dif.gat));

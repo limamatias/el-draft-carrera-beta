@@ -2609,19 +2609,19 @@ const CLUBES_FEDERAL = [
   { id: 'CACY', sigla: 'CAZ', nombre: 'Caza y Pesca', ciudad: 'Don Torcuato', apodo: 'El Tiburón', color: '#005CAA', color2: '#00943C', fuerza: 45, rival: 'HACO', rivales: ['HACO'], zona: 'metro_a' },
   { id: 'EPRA', sigla: 'EST', nombre: 'Estudiantil Porteño', corto: 'Estudiantil', ciudad: 'Ramos Mejía', apodo: null, color: '#001F75', color2: '#BF0F23', fuerza: 40, rival: null, zona: 'metro_a' },
   { id: 'IZAR', sigla: 'IND', nombre: 'Independiente (Z)', corto: 'Indep. (Z)', ciudad: 'Zárate', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 39, rival: 'ZBAS', zona: 'metro_a' },
-  { id: 'JHMA', sigla: 'JOS', nombre: 'José Hernández', ciudad: 'Mataderos', apodo: null, color: '#004191', color2: '#F0D025', fuerza: 37, rival: null, zona: 'metro_a' },
+  { id: 'JHMA', sigla: 'JOS', nombre: 'José Hernández', nombres: ['J. Hernández'], ciudad: 'Mataderos', apodo: null, color: '#004191', color2: '#F0D025', fuerza: 37, rival: null, zona: 'metro_a' },
   { id: 'PINO', sigla: 'PIN', nombre: 'Pinocho', ciudad: 'Villa Urquiza', apodo: 'La Máquina Verde', color: '#04893A', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_a' },
   { id: 'CDSA', sigla: 'SAN', nombre: 'San Andrés', ciudad: 'San Andrés', apodo: 'Depor', color: '#1F6C36', color2: '#FFFFFF', fuerza: 32, rival: null, zona: 'metro_a' },
   { id: 'CASM', sigla: 'SAM', nombre: 'San Miguel', ciudad: 'San Miguel', apodo: 'Trueno Verde', color: '#00923F', color2: '#FFFFFF', fuerza: 33, rival: null, zona: 'metro_a' },
   { id: 'ESCB', sigla: 'ESB', nombre: 'Escobar', ciudad: 'Belén de Escobar', apodo: 'El Albiceleste', color: '#7CC0E5', color2: '#FFFFFF', fuerza: 42, rival: null, zona: 'metro_a' },
   { id: 'ZBAS', sigla: 'ZBA', nombre: 'Zárate Básket', ciudad: 'Zárate', apodo: null, color: '#C1272D', color2: '#5FC5F0', fuerza: 39, rival: 'IZAR', zona: 'metro_a' },
   /* metro_b · 9 */
-  { id: 'CSAK', sigla: 'ALE', nombre: 'Alejandro Korn', ciudad: 'Alejandro Korn', apodo: null, color: '#306338', color2: '#FFFFFF', fuerza: 39, rival: null, zona: 'metro_b' },
-  { id: 'APVE', sigla: 'ATE', nombre: 'Ateneo Popular', ciudad: 'Versailles', apodo: null, color: '#295498', color2: '#258ECF', fuerza: 42, rival: null, zona: 'metro_b' },
+  { id: 'CSAK', sigla: 'ALE', nombre: 'Alejandro Korn', nombres: ['A. Korn'], ciudad: 'Alejandro Korn', apodo: null, color: '#306338', color2: '#FFFFFF', fuerza: 39, rival: null, zona: 'metro_b' },
+  { id: 'APVE', sigla: 'ATE', nombre: 'Ateneo Popular', nombres: ['Ateneo'], ciudad: 'Versailles', apodo: null, color: '#295498', color2: '#258ECF', fuerza: 42, rival: null, zona: 'metro_b' },
   { id: 'CEPA', sigla: 'CEP', nombre: 'Cepa', ciudad: 'Pontevedra', apodo: null, color: '#151515', color2: '#FFFFFF', fuerza: 32, rival: null, zona: 'metro_b' },
   { id: 'TALA', sigla: 'TAL', nombre: 'El Talar', ciudad: 'Agronomía', apodo: null, color: '#F2C300', color2: '#111111', fuerza: 39, rival: null, zona: 'metro_b' },
   { id: 'GEVP', sigla: 'GIM', nombre: 'Gimnasia (VP)', ciudad: 'Villa del Parque', apodo: null, color: '#0094C9', color2: '#FFFFFF', fuerza: 37, rival: null, zona: 'metro_b' },
-  { id: 'INDA', sigla: 'IND', nombre: 'Independiente', ciudad: 'Avellaneda', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_b' },
+  { id: 'INDA', sigla: 'IND', nombre: 'Independiente', nombres: ['Indep. (A)'], ciudad: 'Avellaneda', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_b' },
   { id: 'MIDL', sigla: 'MID', nombre: 'Midland', ciudad: 'Libertad', apodo: 'El Funebrero', color: '#FFFFFF', color2: '#003399', fuerza: 39, rival: null, zona: 'metro_b' },
   { id: 'HACO', sigla: 'HAC', nombre: 'Hacoaj', ciudad: 'Tigre', apodo: null, color: '#04114C', color2: '#FFFFFF', fuerza: 37, rival: 'CACY', rivales: ['CACY'], zona: 'metro_b' },
   { id: 'FEBR', sigla: 'FEB', nombre: '3 de Febrero', ciudad: 'San Andrés', apodo: 'El Trede', color: '#142A80', color2: '#FFFFFF', fuerza: 43, rival: null, zona: 'metro_b' },
@@ -2638,7 +2638,7 @@ const CLUBES_FEDERAL = [
   { id: 'BAND', sigla: 'BAN', nombre: 'Banda Norte', ciudad: 'Río Cuarto', apodo: 'El Lobo', color: '#1F6B32', color2: '#FFFFFF', fuerza: 35, rival: null, zona: 'centro_a' },
   { id: 'URQU', sigla: 'URQ', nombre: 'Urquiza (SJ)', ciudad: 'San Juan', apodo: null, color: '#010101', color2: '#FC370A', fuerza: 36, rival: null, zona: 'centro_a' },
   { id: 'UNCE', sigla: 'UNC', nombre: 'Unión Central', ciudad: 'Villa María', apodo: 'El Aurinegro', color: '#000000', color2: '#F8C600', fuerza: 42, rival: 'SPAR', rivales: ['SPAR', 'UNON'], zona: 'centro_a' },
-  { id: 'UNON', sigla: 'UNO', nombre: 'Unión Oncativo', ciudad: 'Oncativo', apodo: null, color: '#860E13', color2: '#FFFFFF', fuerza: 35, rival: 'UNCE', rivales: ['UNCE'], zona: 'centro_a' },
+  { id: 'UNON', sigla: 'UNO', nombre: 'Unión Oncativo', nombres: ['U. Oncativo'], ciudad: 'Oncativo', apodo: null, color: '#860E13', color2: '#FFFFFF', fuerza: 35, rival: 'UNCE', rivales: ['UNCE'], zona: 'centro_a' },
   { id: 'MATI', sigla: 'MAT', nombre: 'Matienzo', ciudad: 'Córdoba', apodo: 'La Mata', color: '#040083', color2: '#FFFFFF', fuerza: 41, rival: null, zona: 'centro_a' },
   { id: 'SPAR', sigla: 'SPA', nombre: 'Sparta', ciudad: 'Villa María', apodo: null, color: '#0E0B11', color2: '#9C191C', fuerza: 39, rival: 'UNCE', rivales: ['UNCE'], zona: 'centro_a' },
   { id: 'HLHE', sigla: 'HUR', nombre: 'Huracán (LH)', ciudad: 'Las Heras', apodo: 'el Globo Laserino', color: '#75AADB', color2: '#FFFFFF', fuerza: 39, rival: null, zona: 'centro_a' },
@@ -2653,7 +2653,7 @@ const CLUBES_FEDERAL = [
   { id: 'UNJU', sigla: 'UNJ', nombre: 'Unión y Juventud', corto: 'Unión y Juv.', ciudad: 'Bandera', apodo: null, color: '#141414', color2: '#ECEDEE', fuerza: 43, rival: 'TOST', rivales: ['TOST'], zona: 'centro_b' },
   /* sudeste_a · 6 */
   { id: 'ALBS', sigla: 'ALB', nombre: 'All Boys', ciudad: 'Santa Rosa', apodo: 'El Auriazul', color: '#F2C300', color2: '#1B3B8B', fuerza: 40, rival: 'FEGP', rivales: ['FEGP', 'INGP'], zona: 'sudeste_a' },
-  { id: 'ESOL', sigla: 'EST', nombre: 'Estudiantes (O)', ciudad: 'Olavarría', apodo: 'El Bataraz', color: '#FFFFFF', color2: '#111111', fuerza: 41, rival: 'RAOL', rivales: ['RAOL'], zona: 'sudeste_a' },
+  { id: 'ESOL', sigla: 'EST', nombre: 'Estudiantes (O)', nombres: ['Est. (O)'], ciudad: 'Olavarría', apodo: 'El Bataraz', color: '#FFFFFF', color2: '#111111', fuerza: 41, rival: 'RAOL', rivales: ['RAOL'], zona: 'sudeste_a' },
   { id: 'FEGP', sigla: 'FER', nombre: 'Ferro (GP)', ciudad: 'General Pico', apodo: 'El Verde', color: '#016525', color2: '#FFFFFF', fuerza: 44, rival: 'INGP', rivales: ['INGP', 'ALBS'], zona: 'sudeste_a' },
   { id: 'INGP', sigla: 'IND', nombre: 'Independiente (GP)', corto: 'Indep. (GP)', ciudad: 'General Pico', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'FEGP', rivales: ['FEGP', 'ALBS'], zona: 'sudeste_a' },
   { id: 'INTA', sigla: 'IND', nombre: 'Independiente (T)', corto: 'Indep. (T)', ciudad: 'Tandil', apodo: 'El Rojinegro', color: '#C2162C', color2: '#000000', fuerza: 37, rival: null, zona: 'sudeste_a' },
@@ -2664,34 +2664,34 @@ const CLUBES_FEDERAL = [
   { id: 'ATPI', sigla: 'PIP', nombre: 'Atlético Pilar', ciudad: 'Pilar', apodo: 'El Rancho', color: '#B61423', color2: '#FFFFFF', fuerza: 35, rival: null, zona: 'sudeste_b' },
   { id: 'BESA', sigla: 'BEL', nombre: 'Belgrano (SN)', ciudad: 'San Nicolás de los Arroyos', apodo: 'El rojo de calle Pellegrini', color: '#FE0000', color2: '#FFCC00', fuerza: 45, rival: 'SOMI', rivales: ['SOMI'], zona: 'sudeste_b' },
   { id: 'SOMI', sigla: 'SOM', nombre: 'Somisa', ciudad: 'San Nicolás de los Arroyos', apodo: null, color: '#004A99', color2: '#0070B8', fuerza: 42, rival: 'BESA', rivales: ['BESA'], zona: 'sudeste_b' },
-  { id: 'ESLP', sigla: 'EST', nombre: 'Estudiantes (LP)', ciudad: 'La Plata', apodo: 'El Pincha', color: '#D6202B', color2: '#FFFFFF', fuerza: 39, rival: 'ATLP', rivales: ['ATLP'], zona: 'sudeste_b' },
+  { id: 'ESLP', sigla: 'EST', nombre: 'Estudiantes (LP)', nombres: ['Est. (LP)'], ciudad: 'La Plata', apodo: 'El Pincha', color: '#D6202B', color2: '#FFFFFF', fuerza: 39, rival: 'ATLP', rivales: ['ATLP'], zona: 'sudeste_b' },
   { id: 'SFER', sigla: 'SAF', nombre: 'San Fernando', ciudad: 'San Fernando', apodo: 'Sanfer', color: '#199A3D', color2: '#2F3C8A', fuerza: 33, rival: null, zona: 'sudeste_b' },
   /* litoral_a · 10 */
   { id: 'ECHA', sigla: 'ECH', nombre: 'Echagüe', ciudad: 'Paraná', apodo: 'el Negro', color: '#111111', color2: '#4FA3D1', fuerza: 39, rival: 'SION', rivales: ['SION'], zona: 'litoral_a' },
   { id: 'SION', sigla: 'SIO', nombre: 'Sionista', ciudad: 'Paraná', apodo: null, color: '#3B5BDA', color2: '#F8951D', fuerza: 41, rival: 'ECHA', rivales: ['ECHA'], zona: 'litoral_a' },
   { id: 'GISA', sigla: 'GIM', nombre: 'Gimnasia (SF)', ciudad: 'Santa Fe', apodo: 'El Mensana', color: '#002782', color2: '#FFFFFF', fuerza: 36, rival: 'RIJR', rivales: ['RIJR'], zona: 'litoral_a' },
   { id: 'COLO', sigla: 'COL', nombre: 'Colón', ciudad: 'Santa Fe', apodo: 'El Sabalero', color: '#D62027', color2: '#111111', fuerza: 39, rival: null, zona: 'litoral_a' },
-  { id: 'ESCO', sigla: 'EST', nombre: 'Estudiantes (C)', ciudad: 'Concordia', apodo: 'El Verde', color: '#0B6B35', color2: '#F26522', fuerza: 39, rival: null, zona: 'litoral_a' },
+  { id: 'ESCO', sigla: 'EST', nombre: 'Estudiantes (C)', nombres: ['Est. (C)'], ciudad: 'Concordia', apodo: 'El Verde', color: '#0B6B35', color2: '#F26522', fuerza: 39, rival: null, zona: 'litoral_a' },
   { id: 'QUIQ', sigla: 'QUI', nombre: 'Quique', ciudad: 'Paraná', apodo: 'El Decano', color: '#FFFFFF', color2: '#D82D13', fuerza: 35, rival: null, zona: 'litoral_a' },
   { id: 'RBOC', sigla: 'REC', nombre: 'Recreativo Bochas', corto: 'Rec. Bochas', ciudad: 'Paraná', apodo: 'El Bochas', color: '#D72519', color2: '#00923E', fuerza: 39, rival: 'SION', zona: 'litoral_a' },
-  { id: 'RIJR', sigla: 'RIV', nombre: 'Rivadavia Juniors', corto: 'Rivadavia Jrs.', ciudad: 'Santa Fe', apodo: 'El Rojo', color: '#FE0002', color2: '#FFFFFF', fuerza: 41, rival: 'GISA', rivales: ['GISA'], zona: 'litoral_a' },
+  { id: 'RIJR', sigla: 'RIV', nombre: 'Rivadavia Juniors', corto: 'Rivadavia Jrs.', nombres: ['Riv. Jrs.'], ciudad: 'Santa Fe', apodo: 'El Rojo', color: '#FE0002', color2: '#FFFFFF', fuerza: 41, rival: 'GISA', rivales: ['GISA'], zona: 'litoral_a' },
   { id: 'ARMO', sigla: 'ARM', nombre: 'La Armonía', ciudad: 'Colón', apodo: 'El Verde', color: '#003B00', color2: '#029802', fuerza: 36, rival: null, zona: 'litoral_a' },
   { id: 'URSA', sigla: 'URQ', nombre: 'Urquiza (SE)', ciudad: 'Santa Elena', apodo: 'El Naranja', color: '#FF6600', color2: '#000000', fuerza: 42, rival: null, zona: 'litoral_a' },
   /* litoral_b · 7 */
-  { id: 'ARGE', sigla: 'ARG', nombre: 'Argentino (MJ)', ciudad: 'Marcos Juárez', apodo: 'Albirrojo', color: '#E3001B', color2: '#FFFFFF', fuerza: 35, rival: 'SAMA', rivales: ['SAMA'], zona: 'litoral_b' },
-  { id: 'SAMA', sigla: 'SMA', nombre: 'San Martín (MJ)', ciudad: 'Marcos Juárez', apodo: 'El Gaucho', color: '#1DA0E8', color2: '#FFFFFF', fuerza: 36, rival: 'ARGE', rivales: ['ARGE'], zona: 'litoral_b' },
+  { id: 'ARGE', sigla: 'ARG', nombre: 'Argentino (MJ)', nombres: ['Arg. (MJ)'], ciudad: 'Marcos Juárez', apodo: 'Albirrojo', color: '#E3001B', color2: '#FFFFFF', fuerza: 35, rival: 'SAMA', rivales: ['SAMA'], zona: 'litoral_b' },
+  { id: 'SAMA', sigla: 'SMA', nombre: 'San Martín (MJ)', nombres: ['S. Martín (MJ)'], ciudad: 'Marcos Juárez', apodo: 'El Gaucho', color: '#1DA0E8', color2: '#FFFFFF', fuerza: 36, rival: 'ARGE', rivales: ['ARGE'], zona: 'litoral_b' },
   { id: 'NAUT', sigla: 'NAU', nombre: 'Náutico Avellaneda', corto: 'Náutico', ciudad: 'Rosario', apodo: null, color: '#003F8E', color2: '#FFFFFF', fuerza: 35, rival: null, zona: 'litoral_b' },
   { id: 'GERO', sigla: 'GIM', nombre: 'Gimnasia (R)', ciudad: 'Rosario', apodo: 'El Mensana', color: '#1E3067', color2: '#F7E809', fuerza: 36, rival: 'ROSC', zona: 'litoral_b' },
   { id: 'OLVT', sigla: 'OLI', nombre: 'Olimpia (VT)', ciudad: 'Venado Tuerto', apodo: null, color: '#111111', color2: '#D6202B', fuerza: 46, rival: null, zona: 'litoral_b' },
-  { id: 'ROSC', sigla: 'ROS', nombre: 'Rosario Central', ciudad: 'Rosario', apodo: 'El Canalla', color: '#F4C300', color2: '#153E8C', fuerza: 41, rival: 'GERO', zona: 'litoral_b' },
+  { id: 'ROSC', sigla: 'ROS', nombre: 'Rosario Central', nombres: ['R. Central'], ciudad: 'Rosario', apodo: 'El Canalla', color: '#F4C300', color2: '#153E8C', fuerza: 41, rival: 'GERO', zona: 'litoral_b' },
   { id: 'TEMP', sigla: 'TEM', nombre: 'Temperley (R)', ciudad: 'Rosario', apodo: 'El Negro', color: '#000000', color2: '#FFFFFF', fuerza: 44, rival: null, zona: 'litoral_b' },
   /* nea · 9 */
   { id: 'CAPR', sigla: 'CAP', nombre: 'CAPRI', ciudad: 'Posadas', apodo: null, color: '#182040', color2: '#C82008', fuerza: 38, rival: 'TOKI', rivales: ['TOKI'], zona: 'nea' },
   { id: 'CSYL', sigla: 'CUL', nombre: 'Cultural', ciudad: 'Santa Sylvina', apodo: null, color: '#FA0001', color2: '#FFFFFF', fuerza: 38, rival: 'HERC', rivales: ['HERC'], zona: 'nea' },
-  { id: 'SALO', sigla: 'SLO', nombre: 'San Lorenzo (MC)', corto: 'S. Lorenzo (MC)', ciudad: 'Monte Caseros', apodo: 'el Aurinegro', color: '#FFEB05', color2: '#191819', fuerza: 42, rival: null, zona: 'nea' },
-  { id: 'CORD', sigla: 'COR', nombre: 'Córdoba (Ctes)', ciudad: 'Corrientes', apodo: 'el Albirrojo', color: '#C33036', color2: '#FFFFFF', fuerza: 33, rival: null, zona: 'nea' },
+  { id: 'SALO', sigla: 'SLO', nombre: 'San Lorenzo (MC)', corto: 'S. Lorenzo (MC)', nombres: ['S. Lorenzo'], ciudad: 'Monte Caseros', apodo: 'el Aurinegro', color: '#FFEB05', color2: '#191819', fuerza: 42, rival: null, zona: 'nea' },
+  { id: 'CORD', sigla: 'COR', nombre: 'Córdoba (Ctes)', nombres: ['Córdoba'], ciudad: 'Corrientes', apodo: 'el Albirrojo', color: '#C33036', color2: '#FFFFFF', fuerza: 33, rival: null, zona: 'nea' },
   { id: 'HERC', sigla: 'HER', nombre: 'Hércules', ciudad: 'Charata', apodo: 'el Griego', color: '#0200A8', color2: '#F8171D', fuerza: 40, rival: 'CSYL', rivales: ['CSYL'], zona: 'nea' },
-  { id: 'RERE', sigla: 'REG', nombre: 'Regatas (Rcia)', ciudad: 'Resistencia', apodo: 'el Remero', color: '#D41922', color2: '#FFFFFF', fuerza: 33, rival: 'HIRE', rivales: ['HIRE', 'DBOS'], zona: 'nea' },
+  { id: 'RERE', sigla: 'REG', nombre: 'Regatas (Rcia)', nombres: ['Regatas (R)'], ciudad: 'Resistencia', apodo: 'el Remero', color: '#D41922', color2: '#FFFFFF', fuerza: 33, rival: 'HIRE', rivales: ['HIRE', 'DBOS'], zona: 'nea' },
   { id: 'TOKI', sigla: 'TOK', nombre: 'Tokio', ciudad: 'Posadas', apodo: 'el Oriental', color: '#EC3237', color2: '#FFF112', fuerza: 42, rival: 'CAPR', rivales: ['CAPR'], zona: 'nea' },
   { id: 'DBOS', sigla: 'DBO', nombre: 'Don Bosco', ciudad: 'Resistencia', apodo: 'El Salesiano', color: '#C8102E', color2: '#FFFFFF', fuerza: 36, rival: 'HIRE', rivales: ['HIRE', 'RERE'], zona: 'nea' },
   { id: 'HIRE', sigla: 'HIN', nombre: 'Hindú (R)', ciudad: 'Resistencia', apodo: 'el Bólido Verde', color: '#007549', color2: '#FFFFFF', fuerza: 44, rival: 'DBOS', rivales: ['DBOS', 'RERE'], zona: 'nea' },
@@ -2706,10 +2706,10 @@ const CLUBES_FEDERAL = [
   { id: 'REST', sigla: 'RED', nombre: 'Red Star', ciudad: 'San Fernando del Valle de Catamarca', apodo: 'El Estrellado', color: '#DB0D19', color2: '#FFFFFF', fuerza: 37, rival: 'MTMR', rivales: ['MTMR'], zona: 'noa' },
   /* sur · 9 */
   { id: 'REGI', sigla: 'REV', nombre: 'Regina', ciudad: 'Villa Regina', apodo: 'El Albo', color: '#0000A0', color2: '#FFFFFF', fuerza: 34, rival: 'DROC', rivales: ['DROC'], zona: 'sur' },
-  { id: 'CEES', sigla: 'CEN', nombre: 'Centro Español', ciudad: 'Plottier', apodo: 'El Torito', color: '#E91C1E', color2: '#FFFEFA', fuerza: 44, rival: 'PLOT', rivales: ['PLOT'], zona: 'sur' },
+  { id: 'CEES', sigla: 'CEN', nombre: 'Centro Español', nombres: ['C. Español'], ciudad: 'Plottier', apodo: 'El Torito', color: '#E91C1E', color2: '#FFFEFA', fuerza: 44, rival: 'PLOT', rivales: ['PLOT'], zona: 'sur' },
   { id: 'PLOT', sigla: 'PLO', nombre: 'Plottier', ciudad: 'Plottier', apodo: null, color: '#1B4FA0', color2: '#FFFFFF', fuerza: 40, rival: 'CEES', rivales: ['CEES'], zona: 'sur' },
-  { id: 'DROC', sigla: 'ROC', nombre: 'Deportivo Roca', ciudad: 'General Roca', apodo: 'El Naranja', color: '#FE5200', color2: '#FFFFFF', fuerza: 33, rival: 'REGI', rivales: ['REGI'], zona: 'sur' },
-  { id: 'BIGN', sigla: 'BIG', nombre: 'El Biguá (NQN)', ciudad: 'Neuquén', apodo: null, color: '#1FA045', color2: '#111111', fuerza: 39, rival: null, zona: 'sur' },
+  { id: 'DROC', sigla: 'ROC', nombre: 'Deportivo Roca', nombres: ['Dep. Roca'], ciudad: 'General Roca', apodo: 'El Naranja', color: '#FE5200', color2: '#FFFFFF', fuerza: 33, rival: 'REGI', rivales: ['REGI'], zona: 'sur' },
+  { id: 'BIGN', sigla: 'BIG', nombre: 'El Biguá (NQN)', nombres: ['Biguá (NQN)'], ciudad: 'Neuquén', apodo: null, color: '#1FA045', color2: '#111111', fuerza: 39, rival: null, zona: 'sur' },
   { id: 'INEQ', sigla: 'IND', nombre: 'Independiente (NQN)', corto: 'Indep. (NQN)', ciudad: 'Neuquén', apodo: 'El Rojo', color: '#C8102E', color2: '#FFFFFF', fuerza: 44, rival: 'PACI', rivales: ['PACI'], zona: 'sur' },
   { id: 'PACI', sigla: 'PAC', nombre: 'Pacífico', ciudad: 'Neuquén', apodo: 'El Decano', color: '#F2C300', color2: '#111111', fuerza: 37, rival: 'INEQ', rivales: ['INEQ'], zona: 'sur' },
   { id: 'PERF', sigla: 'PER', nombre: 'Pérfora', ciudad: 'Plaza Huincul', apodo: 'El Verde', color: '#088E49', color2: '#FEC61E', fuerza: 45, rival: 'PETR', rivales: ['PETR'], zona: 'sur' },
@@ -2767,17 +2767,17 @@ const CLUBES_NACIONAL = [
   { id: 'QUIM', sigla: 'QUI', nombre: 'Quimsa', ciudad: 'Santiago del Estero', apodo: 'La Fusión', color: '#22336B', color2: '#E8264F', fuerza: 64, rival: 'OLIM', rivales: ['OLIM'] },
   { id: 'INST', sigla: 'INS', nombre: 'Instituto', ciudad: 'Córdoba', apodo: 'La Gloria', color: '#C8102E', color2: '#FFFFFF', fuerza: 58, rival: 'ATEN', rivales: ['ATEN'] },
   { id: 'ATEN', sigla: 'ATE', nombre: 'Atenas', ciudad: 'Córdoba', apodo: 'El Griego', color: '#31993F', color2: '#FFFFFF', fuerza: 61, rival: 'INST', rivales: ['INST', 'FERR'] },
-  { id: 'REGA', sigla: 'REG', nombre: 'Regatas Corrientes', corto: 'Regatas (Ctes)', ciudad: 'Corrientes', apodo: 'El Fantasma', color: '#29ABE2', color2: '#1B3A6B', fuerza: 62, rival: 'SMAR', rivales: ['SMAR'] },
+  { id: 'REGA', sigla: 'REG', nombre: 'Regatas Corrientes', corto: 'Regatas (Ctes)', nombres: ['Regatas'], ciudad: 'Corrientes', apodo: 'El Fantasma', color: '#29ABE2', color2: '#1B3A6B', fuerza: 62, rival: 'SMAR', rivales: ['SMAR'] },
   { id: 'PENA', sigla: 'PEÑ', nombre: 'Peñarol', ciudad: 'Mar del Plata', apodo: 'El Milrayitas', color: '#FFFFFF', color2: '#16295C', fuerza: 62, rival: null },
   { id: 'GIMN', sigla: 'GIM', nombre: 'Gimnasia de Comodoro', corto: 'Gimnasia (CR)', ciudad: 'Comodoro Rivadavia', apodo: 'El Verde', color: '#0E3B2E', color2: '#C9A96A', fuerza: 65, rival: null },
   { id: 'OLIM', sigla: 'OLI', nombre: 'Olímpico', ciudad: 'La Banda', apodo: 'El Negro', color: '#111111', color2: '#FFFFFF', fuerza: 54, rival: 'QUIM', rivales: ['QUIM'] },
   { id: 'FERR', sigla: 'FER', nombre: 'Ferro Carril Oeste', corto: 'Ferro', ciudad: 'Caballito', apodo: 'El Verdolaga', color: '#1B7F4D', color2: '#FFFFFF', fuerza: 61, rival: 'ATEN', rivales: ['ATEN', 'OBRA', 'SLOR'] },
-  { id: 'UNIO', sigla: 'UNI', nombre: 'La Unión de Formosa', corto: 'La Unión (FOR)', ciudad: 'Formosa', apodo: 'La U', color: '#1B76BC', color2: '#C9A96A', fuerza: 57, rival: null },
-  { id: 'ARJU', sigla: 'ARG', nombre: 'Argentino de Junín', corto: 'Argentino (Jun)', ciudad: 'Junín', apodo: null, color: '#1F5FA8', color2: '#7FA8D0', fuerza: 50, rival: null },
+  { id: 'UNIO', sigla: 'UNI', nombre: 'La Unión de Formosa', corto: 'La Unión (FOR)', nombres: ['La Unión'], ciudad: 'Formosa', apodo: 'La U', color: '#1B76BC', color2: '#C9A96A', fuerza: 57, rival: null },
+  { id: 'ARJU', sigla: 'ARG', nombre: 'Argentino de Junín', corto: 'Argentino (Jun)', nombres: ['Arg. (Jun)'], ciudad: 'Junín', apodo: null, color: '#1F5FA8', color2: '#7FA8D0', fuerza: 50, rival: null },
   { id: 'RACH', sigla: 'RAC', nombre: 'Racing de Chivilcoy', corto: 'Racing (Chiv)', ciudad: 'Chivilcoy', apodo: 'La Academia', color: '#5FA9E8', color2: '#FFFFFF', fuerza: 51, rival: null },
   { id: 'LANU', sigla: 'LAN', nombre: 'Lanús', ciudad: 'Lanús', apodo: 'El Granate', color: '#7B202C', color2: '#FFFFFF', fuerza: 53, rival: null },
   { id: 'PLAT', sigla: 'PLA', nombre: 'Platense', ciudad: 'Vicente López', apodo: 'El Calamar', color: '#FFFFFF', color2: '#633C1B', fuerza: 50, rival: null },
-  { id: 'SMAR', sigla: 'SMA', nombre: 'San Martín de Corrientes', corto: 'S. Martín (Ctes)', ciudad: 'Corrientes', apodo: 'El Rojinegro', color: '#111111', color2: '#D22630', fuerza: 55, rival: 'REGA', rivales: ['REGA'] },
+  { id: 'SMAR', sigla: 'SMA', nombre: 'San Martín de Corrientes', corto: 'S. Martín (Ctes)', nombres: ['S. Martín'], ciudad: 'Corrientes', apodo: 'El Rojinegro', color: '#111111', color2: '#D22630', fuerza: 55, rival: 'REGA', rivales: ['REGA'] },
   { id: 'OBER', sigla: 'OTC', nombre: 'Oberá Tenis Club', corto: 'Oberá', ciudad: 'Oberá', apodo: 'El Celeste', color: '#4FA9DC', color2: '#FFFFFF', fuerza: 56, rival: null },
   { id: 'OLIV', sigla: 'IND', nombre: 'Independiente de Oliva', corto: 'Indep. (Oliva)', ciudad: 'Oliva', apodo: 'La I', color: '#1B3E8C', color2: '#FFFFFF', fuerza: 54, rival: null },
 ];
@@ -2796,22 +2796,22 @@ const CLUBES_ARGENTINA = [
   { id: 'BPAR', sigla: 'BPA', nombre: 'Barrio Parque', ciudad: 'Córdoba', apodo: 'El Verde', color: '#01A11B', color2: '#111111', fuerza: 49, rival: 'HIND', rivales: ['HIND'], zona: 'norte' },
   { id: 'BMIT', sigla: 'MIT', nombre: 'Mitre (P)', ciudad: 'Posadas', apodo: 'El Auriazul', color: '#343C94', color2: '#F3E354', fuerza: 48, rival: null, zona: 'norte' },
   { id: 'BOCH', sigla: 'BOC', nombre: 'Bochas', ciudad: 'Colonia Caroya', apodo: null, color: '#00378C', color2: '#CF010C', fuerza: 45, rival: null, zona: 'norte' },
-  { id: 'RIVA', sigla: 'RVA', nombre: 'Rivadavia (Mza)', ciudad: 'Rivadavia', apodo: 'El Naranja', color: '#134CA7', color2: '#DF842D', fuerza: 44, rival: null, zona: 'norte' },
-  { id: 'COMU', sigla: 'COM', nombre: 'Comunicaciones', ciudad: 'Mercedes', apodo: 'Comu', color: '#FBE11C', color2: '#111111', fuerza: 48, rival: 'VSMA', rivales: ['VSMA'], zona: 'norte' },
+  { id: 'RIVA', sigla: 'RVA', nombre: 'Rivadavia (Mza)', nombres: ['Riv. (Mza)'], ciudad: 'Rivadavia', apodo: 'El Naranja', color: '#134CA7', color2: '#DF842D', fuerza: 44, rival: null, zona: 'norte' },
+  { id: 'COMU', sigla: 'COM', nombre: 'Comunicaciones', nombres: ['Comu'], ciudad: 'Mercedes', apodo: 'Comu', color: '#FBE11C', color2: '#111111', fuerza: 48, rival: 'VSMA', rivales: ['VSMA'], zona: 'norte' },
   { id: 'HIND', sigla: 'HIN', nombre: 'Hindú', ciudad: 'Córdoba', apodo: 'El H', color: '#161614', color2: '#FBEA0F', fuerza: 43, rival: 'BPAR', rivales: ['BPAR'], zona: 'norte' },
   { id: 'ISDE', sigla: 'IND', nombre: 'Independiente (SDE)', corto: 'Indep. (SDE)', ciudad: 'Santiago del Estero', apodo: 'El Diablo Santiagueño', color: '#175291', color2: '#FFFFFF', fuerza: 45, rival: null, zona: 'norte' },
-  { id: 'JUJU', sigla: 'JUJ', nombre: 'Jujuy Básquet', ciudad: 'San Salvador de Jujuy', apodo: 'Los Cóndores', color: '#021946', color2: '#FE8505', fuerza: 47, rival: 'SALT', rivales: ['SALT'], zona: 'norte' },
+  { id: 'JUJU', sigla: 'JUJ', nombre: 'Jujuy Básquet', nombres: ['Jujuy'], ciudad: 'San Salvador de Jujuy', apodo: 'Los Cóndores', color: '#021946', color2: '#FE8505', fuerza: 47, rival: 'SALT', rivales: ['SALT'], zona: 'norte' },
   { id: 'RIAC', sigla: 'RIA', nombre: 'Riachuelo', ciudad: 'La Rioja', apodo: 'Los Eternos', color: '#1B3E8C', color2: '#FFFFFF', fuerza: 44, rival: 'AMAN', rivales: ['AMAN'], zona: 'norte' },
   { id: 'SALT', sigla: 'SAL', nombre: 'Salta Basket', ciudad: 'Salta', apodo: 'Los Infernales', color: '#C52028', color2: '#6CDEF7', fuerza: 47, rival: 'JUJU', rivales: ['JUJU'], zona: 'norte' },
   { id: 'SISI', sigla: 'SIS', nombre: 'San Isidro', ciudad: 'San Francisco', apodo: 'Halcones Rojos', color: '#CF0203', color2: '#FFFFFF', fuerza: 50, rival: 'CEIB', rivales: ['CEIB'], zona: 'norte' },
   { id: 'SPAU', sigla: 'SPA', nombre: 'Santa Paula', ciudad: 'Gálvez', apodo: 'El Azul', color: '#1454AF', color2: '#FFFFFF', fuerza: 48, rival: null, zona: 'norte' },
   { id: 'SUAR', sigla: 'SUA', nombre: 'Suardi', ciudad: 'Suardi', apodo: null, color: '#F30910', color2: '#FFFFFF', fuerza: 48, rival: null, zona: 'norte' },
-  { id: 'VSMA', sigla: 'VSM', nombre: 'Villa San Martín', ciudad: 'Resistencia', apodo: 'El Tricolor', color: '#04294E', color2: '#AD1742', fuerza: 46, rival: 'COMU', rivales: ['COMU'], zona: 'norte' },
+  { id: 'VSMA', sigla: 'VSM', nombre: 'Villa San Martín', nombres: ['V. S. Martín'], ciudad: 'Resistencia', apodo: 'El Tricolor', color: '#04294E', color2: '#AD1742', fuerza: 46, rival: 'COMU', rivales: ['COMU'], zona: 'norte' },
   /* Zona Sur · 17 */
-{ id: 'CENV', sigla: 'CET', nombre: 'Centenario (VT)', ciudad: 'Venado Tuerto', apodo: 'La Fiebre', color: '#F6DA11', color2: '#272458', fuerza: 46, rival: null, zona: 'sur' },
-  { id: 'CENT', sigla: 'CEN', nombre: 'Central Entrerriano', corto: 'C. Entrerriano', ciudad: 'Gualeguaychú', apodo: 'El Rojinegro', color: '#E8231A', color2: '#111111', fuerza: 51, rival: 'ROCA', rivales: ['ROCA', 'LUCO'], zona: 'sur' },
+{ id: 'CENV', sigla: 'CET', nombre: 'Centenario (VT)', nombres: ['Cent. (VT)'], ciudad: 'Venado Tuerto', apodo: 'La Fiebre', color: '#F6DA11', color2: '#272458', fuerza: 46, rival: null, zona: 'sur' },
+  { id: 'CENT', sigla: 'CEN', nombre: 'Central Entrerriano', corto: 'C. Entrerriano', nombres: ['Central E.'], ciudad: 'Gualeguaychú', apodo: 'El Rojinegro', color: '#E8231A', color2: '#111111', fuerza: 51, rival: 'ROCA', rivales: ['ROCA', 'LUCO'], zona: 'sur' },
   { id: 'CICL', sigla: 'CIC', nombre: 'Ciclista', ciudad: 'Junín', apodo: 'El Verdirrojo', color: '#015233', color2: '#FE2D36', fuerza: 43, rival: null, zona: 'sur' },
-  { id: 'DNOR', sigla: 'DNO', nombre: 'Deportivo Norte', ciudad: 'Armstrong', apodo: 'Los Tigres', color: '#1BA1D0', color2: '#0171AF', fuerza: 42, rival: null, zona: 'sur' },
+  { id: 'DNOR', sigla: 'DNO', nombre: 'Deportivo Norte', nombres: ['Dep. Norte'], ciudad: 'Armstrong', apodo: 'Los Tigres', color: '#1BA1D0', color2: '#0171AF', fuerza: 42, rival: null, zona: 'sur' },
   { id: 'VIED', sigla: 'VIE', nombre: 'Deportivo Viedma', corto: 'Dep. Viedma', ciudad: 'Viedma', apodo: 'Depo', color: '#014F90', color2: '#FC1620', fuerza: 47, rival: null, zona: 'sur' },
   { id: 'GILP', sigla: 'GIM', nombre: 'Gimnasia (LP)', ciudad: 'La Plata', apodo: 'El Lobo', color: '#FFFFFF', color2: '#1F3D7A', fuerza: 50, rival: null, zona: 'sur' },
   { id: 'LUCO', sigla: 'LAU', nombre: 'La Unión (C)', ciudad: 'Colón', apodo: 'El Rojo', color: '#BE0411', color2: '#FFFFFF', fuerza: 49, rival: 'ROCA', rivales: ['ROCA', 'CENT'], zona: 'sur' },
@@ -2824,7 +2824,7 @@ const CLUBES_ARGENTINA = [
   { id: 'ROCA', sigla: 'ROC', nombre: 'Rocamora', ciudad: 'Concepción del Uruguay', apodo: 'El Rojo', color: '#DE1C1F', color2: '#FFFFFF', fuerza: 42, rival: 'LUCO', rivales: ['LUCO', 'CENT'], zona: 'sur' },
   { id: 'UMDP', sigla: 'UNI', nombre: 'Unión (MDP)', ciudad: 'Mar del Plata', apodo: 'El Celeste', color: '#05ACDF', color2: '#FFFFFF', fuerza: 43, rival: 'QUIL', rivales: ['QUIL'], zona: 'sur' },
   { id: 'UNSF', sigla: 'UNI', nombre: 'Unión (SF)', ciudad: 'Santa Fe', apodo: 'El Tatengue', color: '#FFFFFF', color2: '#D0202E', fuerza: 46, rival: null, zona: 'sur' },
-  { id: 'VMIT', sigla: 'VMI', nombre: 'Villa Mitre (BB)', ciudad: 'Bahía Blanca', apodo: 'Los Guerreros', color: '#1B7A3E', color2: '#111111', fuerza: 45, rival: null, zona: 'sur' },
+  { id: 'VMIT', sigla: 'VMI', nombre: 'Villa Mitre (BB)', nombres: ['Villa Mitre'], ciudad: 'Bahía Blanca', apodo: 'Los Guerreros', color: '#1B7A3E', color2: '#111111', fuerza: 45, rival: null, zona: 'sur' },
 ];
 
 
@@ -2848,7 +2848,7 @@ const CLUBES_EUROLIGA = [
   { id: 'MONA', sigla: 'MON', nombre: 'Mónaco', ciudad: 'Mónaco', apodo: null, color: '#C8102E', color2: '#FFFFFF', fuerza: 66, rival: 'PARI', rivales: ['PARI'] },
   { id: 'EFES', sigla: 'EFE', nombre: 'Anadolu Efes', ciudad: 'Estambul', apodo: null, color: '#0B4EA2', color2: '#FFFFFF', fuerza: 65, rival: 'FENE', rivales: ['FENE'] },
   { id: 'MACC', sigla: 'MAC', nombre: 'Maccabi', ciudad: 'Tel Aviv', apodo: null, color: '#FFD100', color2: '#0B4EA2', fuerza: 64, rival: 'HAPO', rivales: ['HAPO'] },
-  { id: 'MILA', sigla: 'MIL', nombre: 'Olimpia Milano', ciudad: 'Milán', apodo: null, color: '#D2202F', color2: '#FFFFFF', fuerza: 64, rival: 'VIRT', rivales: ['VIRT'] },
+  { id: 'MILA', sigla: 'MIL', nombre: 'Olimpia Milano', nombres: ['Milano'], ciudad: 'Milán', apodo: null, color: '#D2202F', color2: '#FFFFFF', fuerza: 64, rival: 'VIRT', rivales: ['VIRT'] },
   { id: 'ZALG', sigla: 'ZAL', nombre: 'Žalgiris', ciudad: 'Kaunas', apodo: null, color: '#00A651', color2: '#F26522', fuerza: 63, rival: null },
   { id: 'VIRT', sigla: 'VIR', nombre: 'Virtus', ciudad: 'Bolonia', apodo: null, color: '#FFFFFF', color2: '#111111', fuerza: 63, rival: 'MILA', rivales: ['MILA'] },
   { id: 'PART', sigla: 'PAR', nombre: 'Partizan', ciudad: 'Belgrado', apodo: null, color: '#000000', color2: '#FFFFFF', fuerza: 62, rival: 'ESTR', rivales: ['ESTR'] },
@@ -2857,7 +2857,7 @@ const CLUBES_EUROLIGA = [
   { id: 'BAYE', sigla: 'BAY', nombre: 'Bayern', ciudad: 'Múnich', apodo: null, color: '#DC052D', color2: '#0066B2', fuerza: 60, rival: null },
   { id: 'VALE', sigla: 'VAL', nombre: 'Valencia', ciudad: 'Valencia', apodo: null, color: '#F2C300', color2: '#DA291C', fuerza: 58, rival: null },
   { id: 'HAPO', sigla: 'HAP', nombre: 'Hapoel', ciudad: 'Tel Aviv', apodo: null, color: '#D2001F', color2: '#FFFFFF', fuerza: 57, rival: 'MACC', rivales: ['MACC'] },
-  { id: 'PARI', sigla: 'PRI', nombre: 'Paris Basketball', ciudad: 'París', apodo: null, color: '#000000', color2: '#FFFFFF', fuerza: 55, rival: 'MONA', rivales: ['MONA'] },
+  { id: 'PARI', sigla: 'PRI', nombre: 'Paris Basketball', nombres: ['Paris'], ciudad: 'París', apodo: null, color: '#000000', color2: '#FFFFFF', fuerza: 55, rival: 'MONA', rivales: ['MONA'] },
 ];
 
 /** NBB (Brasil) · 20 clubes. */
@@ -2871,14 +2871,14 @@ const CLUBES_NBB = [
   { id: 'BAUR', sigla: 'BAU', nombre: 'Bauru Basket', ciudad: 'Bauru, SP', apodo: null, color: '#00493E', color2: '#63B32D', fuerza: 58, rival: 'FRAN', rivales: ['FRAN', 'PAUL'] },
   { id: 'CORI', sigla: 'COR', nombre: 'Corinthians', ciudad: 'São Paulo, SP', apodo: null, color: '#000000', color2: '#FFFFFF', fuerza: 58, rival: null },
   { id: 'SJOS', sigla: 'SJO', nombre: 'São José Basketball', corto: 'São José', ciudad: 'São José dos Campos, SP', apodo: null, color: '#FACF00', color2: '#05376D', fuerza: 56, rival: 'MOGI', rivales: ['MOGI'] },
-  { id: 'MOGI', sigla: 'MOG', nombre: 'Mogi das Cruzes Basquete', corto: 'Mogi das Cruzes', ciudad: 'Mogi das Cruzes, SP', apodo: null, color: '#000B49', color2: '#F8B305', fuerza: 56, rival: 'SJOS', rivales: ['SJOS'] },
+  { id: 'MOGI', sigla: 'MOG', nombre: 'Mogi das Cruzes Basquete', corto: 'Mogi das Cruzes', nombres: ['Mogi'], ciudad: 'Mogi das Cruzes, SP', apodo: null, color: '#000B49', color2: '#F8B305', fuerza: 56, rival: 'SJOS', rivales: ['SJOS'] },
   { id: 'UNIF', sigla: 'UNI', nombre: 'Unifacisa', ciudad: 'Campina Grande, PB', apodo: null, color: '#00357B', color2: '#2773B6', fuerza: 56, rival: 'FORT', rivales: ['FORT'] },
-  { id: 'UCOR', sigla: 'UCO', nombre: 'União Corinthians', corto: 'U. Corinthians', ciudad: 'Santa Cruz do Sul, RS', apodo: null, color: '#003C69', color2: '#00A043', fuerza: 55, rival: 'CAXI', rivales: ['CAXI'] },
+  { id: 'UCOR', sigla: 'UCO', nombre: 'União Corinthians', corto: 'U. Corinthians', nombres: ['União'], ciudad: 'Santa Cruz do Sul, RS', apodo: null, color: '#003C69', color2: '#00A043', fuerza: 55, rival: 'CAXI', rivales: ['CAXI'] },
   { id: 'CAXI', sigla: 'CAX', nombre: 'Caxias do Sul Basquete', corto: 'Caxias do Sul', ciudad: 'Caxias do Sul, RS', apodo: null, color: '#FEFEFE', color2: '#1D1D1B', fuerza: 55, rival: 'UCOR', rivales: ['UCOR'] },
   { id: 'FORT', sigla: 'FOR', nombre: 'Fortaleza Basquete Cearense', corto: 'Fortaleza', ciudad: 'Fortaleza, CE', apodo: null, color: '#FEFEFE', color2: '#2761A5', fuerza: 52, rival: 'UNIF', rivales: ['UNIF'] },
-  { id: 'PATO', sigla: 'PAT', nombre: 'Pato Basquete', ciudad: 'Pato Branco, PR', apodo: null, color: '#FEFEFE', color2: '#005B9D', fuerza: 52, rival: null },
+  { id: 'PATO', sigla: 'PAT', nombre: 'Pato Basquete', nombres: ['Pato'], ciudad: 'Pato Branco, PR', apodo: null, color: '#FEFEFE', color2: '#005B9D', fuerza: 52, rival: null },
   { id: 'CRUZ', sigla: 'CRU', nombre: 'Cruzeiro', ciudad: 'Belo Horizonte, MG', apodo: null, color: '#0C3583', color2: '#FDFDFE', fuerza: 52, rival: 'MINA', rivales: ['MINA'] },
-  { id: 'VASC', sigla: 'VAS', nombre: 'Vasco da Gama', ciudad: 'Rio de Janeiro, RJ', apodo: null, color: '#000000', color2: '#FEFEFE', fuerza: 51, rival: 'FLAM', rivales: ['FLAM', 'BOTA', 'FRAN'] },
+  { id: 'VASC', sigla: 'VAS', nombre: 'Vasco da Gama', nombres: ['Vasco'], ciudad: 'Rio de Janeiro, RJ', apodo: null, color: '#000000', color2: '#FEFEFE', fuerza: 51, rival: 'FLAM', rivales: ['FLAM', 'BOTA', 'FRAN'] },
   { id: 'RCLA', sigla: 'RCL', nombre: 'Rio Claro Basquete', corto: 'Rio Claro', ciudad: 'Rio Claro, SP', apodo: null, color: '#012855', color2: '#182C4C', fuerza: 51, rival: null },
   { id: 'BOTA', sigla: 'BOT', nombre: 'Botafogo', ciudad: 'Rio de Janeiro, RJ', apodo: null, color: '#000000', color2: '#FEFEFE', fuerza: 51, rival: 'FLAM', rivales: ['FLAM', 'VASC'] },
   { id: 'OSAS', sigla: 'OSA', nombre: 'Osasco Basquete', corto: 'Osasco', ciudad: 'Osasco, SP', apodo: null, color: '#22AD53', color2: '#EC3237', fuerza: 50, rival: null },
@@ -2890,12 +2890,12 @@ const CLUBES_LUB = [
   { id: 'BIGU', sigla: 'BIG', nombre: 'Biguá', ciudad: 'Montevideo', apodo: 'El Pato', color: '#0047AB', color2: '#FFFFFF', fuerza: 58, rival: 'MALV' },
   { id: 'MALV', sigla: 'MAL', nombre: 'Malvín', ciudad: 'Montevideo', apodo: 'El Playero', color: '#091E5F', color2: '#FFFFFF', fuerza: 58, rival: 'UNAT', rivales: ['UNAT'] },
   { id: 'DEFE', sigla: 'DEF', nombre: 'Defensor Sporting', corto: 'Defensor', ciudad: 'Montevideo', apodo: 'La Viola', color: '#5D2D94', color2: '#FFFFFF', fuerza: 58, rival: 'ATMV', rivales: ['ATMV'] },
-  { id: 'HEBR', sigla: 'HEB', nombre: 'Hebraica Macabi', ciudad: 'Montevideo', apodo: 'El Macabeo', color: '#FFDC14', color2: '#143278', fuerza: 57, rival: null },
+  { id: 'HEBR', sigla: 'HEB', nombre: 'Hebraica Macabi', nombres: ['Hebraica'], ciudad: 'Montevideo', apodo: 'El Macabeo', color: '#FFDC14', color2: '#143278', fuerza: 57, rival: null },
   { id: 'PEMV', sigla: 'PEÑ', nombre: 'Peñarol', ciudad: 'Montevideo', apodo: 'El Aurinegro', color: '#FFE600', color2: '#000000', fuerza: 56, rival: 'NACI', rivales: ['NACI'] },
   { id: 'NACI', sigla: 'NAC', nombre: 'Nacional', ciudad: 'Montevideo', apodo: 'El Bolso', color: '#003896', color2: '#FFFFFF', fuerza: 54, rival: 'PEMV', rivales: ['PEMV'] },
   { id: 'URUN', sigla: 'URU', nombre: 'Urunday Universitario', corto: 'Urunday', ciudad: 'Montevideo', apodo: 'La Doble U', color: '#009538', color2: '#FFFFFF', fuerza: 49, rival: null },
   { id: 'GOES', sigla: 'GOE', nombre: 'Goes', ciudad: 'Montevideo', apodo: 'El Misionero', color: '#1B3E74', color2: '#DD1C21', fuerza: 48, rival: 'AGUA', rivales: ['AGUA'] },
-  { id: 'UNAT', sigla: 'UNA', nombre: 'Unión Atlética', ciudad: 'Montevideo', apodo: 'El Azulgrana', color: '#F41705', color2: '#0E2840', fuerza: 47, rival: 'MALV', rivales: ['MALV'] },
+  { id: 'UNAT', sigla: 'UNA', nombre: 'Unión Atlética', nombres: ['U. Atlética'], ciudad: 'Montevideo', apodo: 'El Azulgrana', color: '#F41705', color2: '#0E2840', fuerza: 47, rival: 'MALV', rivales: ['MALV'] },
   { id: 'ATMV', sigla: 'ATE', nombre: 'Atenas', ciudad: 'Montevideo', apodo: 'El Decano', color: '#36CEFF', color2: '#FFFFFF', fuerza: 47, rival: 'DEFE', rivales: ['DEFE'] },
   { id: 'LARR', sigla: 'LAR', nombre: 'Larrañaga', ciudad: 'Montevideo', apodo: 'Milrayitas', color: '#FFFFFF', color2: '#DD060B', fuerza: 45, rival: null },
 ];
@@ -2973,7 +2973,7 @@ const CLUBES_NCAA = [
   { id: 'CREI', sigla: 'CRE', nombre: 'Creighton', ciudad: 'Omaha', apodo: 'Bluejays', color: '#005CA9', color2: '#FFFFFF', fuerza: 58, rival: 'MARQ', rivales: ['MARQ'], zona: 'oeste' },
   { id: 'DAY', sigla: 'DAY', nombre: 'Dayton', ciudad: 'Dayton', apodo: 'Flyers', color: '#C8102E', color2: '#004B8D', fuerza: 57, rival: 'XAV', rivales: ['XAV', 'CINC', 'VCU'], zona: 'este' },
   { id: 'DUKE', sigla: 'DUK', nombre: 'Duke', ciudad: 'Durham', apodo: 'Blue Devils', color: '#00539B', color2: '#FFFFFF', fuerza: 67, rival: 'UNC', rivales: ['UNC', 'MICH'], zona: 'oeste' },
-  { id: 'FAU', sigla: 'FAU', nombre: 'Florida Atlantic', ciudad: 'Boca Ratón', apodo: 'Owls', color: '#003366', color2: '#CC0000', fuerza: 53, rival: null, zona: 'este' },
+  { id: 'FAU', sigla: 'FAU', nombre: 'Florida Atlantic', nombres: ['FAU'], ciudad: 'Boca Ratón', apodo: 'Owls', color: '#003366', color2: '#CC0000', fuerza: 53, rival: null, zona: 'este' },
   { id: 'GONZ', sigla: 'GON', nombre: 'Gonzaga', ciudad: 'Spokane', apodo: 'Bulldogs', color: '#041E42', color2: '#C8102E', fuerza: 62, rival: 'SMCA', rivales: ['SMCA', 'BYU'], zona: 'oeste' },
   { id: 'GTWN', sigla: 'GTW', nombre: 'Georgetown', ciudad: 'Washington', apodo: 'Hoyas', color: '#041E42', color2: '#8D817B', fuerza: 52, rival: 'SYR', rivales: ['SYR', 'VILL', 'UCONN'], zona: 'este' },
   { id: 'HOUS', sigla: 'HOU', nombre: 'Houston', ciudad: 'Houston', apodo: 'Cougars', color: '#C8102E', color2: '#FFFFFF', fuerza: 63, rival: 'MEMP', rivales: ['MEMP', 'TEX'], zona: 'oeste' },
@@ -2983,7 +2983,7 @@ const CLUBES_NCAA = [
   { id: 'KAN', sigla: 'KAN', nombre: 'Kansas', ciudad: 'Lawrence', apodo: 'Jayhawks', color: '#0051BA', color2: '#E8000D', fuerza: 67, rival: 'MIZZ', rivales: ['MIZZ', 'TEX'], zona: 'oeste' },
   { id: 'KEN', sigla: 'KEN', nombre: 'Kentucky', ciudad: 'Lexington', apodo: 'Wildcats', color: '#0033A0', color2: '#FFFFFF', fuerza: 66, rival: 'LOU', rivales: ['LOU', 'INDI', 'TENN'], zona: 'este' },
   { id: 'LOU', sigla: 'LOU', nombre: 'Louisville', ciudad: 'Louisville', apodo: 'Cardinals', color: '#AD0000', color2: '#000000', fuerza: 57, rival: 'KEN', rivales: ['KEN', 'CINC', 'MEMP'], zona: 'oeste' },
-  { id: 'LOYC', sigla: 'LOY', nombre: 'Loyola Chicago', ciudad: 'Chicago', apodo: 'Ramblers', color: '#7A0019', color2: '#FFC72C', fuerza: 40, rival: null, zona: 'este' },
+  { id: 'LOYC', sigla: 'LOY', nombre: 'Loyola Chicago', nombres: ['Loyola'], ciudad: 'Chicago', apodo: 'Ramblers', color: '#7A0019', color2: '#FFC72C', fuerza: 40, rival: null, zona: 'este' },
   { id: 'LSU', sigla: 'LSU', nombre: 'LSU', ciudad: 'Baton Rouge', apodo: 'Tigers', color: '#461D7C', color2: '#FDD023', fuerza: 57, rival: 'SOU', zona: 'oeste' },
   { id: 'MARQ', sigla: 'MAR', nombre: 'Marquette', ciudad: 'Milwaukee', apodo: 'Golden Eagles', color: '#003366', color2: '#FFCC00', fuerza: 58, rival: 'ND', rivales: ['ND', 'CREI'], zona: 'este' },
   { id: 'MCN', sigla: 'MCN', nombre: 'McNeese', ciudad: 'Lake Charles', apodo: 'Cowboys', color: '#00427E', color2: '#FDB913', fuerza: 46, rival: null, zona: 'oeste' },
@@ -2991,20 +2991,20 @@ const CLUBES_NCAA = [
   { id: 'MERR', sigla: 'MER', nombre: 'Merrimack', ciudad: 'North Andover', apodo: 'Warriors', color: '#002F6C', color2: '#FFC72C', fuerza: 23, rival: 'WAG', zona: 'oeste' },
   { id: 'MICH', sigla: 'MIC', nombre: 'Michigan', ciudad: 'Ann Arbor', apodo: 'Wolverines', color: '#00274C', color2: '#FFCB05', fuerza: 58, rival: 'MSU', rivales: ['MSU', 'OSU', 'DUKE'], zona: 'este' },
   { id: 'MIZZ', sigla: 'MIZ', nombre: 'Missouri', ciudad: 'Columbia', apodo: 'Tigers', color: '#F1B82D', color2: '#000000', fuerza: 53, rival: 'KAN', rivales: ['KAN'], zona: 'oeste' },
-  { id: 'MSU', sigla: 'MSU', nombre: 'Michigan State', ciudad: 'East Lansing', apodo: 'Spartans', color: '#18453B', color2: '#FFFFFF', fuerza: 61, rival: 'MICH', rivales: ['MICH'], zona: 'este' },
-  { id: 'MTST', sigla: 'MTS', nombre: 'Montana State', ciudad: 'Bozeman', apodo: 'Bobcats', color: '#00205B', color2: '#C8AB6E', fuerza: 45, rival: null, zona: 'oeste' },
+  { id: 'MSU', sigla: 'MSU', nombre: 'Michigan State', nombres: ['Michigan St.', 'Mich. St.'], ciudad: 'East Lansing', apodo: 'Spartans', color: '#18453B', color2: '#FFFFFF', fuerza: 61, rival: 'MICH', rivales: ['MICH'], zona: 'este' },
+  { id: 'MTST', sigla: 'MTS', nombre: 'Montana State', nombres: ['Montana St.'], ciudad: 'Bozeman', apodo: 'Bobcats', color: '#00205B', color2: '#C8AB6E', fuerza: 45, rival: null, zona: 'oeste' },
   { id: 'MURR', sigla: 'MUR', nombre: 'Murray State', ciudad: 'Murray', apodo: 'Racers', color: '#002144', color2: '#FFC72C', fuerza: 38, rival: null, zona: 'este' },
   { id: 'ND', sigla: 'ND', nombre: 'Notre Dame', ciudad: 'South Bend', apodo: 'Fighting Irish', color: '#0C2340', color2: '#C99700', fuerza: 52, rival: 'MARQ', rivales: ['MARQ', 'UCLA'], zona: 'oeste' },
   { id: 'OAK', sigla: 'OAK', nombre: 'Oakland', ciudad: 'Rochester', apodo: 'Golden Grizzlies', color: '#000000', color2: '#B4985A', fuerza: 47, rival: null, zona: 'este' },
   { id: 'OKLA', sigla: 'OKL', nombre: 'Oklahoma', ciudad: 'Norman', apodo: 'Sooners', color: '#841617', color2: '#FDF9D8', fuerza: 53, rival: 'OKST', rivales: ['OKST', 'TEX'], zona: 'oeste' },
-  { id: 'OKST', sigla: 'OKS', nombre: 'Oklahoma State', ciudad: 'Stillwater', apodo: 'Cowboys', color: '#FF7300', color2: '#000000', fuerza: 52, rival: 'OKLA', rivales: ['OKLA', 'TEX'], zona: 'este' },
+  { id: 'OKST', sigla: 'OKS', nombre: 'Oklahoma State', nombres: ['Oklahoma St.', 'Okla. St.'], ciudad: 'Stillwater', apodo: 'Cowboys', color: '#FF7300', color2: '#000000', fuerza: 52, rival: 'OKLA', rivales: ['OKLA', 'TEX'], zona: 'este' },
   { id: 'OSU', sigla: 'OSU', nombre: 'Ohio State', ciudad: 'Columbus', apodo: 'Buckeyes', color: '#BB0000', color2: '#666666', fuerza: 58, rival: 'MICH', rivales: ['MICH'], zona: 'oeste' },
   { id: 'PITT', sigla: 'PIT', nombre: 'Pittsburgh', ciudad: 'Pittsburgh', apodo: 'Panthers', color: '#003594', color2: '#FFB81C', fuerza: 53, rival: 'WVU', rivales: ['WVU', 'SYR'], zona: 'este' },
   { id: 'PRIN', sigla: 'PRI', nombre: 'Princeton', ciudad: 'Princeton', apodo: 'Tigers', color: '#EE7F2D', color2: '#000000', fuerza: 36, rival: 'YALE', rivales: ['YALE'], zona: 'oeste' },
   { id: 'PROV', sigla: 'PRO', nombre: 'Providence', ciudad: 'Providence', apodo: 'Friars', color: '#000000', color2: '#8A8D8F', fuerza: 57, rival: 'VILL', rivales: ['VILL', 'UCONN'], zona: 'este' },
   { id: 'PUR', sigla: 'PUR', nombre: 'Purdue', ciudad: 'West Lafayette', apodo: 'Boilermakers', color: '#CEB888', color2: '#000000', fuerza: 62, rival: 'INDI', rivales: ['INDI'], zona: 'oeste' },
   { id: 'SDST', sigla: 'SDS', nombre: 'South Dakota State', corto: 'S. Dakota St.', ciudad: 'Brookings', apodo: 'Jackrabbits', color: '#0032A0', color2: '#FFD100', fuerza: 47, rival: null, zona: 'este' },
-  { id: 'SDSU', sigla: 'SSU', nombre: 'San Diego State', ciudad: 'San Diego', apodo: 'Aztecs', color: '#A6192E', color2: '#000000', fuerza: 58, rival: 'UNLV', rivales: ['UNLV', 'BYU'], zona: 'oeste' },
+  { id: 'SDSU', sigla: 'SSU', nombre: 'San Diego State', nombres: ['SDSU'], ciudad: 'San Diego', apodo: 'Aztecs', color: '#A6192E', color2: '#000000', fuerza: 58, rival: 'UNLV', rivales: ['UNLV', 'BYU'], zona: 'oeste' },
   { id: 'SETON', sigla: 'SET', nombre: 'Seton Hall', ciudad: 'South Orange', apodo: 'Pirates', color: '#004488', color2: '#FFFFFF', fuerza: 53, rival: 'VILL', rivales: ['VILL'], zona: 'este' },
   { id: 'SMCA', sigla: 'SMC', nombre: 'Saint Mary’s', ciudad: 'Moraga', apodo: 'Gaels', color: '#06315B', color2: '#D40F7D', fuerza: 57, rival: 'GONZ', rivales: ['GONZ'], zona: 'oeste' },
   { id: 'SOU', sigla: 'SOU', nombre: 'Southern', ciudad: 'Baton Rouge', apodo: 'Jaguars', color: '#003D7D', color2: '#FFC72C', fuerza: 25, rival: 'LSU', zona: 'este' },
@@ -3014,7 +3014,7 @@ const CLUBES_NCAA = [
   { id: 'TEX', sigla: 'TEX', nombre: 'Texas', ciudad: 'Austin', apodo: 'Longhorns', color: '#BF5700', color2: '#FFFFFF', fuerza: 58, rival: 'OKLA', rivales: ['OKLA', 'KAN', 'BAYL', 'ARK', 'OKST', 'HOUS'], zona: 'este' },
   { id: 'UCLA', sigla: 'UCL', nombre: 'UCLA', ciudad: 'Los Angeles', apodo: 'Bruins', color: '#2D68C4', color2: '#F2A900', fuerza: 62, rival: 'USC', rivales: ['USC', 'ARIZ', 'ND'], zona: 'oeste' },
   { id: 'UCONN', sigla: 'UCO', nombre: 'Connecticut', ciudad: 'Storrs', apodo: 'Huskies', color: '#000E2F', color2: '#FFFFFF', fuerza: 68, rival: 'SYR', rivales: ['SYR', 'GTWN', 'PROV'], zona: 'este' },
-  { id: 'UNC', sigla: 'UNC', nombre: 'North Carolina', ciudad: 'Chapel Hill', apodo: 'Tar Heels', color: '#7BAFD4', color2: '#FFFFFF', fuerza: 63, rival: 'DUKE', rivales: ['DUKE'], zona: 'oeste' },
+  { id: 'UNC', sigla: 'UNC', nombre: 'North Carolina', nombres: ['UNC'], ciudad: 'Chapel Hill', apodo: 'Tar Heels', color: '#7BAFD4', color2: '#FFFFFF', fuerza: 63, rival: 'DUKE', rivales: ['DUKE'], zona: 'oeste' },
   { id: 'UNLV', sigla: 'UNL', nombre: 'UNLV', ciudad: 'Las Vegas', apodo: 'Runnin’ Rebels', color: '#CF0A2C', color2: '#000000', fuerza: 52, rival: 'SDSU', rivales: ['SDSU', 'BYU'], zona: 'este' },
   { id: 'USC', sigla: 'USC', nombre: 'USC', ciudad: 'Los Angeles', apodo: 'Trojans', color: '#990000', color2: '#FFC72C', fuerza: 57, rival: 'UCLA', rivales: ['UCLA'], zona: 'oeste' },
   { id: 'UTAH', sigla: 'UTA', nombre: 'Utah', ciudad: 'Utah', apodo: 'Utes', color: '#CC0000', color2: '#FFFFFF', fuerza: 53, rival: 'BYU', rivales: ['BYU'], zona: 'este' },
@@ -3053,9 +3053,9 @@ const CLUBES_NCAA = [
  * El chequeador ahora tiene la banda escrita: si pasan menos del 25 % son decoración, si pasan más
  * del 60 % ya están al nivel del resto. */
 const CLUBES_INVITADOS_AMERICAS = [
-  { id: 'RESL', sigla: 'RES', nombre: 'Real Estelí', ciudad: 'Estelí', apodo: 'El Tren del Norte', color: '#BE3125', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'ni' },
-  { id: 'FRMO', sigla: 'FRE', nombre: 'Fuerza Regia', ciudad: 'Monterrey', apodo: null, color: '#0A0A0A', color2: '#FCE81A', fuerza: 60, rival: null, pais: 'mx' },
-  { id: 'UDEC', sigla: 'UDC', nombre: 'U. de Concepción', corto: 'U. Concepción', ciudad: 'Concepción', apodo: 'El Campanil', color: '#003C71', color2: '#F2A900', fuerza: 58, rival: null, pais: 'cl' },
+  { id: 'RESL', sigla: 'RES', nombre: 'Real Estelí', nombres: ['Estelí'], ciudad: 'Estelí', apodo: 'El Tren del Norte', color: '#BE3125', color2: '#FFFFFF', fuerza: 63, rival: null, pais: 'ni' },
+  { id: 'FRMO', sigla: 'FRE', nombre: 'Fuerza Regia', nombres: ['F. Regia'], ciudad: 'Monterrey', apodo: null, color: '#0A0A0A', color2: '#FCE81A', fuerza: 60, rival: null, pais: 'mx' },
+  { id: 'UDEC', sigla: 'UDC', nombre: 'U. de Concepción', corto: 'U. Concepción', nombres: ['UdeC'], ciudad: 'Concepción', apodo: 'El Campanil', color: '#003C71', color2: '#F2A900', fuerza: 58, rival: null, pais: 'cl' },
   { id: 'TIBA', sigla: 'TIT', nombre: 'Titanes', ciudad: 'Barranquilla', apodo: null, color: '#355498', color2: '#ED1C24', fuerza: 57, rival: null, pais: 'co' },
 ];
 
@@ -10833,12 +10833,12 @@ function actualizarIdentidad(estado, skills, ultimos, pjCarrera) {
    universitarios y G-League) y sin eso la AmeriCup no tiene historia. */
 const SELECCIONES = {
   /* América — las doce de la AmeriCup, y las doce jugables */
-  us: { nombre: 'Estados Unidos', fuerza: 88, barra: 8, barraB: -4, cont: 'am', deltaCont: -14 },
+  us: { nombre: 'Estados Unidos', nombres: ['EE. UU.'], fuerza: 88, barra: 8, barraB: -4, cont: 'am', deltaCont: -14 },
   ca: { nombre: 'Canadá', fuerza: 78, barra: 2, cont: 'am' },
   ar: { nombre: 'Argentina', fuerza: 72, barra: 0, cont: 'am' },
   br: { nombre: 'Brasil', fuerza: 71, barra: 0, cont: 'am' },
   pr: { nombre: 'Puerto Rico', fuerza: 66, barra: -2, cont: 'am' },
-  do: { nombre: 'República Dominicana', corto: 'R. Dominicana', fuerza: 64, barra: -2, cont: 'am' },
+  do: { nombre: 'República Dominicana', corto: 'R. Dominicana', nombres: ['Dominicana'], fuerza: 64, barra: -2, cont: 'am' },
   ve: { nombre: 'Venezuela', fuerza: 63, barra: -3, cont: 'am' },
   mx: { nombre: 'México', fuerza: 61, barra: -3, cont: 'am' },
   uy: { nombre: 'Uruguay', fuerza: 58, barra: -5, cont: 'am' },
@@ -10863,7 +10863,7 @@ const SELECCIONES = {
   ng: { nombre: 'Nigeria', fuerza: 62, barra: 0, cont: 'af' },
   cn: { nombre: 'China', fuerza: 61, barra: 0, cont: 'as' },
   jp: { nombre: 'Japón', fuerza: 60, barra: 0, cont: 'as' },
-  nz: { nombre: 'Nueva Zelanda', fuerza: 60, barra: 0, cont: 'oc' },
+  nz: { nombre: 'Nueva Zelanda', nombres: ['N. Zelanda'], fuerza: 60, barra: 0, cont: 'oc' },
   ph: { nombre: 'Filipinas', fuerza: 56, barra: 0, cont: 'as' },
   ao: { nombre: 'Angola', fuerza: 56, barra: 0, cont: 'af' },
   eg: { nombre: 'Egipto', fuerza: 55, barra: 0, cont: 'af' },
@@ -10880,7 +10880,7 @@ const SELECCIONES = {
   pl: { nombre: 'Polonia', fuerza: 64, barra: 0, cont: 'eu' },
   me: { nombre: 'Montenegro', fuerza: 63, barra: 0, cont: 'eu' },
   cz: { nombre: 'Chequia', fuerza: 62, barra: 0, cont: 'eu' },
-  ci: { nombre: 'Costa de Marfil', fuerza: 58, barra: 0, cont: 'af' },
+  ci: { nombre: 'Costa de Marfil', nombres: ['C. de Marfil'], fuerza: 58, barra: 0, cont: 'af' },
   cv: { nombre: 'Cabo Verde', fuerza: 56, barra: 0, cont: 'af' },
   kr: { nombre: 'Corea del Sur', fuerza: 55, barra: 0, cont: 'as' },
 };
@@ -20714,7 +20714,7 @@ function cargarCarrera(n){
        maestra; lo dinámico (fuerza, forma, zona) no se toca. */
     if(c.temporada&&Array.isArray(c.temporada.clubes)) for(const cl of c.temporada.clubes){
       const m=maestroClub(cl.id); if(!m) continue;
-      for(const k of ['nombre','corto','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }
+      for(const k of ['nombre','corto','nombres','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }   // 2026-09-12: `nombres` (las formas cortas) también, o las partidas que ya venían nunca las ven
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
     if(c.temporada&&c.temporada.americas){ const selV=c.temporada.seleccion&&c.temporada.seleccion.ventanas||[];
@@ -20803,7 +20803,10 @@ const clubDe=(id)=>(est()&&clubPorId(est().clubes,id))||clubPorId(ligaDe().clube
    ⚠️ Sólo va donde el renglón RECORTA (overflow hidden en un ancho que no depende del texto): donde el ancho lo pone el
    contenido, "entra" siempre la más larga y se desborda — ahí va `nomCorto`, la forma más corta. */
 const nomCorto=(id)=>{ const c=clubDe(id); if(!c) return ''; return c.nombres?c.nombres[c.nombres.length-1]:(c.corto||c.nombre); };
-const nombresDe=(id)=>{ const c=clubDe(id); if(!c) return ['']; return c.nombres?[c.nombre,...c.nombres]:[c.corto||c.nombre]; };
+/* la primera forma es la que se mostraba antes (`corto || nombre`): donde entra no cambia nada; las de `nombres` aparecen sólo
+   donde falta lugar (2026-09-12, los 52 del padrón que se cortaban a 360; su corte: Panathinaikos sin forma corta) */
+const nombresDe=(id)=>{ const c=clubDe(id); if(!c) return ['']; return c.nombres?[c.corto||c.nombre,...c.nombres]:[c.corto||c.nombre]; };
+const nombresSelDe=(id)=>{ const s=SELECCIONES[id]; if(!s) return [nombreSelCorto(id)]; return s.nombres?[s.corto||s.nombre,...s.nombres]:[s.corto||s.nombre]; };
 function nomAjustable(clase,antes,noms,despues){
   const vs=noms.map(n=>antes+n+(despues||''));
   return '<span'+(clase?' class="'+clase+'"':'')+(vs.length>1?' data-nv="'+vs.join('|').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"':'')+'>'+vs[0]+'</span>';
@@ -21371,7 +21374,7 @@ function htmlSeleccion(e){
         const pais=C.jugador.nacionalidad||'ar';
         h+=htmlQueViene({tit:nombreTorneoSel(an.cual)+' '+an.anio, ico:escuditoDe(clubDeSeleccion(pais)),
           linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), grupo:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
-          ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), noms:(id)=>[nombreSelCorto(id)]});
+          ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), noms:(id)=>nombresSelDe(id)});
         /* §12.31: con el ranking arriba los directos ya se ven; queda la regla del preolímpico */
         if(rk&&an.cual==='preolimpico') h+='<div class="cajNota">'+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'))+'</div>';
         else if(an.directos&&an.directos.length&&!rk) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
@@ -21839,7 +21842,7 @@ function filasFixtureSeleccion(){
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
     const mio=sinVos?'<span class="nota sinVos">'+t(L('SIN VOS','WITHOUT YOU','SEM VOCÊ'))+'</span>':'';
     filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
-      +'<span class="q">'+escudito(f.rival)+'<span class="nom">'+vsTxt(f.local,f.neutral)+nombreSelCorto(f.rival)+'</span>'+mio+'</span>'
+      +'<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local,f.neutral),nombresSelDe(f.rival))+mio+'</span>'
       +'<span class="dia">'+etapa+'</span>'+res+'</div>');
   });
   return {filas,idxProx};
@@ -23669,7 +23672,7 @@ terminar=function(){
       if(o.tipo==='seleccion'){
         const comp=o.etapa==='eliminatorias'?t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+'\u00a0'+(o.ventana?o.ventana.n:'')
           :selTorneoTxt(o.torneo)+' · '+t(SEL_TXT[o.etapa]||L(o.etapa||''));
-        h=escuditoDe(clubDeSeleccion(pais))+'<span>'+comp+' · '+vsTxt(o.local)+nombreSelCorto(o.rival).toUpperCase()+'</span>'+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también
+        h=escuditoDe(clubDeSeleccion(pais))+nomAjustable('',comp+' · '+vsTxt(o.local),nombresSelDe(o.rival).map(n=>n.toUpperCase()))+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también
       } else {
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
         const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha

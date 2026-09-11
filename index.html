@@ -10455,7 +10455,10 @@ function clubIC(id) { return CLUBES_INTERCONTINENTAL.find((c) => c.id === id) ||
 /** Nace la copa. `campeon` es el club de las Américas (vos u otro), con su fuerza; `semillaCarrera` elige los placeholders
  *  (rotan por CARRERA, no por temporada: la misma carrera ve la misma Europa dos años seguidos, que es lo real); `anio` el
  *  de la temporada que arranca; `dia1` el día de la fecha 1 en el calendario de la liga (diaDeFecha). */
-function crearIntercontinental(semillaCarrera, anio, campeon, dia1) {
+/** EL SORTEO, aparte (2026-09-12, su caza: "¡la sede no se sortea en la pretemporada! eso ya lo tenemos codeado"): el campo, la
+ *  sede y los grupos salen de la semilla de la carrera y el año — son deterministas, así que el lobby puede DECIRLOS el día
+ *  que ganás las Américas, meses antes de que la copa se instale. `crearIntercontinental` usa exactamente esto. */
+function sorteoIC(semillaCarrera, anio, campeon) {
   const rng = rngFor(semillaCarrera, 'intercontinental', 'sorteo');
   const campo = [{ id: campeon.id, fuerza: campeon.fuerza, cont: 'americas' }];
   for (const cont of IC_CONTINENTES) {
@@ -10475,6 +10478,10 @@ function crearIntercontinental(semillaCarrera, anio, campeon, dia1) {
      lo juega el relato después de tu segundo partido, y el próximo que ves es siempre tuyo (proximoIntercontinental no
      mueve nada: un getter con efectos rompía el pre) */
   for (const g of ['A', 'B']) { const i = grupos[g].indexOf(campeon.id); if (i > 0) { const a = grupos[g]; [a[0], a[i]] = [a[i], a[0]]; } }
+  return { campo, sede, grupos };
+}
+function crearIntercontinental(semillaCarrera, anio, campeon, dia1) {
+  const { campo, sede, grupos } = sorteoIC(semillaCarrera, anio, campeon);
   const fuerzas = {}; for (const c of campo) fuerzas[c.id] = c.fuerza;
   const juegos = [];
   for (const g of ['A', 'B']) {
@@ -20573,6 +20580,23 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
   if(!campo.some(c=>c.id===e.miClubId)) return;
   e.americas=crearAmericas(e.semilla,campo,e.miClubId,e.fechasTotales,e.ritmo);   // 2026-09-10: con el calendario de días, para anclar con aire
 }
+/* 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega"; y "¡la sede no se sortea en la pretemporada!"):
+   el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
+   quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
+function icAnunciado(e){
+  const anio=esBeta()?C.anio:C.anio+1;
+  const cl=clubDe(e.miClubId); if(!cl) return null;
+  const fuerza=(e.fuerzas&&e.fuerzas[e.miClubId]!==undefined)?e.fuerzas[e.miClubId]:cl.fuerza;
+  const so=sorteoIC(C.semilla,anio,{id:e.miClubId,fuerza});
+  const g=so.grupos.A.includes(e.miClubId)?'A':'B';
+  const nomIC=(id)=>{ const c=clubIC(id); return c?(c.corto||c.nombre):id; };
+  return {anio, sede:so.sede, grupo:g, rivales:so.grupos[g].filter(id=>id!==e.miClubId).map(nomIC)};
+}
+function notaICPendiente(e){
+  const ic=icAnunciado(e); if(!ic) return '';
+  return '<div class="cajNota">'+t(L('COPA INTERCONTINENTAL · SEPTIEMBRE DE ','INTERCONTINENTAL CUP · SEPTEMBER ','COPA INTERCONTINENTAL · SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
+        +'<div class="cajNota">'+t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo+': '+ic.rivales.map(x=>x.toUpperCase()).join(' · ')+'</div>';
+}
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
    `C.icPendiente` lo deja el cierre de la temporada; si en el mercado te fuiste, la juegan sin vos (no se arma). */
 function instalarIntercontinental(e,pend,anio){
@@ -20749,9 +20773,7 @@ function htmlAmericas(e,g){
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
-      +'<div class="cajNota">'+(am.campeon===e.miClubId
-          ? t(L('CLASIFICADOS A LA COPA INTERCONTINENTAL · SEPTIEMBRE DE ','QUALIFIED FOR THE INTERCONTINENTAL CUP · SEPTEMBER ','CLASSIFICADOS PARA A COPA INTERCONTINENTAL · SETEMBRO DE '))+(C.anio+1)+' · '+t(L('SEDE Y GRUPOS SE SORTEAN EN LA PRETEMPORADA','VENUE AND GROUPS DRAWN IN PRESEASON','SEDE E GRUPOS SORTEADOS NA PRÉ-TEMPORADA'))   // 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega")
-          : t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL')))+'</div>'
+      +(am.campeon===e.miClubId ? notaICPendiente(e) : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>')
       /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
          había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
       +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })();
@@ -23474,7 +23496,7 @@ function registrarResultado(){
      que faltaba: la Copa Intercontinental, cuándo se juega. */
   if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
     amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
-             sub:t(L('Clasificados a la Copa Intercontinental de septiembre de ','Qualified for the Intercontinental Cup in September ','Classificados para a Copa Intercontinental de setembro de '))+(C.anio+1)+'.'};
+             sub:(()=>{ const ic=icAnunciado(e); return ic?t(L('Copa Intercontinental: septiembre de ','Intercontinental Cup: September ','Copa Intercontinental: setembro de '))+ic.anio+t(L(', en ',', in ',', em '))+ic.sede.ciudad+'.':''; })()};
   /* ⚠️ §12: SI HAY CEREMONIA, LA PRENSA VA DESPUÉS. El circuito llama a la prensa antes de
      volver al vestuario, y el vestuario es el que abre la ceremonia — o sea que el diario te
      contaba la medalla antes de que la vieras. Acá se guarda y la dispara el SEGUIR del velo. */

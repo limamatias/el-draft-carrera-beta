@@ -12936,6 +12936,9 @@ function sortearTipo(esPedida){
   if(post==='manos') return rT<0.38?'decision': rT<0.80?'carril':'cierre';
   return rT<0.55?'decision': rT<0.78?'carril':'cierre';
 }
+/* §2z203 LA VÍA LIBRE TIENE LIBRETOS: los pesos y las perillas del perseguidor y de la ayuda temprana (las cuatro líneas, en DISEÑO) */
+const CARRIL_LIBRETOS={regalo:0.20, perseguidor:0.40, ayuda:0.40};
+const CARRIL_PERSEG_GAP=72, CARRIL_PERSEG_V=150, CARRIL_PERSEG_ESPERA=600, CARRIL_AYUDA_LEE=450;
 function armarPosesion(){
   G._hintContado=false;   // el hint de arrastre cuenta por posesión (18-frame)
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
@@ -13039,7 +13042,33 @@ function armarPosesion(){
   let dm=95, angM=haciaAro;
   if(G.tipo==='carril'){ dm=125; angM=haciaAro+(Math.random()<0.5?1:-1)*0.62; }
   if(G.tipo==='cierre'){ dm=115; }
-  dm*=POSTURAS[G.duelo.postura];   // el duelo mueve DÓNDE arranca, no qué tan rápido cierra
+  /* §2z203 (su caza 2026-09-12: "hay muchas de vía libre… con NADIE cerca; algún regalito cada tanto está bien, pero estos son todos
+     iguales"): la vía libre SORTEADA elige libreto — regalo · perseguidor (tu marca nace atrás y te corre) · ayuda (el grandote rival
+     sale a cubrir el aro antes de que entres). La heredada, los drills y los tutoriales no sortean. */
+  G.carrilVar=null; G.carrilT0=performance.now();
+  if(G.tipo==='carril' && !beatDesde && !G.esDrill && !G.tut){
+    let v=G.carrilForzar||null;
+    if(!v){ const r=Math.random(), L1=CARRIL_LIBRETOS.regalo, L2=L1+CARRIL_LIBRETOS.perseguidor;
+      v = r<L1 ? 'regalo' : r<L2 ? 'perseguidor' : 'ayuda';
+      if(v!=='regalo' && v===G.carrilUltima && Math.random()<0.70) v = v==='perseguidor' ? 'ayuda' : 'perseguidor'; }
+    G.carrilVar=v; G.carrilUltima=v;
+    if(v==='perseguidor'){
+      /* atrás tuyo, sobre la línea aro→vos. ⚠️ Medido (via-libre-check, 2 de 6): nacido cerca del fondo de la pantalla, el punto de
+         atrás caía afuera y el clamp del elenco lo dejaba a 5–28 px tuyo. Se gira hacia el costado hasta que entre (sigue más lejos
+         del aro que vos). */
+      /* ⚠️ Segunda medida (3 de 12 a 9–12 px): con vos pegado al piso, NINGUNA dirección de atrás entraba — todas bajan — y quedaba
+         la primera, aplastada por el clamp. Ahora se prueba hasta el costado (±90°), se juzga el punto YA clampeado (lejos tuyo y
+         más lejos del aro que vos) y, si no hay lugar, esa vía libre es un regalo: un perseguidor encima tuyo no es un libreto. */
+      const gap=CARRIL_PERSEG_GAP*ESC(), yMaxP=pisoVos()+30, base=haciaAro+Math.PI+rnd(-0.25,0.25), dVA=dist(G.vos,a);
+      let elegido=null;
+      for(const off of [0,0.45,-0.45,0.9,-0.9,1.25,-1.25,1.57,-1.57]){
+        const q={x:clamp(G.vos.x+Math.cos(base+off)*gap, MARG()+14, W-MARG()-14), y:clamp(G.vos.y+Math.sin(base+off)*gap, a.y+20*ESC(), yMaxP)};
+        if(dist(q,G.vos)>=gap*0.85 && dist(q,a)>dVA){ elegido=q; break; } }
+      if(elegido){ dm=dist(elegido,G.vos); angM=Math.atan2(elegido.y-G.vos.y, elegido.x-G.vos.x); }
+      else { v='regalo'; G.carrilVar=v; G.carrilUltima=v; }
+    }
+  }
+  if(G.carrilVar!=='perseguidor') dm*=POSTURAS[G.duelo.postura];   // el duelo mueve DÓNDE arranca, no qué tan rápido cierra
   if(G.tipo==='sacada'){
     /* LA SACADA: estás afuera del costado. El pase es LA jugada (el córner de NSS):
        el grandote postea cerca de la pintura, el otro se abre — y adentro se sigue jugando */
@@ -18415,6 +18444,12 @@ function frame(now){
            atrás en una contra TE SIGUE, no te caza: trota a un cuerpo y medio (40·ESC) y no cobra; el contacto en la
            contra lo cobran los de adelante (el custodio, la marca que nace adelante). Su corte: "cierto movimiento,
            no que te corran a 200 y no te dejen avanzar". */
+        /* §2z203 EL PERSEGUIDOR, conduciendo: nace atrás y a los CARRIL_PERSEG_ESPERA ms te corre a CARRIL_PERSEG_V; te sigue a
+           un cuerpo y medio (40·ESC) y no cobra — el de atrás apura, no baja (§2z158). Si frenás te alcanza (la regla de parado). */
+        if(G.carrilVar==='perseguidor' && esMarca){
+          if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>40*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*dt, d0-40*ESC());
+            df.x+=(G.vos.x-df.x)/d0*vP; df.y=Math.max(df.y+(G.vos.y-df.y)/d0*vP, pisoDef()); cuerpoPantalla(df); }
+          continue; }
         if(G.tipo==='contra' && esMarca && df.y>G.vos.y+10*ESC()){
           const vT=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
           if(d0>40*ESC()){ df.x+=(G.vos.x-df.x)/d0*vT; df.y=Math.max(df.y+(G.vos.y-df.y)/d0*vT, pisoDef()); cuerpoPantalla(df); }
@@ -18908,12 +18943,14 @@ function frame(now){
          un compañero que recibió adentro, igual que conduciendo. Histéresis +0,15. */
       const parado = portador===G.vos && G.fase!=='conduzco';
       const umbralRot = (parado ? 0.62 : 0.95) + (G.rot ? 0.15 : 0);
-      const adentro = portador && dPA < R3()*umbralRot;
+      /* §2z203 LA AYUDA TEMPRANA: en la vía libre que la sorteó, el grandote rival (no el suave) sale a cubrir sin esperar que entres */
+      const ayudaTemprana = G.carrilVar==='ayuda' && !suave && portador===G.vos;
+      const adentro = portador && (dPA < R3()*umbralRot || ayudaTemprana);
       if(prot && adentro){
         /* la cobertura es un paso de SOMBRA, no una lectura del drive (medido: con la lectura del sprint, 0,9 s con
            def 16, la bandeja arrancaba sola a 0,35·R3 antes de que se moviera). Lee corto; tu MANEJO igual le vende
            algo (§2z39.19). */
-        if(!G.rot) G.rot={t0:now, df:prot, suave, leido:now+Math.max(150,400-4*(dif.def||16)+15*(dif.man||0)+(suave?150:0))};
+        if(!G.rot) G.rot={t0:now, df:prot, suave, leido:now+(ayudaTemprana?CARRIL_AYUDA_LEE:Math.max(150,400-4*(dif.def||16)+15*(dif.man||0)+(suave?150:0)))};
         if(now>=G.rot.leido){
           const rC=R3()*0.30, ux=(portador.x-a7.x)/Math.max(1,dPA), uy=(portador.y-a7.y)/Math.max(1,dPA);
           const meta={x:a7.x+ux*rC, y:Math.max(a7.y+uy*rC, a7.y+18*ESC())};
@@ -19168,6 +19205,11 @@ function frame(now){
          en la sacada la marca presiona hasta la raya y ahí SE PLANTA. */
       const piso = G.tipo==='sacada' ? 52*ESC() : 26*ESC();
       if(G.tutQuieto){ /* §7.1 los tutoriales de tirar y pasar: la marca no cierra */ }
+      /* §2z203 EL PERSEGUIDOR, parado: frenar es dejar que te alcance — llega a 24·ESC a CARRIL_PERSEG_V y NO roba (viene de atrás:
+         en el tiro cuenta la mitad, §2z112, pero a esa distancia igual te contesta y la tapa del que suelta tarde existe) */
+      else if(G.carrilVar==='perseguidor'){
+        if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>24*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*dt, d0-24*ESC());
+          G.marca.x+=(G.vos.x-G.marca.x)/d0*vP; G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/d0*vP, aro().y+20*ESC()); cuerpoPantalla(G.marca); } }
       else if(d0>piso){ G.marca.x+=(G.vos.x-G.marca.x)/d0*v;
         G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/d0*v, aro().y+20*ESC());
         cuerpoPantalla(G.marca); }

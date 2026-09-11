@@ -4368,6 +4368,59 @@ function pasoDePlayoffs(estado, miJuego) {
   return semanaDePlayoffs(estado).resultados;
 }
 
+/**
+ * 2026-09-12 (la clase 20 de CLAUDE.md, en la llave del club): `series` (las vivas) y `seriesJugadas` (las que se dibujan)
+ * nacen con los mismos objetos, y cada juego vive a la vez en `s.juegos` y en `po.juegos`. El JSON del guardar los separa en
+ * copias: el motor escribe en una y el fixture y la llave leen la otra. Al cargar se religan por identidad (ronda · nombre ·
+ * cruce), y los juegos de cada serie se rearman desde `po.juegos`, que el motor siempre completa: una serie que quedó
+ * partida y cerró en una ronda anterior ya no está entre las vivas, y su copia vieja no tenía los últimos juegos ni ganador.
+ */
+function religarLlavePO(estado) {
+  const po = estado && estado.playoffs;
+  if (!po || !po.series || !po.seriesJugadas) return;
+  const clave = (ronda, nombre, a, b) => ronda + '|' + nombre + '|' + [a, b].sort().join('|');
+  const vivas = new Map(po.series.map((s) => [clave(s.ronda, s.nombre, s.alta, s.baja), s]));
+  const porSerie = new Map();
+  for (const j of po.juegos || []) {
+    const k = clave(j.ronda, j.nombre, j.local, j.visita);
+    if (!porSerie.has(k)) porSerie.set(k, []);
+    porSerie.get(k).push(j);
+  }
+  po.seriesJugadas = po.seriesJugadas.map((s0) => {
+    const k = clave(s0.ronda, s0.nombre, s0.alta, s0.baja), s = vivas.get(k) || s0;
+    s.juegos = porSerie.get(k) || [];
+    s.ganAlta = s.juegos.filter((j) => (j.ptsLocal > j.ptsVisita ? j.local : j.visita) === s.alta).length;
+    s.ganBaja = s.juegos.length - s.ganAlta;
+    const meta = Math.ceil(s.mejorDe / 2);
+    if (!s.ganador && (s.ganAlta >= meta || s.ganBaja >= meta)) s.ganador = s.ganAlta >= meta ? s.alta : s.baja;
+    return s;
+  });
+}
+
+/**
+ * 2026-09-12 (su caza: "el fixture sigue diciendo CUARTOS, sin fecha"): una partida que entró a los playoffs antes de §2z204
+ * tiene juegos sin `paso`, y con uno solo el fixture no fecha ninguno. El paso se reconstruye del orden de `po.juegos`, que
+ * es el orden en que se jugaron: un paso JUGABLE (pasoDePlayoffs) abre con tu juego y gotea uno de cada otra serie; uno EN
+ * SECO (semanaDePlayoffs) juega hasta dos seguidos de cada serie. Arranca un paso nuevo con tu juego, con una ronda nueva, o
+ * con una serie que ya jugó en éste (dos veces, o una en un paso tuyo, o una y no recién).
+ */
+function fecharPasosPO(estado) {
+  const po = estado && estado.playoffs;
+  if (!po || !po.juegos || !po.juegos.length || po.juegos.every((j) => j.paso)) return;
+  const mi = estado.miClubId;
+  let paso = 0, ronda = null, cuenta = {}, previa = null, conMio = false;
+  for (const j of po.juegos) {
+    const k = j.ronda + '|' + j.nombre + '|' + [j.local, j.visita].sort().join('|');
+    const mio = j.local === mi || j.visita === mi;
+    if (!paso || j.ronda !== ronda || mio || (cuenta[k] || 0) >= 2 || (cuenta[k] && (conMio || previa !== k))) {
+      paso++; ronda = j.ronda; cuenta = {}; conMio = mio;
+    }
+    cuenta[k] = (cuenta[k] || 0) + 1; previa = k;
+    j.paso = paso;
+  }
+  estado.pasoPO = paso;
+}
+
 /** Tu línea en un juego de playoffs de tu equipo (misma versión mínima que la regular). */
 function anotarMiLineaPO(estado, serie, juego) {
   if (juego.local !== estado.miClubId && juego.visita !== estado.miClubId) return;
@@ -11360,6 +11413,16 @@ function crearTorneoSel(semilla, torneo, pais, campo, anio) {
   return t;
 }
 function mkSerieSel(s) { return { nombre: s.nombre, alta: s.alta, baja: s.baja, jugado: false, ganador: null }; }
+/* 2026-09-12 (la clase 20 de CLAUDE.md): `llave.series` y `llave.jugadas` nacen con los mismos objetos y el torneo se guarda
+   en la partida; al cargar a mitad de llave el motor anotaba el cruce en una copia y la pantalla (tus cruces jugados, la
+   etapa) leía la otra. Se religan por identidad del cruce. */
+function religarLlaveSel(t) {
+  const ll = t && t.llave;
+  if (!ll || !ll.series || !ll.jugadas) return;
+  const clave = (s) => s.nombre + '|' + s.alta + '|' + s.baja;
+  const vivas = new Map(ll.series.map((s) => [clave(s), s]));
+  ll.jugadas = ll.jugadas.map((s) => vivas.get(clave(s)) || s);
+}
 
 /** Tu próximo partido del torneo, o null si terminó (o si quedaste afuera). */
 function proximoTorneoSel(t) {
@@ -20629,6 +20692,10 @@ function cargarCarrera(n){
     if(c.temporada&&c.temporada.americas){ const selV=c.temporada.seleccion&&c.temporada.seleccion.ventanas||[];
       const ocup=new Set(selV.filter(v=>v.receso!=='verano'&&!v.receso).flatMap(v=>[v.f,v.f+1]));   // 2026-09-12: las fechas de la ventana FIBA
       reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo,c.temporada.fechaJugada,ocup); }   // 2026-09-11: nunca a una fecha ya jugada   // 2026-09-10: las ventanas por jugar, con aire
+    /* 2026-09-12: la llave del club y la de la selección vuelven a ser una (clase 20), y los juegos de playoffs de antes de
+       §2z204 recuperan su paso (el día en el fixture) */
+    if(c.temporada&&c.temporada.playoffs){ religarLlavePO(c.temporada); fecharPasosPO(c.temporada); }
+    if(c.selTorneo) religarLlaveSel(c.selTorneo);
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
        fecha f+1 y la 2 tres días después. Las del receso ya los traen. */
@@ -22982,7 +23049,7 @@ function pintaEntrenar(){
   $l('lobby').classList.toggle('plena',!!escaleraAbierta);
   /* "0/2" no es una frase (su caza 2026-09-02): sin sesiones, se dice */
   const cupoTxt=e.fase!=='regular'
-      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('Estás concentrado en la postemporada.','You are focused on the postseason.','Você está concentrado na pós-temporada.')))   // §2z19: el contrato, no una aclaración
+      ? (e.fase==='terminada'?t(L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')):t(L('No se entrena: estás en postemporada.','No training: you are in the postseason.','Não se treina: você está na pós-temporada.')))   // §2z19: el contrato, no una aclaración
       : libres<=0
       ? t(L('Esta semana no te quedan sesiones.','No sessions left this week.','Esta semana não restam sessões.'))
       : t(L('Esta semana te quedan <b>','This week you have <b>','Esta semana restam <b>'))+libres+'/'+SESIONES_POR_SEMANA+'</b>'
@@ -23128,7 +23195,7 @@ function entrenar(k,nivelPedido){
   if(e.fase!=='regular'){ avisar(t(C.selTorneo
     ? L('Estás con la Selección: no hay gimnasio.','You are with the national team: no gym.','Você está com a Seleção: sem academia.')
     : e.fase==='terminada'?L('En el receso no se entrena.','No training in the offseason.','No recesso não se treina.')
-    : L('Estás concentrado en la postemporada.','You are focused on the postseason.','Você está concentrado na pós-temporada.'))); return; }   // §2z19
+    : L('No se entrena: estás en postemporada.','No training: you are in the postseason.','Não se treina: você está na pós-temporada.'))); return; }   // §2z19
   if(sesionesRestantes(J,e.semilla,proximaFecha(),est().ritmo)<=0){
     avisar(t(L('Sin sesiones esta semana: jugá y volvé.','No sessions left this week: play on and come back.','Sem sessões esta semana: joga e volta.'))); return; }
   if(J.energia<ENERGIA_MIN_ENTRENAR){

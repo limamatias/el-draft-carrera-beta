@@ -5658,8 +5658,9 @@ function semillaMinutos(ligaId, rol) {
   return rol === 'suplente' ? (nba ? 18 : 16) : (nba ? 28 : 26);
 }
 
-/* ── Las relaciones: qué mueve a cada una. Acotadas a 20-90. */
-const REL_MIN = 20, REL_MAX = 90;
+/* ── Las relaciones: qué mueve a cada una. Acotadas a 20-99 (2026-09-12, su caza: "la barra en 90 no llega al tope, hay un espacio
+   negro; y es raro tener 99 en algunas cosas y 90 en otras" — la barra es la misma de los skills, /100, y el techo va al mismo 99). */
+const REL_MIN = 20, REL_MAX = 99;
 const acotarRel = (v) => Math.max(REL_MIN, Math.min(REL_MAX, v));
 /* los deltas son PUROS (el velo de fin los muestra antes de aplicarlos); aplicar es aparte */
 function deltasRelaciones(r) {

@@ -20583,18 +20583,19 @@ function instalarAmericas(e,ligaId,anio,tablaFinal){
 /* 2026-09-12 (su caza: "nadie te avisa cuándo se juega y si realmente se juega"; y "¡la sede no se sortea en la pretemporada!"):
    el sorteo es determinista (01p3 `sorteoIC`), así que el día que ganás las Américas ya se dice: cuándo, dónde y contra
    quiénes. El año es el que va a usar la instalación: el próximo en la carrera, el mismo en la beta (se juega post temporada). */
-function icAnunciado(e){
-  const anio=esBeta()?C.anio:C.anio+1;
-  const cl=clubDe(e.miClubId); if(!cl) return null;
-  const fuerza=(e.fuerzas&&e.fuerzas[e.miClubId]!==undefined)?e.fuerzas[e.miClubId]:cl.fuerza;
-  const so=sorteoIC(C.semilla,anio,{id:e.miClubId,fuerza});
-  const g=so.grupos.A.includes(e.miClubId)?'A':'B';
-  const nomIC=(id)=>{ const c=clubIC(id); return c?(c.corto||c.nombre):id; };
-  return {anio, sede:so.sede, grupo:g, rivales:so.grupos[g].filter(id=>id!==e.miClubId).map(nomIC)};
+function icAnunciado(e,clubId){
+  const id=clubId||e.miClubId, anio=esBeta()?C.anio:C.anio+1;
+  const cl=clubDe(id); if(!cl) return null;
+  const fuerza=(e.fuerzas&&e.fuerzas[id]!==undefined)?e.fuerzas[id]:cl.fuerza;
+  const so=sorteoIC(C.semilla,anio,{id,fuerza});
+  const g=so.grupos.A.includes(id)?'A':'B';
+  const nomIC=(id2)=>{ const c=clubIC(id2); return c?(c.corto||c.nombre):id2; };
+  return {anio, sede:so.sede, grupo:g, club:cl, rivales:so.grupos[g].filter(x=>x!==id).map(nomIC)};
 }
-function notaICPendiente(e){
-  const ic=icAnunciado(e); if(!ic) return '';
-  return '<div class="cajNota">'+t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
+function notaICPendiente(e,clubId){
+  const ic=icAnunciado(e,clubId); if(!ic) return '';
+  const quien=(clubId&&clubId!==e.miClubId)?(ic.club.corto||ic.club.nombre).toUpperCase()+' · ':'';
+  return '<div class="cajNota">'+quien+t(L('SEPTIEMBRE DE ','SEPTEMBER ','SETEMBRO DE '))+ic.anio+' · '+ic.sede.ciudad.toUpperCase()+'</div>'
         +'<div class="cajNota">'+t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo+': '+ic.rivales.map(x=>x.toUpperCase()).join(' · ')+'</div>';
 }
 /* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
@@ -20773,13 +20774,17 @@ function htmlAmericas(e,g){
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
-      +(am.campeon===e.miClubId ? '' : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>')
+
       /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
          había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
       +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })()
       /* 2026-09-12 (su captura: "quedó todo muy pegado"): con el título ganado, la copa que viene tiene su bloque propio con
          título, después del tercer puesto — no tres renglones de nota seguidos */
-      +(am.campeon===e.miClubId ? '<div class="cajTag bkSig">'+t(IC_TXT.nombre)+'</div>'+notaICPendiente(e) : '');
+      /* 2026-09-12 (su corte: "el «campeón clasifica» no va debajo del bracket, son secciones diferentes; y con campeón tiene que
+         decir quién la juega"): la sección de la copa SIEMPRE, con su título — sin campeón el contrato, con campeón quién · cuándo ·
+         dónde · con quiénes, seas vos u otro */
+      +'<div class="cajTag bkSig">'+t(IC_TXT.nombre)+'</div>'+(am.campeon ? notaICPendiente(e,am.campeon)
+          : '<div class="cajNota">'+t(L('EL CAMPEÓN CLASIFICA A LA COPA INTERCONTINENTAL','THE CHAMPION QUALIFIES FOR THE INTERCONTINENTAL CUP','O CAMPEÃO SE CLASSIFICA PARA A COPA INTERCONTINENTAL'))+'</div>');
   }
   return h;
 }

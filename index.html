@@ -10061,7 +10061,26 @@ function jugarVentanaAM(e, v, miJuego) {
       if (s.ganador && s.ganador !== mi) { am.eliminado = true; am.miFase = s.nombre === 'final' ? 'final' : s.nombre; }
     }
   }
-  if (!am.ventanas.some((w) => w.etapa === v.etapa && w.n > v.n)) cerrarRondaAM(am, mi);   // la última ventana de la ronda la cierra
+  if (!am.ventanas.some((w) => w.etapa === v.etapa && w.n > v.n)) {
+    /* 2026-09-12 (su caza en la beta: la serie de cuartos con cero juegos y dos ventanas por delante — "¿qué pasa si quedamos
+       1-1?"): si la última ventana de la ronda deja una serie ABIERTA (una ventana que se perdió, o que el relato consumió sin
+       juego), la ronda no se cierra a la fuerza — se agrega UNA VENTANA MÁS de esa ronda, en la fecha con aire que sigue.
+       Antes `cerrarRondaAM` tiraba «una serie quedó abierta» y el partido moría. */
+    if (am.llave.series.some((s) => !s.ganador)) {
+      const k = am.ventanas.indexOf(v), F = e.fechasTotales;
+      const quedan = am.ventanas.slice(k + 1).filter((w) => w.etapa !== 'final').length;
+      let f = Math.min(v.f + 1, F - 2 - quedan);
+      if (f <= v.f) f = v.f + 1;   // sin lugar: pegada igual, pero se juega (mejor un partido apretado que una serie que no cierra)
+      f = fechaConAire(F, f, e.semilla, e.ritmo, quedan, v.f);
+      if (f <= v.f) f = v.f + 1;
+      const h = e.semilla && typeof diaDeFecha === 'function' ? huecoDe(F, f, e.semilla, e.ritmo) : 0;
+      am.ventanas.splice(k + 1, 0, h > 0 ? { etapa: v.etapa, n: v.n + 1, f, dia: diaDeFecha(e.semilla, f, e.ritmo) + Math.max(1, Math.ceil(h / 2)), extra: true } : { etapa: v.etapa, n: v.n + 1, f, extra: true });
+      /* las ventanas siguientes de la llave que quedaron en la misma fecha o antes se corren una fecha */
+      for (let i = k + 2; i < am.ventanas.length; i++) { const w = am.ventanas[i], prev = am.ventanas[i - 1];
+        if (w.etapa === 'final' && prev.etapa === 'semifinal') { w.f = prev.f; if (prev.dia) w.dia = prev.dia + 1; continue; }
+        if (w.f <= prev.f) { w.f = prev.f + 1; const hh = e.semilla && typeof diaDeFecha === 'function' ? huecoDe(F, w.f, e.semilla, e.ritmo) : 0; if (hh > 0) w.dia = diaDeFecha(e.semilla, w.f, e.ritmo) + Math.max(1, Math.ceil(hh / 2)); } }
+    } else cerrarRondaAM(am, mi);   // la última ventana de la ronda la cierra
+  }
   return true;
 }
 
@@ -10134,10 +10153,14 @@ function misJuegosAM(e) {
        partido tuyo y esa semana el club juega su fecha normal. */
     if (!s.ganador) {
       const seguros = Math.ceil(s.mejorDe / 2) - Math.max(s.ganAlta || 0, s.ganBaja || 0);
-      for (let nro = s.juegos.length + 1; nro <= s.mejorDe; nro++) {
-        const localId = localDeJuegoAM(am, s, nro);
+      /* 2026-09-12: los juegos que faltan se fechan en las ventanas de la ronda QUE QUEDAN (desde am.idx), no en la n-ésima —
+         con una ventana perdida, el juego 1 salía fechado en una ventana ya pasada (su captura: «en Gimnasia 28 ENE —» detrás
+         de dos fechas jugadas). Si faltan ventanas, el juego va sin fecha: la ventana extra nace cuando haga falta. */
+      const restantes = am.ventanas.slice(am.idx).filter((w) => w.etapa === s.nombre);
+      for (let nro = s.juegos.length + 1, i = 0; nro <= s.mejorDe; nro++, i++) {
+        const localId = localDeJuegoAM(am, s, nro), w = restantes[i] || null;
         const sedeF = s.mejorDe === 1 ? (am.llave.sede || null) : null, rivalF = s.alta === mi ? s.baja : s.alta;
-        out.push({ etapa: s.nombre, n: nro, f: fDe(s.nombre, nro), dia: dDe(s.nombre, nro), rival: rivalF, local: localId === mi, neutral: !!sedeF && sedeF !== mi && sedeF !== rivalF, res: null, serie: s,   // §2z194
+        out.push({ etapa: s.nombre, n: nro, f: w ? w.f : null, dia: w && w.f ? diaAmericas(e, w) : null, rival: rivalF, local: localId === mi, neutral: !!sedeF && sedeF !== mi && sedeF !== rivalF, res: null, serie: s,   // §2z194
           siHaceFalta: nro > s.juegos.length + seguros });
       }
     }

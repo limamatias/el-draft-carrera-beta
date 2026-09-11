@@ -11813,6 +11813,12 @@ function clasifAmericaDe(memoria) {
 function directosJJOO(clasifMundial) {
   return (clasifMundial || []).slice(0, SEL_JJOO_DIRECTOS_AM);
 }
+/* 2026-09-12 (lo cazó leer §12.31; su "arreglá lo de España"): la puerta de los Juegos preguntaba sólo por los directos de
+   AMÉRICA, así que España —fija de los Juegos— caía al preolímpico, que excluye a las fijas, y "no clasificaba" nunca. Van
+   directo los dos de América por el Mundial y las fijas (que representan a los clasificados del resto del mundo). */
+function vaDirectoJJOO(pais, clasifMundial) {
+  return SEL_JJOO_FIJOS.indexOf(pais) >= 0 || directosJJOO(clasifMundial).indexOf(pais) >= 0;
+}
 /* §12.30 EL PREOLÍMPICO REAL (2026-09-12, su pedido: "¿por qué no armamos los torneos cruzados reales, con placeholders para los
    países no jugables, como el Mundial?"): el OQT de la FIBA son cuatro torneos de SEIS en julio, con países de distintos
    continentes mezclados; el ganador de cada uno va a los Juegos. Acá se juega EL TUYO: tu país (si no fue directo), el
@@ -21182,7 +21188,7 @@ function torneoAnunciado(e){
   const fuera=(torneo==='mundial'&&clasif.indexOf(pais)<0)?pais:null;
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   let cual=torneo;
-  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mundialTopDe(mem)||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm)) cual='preolimpico';
   let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
     :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
@@ -21191,7 +21197,7 @@ function torneoAnunciado(e){
   const rivales=t.miGrupo?t.grupos[t.miGrupo].filter(x=>x!==pais):(t.llave?t.llave.series.filter(s=>s.alta===pais||s.baja===pais).map(s=>s.alta===pais?s.baja:s.alta):[]);
   const sede=sedeDe(t,t.miGrupo?'grupo':'semifinal',t.miGrupo);
   const ids=t.miGrupo?t.grupos[t.miGrupo].slice():campo.slice();   // el preolímpico: los cuatro, que es la pregunta ("¿quién va?")
-  const directos=(cual==='jjoo'||cual==='preolimpico')?directosJJOO(mundialTopDe(mem)||clasifAm):null;
+  const directos=((cual==='jjoo'||cual==='preolimpico')&&SELECCIONES[pais].cont==='am')?directosJJOO(mundialTopDe(mem)||clasifAm):null;   /* 2026-09-12: los directos de América no son noticia para España */
   return {cual,anio:C.anio+1,grupo:t.miGrupo||null,rivales,ids,sede,directos,afuera:false};
 }
 function torneoRecesoDe(){
@@ -21217,7 +21223,7 @@ function torneoRecesoDe(){
      cupos de América son los dos directos + el ganador del preolímpico + uno por fuerza (cuposJJOOAm), y el preolímpico
      se juega UNA vez por ciclo (`mem.preo.anio`), lo hayas ganado o no */
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
-  if(torneo==='jjoo'&&!preoJugado&&directosJJOO(mundialTopDe(mem)||clasifAm).indexOf(pais)<0) cual='preolimpico';
+  if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm)) cual='preolimpico';
   const campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1)
     :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera)
     :campoTorneo(cual,clasifAm,fuera);

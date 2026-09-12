@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='f6340b2127';
+const BUILD='57e2a4e722';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -26324,7 +26324,7 @@ function pintaSecciones(){
      encabezado y PJ en la grilla: no se repiten. */
   const rotulo=enSel
     ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
-    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt()+' · '+rolTxt();   // §2z124 · §2z233: el rol, pelado (su corte: "no aclaremos qué lo mueve; no es un dado")
+    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt();   // §2z124 · 2026-09-14 (su caza: «LA REFERENCIA acá no tiene sentido; rompe la línea y no se entiende»): el rol NO va en el rótulo del resumen — vive en el velo TU ROL (§2z233)
   $l('lobResumen').innerHTML=
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+

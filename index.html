@@ -1732,7 +1732,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='299c698d4c';
+const BUILD='39829244e5';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27061,7 +27061,8 @@ let resumenModo='liga';   // 'liga' | 'am' — qué hace SEGUIR
 function resumenAMPendiente(e){ return !!(e&&e.americas&&e.americas.fase==='terminado'&&C.amCierreAnio!==C.anio); }
 function abrirResumenAM(){
   const e=est(), am=e.americas, mi=e.miClubId; if(!am) return false;
-  C.amCierreAnio=C.anio; guardar();
+  /* 2026-09-13 (su caza: recargó con la hoja abierta y no la vio más): se marca VISTA al cerrarla con SEGUIR, no al abrirla —
+     el principio de §2z225: recargar te devuelve al mismo lugar, y una pantalla inocente no se come con la recarga. */
   const camp=am.campeon===mi, nom=(id)=>nomCorto(id).toUpperCase();
   const series=((am.llave&&am.llave.seriesJugadas)||[]).filter(x=>x.ganador&&(x.alta===mi||x.baja===mi));
   const u=series[series.length-1];
@@ -27101,7 +27102,7 @@ function abrirResumenT(final){
   resumenModo='liga'; $l('resTVolver').classList.remove('oculto');
   if(!esBeta()) aplicarEscalera();   // 2026-09-09: en la beta no hay mercado y simular tres ligas en seco era un colgón en el A32   // §2z7/§2z28: el ascenso se premia con el mundo ya movido (idempotente, el mercado lo repite)
   const e=est(), J=C.jugador, mt=miTabla(e), ml=e.miLinea, po=e.miLineaPO||lineaVacia();
-  if(C.cierreAnio!==C.anio){ C.cierreAnio=C.anio; guardar(); }
+  /* 2026-09-13: el cierre se marca al SEGUIR (§2z225: recargar con la hoja abierta no te la come) */
   const club=clubDe(e.miClubId), premios=asegurarPremios();
   const jugados=(e.misPartidos||[]).filter(p=>p.jugado).length, pj=ml.pj+po.pj;
   const nota=notaPromedio(e.misPartidos);
@@ -27148,8 +27149,9 @@ function abrirResumenT(final){
   if(fin&&!C.beta.finAvisado){ C.beta.finAvisado=true; guardar(); betaEvento('fin',{jugados,pj,nota,dbeta:J.dbeta,puesto:mt.puesto||null}); }
 }
 $l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto');
-  if(resumenModo==='am'){ resumenModo='liga'; const u=C.amPrensa; C.amPrensa=null; guardar(); pintaLobby();
+  if(resumenModo==='am'){ resumenModo='liga'; C.amCierreAnio=C.anio; const u=C.amPrensa; C.amPrensa=null; guardar(); pintaLobby();
     if(u&&CARTAS.cartaDePrensa(u,()=>{},true)) return; CARTAS.cartasAlEntrar(); return; }   // 2026-09-13: la prensa de la Copa, después de la hoja
+  if(C.cierreAnio!==C.anio){ C.cierreAnio=C.anio; guardar(); }   // 2026-09-13: recién acá el cierre queda hecho
   if(recesoPendiente(est())){ pintaLobby(); irLob('hoy'); } else abrirMercado(); };   // §2z229: al receso, o al mercado
 $l('resTVolver').onclick=()=>{ $l('resumenT').classList.add('oculto'); };
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); abrirBetaVelo('lista'); };

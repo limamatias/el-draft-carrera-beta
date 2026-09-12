@@ -1701,7 +1701,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='5af1c72777';
+const BUILD='1fd1099222';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23799,6 +23799,10 @@ function pintaLobby(){
     const r=e.playoffs.def.rondas[e.playoffs.ronda], sm=miSerie(e);
     const rn=sm&&sm.playout?'playout':r.nombre;   // §2z7: si tu serie es el play-out, el chip lo dice
     $l('lobChip').innerHTML=anioTxt()+' · PLAYOFFS · <b>'+t(RONDA_TXT[rn]||L(rn))+'</b>';
+  } else if(cierrePend){
+    /* 2026-09-13 (su caza: «arriba queda diciendo 2026/27 · MUNDIAL en la pantalla que es anterior al Mundial»): hasta que
+       cerrás la liga, el chip es de la liga */
+    $l('lobChip').innerHTML=anioTxt()+' · '+t(L('LIGA TERMINADA','LEAGUE OVER','LIGA ENCERRADA'));
   } else if(C.selTorneo){
     /* §12: en el receso el chip lo manda el torneo, no la temporada que ya cerró */
     $l('lobChip').innerHTML=anioTxt()+' · <b>'+selTorneoTxt(C.selTorneo.torneo)+'</b>';

@@ -1888,7 +1888,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='4ab4c302bf';
+const BUILD='c5ee56357f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -24699,6 +24699,7 @@ function pintaLobby(){
      la página la da vuelta el mercado, así que nada de esto se llama "fin de temporada". */
   if(e.fase==='terminada'&&premiarLiga()) pintaPalmares();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento) — y la vitrina se repinta con el puntito (2026-09-13)
   const cierrePend=e.fase==='terminada'&&C.cierreAnio!==C.anio;
+  let fotoHoy=null;   // 2026-09-12: 'liga' | 'ic' — con la foto del cierre en el HOY, el goteo no repite lo que ella dice
   const prox=cierrePend?null:(miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICReceso(e)):null));   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
   proxLobby=prox;
   const calientes=e.fase==='regular'?elegirCalientes(e):[];
@@ -24927,7 +24928,7 @@ function pintaLobby(){
        serie que lo decidió. El resto del goteo (ascensos, la Copa) sigue debajo. */
     const camp=e.fase==='terminada'&&!!(e.playoffs&&e.playoffs.campeon===e.miClubId);
     if(cierrePend&&e.fase==='terminada'){
-      bloquePartido.style.display='';
+      bloquePartido.style.display=''; fotoHoy='liga';
       const eh=ponerEscudo('lobHoyEscudo', camp?'<div>'+icono(C.ligaId==='nba'?'anillo':'copa',38)+'</div>':escudito(e.miClubId), camp?'escudoR oro':'escudoR svg'); eh.style.width='';eh.style.height='';
       $l('lobHoyCuando').textContent=ligaDe().nombre.toUpperCase()+' · '+anioTxt();
       const miasC=((e.playoffs&&e.playoffs.seriesJugadas)||[]).filter(s=>s.ganador&&(s.alta===e.miClubId||s.baja===e.miClubId));
@@ -24944,7 +24945,7 @@ function pintaLobby(){
     const icF=e.intercontinental;
     if(e.fase==='terminada'&&icF&&icF.fase==='terminado'){
       const mi=e.miClubId, campI=icF.campeon===mi, faseI=icF.miFase||'grupo';
-      bloquePartido.style.display='';
+      bloquePartido.style.display=''; fotoHoy='ic';
       const eh=ponerEscudo('lobHoyEscudo', campI?'<div>'+icono('globo',38)+'</div>':escudito(mi), campI?'escudoR oro':'escudoR svg'); eh.style.width='';eh.style.height='';
       $l('lobHoyCuando').textContent=t(IC_TXT.nombre)+' · '+anioTxt();
       $l('lobHoyRival').textContent=campI?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')):faseI==='final'?t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES'))
@@ -24994,6 +24995,10 @@ function pintaLobby(){
     }
   }
 
+  /* 2026-09-12 (su caza con la foto de la Copa: "lo de arriba debería desaparecer — ÚLTIMO se repite contra lo de abajo"): con una foto
+     de cierre, el renglón del último partido sobra (la foto dice el partido que lo decidió). Con la de la Copa, el segundo tampoco va:
+     «¡SALIMOS CAMPEONES!» es de la liga, que ya tuvo su foto. */
+  if(fotoHoy){ goteo1(''); if(fotoHoy==='ic') $l('lobGoteo2').innerHTML=''; }
   // FIXTURE (5 renglones alrededor del próximo) y TABLA (5 con vos adentro)
   const fechas=misFechas();
   const proxKey=prox&&prox.tipo==='fecha'?prox.fecha:prox&&prox.tipo==='americas'?'am'+prox.etapa+prox.juego:prox&&prox.tipo==='serie'?'po'+prox.serie.nombre+prox.juego:-1;   // 2026-09-10: la serie también

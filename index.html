@@ -1643,8 +1643,12 @@
        background-repeat:no-repeat;background-position:right 12px center}
   #creacion .campoNac .nacVal{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:var(--tinta)}
   #creacion .campoNac .nacVal .flag{border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.18);flex:none}
-  #creacion .campoNac select{position:absolute;inset:0;width:100%;max-width:none;opacity:0;appearance:none;-webkit-appearance:none;cursor:pointer}
-  #creacion .campoNac:focus-within{border-color:var(--naranja)}
+  /* §2z245.2: el campo es un BOTÓN con la misma piel (abre la lista interna); la cabecera de grupo va pegada arriba del scroll */
+  #creacion button.campoNac{width:100%;font:inherit;color:inherit;cursor:pointer;text-align:left}
+  #creacion .campoNac:focus-visible{border-color:var(--naranja);outline:0}
+  #creacion .grupoCab{position:sticky;top:0;z-index:1;padding:8px 13px 6px;font-size:11px;letter-spacing:2px;font-weight:600;
+       color:var(--tinta2);background:rgba(10,14,24,.96);border-bottom:1px solid rgba(154,164,184,.14)}
+  #creacion .clubFila .flag{border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.18);flex:none}
   /* las tarjetas de una pregunta (país, arquetipo): NADA preseleccionado — tocar elige y el
      botón de abajo cierra el paso. Preseleccionar contesta el paso antes de que lo leas. */
   /* ⚠️ Las tres opciones se leen ENTERAS de una: la frase vive adentro de la tarjeta y no
@@ -1799,7 +1803,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='d140c8fc5c';
+const BUILD='bd19ac26c9';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2392,17 +2396,22 @@ const BUILD='d140c8fc5c';
                autocomplete="off" autocorrect="off" spellcheck="false">
         <input id="creaDorsal" type="text" inputmode="numeric" maxlength="2" placeholder="7" aria-label="Dorsal">
       </div>
-      <!-- La nacionalidad va con select NATIVO, como el país de El Draft: en el teléfono abre
-           la rueda del sistema, que es la forma correcta de elegir 1 de 13 sin inventar un
-           control. Es LO QUE SOS: persiste entre carreras. -->
-      <!-- la piel es la del select de TU PAÍS de El Draft (borde, radio, chevron propio), con la
-           bandera DIBUJADA (§2z28: sin emojis) — el <option> nativo no dibuja, así que el select
-           va transparente encima y abre la rueda del sistema; lo que se ve es #creaNacVal -->
-      <label class="campoSel campoNac">
+      <!-- §2z245.2 (su corte con la captura de la rueda nativa de 48: "es esta sabana interminable… armemos algo INTERNO al
+           juego, como la lista de equipos"): el campo abre una sub-pantalla del alta con el molde del paso del club —
+           buscador arriba, lista con scroll propio, AMÉRICA y después EUROPA, la bandera dibujada. Era select nativo con 13. -->
+      <button type="button" class="campoSel campoNac" id="creaNacBtn">
         <span data-l-en="Your nationality" data-l-pt="Sua nacionalidade">Tu nacionalidad</span>
         <span class="nacVal" id="creaNacVal"></span>
-        <select id="creaPais" aria-label="Nacionalidad"></select>
-      </label>
+      </button>
+    </section>
+
+    <!-- 1b · TU NACIONALIDAD: la sub-pantalla (no es un paso: se abre desde el campo y vuelve a la camiseta) -->
+    <section class="pasoCuerpo oculto" id="cr-nac">
+      <h2 class="pasoQ" data-l-en="YOUR NATIONALITY" data-l-pt="SUA NACIONALIDADE">TU NACIONALIDAD</h2>
+      <input class="buscador" id="creaNacBuscar" type="search" placeholder="Buscar tu país"
+             data-l-ph-en="Find your country" data-l-ph-pt="Buscar seu país"
+             autocomplete="off" autocorrect="off" spellcheck="false">
+      <div class="listaClubes" id="creaNacLista"></div>
     </section>
 
     <!-- 2 · ¿DÓNDE ARRANCÁS?: EL PAÍS, no la liga (su corte). Cada tarjeta dice EL CAMINO que
@@ -26942,7 +26951,7 @@ function abrirCreacion(n){
      vuelve puesto (apellido, dorsal, nacionalidad). El criterio es de El Draft y las dos
      puntas importan: pre-tomar las decisiones que SON el juego es pre-jugarlas. */
   creaSel={pais:null,arquetipo:null,clubId:null,nacionalidad:'ar'};
-  creaBusca=''; creaPaso=0;
+  creaBusca=''; creaPaso=0; creaNacAbierta=false;   // §2z245.2
   if($l('creaBuscar')) $l('creaBuscar').value='';
   try{
     $l('creaApellido').value=localStorage.getItem(LS_APELLIDO)||'';
@@ -26966,16 +26975,28 @@ function emojiBandera(id){
   if(id.length!==2||a<0||a>25||b<0||b>25) return '';
   return String.fromCodePoint(0x1f1e6+a,0x1f1e6+b);
 }
+/* §2z245.2 LA LISTA INTERNA (su corte con la captura de la rueda nativa: "es esta sabana interminable… el AMÉRICA ni siquiera se ve
+   salvo que scrollees… armemos algo INTERNO al juego, como la lista de equipos"): el molde del paso del club — buscador arriba,
+   lista con scroll propio, cabeceras pegadas AMÉRICA · EUROPA (§2z245.1: América primero, alfabético adentro), bandera dibujada.
+   Tocar elige y vuelve a la camiseta: es 1 de 48 y el campo muestra lo elegido. */
+const GRUPOS_NAC=[['am',L('AMÉRICA','AMERICAS','AMÉRICA')],['eu',L('EUROPA','EUROPE','EUROPA')]];
+let creaNacAbierta=false, creaNacBusca='';
 function pintaNacionalidades(){
-  const sel=$l('creaPais');
-  /* §2z245.1 (su corte: "orden alfabético te oculta a los países que realmente la gente quiere elegir"; y sin buscador: "creás una
-     partida y durás mucho jugando"): AMÉRICA primero, EUROPA después, alfabético adentro — los grupos del select nativo */
-  const grupos=[['am',L('AMÉRICA','AMERICAS','AMÉRICA')],['eu',L('EUROPA','EUROPE','EUROPA')]];
-  sel.innerHTML=grupos.map(([cont,rot])=>'<optgroup label="'+t(rot)+'">'+ordenNacionalidades().filter(([id])=>SELECCIONES[id].cont===cont).map(([id,nom])=>
-    '<option value="'+id+'">'+emojiBandera(id)+' '+t(nom)+'</option>').join('')+'</optgroup>').join('');   // como El Draft: la bandera emoji adentro de la rueda
-  sel.value=creaSel.nacionalidad;
-  pintaNacVal();
+  const cont=$l('creaNacLista'), q=pelado(creaNacBusca).trim();
+  let h='';
+  for(const [c,rot] of GRUPOS_NAC){
+    const filas=ordenNacionalidades().filter(([id,nom])=>SELECCIONES[id].cont===c&&(!q||pelado(t(nom)).includes(q)));
+    if(!filas.length) continue;
+    h+='<div class="grupoCab">'+t(rot)+'</div>'+filas.map(([id,nom])=>
+      '<button type="button" class="clubFila'+(creaSel.nacionalidad===id?' elegida':'')+'" data-nac="'+id+'">'+banderaDe(id,28)+
+      '<span class="clubTxt"><span class="clubNom">'+t(nom)+'</span></span></button>').join('');
+  }
+  cont.innerHTML=h||'<div class="sinClubes">'+t(L('Ningún país con ese nombre.','No country by that name.','Nenhum país com esse nome.'))+'</div>';
+  cont.querySelectorAll('[data-nac]').forEach(b=>b.onclick=()=>{ creaSel.nacionalidad=b.dataset.nac; creaNacAbierta=false; pintaCreacion(); });
 }
+function abrirNac(abrir){ creaNacAbierta=abrir; creaNacBusca=''; $l('creaNacBuscar').value=''; pintaCreacion(); if(abrir) $l('creaNacLista').scrollTop=0; }
+$l('creaNacBtn').onclick=()=>abrirNac(true);
+$l('creaNacBuscar').addEventListener('input',function(){ creaNacBusca=this.value; pintaNacionalidades(); });
 /* lo que se VE del selector: la bandera dibujada y el nombre (el select va transparente encima) */
 function pintaNacVal(){
   const n=NACIONALIDADES.find(x=>x[0]===creaSel.nacionalidad)||NACIONALIDADES[0];
@@ -26992,9 +27013,11 @@ function pasoListo(){
 }
 function pintaCreacion(){
   const p=PASOS[creaPaso];
-  PASOS.forEach((x,i)=>$l('cr-'+x).classList.toggle('oculto',i!==creaPaso));
+  PASOS.forEach((x,i)=>$l('cr-'+x).classList.toggle('oculto',creaNacAbierta||i!==creaPaso));
+  $l('cr-nac').classList.toggle('oculto',!creaNacAbierta);   // §2z245.2: la sub-pantalla tapa el paso, sin mover los puntos
   $l('creaPuntos').innerHTML=PASOS.map((x,i)=>'<i class="'+(i===creaPaso?'on':'')+'"></i>').join('');
-  if(p==='camiseta') pintaCamiseta();
+  if(creaNacAbierta){ pintaNacionalidades(); pintaPie(); return; }
+  if(p==='camiseta'){ pintaCamiseta(); pintaNacVal(); }
   if(p==='donde') pintaDonde();
   if(p==='arquetipo') pintaArquetipos();
   if(p==='ritmo') pintaRitmos();
@@ -27005,6 +27028,7 @@ function pintaCreacion(){
    lista (ver pintaClubes — redibujarla mandaba el scroll a cero) */
 function pintaPie(){
   const p=PASOS[creaPaso], b=$l('creaSeguir'), listo=pasoListo();
+  if(creaNacAbierta){ b.disabled=false; b.textContent=t(L('VOLVER','BACK','VOLTAR')); return; }   // §2z245.2: sale sin cambiar nada
   b.disabled=!listo;
   /* ⚠️ "FIRMAR" a secas y no "FIRMAR EN ⟨club⟩" (su caza): con un nombre largo el botón se
      partía en dos renglones y cambiaba de alto según el club — un botón que se deforma
@@ -27032,7 +27056,6 @@ $l('creaDorsal').addEventListener('input',function(){
   this.value=this.value.replace(/\D/g,'').slice(0,2); pintaCamiseta();
 });
 $l('creaDorsal').addEventListener('focus',function(){ this.select(); });
-$l('creaPais').addEventListener('change',function(){ creaSel.nacionalidad=this.value; pintaNacVal(); });
 /* ── paso 2: el país ── */
 function pintaDonde(){
   const cont=$l('creaPaisesArranque');
@@ -27118,10 +27141,12 @@ function pintaClubes(){
 $l('creaBuscar').addEventListener('input',function(){ creaBusca=this.value; creaSel.clubId=null; pintaClubes(); pintaPie(); });
 /* ── el movimiento entre pasos ── */
 $l('creaAtras').onclick=()=>{
+  if(creaNacAbierta){ abrirNac(false); return; }   // §2z245.2
   if(creaPaso===0){ abrirPartidas(); return; }   // el primer atrás sale del alta, no del paso
   creaPaso--; pintaCreacion();
 };
 $l('creaSeguir').onclick=()=>{
+  if(creaNacAbierta){ abrirNac(false); return; }   // §2z245.2: VOLVER
   if(!pasoListo()) return;
   if(creaPaso<PASOS.length-1){ creaPaso++; pintaCreacion(); return; }
   const ap=limpiarApellido($l('creaApellido').value);

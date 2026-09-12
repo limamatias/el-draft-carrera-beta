@@ -1072,6 +1072,13 @@
   #lobby #lv-tabla-full .preTop,#lobby #lv-fixture-full .preTop,#lobby #lv-carrera-full .preTop,#lobby #lv-pre .preTop{position:relative}
   #lobby #lv-tabla-full .preTop .volver,#lobby #lv-fixture-full .preTop .volver,#lobby #lv-carrera-full .preTop .volver,#lobby #lv-pre .preTop .volver{position:absolute;left:0;top:50%;transform:translateY(-50%)}
   #lobby #lv-tabla-full .fecha-pre,#lobby #lv-fixture-full .fecha-pre,#lobby #lv-carrera-full .fecha-pre,#lobby #lv-pre .fecha-pre{padding:0 76px;flex:1;text-align:center;justify-content:center;font-size:15px}   /* el pre: 15 px, que sea el título del partido */
+  /* 2026-09-14 (su caza: "COPA INTERCONTINENTAL debería ir más abajo, alineado con la parte oscura que pega contra la luz del
+     túnel, de 1 o 2 líneas"): la luz del túnel arranca al 18 % del alto de la imagen (medido: la fila 163 de 900) y el fondo es
+     cover, así que en el teléfono la frontera está al 18 % del alto del lobby. La cabecera reserva hasta ahí (menos los 12 px de
+     la capa) y el texto se ANCLA ABAJO: el último renglón toca la frontera tenga uno o dos. VOLVER se alinea con ese renglón. */
+  #lobby #lv-pre .preTop{min-height:calc(18dvh - 12px);align-items:flex-end}
+  #lobby #lv-pre .fecha-pre{align-items:flex-end;min-height:0;padding-bottom:1px}
+  #lobby #lv-pre .preTop .volver{top:auto;bottom:0;transform:none;line-height:1.25}
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
        display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
@@ -1810,7 +1817,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='7e1b54e37d';
+const BUILD='888bf50aa4';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

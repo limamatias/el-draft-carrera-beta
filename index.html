@@ -1439,6 +1439,12 @@
        border:1px solid rgba(154,164,184,.22);font-size:12px;letter-spacing:1.4px;font-weight:600;color:var(--tinta)}
   #resumenT .resPremios .pr svg{flex:none;width:20px;height:20px}
   #resumenT .resPremios .pr.oro{color:#f2c94c;border-color:rgba(242,201,76,.45)}
+  /* 2026-09-13 (su caza: BOCA JUNIORS y FLAMENGO sin escudo): fuera de #lobby el escudito no tenía tamaño (la clase del 12) */
+  #resumenT .escudito{display:inline-flex;width:18px;height:18px;vertical-align:-4px;margin-right:5px;overflow:hidden;flex:none}
+  #resumenT .escudito svg{width:100%;height:100%}
+  #resumenT .resSub .escudito{width:15px;height:15px;vertical-align:-3px;margin:0 3px 0 2px}
+  #resumenT .resPremios .pr .escudito{width:20px;height:20px;margin:0}
+  #lobby .partido .porque .escudito{display:inline-flex;width:15px;height:15px;vertical-align:-3px;margin:0 3px 0 2px}
   #resumenT .resPremios .pr span small{display:block;font-size:10px;letter-spacing:1.2px;color:var(--tinta2);margin-top:1px}
   #resumenT .cajTag{margin-top:12px}
   .veloB input,.veloB textarea{font:inherit;font-size:16px;width:100%;box-sizing:border-box;border-radius:12px;
@@ -1727,7 +1733,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='5a928408b6';
+const BUILD='aef1d706fe';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23980,11 +23986,11 @@ function pintaLobby(){
       $l('lobHoyCuando').textContent=ligaDe().nombre.toUpperCase()+' · '+anioTxt();
       const miasC=((e.playoffs&&e.playoffs.seriesJugadas)||[]).filter(s=>s.ganador&&(s.alta===e.miClubId||s.baja===e.miClubId));
       const uC=miasC[miasC.length-1];
-      const marcaC=uC?(uC.alta===e.miClubId?uC.ganAlta+'–'+uC.ganBaja:uC.ganBaja+'–'+uC.ganAlta)+' vs '+nomCorto(uC.alta===e.miClubId?uC.baja:uC.alta).toUpperCase():'';
+      const marcaC=uC?(uC.alta===e.miClubId?uC.ganAlta+'–'+uC.ganBaja:uC.ganBaja+'–'+uC.ganAlta)+' vs '+escudito(uC.alta===e.miClubId?uC.baja:uC.alta)+nomCorto(uC.alta===e.miClubId?uC.baja:uC.alta).toUpperCase():'';
       $l('lobHoyRival').textContent=camp?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!'))
         :(mt&&mt.puesto?mt.puesto+'º'+(uC&&!uC.playout&&uC.ganador!==e.miClubId?' · '+t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(RONDA_TXT[uC.nombre]||L(uC.nombre)):''):'');
       $l('lobHoyPorque').style.display=uC?'':'none';
-      $l('lobHoyPorque').textContent=uC?t(RONDA_TXT[uC.nombre]||L(uC.nombre))+' '+marcaC:'';
+      $l('lobHoyPorque').innerHTML=uC?t(RONDA_TXT[uC.nombre]||L(uC.nombre))+' '+marcaC:'';
     }
     if(e.fase==='terminada'&&e.playoffs&&e.playoffs.campeon){
       /* §2z7: en la Federal el cierre también anuncia a los DOS que suben (los campeones
@@ -27060,7 +27066,7 @@ function abrirResumenAM(){
   const camp=am.campeon===mi, nom=(id)=>nomCorto(id).toUpperCase();
   const series=((am.llave&&am.llave.seriesJugadas)||[]).filter(x=>x.ganador&&(x.alta===mi||x.baja===mi));
   const u=series[series.length-1];
-  const marca=u?(u.alta===mi?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+nom(u.alta===mi?u.baja:u.alta):'';
+  const marca=u?(u.alta===mi?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+escudito(u.alta===mi?u.baja:u.alta)+nom(u.alta===mi?u.baja:u.alta):'';
   let tit='', sub='';
   if(camp){ tit=t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')); sub=u?t(AM_TXT[u.nombre]||L(u.nombre))+' '+marca:''; }
   else if(am.tercero===mi){ tit=t(AM_TXT.tercero); sub=marca; }
@@ -27110,7 +27116,7 @@ function abrirResumenT(final){
   { const camp=!!(e.playoffs&&e.playoffs.campeon===e.miClubId);
     const mias=((e.playoffs&&e.playoffs.seriesJugadas)||[]).filter(s=>s.ganador&&(s.alta===e.miClubId||s.baja===e.miClubId));
     const u=mias[mias.length-1];
-    const marca=u?(u.alta===e.miClubId?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase():'';
+    const marca=u?(u.alta===e.miClubId?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+escudito(u.alta===e.miClubId?u.baja:u.alta)+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase():'';   /* 2026-09-13 (su caza): el rival con su escudo */
     const sub=camp&&u?t(RONDA_TXT[u.nombre]||L(u.nombre))+' '+marca
       :u&&u.playout&&u.ganador===e.miClubId?t(L('NOS QUEDAMOS','WE STAY UP','FICAMOS'))+' · '+marca
       :u&&u.ganador!==e.miClubId?t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(RONDA_TXT[u.nombre]||L(u.nombre))+' · '+marca

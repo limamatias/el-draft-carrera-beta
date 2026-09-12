@@ -1732,7 +1732,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='d541243a06';
+const BUILD='092877300b';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22472,7 +22472,7 @@ function htmlSeleccion(e,gVer){
     const gV=gVer||t2.miGrupo2||t2.miGrupo;
     if(gV&&t2.grupos&&t2.grupos[gV]){
       const seg=SEL_LETRAS2.includes(gV);
-      h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // 2026-09-10 (su regla del grupo): el torneo ya lo dice el título de la plena
+      if(!gVer) h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // con pestañas, el título ya lo dicen ellas (su caza: «abajo no debería decir GRUPO A de nuevo, con la bandera colgada»)
       tablaSel(t2,gV).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
       h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
     }
@@ -23412,10 +23412,13 @@ function pintaTablaFull(){
        reemplaza a la primera cuando llega), el tuyo por defecto; abajo, la llave dibujada. Sin torneo, como antes. */
     const t2=C.selTorneo, letras=t2&&t2.grupos?Object.keys(t2.grupos).filter(k=>t2.miGrupo2?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k)):[];
     if(letras.length>1){
-      const g=letras.includes(grupoSelSel)?grupoSelSel:(t2.miGrupo2||t2.miGrupo||letras[0]);
+      /* 2026-09-13 (su captura: ocho letras sueltas y abría en A): las pestañas dicen GRUPO A como en Américas (a dos filas), y
+         el elegido es el TUYO hasta que tocás — la elección se olvida al cambiar de torneo */
+      if(grupoSelSel&&grupoSelSel.t!==t2.semilla+t2.torneo) grupoSelSel=null;
+      const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(t2.miGrupo2||t2.miGrupo||letras[0]);
       tabs.classList.remove('oculto'); tabs.classList.add('muchas');
-      tabs.innerHTML=letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-gsel="'+x+'" tabindex="0">'+(letras.length>4?x:t(SEL_TXT.grupo)+' '+x)+'</div>').join('');
-      tabs.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel=b.dataset.gsel; pintaTablaFull(); }));
+      tabs.innerHTML=letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-gsel="'+x+'" tabindex="0">'+t(SEL_TXT.grupo)+' '+x+'</div>').join('');
+      tabs.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:t2.semilla+t2.torneo}; pintaTablaFull(); }));
       full.innerHTML=htmlSeleccion(e,g); return;
     }
     tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }

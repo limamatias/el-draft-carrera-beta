@@ -1799,7 +1799,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='4ee7cbde94';
+const BUILD='d140c8fc5c';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -26968,8 +26968,11 @@ function emojiBandera(id){
 }
 function pintaNacionalidades(){
   const sel=$l('creaPais');
-  sel.innerHTML=ordenNacionalidades().map(([id,nom])=>
-    '<option value="'+id+'">'+emojiBandera(id)+' '+t(nom)+'</option>').join('');   // como El Draft: la bandera emoji adentro de la rueda
+  /* §2z245.1 (su corte: "orden alfabético te oculta a los países que realmente la gente quiere elegir"; y sin buscador: "creás una
+     partida y durás mucho jugando"): AMÉRICA primero, EUROPA después, alfabético adentro — los grupos del select nativo */
+  const grupos=[['am',L('AMÉRICA','AMERICAS','AMÉRICA')],['eu',L('EUROPA','EUROPE','EUROPA')]];
+  sel.innerHTML=grupos.map(([cont,rot])=>'<optgroup label="'+t(rot)+'">'+ordenNacionalidades().filter(([id])=>SELECCIONES[id].cont===cont).map(([id,nom])=>
+    '<option value="'+id+'">'+emojiBandera(id)+' '+t(nom)+'</option>').join('')+'</optgroup>').join('');   // como El Draft: la bandera emoji adentro de la rueda
   sel.value=creaSel.nacionalidad;
   pintaNacVal();
 }

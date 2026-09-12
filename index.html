@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='095210f34e';
+const BUILD='97ab235743';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -13695,15 +13695,20 @@ Object.assign(APELLIDOS_POR_PAIS,{
   ci:['KONÉ','KOUASSI','TRAORÉ','OUATTARA','DIABY','YAO','KOUAMÉ','BAMBA'],
   cv:['TAVARES','FORTES','LOPES','MONTEIRO','SEMEDO','ANDRADE','ÉVORA','BRITO'],
   kr:['KIM','LEE','PARK','CHOI','JUNG','KANG','CHO','YOON','JANG','LIM'],
+  rw:['MUGISHA','HABIMANA','NIYONZIMA','UWIMANA','BIZIMANA','NDAYISABA','HAKIZIMANA','MUKAMANA'],   // 2026-09-14: los Tigers de Kigali (Copa Intercontinental)
 });
 const POOL_DE_PAIS={ar:'ar',us:'us',ca:'us',br:'br',uy:'uy',pr:'lat',do:'lat',ve:'lat',mx:'lat',pa:'lat',co:'lat',cl:'lat',
   es:'es',rs:'srb',me:'srb',fr:'fr',de:'de',gr:'gr',it:'it',lt:'lt',si:'si',tr:'tr',lv:'lv',au:'anglo',nz:'anglo',
-  ss:'ss',ng:'ng',cn:'cn',jp:'jp',ph:'ph',ao:'ao',eg:'eg',ir:'ir',ua:'ua',fi:'fi',ge:'ge',pl:'pl',cz:'cz',ci:'ci',cv:'cv',kr:'kr'};
+  ss:'ss',ng:'ng',cn:'cn',jp:'jp',ph:'ph',ao:'ao',eg:'eg',ir:'ir',ua:'ua',fi:'fi',ge:'ge',pl:'pl',cz:'cz',ci:'ci',cv:'cv',kr:'kr',
+  rw:'rw',lb:'eg',ly:'eg',sg:'cn'};   // 2026-09-14: los países de los clubes de la Copa Intercontinental que no son selección del padrón
 function apellidosDeLiga(){
   let liga='federal';
   try{ const k=window.__carrera, c=k&&k.C; if(c&&c.ligaId) liga=c.ligaId;
     const ep=k&&k.enPartido;
     if(ep&&ep.tipo==='seleccion'&&POOL_DE_PAIS[ep.rival]) return APELLIDOS_POR_PAIS[POOL_DE_PAIS[ep.rival]];
+    /* 2026-09-14 (su caza: «juego contra G League y me marca… MAIDANA»): el rival de la Copa Intercontinental no está en ninguna
+       liga del padrón — su país está en su ficha (01p3), y de ahí sale el pool */
+    if(ep&&ep.tipo==='americas'&&ep.ic){ const ci=clubIC(ep.rival); if(ci&&ci.pais&&POOL_DE_PAIS[ci.pais]) return APELLIDOS_POR_PAIS[POOL_DE_PAIS[ci.pais]]; }
     if(ep&&ep.tipo==='americas'&&c.temporada&&c.temporada.americas&&c.temporada.americas.ligaDe){
       const lr=c.temporada.americas.ligaDe[ep.rival]; if(PAIS_DE_LIGA[lr]) liga=lr; }
   }catch(e){}

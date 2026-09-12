@@ -796,6 +796,7 @@
   #lobby .partido .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;flex:none;
        display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;
        letter-spacing:1px;border:2px solid rgba(233,236,243,.7)}
+  #lobby .partido .escudoR.oro{background:#2b2310;border-color:#f2c94c;color:#f2c94c;box-shadow:0 0 18px rgba(242,201,76,.35)}   /* §2z229 f: el trofeo del cierre */
   #lobby .partido .info{flex:1;display:flex;flex-direction:column;gap:2px}
   #lobby .partido .cuando{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   /* §2z167 v2 (su corte: "mantener lo anterior y de última mandar el récord a la segunda línea si no entraba"): el
@@ -1700,7 +1701,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='a31f9068d3';
+const BUILD='b54a19ae58';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23850,7 +23851,9 @@ function pintaLobby(){
     goteo1(t(L('Arranca la temporada.','The season begins.','Começa a temporada.')));
   }
   /* §12: en el receso el goteo cuenta el torneo, no la temporada que ya cerró */
-  if(C.selTorneo&&C.selTorneo.mis.length){
+  /* §2z229 f: hasta que cerrás la liga, el goteo NO habla del torneo (su captura: "MUNDIAL: empieza el torneo" arriba de FIN DE LA LIGA) */
+  if(cierrePend){ /* el HOY es la foto de la liga */ }
+  else if(C.selTorneo&&C.selTorneo.mis.length){
     const u=C.selTorneo.mis[C.selTorneo.mis.length-1];
     goteo1(t(SEL_TXT.seleccion)+' vs '+nombreSel(u.rival).toUpperCase()+' — '
       +t(L('Tuyos:','Yours:','Seus:'))+' <b>'+u.pts+' PTS · '+u.ast+' AST</b>');
@@ -23866,7 +23869,7 @@ function pintaLobby(){
   const avSel=avisoSeleccion(e);
   if(avSel) goteo1(avSel);
   const avTor=avisoTorneoSel();   // §12: cómo terminó el torneo del receso (o por qué no fuiste)
-  if(avTor&&e.fase==='terminada') goteo1(avTor.txt);
+  if(avTor&&e.fase==='terminada'&&!cierrePend) goteo1(avTor.txt);   // §2z229 f
   encajarGoteo1();
   /* §12.25 (su caza: "ese PROMEDIÁS toma todo lo de la temporada, club + selección; es misleading"): el promedio
      es el de la competencia que viene — con la selección, tus partidos de selección; con el club, los del club */
@@ -23936,6 +23939,23 @@ function pintaLobby(){
     }
   } else {
     bloquePartido.style.display='none';
+    /* §2z229 f (su captura 2026-09-13, el día después de la final: "está un poco plano esto, ¿no?"): con el cierre pendiente el
+       HOY era un vestuario vacío con dos renglones chicos abajo, en el momento más grande del año. Ahora el bloque del partido
+       es LA FOTO DE LA LIGA: el trofeo (o tu escudo si no saliste campeón), la liga y el año, CAMPEONES o tu puesto, y la
+       serie que lo decidió. El resto del goteo (ascensos, la Copa) sigue debajo. */
+    const camp=e.fase==='terminada'&&!!(e.playoffs&&e.playoffs.campeon===e.miClubId);
+    if(cierrePend&&e.fase==='terminada'){
+      bloquePartido.style.display='';
+      const eh=ponerEscudo('lobHoyEscudo', camp?'<div>'+icono(C.ligaId==='nba'?'anillo':'copa',38)+'</div>':escudito(e.miClubId), camp?'escudoR oro':'escudoR svg'); eh.style.width='';eh.style.height='';
+      $l('lobHoyCuando').textContent=ligaDe().nombre.toUpperCase()+' · '+anioTxt();
+      const miasC=((e.playoffs&&e.playoffs.seriesJugadas)||[]).filter(s=>s.ganador&&(s.alta===e.miClubId||s.baja===e.miClubId));
+      const uC=miasC[miasC.length-1];
+      const marcaC=uC?(uC.alta===e.miClubId?uC.ganAlta+'–'+uC.ganBaja:uC.ganBaja+'–'+uC.ganAlta)+' vs '+nomCorto(uC.alta===e.miClubId?uC.baja:uC.alta).toUpperCase():'';
+      $l('lobHoyRival').textContent=camp?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!'))
+        :(mt&&mt.puesto?mt.puesto+'º'+(uC&&!uC.playout&&uC.ganador!==e.miClubId?' · '+t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(RONDA_TXT[uC.nombre]||L(uC.nombre)):''):'');
+      $l('lobHoyPorque').style.display=uC?'':'none';
+      $l('lobHoyPorque').textContent=uC?t(RONDA_TXT[uC.nombre]||L(uC.nombre))+' '+marcaC:'';
+    }
     if(e.fase==='terminada'&&e.playoffs&&e.playoffs.campeon){
       /* §2z7: en la Federal el cierre también anuncia a los DOS que suben (los campeones
          de llave) — el tuyo incluido, que es la noticia de la categoría */
@@ -23965,9 +23985,11 @@ function pintaLobby(){
         if(u.playout&&u.ganador===e.miClubId) lineaMia='<br>✓ '+t(L('NOS QUEDAMOS EN LA LIGA NACIONAL','WE STAY UP','FICAMOS NA LIGA NACIONAL'))+marca;
         else if(!u.playout&&u.ganador!==e.miClubId) lineaMia='<br>'+t(L('Eliminados en ','Out in ','Eliminados na '))+t(RONDA_TXT[u.nombre]||L(u.nombre))+marca;
       }
-      $l('lobGoteo2').innerHTML=(e.playoffs.campeon===e.miClubId
+      /* §2z229 f: si el bloque de arriba ya dice CAMPEONES, acá no se repite (y sin dejar un <br> huérfano, clase 5) */
+      const lineaCamp=(cierrePend&&camp)?'':(e.playoffs.campeon===e.miClubId
         ? ''+icono('copa',14)+' '+t(L('¡SALIMOS CAMPEONES!','WE ARE CHAMPIONS!','SOMOS CAMPEÕES!'))
-        : ''+icono('copa',14)+' '+t(L('CAMPEÓN','CHAMPIONS','CAMPEÃO'))+': '+nomCorto(e.playoffs.campeon).toUpperCase())+lineaMia+lineaAsc+lineaDesc+lineaAmericas(e);
+        : ''+icono('copa',14)+' '+t(L('CAMPEÓN','CHAMPIONS','CAMPEÃO'))+': '+nomCorto(e.playoffs.campeon).toUpperCase());
+      $l('lobGoteo2').innerHTML=[lineaCamp,cierrePend?'':lineaMia,lineaAsc,lineaDesc,lineaAmericas(e)].map(x=>String(x||'').replace(/^<br>/,'')).filter(Boolean).join('<br>');
     } else if(e.fase==='playoffs'){
       $l('lobGoteo2').textContent=t(L('La llave sigue sin vos.','The bracket goes on without you.','O mata-mata segue sem você.'));   // §2z19: ya no se ve (cerrarSinVos), queda de respaldo
     }

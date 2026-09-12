@@ -1700,7 +1700,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='a1f56b8525';
+const BUILD='a31f9068d3';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -4676,7 +4676,7 @@ function miProximo(estado) {
     }
     return null;
   }
-  /* §2z27.3 + §7.1: en la beta la copa se juega con la temporada cerrada (ic.post), y es el próximo mientras dure */
+  /* §2z27.3 + §7.1 + §2z229 e: la copa se juega con la temporada cerrada (ic.post), al final del receso, y es el próximo mientras dure */
   if (estado.fase === 'terminada' && estado.intercontinental && estado.intercontinental.post) return proximoIntercontinental(estado);
   if (estado.fase === 'playoffs') {
     const s = miSerie(estado);
@@ -10964,8 +10964,8 @@ function proximoIntercontinental(e) {
   const ic = e.intercontinental;
   if (!ic || ic.fase === 'terminado') return null;
   /* §7.1 LA BETA (su corte 2026-09-12: "en la beta te la dan SOLO si ganás la Liga de las Américas… después del Mundial"):
-     `ic.post` es la copa jugada sobre la temporada YA CERRADA, el último acto de la beta; en el juego completo vive antes
-     de la fecha 1 de la temporada siguiente */
+     `ic.post` es la copa jugada sobre la temporada YA CERRADA, el último acto del receso — §2z229 e: en los DOS modos
+     (la rama de "antes de la fecha 1" queda para partidas viejas que la traigan instalada) */
   if (ic.post ? e.fase !== 'terminada' : (e.fase !== 'regular' || (e.fechaJugada || 0) > 0)) return null;
   const j = miJuegoIC(ic, ic.idx, e.miClubId);
   if (!j) return null;
@@ -21971,8 +21971,8 @@ function notaICPendiente(e,clubId){
     linea:t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' · '+ic.sede.ciudad.toUpperCase(), grupo:t(L('GRUPO ','GROUP ','GRUPO '))+ic.grupo,
     ids:ic.ids, mi:e.miClubId, esc:(id)=>escudito(id), noms:(id)=>nombresDe(id)});
 }
-/* §2z27.3: LA COPA INTERCONTINENTAL — la juega en la pretemporada el CLUB que ganó el continental el año anterior.
-   `C.icPendiente` lo deja el cierre de la temporada; si en el mercado te fuiste, la juegan sin vos (no se arma). */
+/* §2z27.3: LA COPA INTERCONTINENTAL — la jugaba en la pretemporada el CLUB que ganó el continental el año anterior.
+   §2z229 e: ya no. Se juega al final del receso (proxICReceso), y esto queda como el limpiador de la temporada nueva. */
 function instalarIntercontinental(e,pend,anio){
   e.intercontinental=null;
   if(!pend||!pend.club||pend.club!==e.miClubId) return;
@@ -21983,9 +21983,13 @@ function instalarIntercontinental(e,pend,anio){
 /* §7.1 (su corte 2026-09-12): en la beta la Copa Intercontinental se habilita SÓLO si ganaste la Liga de las Américas, y se
    juega después del Mundial, sobre la temporada cerrada — el último acto de la beta. Se instala recién cuando el receso de la
    selección terminó (las ventanas de verano y el torneo), así el orden del receso es el de siempre. Los días: las semanas
-   después de los playoffs, como la copa real de septiembre. */
-function proxICBeta(e){
-  if(!esBeta()||!e||e.fase!=='terminada') return null;
+   después de los playoffs, como la copa real de septiembre.
+   ⚠️ §2z229 e (su corte 2026-09-13: "que no puedas jugar la copa si cambiás de equipo es raro"): ESTE es el orden de los DOS
+   modos. Antes, en el juego completo la copa se instalaba en la temporada SIGUIENTE, antes de la fecha 1, y si en el mercado
+   te ibas la jugaba tu ex club sin vos. Ahora la copa cierra el receso con el club con el que la ganaste, y el mercado abre
+   recién después: nunca cambiás de equipo con un torneo pendiente. */
+function proxICReceso(e){
+  if(!e||e.fase!=='terminada') return null;
   if(!e.intercontinental){
     const am=e.americas; if(!am||am.fase!=='terminado'||am.campeon!==e.miClubId) return null;
     const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario;
@@ -23720,10 +23724,12 @@ function pintaLobby(){
      no entró al palmarés): la temporada del CLUB cierra cuando se acaban los partidos DEL CLUB, sin mirar a la selección.
      Antes el cierre esperaba a que NO hubiera próximo, y las citas del receso (ventanas de verano, el torneo) se ofrecían
      con la temporada terminada — así que el próximo nunca era null y el cierre no corría NUNCA. El orden que se
-     reproduce: termina la liga → FIN DE TEMPORADA (resumen, premios) → el receso de la selección → el mercado. */
+     reproduce: termina la liga → FIN DE LA LIGA (resumen, premios) → el receso de la selección (ventanas, torneo) → la
+     Intercontinental con el club de la Copa → el mercado. §2z229 e (su corte): el Mundial y la copa son de la MISMA temporada;
+     la página la da vuelta el mercado, así que nada de esto se llama "fin de temporada". */
   if(e.fase==='terminada') premiarLiga();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento)
   const cierrePend=e.fase==='terminada'&&C.cierreAnio!==C.anio;
-  const prox=cierrePend?null:(miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICBeta(e)):null));   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
+  const prox=cierrePend?null:(miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICReceso(e)):null));   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
   proxLobby=prox;
   const calientes=e.fase==='regular'?elegirCalientes(e):[];
   const calPorFecha={}; for(const c of calientes) calPorFecha[c.fecha]=c;
@@ -23796,7 +23802,7 @@ function pintaLobby(){
     /* §12: en el receso el chip lo manda el torneo, no la temporada que ya cerró */
     $l('lobChip').innerHTML=anioTxt()+' · <b>'+selTorneoTxt(C.selTorneo.torneo)+'</b>';
   } else {
-    $l('lobChip').innerHTML=anioTxt()+' · '+t(L('TEMPORADA TERMINADA','SEASON OVER','TEMPORADA ENCERRADA'));
+    $l('lobChip').innerHTML=anioTxt()+' · '+t(L('RECESO','OFFSEASON','RECESSO'));   // §2z229 e: la liga terminó, la temporada sigue
   }
 
   // HOY: el goteo (lo último tuyo + tu promedio)
@@ -24035,7 +24041,7 @@ function pintaLobby(){
          §2z229: el cierre es UNO por año (cierreAnio); cuando ya pasó y no queda nada, el botón es el del mercado
          (o, en la beta, el fin: el resumen otra vez, ahora con el receso adentro y el gancho). */
       if(cierrePend){
-        cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('FIN DE TEMPORADA ▸','SEASON OVER ▸','FIM DE TEMPORADA ▸'))+'</button>';
+        cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('FIN DE LA ','END OF THE ','FIM DA '))+ligaDe().nombre.toUpperCase()+' ▸</button>';   // §2z229 e: cierra la LIGA, no la temporada
         $l('lobBJugar').addEventListener('click',()=>abrirResumenT(false));
       } else if(esBeta()){
         cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('FIN DE LA BETA ▸','END OF THE BETA ▸','FIM DA BETA ▸'))+'</button>';
@@ -25404,7 +25410,7 @@ function otraTemporada(destino){
     playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(C.temporada,C.ligaId,C.anio,C.tablaFinal);   // §2z27
-  instalarIntercontinental(C.temporada,C.icPendiente,C.anio); C.icPendiente=null;   // §2z27.3
+  instalarIntercontinental(C.temporada,null,C.anio); C.icPendiente=null;   // §2z27.3 → §2z229 e: la copa ya se jugó en el receso, con el club de la Copa; acá nunca hay nada que instalar
   C.selAviso=null; C.selTorneo=null;   // §12: el receso quedó atrás
   instalarSeleccion(C.temporada,C.jugador,C.ligaId,C.anio,C.semilla,C.seleccion);   // §12
   C.jugador.edad++;
@@ -25981,7 +25987,7 @@ function pintaPartidas(){
         '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
           const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
             :e.fase==='playoffs'?dondePlayoffs(e)
-            :e.fase==='terminada'?t(L('TEMPORADA TERMINADA','SEASON OVER','TEMPORADA ENCERRADA'))
+            :e.fase==='terminada'?t(L('RECESO','OFFSEASON','RECESSO'))   // §2z229 e
             :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
           return anioL+' · '+donde; })()+'</div>'+
       '</div>'+
@@ -26675,7 +26681,7 @@ function recesoPendiente(e){
   if(el&&!el.fin){ const v=el.ventanas[el.idx]; if(v&&v.receso==='verano'&&v.conv!==false) return true; }
   if(C.selTorneo) return !!proximoTorneoSel(C.selTorneo);
   if(C.selTorneoHecho!==C.anio){ const pais=C.jugador.nacionalidad||'ar'; if(SELECCIONES[pais]&&torneoDelReceso(C.anio,pais)) return true; }
-  if(esBeta()&&!e.intercontinental&&e.americas&&e.americas.fase==='terminado'&&e.americas.campeon===e.miClubId) return true;   // §7.1: la copa de la beta
+  if(!e.intercontinental&&e.americas&&e.americas.fase==='terminado'&&e.americas.campeon===e.miClubId) return true;   // §2z229 e: la copa cierra el receso
   if(e.intercontinental&&e.intercontinental.post&&proximoIntercontinental(e)) return true;
   return false;
 }
@@ -26985,8 +26991,8 @@ function abrirResumenT(final){
   const club=clubDe(e.miClubId), premios=asegurarPremios();
   const jugados=(e.misPartidos||[]).filter(p=>p.jugado).length, pj=ml.pj+po.pj;
   const nota=notaPromedio(e.misPartidos);
-  $l('resTTit').textContent=t(L('TEMPORADA','SEASON','TEMPORADA'))+' '+anioTxt();
-  $l('resTClub').innerHTML=escuditoDe(club)+' <b>'+club.nombre.toUpperCase()+'</b> · '+ligaDe().nombre;
+  $l('resTTit').textContent=ligaDe().nombre.toUpperCase()+' '+anioTxt();   // §2z229 e: el resumen es de la LIGA que cerró
+  $l('resTClub').innerHTML=escuditoDe(club)+' <b>'+club.nombre.toUpperCase()+'</b>';
   const fila=(k,v)=>'<div class="fila-item"><span class="desc">'+k+'</span><b>'+v+'</b></div>';
   let html='';
   if(mt.fila) html+=fila(t(L('RÉCORD','RECORD','CAMPANHA')),mt.fila.pg+'–'+mt.fila.pp+(mt.puesto?' · '+mt.puesto+'º':''));

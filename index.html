@@ -1437,8 +1437,9 @@
   #resumenT .resPremios{display:flex;flex-direction:column;gap:5px;margin-top:6px}
   #resumenT .resPremios .pr{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:10px;background:rgba(20,27,44,.92);
        border:1px solid rgba(154,164,184,.22);font-size:12px;letter-spacing:1.4px;font-weight:600;color:var(--tinta)}
-  #resumenT .resPremios .pr svg{flex:none}
+  #resumenT .resPremios .pr svg{flex:none;width:20px;height:20px}
   #resumenT .resPremios .pr.oro{color:#f2c94c;border-color:rgba(242,201,76,.45)}
+  #resumenT .resPremios .pr span small{display:block;font-size:10px;letter-spacing:1.2px;color:var(--tinta2);margin-top:1px}
   #resumenT .cajTag{margin-top:12px}
   .veloB input,.veloB textarea{font:inherit;font-size:16px;width:100%;box-sizing:border-box;border-radius:12px;
        border:1px solid rgba(154,164,184,.45);background:#141b2c;color:var(--tinta);padding:10px 12px}
@@ -1726,7 +1727,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='ad41f83701';
+const BUILD='5a928408b6';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -25163,9 +25164,10 @@ function registrarResultado(){
   anotarTitulo('intercontinental', !!(e.intercontinental&&e.intercontinental.campeon===e.miClubId));
   premiarAmericas(e);                                   /* §2z229 c: el MVP de las Américas, al cerrar la Copa */
   if(e.fase==='terminada') premiarLiga();               /* §2z229 c: los de la liga, cuando la liga termina */
-  if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
-    amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
-             sub:(()=>{ const ic=icAnunciado(e); return ic?t(L('Copa Intercontinental: septiembre de ','Intercontinental Cup: September ','Copa Intercontinental: setembro de '))+ic.anio+t(L(', en ',', in ',', em '))+ic.sede.ciudad+'.':''; })()};
+  /* 2026-09-13 (su corte: "para mí esto es mejor que el momento: una pantalla que te da el resumen del torneo"): el titular de
+     oro se fue — la Copa cierra con la HOJA (abrirResumenAM, la misma que la liga) al volver al vestuario, y la prensa espera a
+     que la hayas visto, como con la ceremonia de la selección. */
+  if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final') C.amPrensa=ult;
   /* ⚠️ §12: SI HAY CEREMONIA, LA PRENSA VA DESPUÉS. El circuito llama a la prensa antes de
      volver al vestuario, y el vestuario es el que abre la ceremonia — o sea que el diario te
      contaba la medalla antes de que la vieras. Acá se guarda y la dispara el SEGUIR del velo. */
@@ -25181,7 +25183,7 @@ function registrarResultado(){
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
   /* 2026-09-12: el TÍTULO tampoco espera la cadencia («nunca dos seguidos»): la carta del campeón de las Américas se salteaba si
      hubo prensa después de la semi */
-  const sigue=()=>{ if(C.selPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch||!!(ult.americas&&ult.americas.campeon)||!!(ult.serie&&ult.serie.tono==='oro'))) volverAlLobby(); };
+  const sigue=()=>{ if(C.selPrensa||C.amPrensa||!CARTAS.cartaDePrensa(ult,volverAlLobby,!!ult.clutch||!!(ult.americas&&ult.americas.campeon)||!!(ult.serie&&ult.serie.tono==='oro'))) volverAlLobby(); };
   if(!abrirCuerpo(sigue)) sigue();   // §2z181: el cuerpo y el bolsillo, después de la statline y antes del diario
 }
 /* ══ §2z181 EL CUERPO Y EL BOLSILLO (2026-09-10, su corte: *"NSS te muestra cuánto baja en el partido y después, en una
@@ -25547,6 +25549,7 @@ function abrirLobby(){
         ()=>retomarPartido()); return; } }
   if(C.selParte&&abrirParteVentana(C.selParte)) return;           // §12: cómo le fue a la ventana
   if(C.selCeremonia&&abrirCeremoniaSel(C.selCeremonia)) return;   // §12: la medalla tiene su momento
+  if(resumenAMPendiente(est())){ abrirResumenAM(); return; }      // 2026-09-13: el cierre de la Copa, cuando la Copa termina
   CARTAS.cartasAlEntrar();   // §2z26: una fecha vencida trae su carta
 }
 function abrirTutHola(){ $l('tutHola').classList.remove('oculto'); verQueSeVe('tutHola','CÓMO SE JUEGA'); }
@@ -27046,9 +27049,51 @@ function armarBeta(c){
 }
 /* EL RESUMEN DE TEMPORADA (su corte: "es una pieza del juego, no de la beta"): al tocar el
    botón del cierre, siempre. De ahí al mercado; en la beta, al gancho del juego completo. */
+/* ══ 2026-09-13 EL CIERRE DE LA COPA DE LAS AMÉRICAS (su diseño: "una pantalla que te da el resumen del torneo; sale sólo
+   después de que termina, y si perdiste antes te cuenta quién salió campeón; si sos campeón te dice que clasificaste a la
+   Intercontinental"). La MISMA hoja que el cierre de la liga (§2z229 c: cada competencia cierra sola, con la misma pieza). */
+let resumenModo='liga';   // 'liga' | 'am' — qué hace SEGUIR
+function resumenAMPendiente(e){ return !!(e&&e.americas&&e.americas.fase==='terminado'&&C.amCierreAnio!==C.anio); }
+function abrirResumenAM(){
+  const e=est(), am=e.americas, mi=e.miClubId; if(!am) return false;
+  C.amCierreAnio=C.anio; guardar();
+  const camp=am.campeon===mi, nom=(id)=>nomCorto(id).toUpperCase();
+  const series=((am.llave&&am.llave.seriesJugadas)||[]).filter(x=>x.ganador&&(x.alta===mi||x.baja===mi));
+  const u=series[series.length-1];
+  const marca=u?(u.alta===mi?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+nom(u.alta===mi?u.baja:u.alta):'';
+  let tit='', sub='';
+  if(camp){ tit=t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')); sub=u?t(AM_TXT[u.nombre]||L(u.nombre))+' '+marca:''; }
+  else if(am.tercero===mi){ tit=t(AM_TXT.tercero); sub=marca; }
+  else if(u&&u.nombre==='tercero'){ tit=t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR')); sub=marca; }
+  else if(u){ tit=t(L('ELIMINADOS','ELIMINATED','ELIMINADOS')); sub=t(AM_TXT[u.nombre]||L(u.nombre))+' · '+marca; }
+  else { tit=t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO')); }
+  $l('resTTit').innerHTML='<small>'+t(L('FIN DEL TORNEO','END OF THE TOURNAMENT','FIM DO TORNEIO'))+' · '+anioTxt()+'</small>'+t(AM_TXT.nombre);   /* el nombre es largo: el año va al rótulo (medido: con el año partía en dos) */
+  $l('resTClub').innerHTML=escudito(mi)+' <b>'+clubDe(mi).nombre.toUpperCase()+'</b>';
+  let html='<div class="resHero'+(camp?' oro':'')+'"><div class="resIco">'+(camp?icono('globo',40):escudito(mi))+'</div>'
+    +'<div class="resTit">'+tit+'</div>'+(sub?'<div class="resSub">'+sub+'</div>':'')+'</div>';
+  const pa=(e.misPartidos||[]).filter(p=>p.am&&p.jugado), pj=pa.length;
+  const conNota=pa.filter(p=>p.rating!==undefined);
+  const st=(v,k)=>'<div class="st"><b>'+v+'</b><span>'+k+'</span></div>';
+  if(pj) html+='<div class="resStats">'+st(pj,t(L('JUGADOS','PLAYED','JOGADOS')))
+    +st(fdec(pa.reduce((s,p)=>s+p.pts,0)/pj),'PTS')
+    +(conNota.length?st(fdec(conNota.reduce((s,p)=>s+p.rating,0)/conNota.length),t(L('NOTA','RATING','NOTA'))):'')+'</div>';
+  const filas=[];
+  if(!camp&&am.campeon) filas.push('<div class="pr">'+escudito(am.campeon)+'<span>'+t(L('CAMPEÓN','CHAMPION','CAMPEÃO'))+' · '+nom(am.campeon)+'</span></div>');
+  if((C.palmares||[]).some(p=>p.anio===C.anio&&p.clave==='mvp_americas')) filas.push('<div class="pr">'+iconoDe('mvp_americas',C.ligaId,20)+'<span>'+t(PREMIO_TXT.mvp_americas[1])+'</span></div>');
+  if(camp){ const ic=icAnunciado(e); filas.push('<div class="pr oro">'+icono('globo',20)+'<span>'+t(IC_TXT.nombre)+(ic?'<small>'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' '+ic.anio+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+'</small>':'')+'</span></div>'); }
+  if(filas.length) html+='<div class="cajTag">'+(camp?t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU')):t(L('EL TORNEO','THE TOURNAMENT','O TORNEIO')))+'</div><div class="resPremios">'+filas.join('')+'</div>';
+  $l('resTCuerpo').innerHTML=html;
+  $l('resTBeta').classList.add('oculto'); $l('resTVolver').classList.add('oculto');
+  $l('resTSeguir').classList.remove('oculto'); $l('resTSeguir').textContent=t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
+  resumenModo='am';
+  $l('resumenT').classList.remove('oculto');
+  verQueSeVe('resumenT','EL CIERRE DE LA COPA DE LAS AMÉRICAS');
+  return true;
+}
 /* §2z229: se abre DOS veces como mucho — al terminar la liga (final=false: el cierre, una vez por año) y, en la beta, al
    terminar el receso (final=true: el mismo resumen con la selección adentro, y el gancho). */
 function abrirResumenT(final){
+  resumenModo='liga'; $l('resTVolver').classList.remove('oculto');
   if(!esBeta()) aplicarEscalera();   // 2026-09-09: en la beta no hay mercado y simular tres ligas en seco era un colgón en el A32   // §2z7/§2z28: el ascenso se premia con el mundo ya movido (idempotente, el mercado lo repite)
   const e=est(), J=C.jugador, mt=miTabla(e), ml=e.miLinea, po=e.miLineaPO||lineaVacia();
   if(C.cierreAnio!==C.anio){ C.cierreAnio=C.anio; guardar(); }
@@ -27097,7 +27142,10 @@ function abrirResumenT(final){
   verQueSeVe('resumenT','EL RESUMEN DE TEMPORADA');
   if(fin&&!C.beta.finAvisado){ C.beta.finAvisado=true; guardar(); betaEvento('fin',{jugados,pj,nota,dbeta:J.dbeta,puesto:mt.puesto||null}); }
 }
-$l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto'); if(recesoPendiente(est())){ pintaLobby(); irLob('hoy'); } else abrirMercado(); };   // §2z229: al receso, o al mercado
+$l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto');
+  if(resumenModo==='am'){ resumenModo='liga'; const u=C.amPrensa; C.amPrensa=null; guardar(); pintaLobby();
+    if(u&&CARTAS.cartaDePrensa(u,()=>{},true)) return; CARTAS.cartasAlEntrar(); return; }   // 2026-09-13: la prensa de la Copa, después de la hoja
+  if(recesoPendiente(est())){ pintaLobby(); irLob('hoy'); } else abrirMercado(); };   // §2z229: al receso, o al mercado
 $l('resTVolver').onclick=()=>{ $l('resumenT').classList.add('oculto'); };
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); abrirBetaVelo('lista'); };
 /* la tira fija del lobby y el velo (lista de espera / feedback) */
@@ -27301,7 +27349,7 @@ window.__carrera={
   convocatoria, miMedia, crearTorneoSel, pasoTorneoSel, proximoTorneoSel, campoTorneo,
   CLUBES_INVITADOS_AMERICAS,   /* §2z31: el chequeador de nombres largos también los mide (arnés) */
   terminarTorneoSel, premiosSeleccion, clasifAmericaDe,
-  proximoSelTorneo, torneoRecesoDe, cerrarTorneoReceso, avisoTorneoSel, abrirCeremoniaSel,
+  proximoSelTorneo, torneoRecesoDe, cerrarTorneoReceso, avisoTorneoSel, abrirCeremoniaSel, abrirResumenAM,
   abrirParteVentana, armarParteVentana,   // §12 (arnés)
   get CARD(){ return CARD; },   // §2z30 (arnés)
   abrirDraft,   // §2z13 (arnés)

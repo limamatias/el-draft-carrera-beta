@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='351ea330ae';
+const BUILD='45f1a03991';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22548,7 +22548,9 @@ function htmlAmericasLlave(e){
   {
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+=htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true,tercero:am.llave.seriesJugadas.find(x=>x.nombre==='tercero')||null})   /* 2026-09-13: sin el título LA LLAVE — lo dice el tramo · el 3° puesto como cajita debajo de la final (su diseño) */
-      +notas(t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos')),t(L('SEMIS Y FINAL A PARTIDO ÚNICO, EN UNA SEDE (FINAL FOUR)','SEMIS AND FINAL ARE SINGLE GAMES AT ONE VENUE (FINAL FOUR)','SEMIS E FINAL EM JOGO ÚNICO, NUMA SEDE (FINAL FOUR)')),t(L('ES LOCAL EL SEMIFINALISTA CON MEJOR CAMPAÑA EN LA COPA','THE SEMIFINALIST WITH THE BEST CUP RECORD HOSTS','É MANDANTE O SEMIFINALISTA COM MELHOR CAMPANHA NA COPA')))   /* su caza: «FINAL FOUR» en el aire no decía nada · su pedido: quién hace de local (01p: el de mejor récord grupo + cuartos) */
+      +notas(t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos')),t(L('SEMIS Y FINAL A PARTIDO ÚNICO, EN UNA SEDE (FINAL FOUR)','SEMIS AND FINAL ARE SINGLE GAMES AT ONE VENUE (FINAL FOUR)','SEMIS E FINAL EM JOGO ÚNICO, NUMA SEDE (FINAL FOUR)')),(am.llave.sede
+          ? t(L('FINAL FOUR EN CASA DE ','FINAL FOUR HOSTED BY ','FINAL FOUR NA CASA DE '))+nomCorto(am.llave.sede).toUpperCase()+(am.llave.sede===e.miClubId?' — '+t(L('SOS LOCAL','YOU ARE HOME','VOCÊ É MANDANTE')):'')
+          : t(L('ES LOCAL EL SEMIFINALISTA CON MEJOR CAMPAÑA EN LA COPA','THE SEMIFINALIST WITH THE BEST CUP RECORD HOSTS','É MANDANTE O SEMIFINALISTA COM MELHOR CAMPANHA NA COPA'))))   /* su caza: «FINAL FOUR» en el aire no decía nada · su pedido: la regla antes de las semis; con las semis definidas, la sede de ESTE torneo (01p: el de mejor récord grupo + cuartos) */
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
 

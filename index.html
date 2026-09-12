@@ -13550,6 +13550,9 @@ function armarPosesion(){
   G._hintContado=false;   // el hint de arrastre cuenta por posesión (18-frame)
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
   const a=aro(), d=dif.dist/100;
+  /* el beat heredado se lee ACÁ: el sorteo del tipo (§2z39.38) y la franja muerta del doble (§2z209) lo
+     consultan mucho antes de armar el elenco, y declararlo abajo lo dejaba en zona muerta */
+  const beatDesde = G.beat && G.beat.desde;
   G.camLat=null;   // la cámara lateral es de la sacada; cualquier otra posesión la apaga
   G.sacCortina=null; G.sacEntrada=null; G.sacVar=null; G.sacLectura=null;   // §2z199: los libretos de la sacada viven una posesión
   /* variedad de arranque (reclamo suyo: "siempre arrancás en los mismos lugares"):
@@ -13620,7 +13623,6 @@ function armarPosesion(){
   /* LA POSESIÓN VIENE TIPADA (la lección de NSS, hallazgo suyo: el sandbox libre mata al
      pase). 'decision' = marcado, tirá o pasá — SIN dribbling; 'carril' = se abrió el camino,
      podés conducir; 'cierre' = reloj corto, tirá. La situación decide qué verbo vale. */
-  const beatDesde = G.beat && G.beat.desde;
   const beatElenco = G.beat && G.beat.elenco;
   G.esFinal = !!(G.beat && G.beat.final);   // la última posesión del partido, jugada
   if(G.esFinal) G.astAlFinal=G.ast;   // §2z138: para saber si la última la METISTE o la PASASTE

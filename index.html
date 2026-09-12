@@ -833,6 +833,7 @@
   /* 2026-09-13 los tramos: el que no existe todavía se ve apagado; las pestañas de los grupos viven adentro del cajón */
   #lobby .tab.off{opacity:.35;pointer-events:none}
   #lobby .grupoTabs{margin:0 0 8px;align-self:stretch}
+  #lobby .grupoTabs.dos{align-self:center;width:max-content;max-width:100%;justify-content:center}   /* §2z240 regla 4: dos pestañas, centradas, sin contenedor a lo ancho */
   #lobby .zonaTabs.muchas .tab{padding:7px 4px;font-size:12px;letter-spacing:1.5px;white-space:nowrap}
   #lobby .fix{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .fix .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);align-items:center;letter-spacing:.5px}
@@ -1747,7 +1748,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='9d7415ac5c';
+const BUILD='b9f0a18191';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22365,10 +22366,11 @@ function htmlBracket(rondas,esperadas,mi,opts){
      columna del árbol, es la puerta al árbol */
   if(opts.grilla&&esperadas.length===1){ const r=rondas.find(x=>x.nombre===esperadas[0]); const ss=(r&&r.series)||[]; if(!ss.length) return '';
     const BW=92,BH=40,GX=12,GY=8, filas=Math.ceil(ss.length/2), W=Math.min(ss.length,2)*BW+(Math.min(ss.length,2)-1)*GX, H=filas*BH+(filas-1)*GY;
-    const todos=ss.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]); const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
+    const todos=ss.flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]); const sig=(id)=>{ if(opts.nom) return opts.nom(id); const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185 · §2z240: `opts.nom` para los de afuera del padrón (la Copa)
+    const escG=(id)=>opts.esc?opts.esc(id):escudito(id);
     let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
     ss.forEach((s,i)=>{ const x=(i%2)*(BW+GX), top=Math.floor(i/2)*(BH+GY), mio=s.alta===mi||s.baja===mi, dec=!!s.ganador;
-      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+g+'</span></div>';   // 2026-09-12: banderas y «yo» también en la grilla (el tercer puesto)
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escG(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+(g===undefined||g===null?'':g)+'</span></div>';   // 2026-09-12: banderas y «yo» también en la grilla (el tercer puesto)
       h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,s.ganAlta)+fila(s.baja,s.ganBaja)+'</div>'; });
     return h+'</div></div>'; }
   const nCols=esperadas.length;
@@ -22450,16 +22452,18 @@ function htmlIntercontinental(e){
   let ic=e.intercontinental, previa=false;
   /* v2: sin torneo armado, el sorteo YA EXISTE (es determinista): con campeón de las Américas se muestran los grupos con él adentro,
      seas vos u otro; sin campeón todavía, el contrato: cuándo, dónde y quién clasifica */
-  if(!ic){
-    const camp=am&&am.campeon; const cl=camp&&clubDe(camp);
-    if(cl){ const fuerza=(e.fuerzas&&e.fuerzas[camp]!==undefined)?e.fuerzas[camp]:cl.fuerza; ic=crearIntercontinental(C.semilla,anio,{id:camp,fuerza},0); previa=true; }
-    else { const so=sorteoIC(C.semilla,anio,{id:mi,fuerza:0});
-      return '<div class="cajNota">'+t(IC_TXT.nombre)+' '+String(so.sede&&so.sede.ciudad||'').toUpperCase()+' '+anio+'<br>'
-        +t(L('SE JUEGA AL FINAL DEL RECESO · CLASIFICA EL CAMPEÓN DE LA LIGA DE LAS AMÉRICAS','PLAYED AT THE END OF THE OFFSEASON · THE AMERICAS LEAGUE CHAMPION QUALIFIES','JOGA-SE NO FIM DO RECESSO · CLASSIFICA O CAMPEÃO DA LIGA DAS AMÉRICAS'))+'</div>'; }
-  }
   const nomC=(id)=>{ const c=clubDe(id)||clubIC(id); return c?(c.corto||c.nombre):id; };
   const escC=(id)=>clubDe(id)?escudito(id):'<span class="escudito"></span>';
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
+  if(!ic){
+    const camp=am&&am.campeon; const cl=camp&&clubDe(camp);
+    if(cl){ const fuerza=(e.fuerzas&&e.fuerzas[camp]!==undefined)?e.fuerzas[camp]:cl.fuerza; ic=crearIntercontinental(C.semilla,anio,{id:camp,fuerza},0); previa=true; }
+    else { /* §2z240 regla 2: la caja «que viene» que ya existe, no un bloque de texto */
+      const so=sorteoIC(C.semilla,anio,{id:mi,fuerza:0});
+      return htmlQueViene({tit:t(IC_TXT.nombre)+' '+anio, ico:icono('globo',18), linea:t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' · '+String(so.sede&&so.sede.ciudad||'').toUpperCase()+' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')), ids:[], mi, esc:()=>'', noms:()=>[]})
+        +'<div class="cajNota">'+t(L('CLASIFICA EL CAMPEÓN DE LA LIGA DE LAS AMÉRICAS','THE AMERICAS LEAGUE CHAMPION QUALIFIES','CLASSIFICA O CAMPEÃO DA LIGA DAS AMÉRICAS'))+'</div>'
+        +'<div class="cajNota">'+t(L('6 CLUBES · 2 GRUPOS DE 3 · EL 1° A LA FINAL, EL 2° AL TERCER PUESTO','6 CLUBS · 2 GROUPS OF 3 · 1ST TO THE FINAL, 2ND TO THE THIRD-PLACE GAME','6 CLUBES · 2 GRUPOS DE 3 · O 1º À FINAL, O 2º AO TERCEIRO LUGAR'))+'</div>'; }
+  }
   let h='<div class="cajTag">'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+(previa?' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')):'')+'</div>';
   for(const gg of ['A','B']){
     h+='<div class="cajTag">'+t(AM_TXT.grupo)+' '+gg+'</div>';
@@ -22467,11 +22471,16 @@ function htmlIntercontinental(e){
       h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
   }
   h+='<div class="cajNota">'+t(L('EL 1° A LA FINAL · EL 2° AL TERCER PUESTO','1ST TO THE FINAL · 2ND TO THE THIRD-PLACE GAME','O 1º À FINAL · O 2º AO TERCEIRO LUGAR'))+'</div>';
-  if(ic.definicion&&ic.definicion.length){
-    h+=tit(t(L('LA DEFINICIÓN','THE DECIDERS','A DEFINIÇÃO')));
-    for(const j of ic.definicion){ const mio=j.local===mi||j.visita===mi;
-      h+='<div class="r grupoSel'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escC(j.local)+'<span class="nom">'+t(AM_TXT[j.etapa]||L(j.etapa))+' · '+nomC(j.local)+' – '+nomC(j.visita)+'</span>'+escC(j.visita)+'</span><span class="rec2">'+(j.jugado?j.ptsLocal+'–'+j.ptsVisita:'')+'</span></div>'; }
-  }
+  /* §2z240 regla 3: la definición es un BRACKET dibujado (la grilla de dos cajas de la reclasificación), con las cajas vacías
+     antes de definirse — 1° A vs 1° B · 2° A vs 2° B */
+  const def=ic.definicion&&ic.definicion.length?ic.definicion:null;
+  const serie=(j,alta,baja)=>j?{nombre:j.etapa,alta:j.local,baja:j.visita,ganAlta:j.jugado?j.ptsLocal:'',ganBaja:j.jugado?j.ptsVisita:'',ganador:j.jugado?(j.ptsLocal>j.ptsVisita?j.local:j.visita):null}:{nombre:'x',alta,baja,ganAlta:'',ganBaja:'',ganador:null};
+  const fin=def?def.find(j=>j.etapa==='ic-final'):null, ter=def?def.find(j=>j.etapa==='ic-tercero'):null;
+  const ss=[serie(fin,'A1','B1'),serie(ter,'A2','B2')];
+  const LBL={A1:'1° A',B1:'1° B',A2:'2° A',B2:'2° B'};
+  const sigC=(id)=>LBL[id]||(clubDe(id)&&clubDe(id).sigla)||(clubIC(id)&&clubIC(id).sigla)||String(id).replace(/^IC/,'').slice(0,3);
+  h+='<div class="cajTag bkSig">'+t(AM_TXT['ic-final'])+' · '+t(AM_TXT['ic-tercero'])+'</div>'
+    +htmlBracket([{nombre:'def',series:ss}],['def'],mi,{grilla:true,nom:sigC,esc:(id)=>LBL[id]?'':escC(id)});
   return h;
 }
 function htmlAmericasGrupo(e,g){
@@ -23716,11 +23725,11 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
     const amx=est().americas, {key,sub}=subAmDe(est());
     tr.classList.remove('oculto'); tr.innerHTML=htmlSubAm(sub,'subf');
     tr.querySelectorAll('[data-subf]').forEach(b=>b.addEventListener('click',()=>{ subAm={t:b.dataset.subf,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
-    $l('lobFixTit').textContent=sub==='ic'?t(IC_TXT.nombre)+' · '+(C.anio+1):t(AM_TXT.nombre)+' · '+anioTxt();
+    $l('lobFixTit').textContent=t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+' · '+anioTxt();   // §2z240 regla 1
     if(sub==='ic') tramoF='copa';
     else { if(tramoAm&&tramoAm.k!==key) tramoAm=null;
       const hayLl=!!amx.llave; tramoF=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
-      tramosFixHtml='<div class="tabs zonaTabs grupoTabs">'+htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramoF,'tramof')+'</div>'; }
+      tramosFixHtml='<div class="tabs zonaTabs grupoTabs dos">'+htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramoF,'tramof')+'</div>'; }
   } else tr.classList.add('oculto');
   if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(tramoF); return; }
   /* §2z177 (su caza 2026-09-08: "en la lista de partidos no se ve nunca por qué instancia jugás"): del lado del globo,
@@ -23823,11 +23832,11 @@ function pintaTablaFull(){
     tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
     tabs.innerHTML=htmlSubAm(sub,'sub');
     tabs.querySelectorAll('[data-sub]').forEach(b=>b.addEventListener('click',()=>{ subAm={t:b.dataset.sub,k:key}; pintaTablaFull(); }));
-    $l('lobTablaTit').textContent=sub==='ic'?t(IC_TXT.nombre)+' · '+(C.anio+1):t(AM_TXT.nombre)+' · '+anioTxt();
+    $l('lobTablaTit').textContent=t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+' · '+anioTxt();   // §2z240 regla 1: el título nombra el nivel; el sub-switch, la copa
     if(sub==='ic'){ full.innerHTML=htmlIntercontinental(e); return; }
     if(tramoAm&&tramoAm.k!==key) tramoAm=null;
     const hayLl=!!am.llave, tramo=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
-    const trH='<div class="tabs zonaTabs grupoTabs">'+htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramo,'tramo')+'</div>';
+    const trH='<div class="tabs zonaTabs grupoTabs dos">'+htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramo,'tramo')+'</div>';   // §2z240 regla 4
     if(tramo==='llave') full.innerHTML=trH+htmlAmericasLlave(e);
     else { const g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
       full.innerHTML=trH+htmlGrupoTabs(AMERICAS_GRUPOS,g,'grupo',(x)=>t(AM_TXT.grupo)+' '+x)+htmlAmericasGrupo(e,g);

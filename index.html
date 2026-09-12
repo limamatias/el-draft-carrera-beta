@@ -1701,7 +1701,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='b54a19ae58';
+const BUILD='5af1c72777';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23989,7 +23989,7 @@ function pintaLobby(){
       const lineaCamp=(cierrePend&&camp)?'':(e.playoffs.campeon===e.miClubId
         ? ''+icono('copa',14)+' '+t(L('¡SALIMOS CAMPEONES!','WE ARE CHAMPIONS!','SOMOS CAMPEÕES!'))
         : ''+icono('copa',14)+' '+t(L('CAMPEÓN','CHAMPIONS','CAMPEÃO'))+': '+nomCorto(e.playoffs.campeon).toUpperCase());
-      $l('lobGoteo2').innerHTML=[lineaCamp,cierrePend?'':lineaMia,lineaAsc,lineaDesc,lineaAmericas(e)].map(x=>String(x||'').replace(/^<br>/,'')).filter(Boolean).join('<br>');
+      $l('lobGoteo2').innerHTML=[lineaCamp,cierrePend?'':lineaMia,lineaAsc,lineaDesc]   /* 2026-09-13 (su caza: «¿por qué dice campeones de las Américas acá? eso terminó antes de la liga»): la Copa ya tuvo su momento (§2z229 c) — el día después de la final es sólo de la liga; lineaAmericas queda sin uso */.map(x=>String(x||'').replace(/^<br>/,'')).filter(Boolean).join('<br>');
     } else if(e.fase==='playoffs'){
       $l('lobGoteo2').textContent=t(L('La llave sigue sin vos.','The bracket goes on without you.','O mata-mata segue sem você.'));   // §2z19: ya no se ve (cerrarSinVos), queda de respaldo
     }

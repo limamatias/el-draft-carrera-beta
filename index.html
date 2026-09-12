@@ -974,7 +974,11 @@
   /* 2026-09-12 (su caza en el cuadro de la final: "la bandera está en cualquier lugar — va donde va SIEMPRE"): la bandera PEGADA al
      nombre (gap 5 + 2 = los 7 de las filas de grupo) y el resultado contra el borde derecho; antes el nombre estiraba y empujaba la
      bandera al medio de la caja. En las llaves angostas no cambia nada: ahí ya no sobraba lugar. */
-  #lobby .bkRow .sig{flex:0 1 auto;white-space:nowrap}
+  /* 2026-09-12 (su caza en la llave de Américas: "las banderas de la final no están alineadas entre ellas"): con el ancho por
+     contenido, la bandera seguía a cada sigla — BOC en negrita es más ancha que FLA fina. La sigla reserva el ancho de tres
+     mayúsculas anchas en negrita (medido en su captura: BOC negrita = 1,6 em), así las banderas quedan en columna; una sigla
+     desambiguada, «IND (Z)», empuja sólo su fila. */
+  #lobby .bkRow .sig{flex:none;min-width:1.9em;white-space:nowrap}
   #lobby .bkRow .w{flex:none;min-width:14px;text-align:right;margin-left:auto}
   #lobby .bkRow.gana{font-weight:700}
   #lobby .bkRow.pierde{color:var(--tinta2);opacity:.5}
@@ -1008,7 +1012,7 @@
   #lobby .queViene .bkRow{height:26px;font-size:14px;gap:9px;padding:0 6px;border-radius:6px}
   #lobby .queViene .bkRow.yo{font-weight:700;background:rgba(255,150,51,.14)}
   #lobby .queViene .bkRow .escudito{width:18px;height:18px}
-  #lobby .queViene .bkRow .sig{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  #lobby .queViene .bkRow .sig{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
   /* 2026-09-12 EL NOMBRE MÁS LARGO QUE ENTRA (18b `nomAjustable`): todo nombre con varias formas recorta, así ajustarNombre
      puede ver si la forma entra (scrollWidth contra clientWidth) — y si ninguna entra, la última queda con puntos suspensivos */
   [data-nv]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1843,7 +1847,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1328f2a408';
+const BUILD='2320aa3417';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -3986,10 +3990,21 @@ function simularFecha(rng, fecha, fuerzas) {
 }
 
 /** El marcador de un lado: ataque propio, defensa ajena, localía y campana. */
+/* 2026-09-12 (su caza: "hoy casi no hay blowouts, incluso entre equipos muy diferentes"; su corte: "no quiero que sea realista,
+   simplemente que pueda pasar más a que todo el mundo salga igual"). Medido sobre los planteles: el margen medio era 6-7 en las
+   ligas parejas, por 20+ el 1-2 % de los partidos, y en la NBA el peor no le ganaba nunca al mejor. Dos perillas:
+   · LA NOCHE: cada equipo, 1 de cada 4 partidos, está enchufado o frío (±8 a 16) — de ahí salen las palizas.
+   · LA FUERZA SE COMPRIME: hasta 15 de diferencia pesa lo mismo que antes; lo que pasa de 15, al 60 % — vuelven los batacazos.
+   Resultado (mismos planteles): margen medio 9-11, por 20+ el 9-18 %, por 30+ el 1-4 %; el peor le gana al mejor 3 % en la NBA.
+   La base es la de siempre reescrita: 52 + 0,55·f − 0,2·(fr − 45) = 61 + 0,35·media + 0,375·Δ. */
+const NOCHE_P = 0.25, NOCHE_MIN = 8, NOCHE_MAX = 16, FZ_CORTE = 15, FZ_ARRIBA = 0.6;
 function puntosDe(rng, fuerza, fuerzaRival, localia) {
-  const base = 52 + fuerza * 0.55 - (fuerzaRival - 45) * 0.2 + localia;
+  const d = fuerza - fuerzaRival, ad = Math.abs(d);
+  const dc = Math.sign(d) * (ad <= FZ_CORTE ? ad : FZ_CORTE + FZ_ARRIBA * (ad - FZ_CORTE));
+  let base = 61 + 0.35 * (fuerza + fuerzaRival) / 2 + 0.375 * dc + localia;
+  if (rng.chance(NOCHE_P)) base += (rng.chance(0.5) ? 1 : -1) * rng.float(NOCHE_MIN, NOCHE_MAX);
   const pts = Math.round(rng.bell(base - 11, base + 11));
-  return Math.max(58, Math.min(112, pts));
+  return Math.max(52, Math.min(118, pts));
 }
 
 /* ── La tabla ───────────────────────────────────────────────────────────────── */
@@ -13880,8 +13895,10 @@ const rachaPelota=()=> G.frio>=FRIO ? -G.frio : (G.fuego||0);
    el fuego que REGALA la carta no son canastas. `fuegoRegalo` guarda cuánto del contador es prestado; la racha
    real es la resta, y es la que se cuenta en el feed y en el récord. Se apaga con el fuego. */
 const rachaReal=()=>Math.max(0,G.fuego-(G.fuegoRegalo||0));
+/* el mismo préstamo del lado frío: los errados que puso la carta (§2z224 A) no son errados tuyos */
+const frioReal=()=>Math.max(0,(G.frio||0)-(G.frioRegalo||0));
 function prendeFuego(){
-  G.frio=0;   /* §2z224: una canasta apaga el frío, como un fallo apaga el fuego */
+  G.frio=0; G.frioRegalo=0;   /* §2z224: una canasta apaga el frío, como un fallo apaga el fuego */
   G.fuego++; G.fuegoMax=Math.max(G.fuegoMax,rachaReal());
   /* 2026-09-12 (su caza: "4/4 de campo y la misión de 3 seguidas en 2/3"): la misión contaba la racha del FUEGO, que también se
      apaga con una pérdida — dos canastas, una pérdida, dos canastas daban 2. Las SEGUIDAS de la misión son canastas de campo
@@ -17715,9 +17732,9 @@ function cerrarLibre(res){
     G.libres.hecho++;
     /* §2z224 v3 (su corte 2026-09-12: "es raro seguir on fire después de errar libres. ¡Pensá en el jugador de
        básquet!"). El fuego mide tus canastas DE CAMPO —por eso meter un libre no lo prende— pero el FRÍO mide tu
-       mano, y la línea es donde más se ve. Errar un libre apaga el fuego y suma al frío; meterlo lo apaga. El `true`
+       mano, y la línea es donde más se ve. Errar un libre apaga el fuego y suma al frío; meter la tanda entera lo apaga. El `true`
        deja intactas las SEGUIDAS de la misión, que son de campo (§2z114). */
-    if(res==='entra'){ canastaFx(); G.libres.metidos++; G.ftm++; G.nos++; G.pts++; marcador(); veredicto(t(L('¡ADENTRO!','GOOD!','DENTRO!')),'ok'); G.frio=0; }
+    if(res==='entra'){ canastaFx(); G.libres.metidos++; G.ftm++; G.nos++; G.pts++; marcador(); veredicto(t(L('¡ADENTRO!','GOOD!','DENTRO!')),'ok'); }
     else { apagaFuego(true); if(res==='casi') hierroFx();
       veredicto(res==='casi'?t(L('Bailó y salió','Rattled out','Bailou e saiu')):(res==='larga'?t(L('Larga…','Long…','Longa…')):t(L('Corta','Short','Curta'))),'mal'); }
     if(G.libres.hecho<G.libres.total){
@@ -17725,6 +17742,9 @@ function cerrarLibre(res){
         relato(t(L(`LIBRE ${G.libres.hecho+1} DE ${G.libres.total} — puro pulso.`,`FREE THROW ${G.libres.hecho+1} OF ${G.libres.total} — pure touch.`,`LANCE LIVRE ${G.libres.hecho+1} DE ${G.libres.total} — puro pulso.`)),true); } }, 750);
     } else {
       const m=G.libres.metidos, tot=G.libres.total; G.libres=null;
+      /* 2026-09-12 (su caza: "se me fue el frío por meter 1 de 2 libres; meter los 2 capaz sí"): el frío se va con la TANDA
+         entera adentro, no con un libre suelto — el errado de la tanda ya sumó al frío en su momento */
+      if(m===tot){ G.frio=0; G.frioRegalo=0; }
       finPosesion(m>0, t(L(`De la línea: ${m} de ${tot}.`,`From the line: ${m} of ${tot}.`,`Da linha: ${m} de ${tot}.`)));
     }
   }
@@ -18444,7 +18464,7 @@ const uno=a=>{ let i=Math.floor(Math.random()*a.length);
    corto a ninguno), lo que uno gana en el renglón el otro lo pierde (±RUIDO), y una racha de verdad
    (RACHA puntos) cae en P_RACHA de los renglones. Con estas perillas: ≥10-0 en el 31 %, ≥15-0 en el
    2 %, ≥20-0 nunca. Los renglones secos quedan como sabor (P_SECO). Sus números, elegidos en el banco. */
-const RELATO={ruido:3, pRacha:0.10, racha:6, pSeco:0.03, k:0.12, tope:8};
+const RELATO={ruido:3, pRacha:0.10, racha:6, pSeco:0.03, k:0.12, tope:12};   // 2026-09-12 (su caza: "si jugás mal contra uno mucho mejor, ¿no te deberían pasar por arriba?"): tope 8 → 12
 const OT_SEG=300;   // §2z103: el suplementario dura 5:00 en toda liga (FIBA y NBA)
 function partes(nosQ,rivQ,n){
   const w=[]; let sw=0; for(let i=0;i<n;i++){ const x=0.5+Math.random(); w.push(x); sw+=x; }
@@ -18501,7 +18521,7 @@ function armarGuion(){
   /* el déficit escala con el grifo: con tres pelotas no se remontan doce puntos */
   const deficit=Math.max(2, Math.round(nInt*1.2)+Math.floor(rnd(-1,2)));
   /* §2z37: LA FUERZA MUEVE EL TOTAL — dif.fz es mi club − rival (18b lo pone del partido); con k=0,12,
-     diez de fuerza son cinco puntos por partido, tope ±8: más que eso y contra un grande no hay delta
+     diez de fuerza son cinco puntos por partido, tope ±12 (era 8; 2026-09-12, que jugar mal contra un grande pueda ser paliza): más que eso y contra un grande no hay delta
      tuyo que valga (regla 3: vos sos el delta). */
   const fzPartido=clamp((dif.fz||0)*RELATO.k*4, -RELATO.tope, RELATO.tope);
   const beats=[];
@@ -18889,7 +18909,9 @@ function finPosesion(anoto, resumen){
     /* §2z234 (su caza 2026-09-13: "cuando te enfriás sólo dice arriba «se te enfrió la mano», pero no sale en el relato como
        cuando estás caliente"): el mismo renglón, del otro lado — sale cuando la racha fría CRECIÓ en esta posesión (fallaste). */
     if(G.frio>=FRIO && !anoto && G.frio!==G.frioDicho){ G.frioDicho=G.frio;
-      fila(t(L(`Estás frío — ${G.frio} seguidas afuera.`,`You're cold — ${G.frio} misses in a row.`,`Você está frio — ${G.frio} erradas seguidas.`)),'frio'); }
+      fila(frioReal()>=FRIO   /* si el frío lo trajo la carta y todavía no lo ganaste errando, sin número (el espejo del fuego) */
+        ? t(L(`Estás frío — ${frioReal()} seguidas afuera.`,`You're cold — ${frioReal()} misses in a row.`,`Você está frio — ${frioReal()} erradas seguidas.`))
+        : t(L('Estás frío.',"You're cold.",'Você está frio.')),'frio'); }
     /* ON FIRE TE BUSCAN (su regla 2026-08-29: "cuando estás on fire deberían darte más
        posesiones"): cada canasta tuya EN FUEGO agenda una jugada extra en la próxima
        bajada — el mecanismo de la pedida, sin gastarla. La bola de nieve es tuya
@@ -18959,7 +18981,7 @@ function empezar(snap){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,frioRegalo:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(snap){ Object.assign(G, snap.G||{}); if(snap.guion) G.guion=snap.guion; }
@@ -25610,7 +25632,7 @@ $l('lobSalir').addEventListener('click',()=>{
      que dejarte "a UN ERRADO de que empiece a doler" (FRIO−1), no congelado de entrada. Puesto en FRIO, la carta te
      cobraba el −7 % antes de tocar la pelota y la apuesta pasaba a no convenir nunca — el problema de siempre, dado
      vuelta (lo cazó cartas-check con el EV). */
-  if(!snap && efS.frio) G.frio=FRIO-1;
+  if(!snap && efS.frio){ G.frio=FRIO-1; G.frioRegalo=FRIO-1; }   // 2026-09-12 (su caza: «erré UNO y me dijo 3 seguidas afuera»): prestado, como el fuego
   G.mision=enPartido.mision; marcador();   // el feed la muestra junto a la statline desde el primer renglón
   const mk=document.getElementById('marcador'); mk.classList.remove('cae'); void mk.offsetWidth; mk.classList.add('cae');   // §2z14: el marcador cae
 });
@@ -26051,7 +26073,7 @@ function diaTorneoDe(t,paso){
    propósito — con una lista negra, cada campo nuevo del motor entraría al guardado sin que nadie lo decida. */
 const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','rotSale','rotEntra','pts','ast','ptsAsist',
   'pasesTiro','defensas','tiros','aciertos','perdidas','malDesmarque','robos','tapas','triples','tiros3','ftm','fta','libres',
-  'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','rachaTiros','rachaTirosMax',
+  'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','frioRegalo','rachaTiros','rachaTirosMax',
   'pedidas','pedidasUsadas','pedidasResueltas','perdidasQ4','intJugadas','intBuenas','sub','contraHubo','defensaHubo',
   'defEscenasVistas','defGanadas','esFinal','rivAlFinal','astAlFinal','clutch','ot','mision'];
 function guardarPartidoEnCurso(){

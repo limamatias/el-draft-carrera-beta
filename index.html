@@ -1010,6 +1010,19 @@
   /* §2z31: el 🔥 vive adentro de `.res` (78 px reservados) y no en la columna del nombre.
      `font-weight:400` para que no herede el 600 de la fila próxima, y un respiro a la derecha. */
   #lobby .fix .fuego{color:var(--naranja);font-weight:400;margin-right:5px}
+  /* 2026-09-14 (su caza: "el contenedor se rompe todo según qué tenés en cada lado; el palmarés ahora tiene scroll"): VOS mide
+     SIEMPRE lo mismo — la vista llena el medio, la caja de cada pestaña llena la vista y scrollea sólo por adentro. La fila de
+     pestañas lleva COMPARTIR a la derecha como ícono, así no se roba un renglón. */
+  #lobby .medio>#lv-vos:not(.oculto){flex:1 1 auto;margin-top:0}
+  #lobby #lv-vos .paneles{flex:1 1 auto}
+  #lobby #lv-vos .panel{overflow:hidden}
+  #lobby #lv-vos .panel > *:first-child{margin-top:0}
+  #lobby #lv-vos .panel .cajon{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  #lobby #lv-vos .panel .cajon::-webkit-scrollbar{display:none}
+  #lobby .vosCab{position:relative;display:flex;justify-content:center;align-items:center;flex:none}
+  #lobby .vosCab .tabs{align-self:auto}
+  #lobby .verMas.ico{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;padding:0;justify-content:center;margin:0}
+  #lobby .verMas.ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   #lobby .verMas{align-self:center;font-size:13px;font-weight:600;letter-spacing:1.5px;height:36px;display:flex;align-items:center;
        color:var(--naranja);background:rgba(20,27,44,.85);border:1px solid rgba(255,150,51,.4);
        border-radius:999px;padding:0 14px;cursor:pointer;user-select:none;margin-top:2px}
@@ -1774,7 +1787,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='01a4f93736';
+const BUILD='21b778fbb9';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2200,11 +2213,14 @@ const BUILD='01a4f93736';
 
       <!-- VOS -->
       <div class="vista oculto" id="lv-vos">
-        <!-- §2z30: la card compartible, en cualquier momento de la carrera -->
-        <div class="verMas" id="lobCompartir" data-l-en="SHARE" data-l-pt="COMPARTILHAR">COMPARTIR</div>
-        <div class="tabs">
-          <div class="tab act" data-lp="vos-resumen" tabindex="0" data-l-en="SUMMARY" data-l-pt="RESUMO">RESUMEN</div>
-          <div class="tab" data-lp="vos-palmares" tabindex="0" data-l-en="TROPHIES" data-l-pt="TÍTULOS">PALMARÉS</div>
+        <!-- 2026-09-14 (su corte: "COMPARTIR debería estar al costado y no robarse una línea"): la fila de pestañas lleva la card
+             compartible (§2z30) como píldora con ícono, a la derecha -->
+        <div class="vosCab">
+          <div class="tabs">
+            <div class="tab act" data-lp="vos-resumen" tabindex="0" data-l-en="SUMMARY" data-l-pt="RESUMO">RESUMEN</div>
+            <div class="tab" data-lp="vos-palmares" tabindex="0" data-l-en="TROPHIES" data-l-pt="TÍTULOS">PALMARÉS</div>
+          </div>
+          <div class="verMas ico" id="lobCompartir" tabindex="0" aria-label="Compartir"><svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6h14v-6"/></svg></div>
         </div>
         <div class="paneles">
         <!-- §2z71: el resumen es la temporada de UN lado (switch club ⇄ selección, §12.20) con su rótulo de alcance;
@@ -27278,10 +27294,10 @@ function pintaPalmares(){
   const paisV=C.jugador.nacionalidad||'ar';
   const sw=$l('lobPalSwitch'), haySw=!!SEL_FICHA[paisV]; sw.classList.toggle('oculto',!haySw);
   if(!haySw) ladoPal='club';
-  else { const clubV=clubDe(est().miClubId);
+  else { /* 2026-09-14 (su corte: "debería ser CLUB y SELECCIÓN: si te vas de Boca va a decir otro nombre y te muestra otro club") */
     const tabP=(lado,html,nuevo)=>'<div class="tab'+(ladoPal===lado?' act':'')+(nuevo?' aviso':'')+'" data-ladopal="'+lado+'" tabindex="0">'+html+'</div>';
-    sw.innerHTML=tabP('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>',deClub.some(palNuevo))
-      +tabP('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>',deSel.some(palNuevo));
+    sw.innerHTML=tabP('club','<span>'+t(L('CLUB','CLUB','CLUBE'))+'</span>',deClub.some(palNuevo))
+      +tabP('sel','<span>'+t(L('SELECCIÓN','NATIONAL TEAM','SELEÇÃO'))+'</span>',deSel.some(palNuevo));
     sw.querySelectorAll('[data-ladopal]').forEach(b=>b.addEventListener('click',()=>{ if(ladoPal!==b.dataset.ladopal){ ladoPal=b.dataset.ladopal; palSel=null; palTodo=false; pintaPalmares(); animaCambio('lobPal'); } })); }
   const enSel=ladoPal==='sel'&&haySw, vit=enSel?deSel:deClub;
   const TAG_IND=t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL')), TAG_EQ=enSel?t(L('MEDALLAS','MEDALS','MEDALHAS')):t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES'));

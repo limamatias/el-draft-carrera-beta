@@ -365,6 +365,60 @@
   #carta .opc.apuesta{border-color:rgba(255,150,51,.55)}
   /* §2z216: en un dilema las dos cuestan — las dos cajas llevan el borde de lo que duele, y ninguna es la cómoda */
   #carta .opc.dilema{border-color:rgba(224,108,90,.5)}
+  /* §2z218 los sponsors en VIDA · CONTRATO: nombre · lo que te pide · lo que paga */
+  /* §2z218 v2 LA GRILLA DE OCHO: los casilleros dicen cuántos hay y cuántos son tuyos sin una sola palabra de regla */
+  /* ⚠️ LA CELDA MANDA, EL CONTENIDO ENTRA (su caza 2026-09-11: "siento que va a quedar todo desordenado, con
+     diferentes altos… más si encima tenés EN RIESGO, en algunos te dice cuánto pagan y todo eso"). Y tenía razón: la
+     primera versión medía 52 px unas celdas y 57 otras, porque el nombre de dos líneas y el renglón de EN RIESGO
+     crecían solos. Ahora las ocho son IDÉNTICAS: alto fijo, el nombre reserva SIEMPRE dos líneas, y abajo hay UNA
+     línea de estado que dice una cosa sola — cuánto paga, o EN RIESGO. Nunca las dos. */
+  /* §2z222 PEDIR MÁS: el número grande, la barra, y las dos cuentas que hacen la decisión */
+  #pedir{z-index:34;background:rgba(8,11,19,.95);gap:8px;justify-content:center}
+  #pedir .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #pedir h1{font-size:46px;color:var(--naranja);line-height:1;font-variant-numeric:tabular-nums}
+  #pedir .linea{font-size:15px;color:var(--tinta2);letter-spacing:1px}
+  #pedir input[type=range]{width:min(100%,300px);accent-color:var(--naranja);margin:6px 0}
+  /* §2z222 v2: las dos ramas, con el idioma de las cartas — la p a la izquierda, qué pasa, y lo que te deja.
+     La barrita de abajo es la misma proporción, así se ven una contra la otra sin leer los números. */
+  #pedir .pedirRamas{display:flex;flex-direction:column;gap:9px;width:min(100%,300px);text-align:left}
+  #pedir .rama{position:relative;display:flex;align-items:baseline;gap:9px;padding-bottom:8px;font-size:13px}
+  #pedir .rama::before,#pedir .rama::after{content:'';position:absolute;left:0;bottom:0;height:3px;border-radius:2px}
+  #pedir .rama::before{right:0;background:rgba(255,255,255,.08)}
+  #pedir .rama::after{width:var(--w,0);background:currentColor}
+  #pedir .rama .p{font-size:17px;font-weight:700;color:var(--tinta);font-variant-numeric:tabular-nums;min-width:44px}
+  #pedir .rama .q{flex:1;min-width:0;font-size:12px;letter-spacing:1.5px;font-weight:600;color:var(--tinta2);
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #pedir .rama b{flex:none;font-size:15px;font-variant-numeric:tabular-nums}
+  #pedir .rama.ok{color:var(--ok)} #pedir .rama.ok b{color:var(--ok)}
+  #pedir .rama.mal{color:var(--mal)} #pedir .rama.mal b{color:var(--mal)}
+  #pedir button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:4px}
+  #pedir button.secundario{background:transparent;color:var(--tinta);border:1.5px solid rgba(255,150,51,.6);min-height:40px;font-size:15px;margin-top:0}
+  /* §2z218 v4: la grilla vive en su propio velo (z 33, sobre el lobby y debajo de las cartas) */
+  #sponsors{z-index:33;background:rgba(8,11,19,.94);gap:10px;justify-content:center}
+  #sponsors .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #sponsors .spGrilla,#sponsors .spTotal{width:min(100%,320px)}
+  #sponsors button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
+  /* el renglón que lo abre, adentro del contrato: el total y VER, en una línea */
+  #lobContrato .spResumen{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;
+       padding-top:8px;border-top:1px solid rgba(154,164,184,.22);cursor:pointer;min-height:30px}
+  #lobContrato .spResumen .izq{display:flex;align-items:baseline;gap:8px;min-width:0}
+  #lobContrato .spResumen .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #lobContrato .spResumen b{font-size:15px;color:var(--ok);font-variant-numeric:tabular-nums}
+  #lobContrato .spResumen .ver{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:700;color:var(--naranja)}
+  .spGrilla{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .spCaja{height:60px;display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px;
+       border-radius:10px;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22)}
+  .spCaja .n{height:26px;font-size:11px;letter-spacing:.8px;font-weight:600;color:var(--tinta);line-height:13px;
+       display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .spCaja .v{height:16px;font-size:14px;line-height:16px;color:var(--ok);font-variant-numeric:tabular-nums;
+       font-weight:700;overflow:hidden;white-space:nowrap}
+  .spCaja .v.riesgo{font-size:10px;letter-spacing:1.5px;color:var(--mal);line-height:16px}
+  .spCaja.vacia{background:transparent;border-style:dashed;border-color:rgba(154,164,184,.2)}
+  .spCaja.vacia .n{color:#5c6478}
+  .spCaja.enRiesgo{border-color:rgba(224,108,90,.55)}
+  .spTotal{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;
+       padding-top:7px;border-top:1px solid rgba(154,164,184,.22);font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  .spTotal b{font-size:17px;letter-spacing:0;color:var(--ok);font-variant-numeric:tabular-nums}
   #carta .opc:active{transform:scale(.985)}
   #carta .opc:focus-visible{outline:3px solid var(--tinta)}
   #carta .opc b{font-size:15px;line-height:1.2;color:var(--tinta)}
@@ -1024,7 +1078,14 @@
        stroke-linecap:round;stroke-linejoin:round}
   #lobby .acc.act svg{stroke:var(--naranja)}
   /* §2z15: la NUEVA OFERTA es tarjeta propia dentro del panel del contrato */
-  #lobby .cajon.oferta{border-color:rgba(255,150,51,.5);margin-top:8px;display:flex;flex-direction:column;gap:8px;text-align:center}
+  /* §2z221: la tarjeta de la oferta más apretada — padding 10→8 y gap 8→6, y FIRMAR de 48 a 40. En la cancha de 600
+     el panel da 219 px y la tarjeta se llevaba 183 ella sola, con 84 de puro aire. */
+  #lobby .cajon.oferta{border-color:rgba(255,150,51,.5);margin-top:8px;display:flex;flex-direction:column;gap:6px;text-align:center;padding:8px 12px}
+  #lobby .cajon.oferta .jugar.ancho{min-height:40px;padding:0 16px}
+  /* §2z222: FIRMAR y PEDIR MÁS comparten renglón. PEDIR MÁS es el secundario (borde, no relleno): lo seguro es firmar. */
+  #lobby .cajon.oferta .dosBotones{display:flex;gap:6px}
+  #lobby .cajon.oferta .dosBotones .jugar{flex:1;min-width:0;font-size:17px;letter-spacing:1px}
+  #lobby .cajon.oferta .jugar.pedirMas{background:transparent;color:var(--naranja);border:1.5px solid rgba(255,150,51,.7)}
   #lobby .cajon.oferta .cajTag{color:var(--naranja)}
   /* §2z139: el contrato vigente con los mismos tres números que la oferta, alineados */
   #lobby #lobContrato>.cajTag{text-align:center}
@@ -1771,6 +1832,28 @@
   <h1 id="titularTxt"></h1>
   <div class="linea" id="titularSub"></div>
   <button id="titularOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+</div>
+<!-- §2z218 v4 (su caza con el alto en la mano: "si esto vive adentro de un switch, rompe todo el menú… que adentro
+     de contrato haya un botón VER SPONSORS; desde afuera te dice cuánto cobrás en total"): la grilla se fue del panel y
+     tiene pantalla propia. Medido: el switch le comía 34 px a un panel que en 812 tenía 15 de margen. -->
+<!-- §2z222 PEDIR MÁS: la barra con la chance a la vista (nunca un dado escondido) -->
+<div class="velo oculto" id="pedir">
+  <div class="rotulo" id="pedirRot"></div>
+  <h1 id="pedirNum"></h1>
+  <div class="linea" id="pedirDelta"></div>
+  <input type="range" id="pedirBarra" min="5" max="40" step="5" value="10">
+  <!-- §2z222 v2 (su caza sobre el mock: "las dos cajitas dicen cosas diferentes y da la sensación de que las tenés
+       que mirar juntas"): tenía razón — una era una probabilidad y la otra un costo. Ahora son las DOS RAMAS, el
+       mismo idioma que las cartas (§2z26): cada una con su p, qué pasa, y lo que te deja. -->
+  <div class="pedirRamas" id="pedirRamas"></div>
+  <button id="pedirOk" data-l-en="ASK &#9656;" data-l-pt="PEDIR &#9656;">PEDIR &#9656;</button>
+  <button class="secundario" id="pedirNo" data-l-en="BACK" data-l-pt="VOLTAR">VOLVER</button>
+</div>
+<div class="velo oculto" id="sponsors">
+  <div class="rotulo" id="sponsorsRot"></div>
+  <div class="spGrilla" id="sponsorsGrilla"></div>
+  <div class="spTotal" id="sponsorsTotal"></div>
+  <button id="sponsorsOk" data-l-en="BACK &#9656;" data-l-pt="VOLTAR &#9656;">VOLVER &#9656;</button>
 </div>
 <div class="velo oculto" id="bajon">
   <div class="rotulo" id="bajonRot"></div>
@@ -12679,6 +12762,72 @@ const CARTAS_DILEMA = [
      {tipo:'dilema',label:L('Ir a la mañana y jugar a la noche','Go in the morning, play at night','Ir de manhã e jogar à noite'),desenlaces:[{p:100,remate:L('Dos canchas en un día','Two courts in one day','Duas quadras num dia'),texto:L('Llegás al estadio a las siete con la voz gastada de saludar gente. Jugás. No es tu mejor noche y el DT lo sabe por qué.','You get to the arena at seven with your voice gone from greeting people. You play. It is not your best night, and the coach knows why.','Você chega ao ginásio às sete com a voz gasta de cumprimentar gente. Joga. Não é sua melhor noite, e o técnico sabe por quê.'),ef:{rel:{dt:-5},energia:-12}}]},
      {tipo:'dilema',label:L('Mandar un video','Send a video','Mandar um vídeo'),desenlaces:[{p:100,remate:L('Treinta segundos','Thirty seconds','Trinta segundos'),texto:L('Grabás treinta segundos desde el vestuario. Lo pasan por un parlante, en una cancha llena de gente que te vio empezar.','You record thirty seconds from the locker room. They play it over a loudspeaker, in a gym full of people who watched you start.','Você grava trinta segundos do vestiário. Passam num alto-falante, numa quadra cheia de gente que te viu começar.'),ef:{rel:{hinchada:-5}}}]}]},
 ];
+/* ══ 01x — LOS SPONSORS (§2z218, su ok 2026-09-11 sobre el research de NSS) ═══════════════════════════════════════
+   El dato de NSS: diez rubros que se ganan por rendimiento, pagan POR PARTIDO y **se pierden más fácil de lo que se
+   ganan** — si caés por debajo de lo que el contrato pide, te lo cancelan. Es el único sistema de allá que castiga la
+   mala racha en el bolsillo, y acá hacía falta: hasta hoy la plata era sueldo fijo + premios, o sea ingreso que NUNCA
+   baja (la misma queja suya de las relaciones: "todo es subida").
+   Cómo funciona: cada sponsor PIDE algo (una nota media, una relación con la hinchada, un nivel) y PAGA una fracción
+   de lo que cobrás por partido. Si dejás de cumplir tres partidos seguidos, se va. Hasta tres a la vez.
+   ⚠️ No hay decisión: te firman y te sueltan. Lo que decidís es el partido que jugás. */
+/* ⚠️ EL CATÁLOGO ES DATO, A PROPÓSITO (su pregunta 2026-09-11: "¿sponsors no puede ser un enganche si el juego pega
+   para que alguien pague para figurar como sponsor?"): la mecánica no sabe nada de quién es la marca — id, nombre,
+   textos, `paga` y `pide` son datos, así que una marca real puede ocupar un rubro sin tocar una línea de lógica.
+   Dos campos previstos para ese día: `real:true` (marca licenciada) y `logo`. Y el que pague va a querer LA ALTA, no
+   la baja: una marca real no compra un lugar donde puede salir abandonándote, así que la baja queda para las
+   inventadas nuestras. Eso es un flag, no un rediseño. */
+const SPONSOR_TOPE = 3;        // cuántos podés tener al mismo tiempo
+const SPONSOR_GRACIA = 3;      // partidos seguidos sin cumplir antes de que te lo saquen
+const SPONSOR_NOTA_VENTANA = 5;   // la nota que miran es la media de tus últimos cinco
+
+/* `pide`: nota media · hinchada · nivel (estrellas) · esc = el escalón de la liga (LIGAS[x].esc)
+   `paga`: fracción del pago por partido — el chico suma poco, el grande vale más que el sueldo */
+const SPONSORS = [
+ { id:'spo_deportes', paga:0.12, pide:{nota:6.5},
+   nom:L('LA CASA DE DEPORTES','THE SPORTS SHOP','A LOJA DE ESPORTES'),
+   alta:L('La casa de deportes de la esquina te pone en la vidriera: una foto tuya tamaño real al lado de las camisetas. Te pagan por partido y te dejan llevarte lo que necesites.','The sports shop on the corner puts you in the window: a life-size photo of you next to the shirts. They pay you per game and let you take what you need.','A loja de esportes da esquina te coloca na vitrine: uma foto sua em tamanho real ao lado das camisas. Pagam por jogo e te deixam levar o que precisar.'),
+   baja:L('Sacaron tu foto de la vidriera un lunes a la mañana. No te avisaron: te enteraste pasando por la puerta.','They took your photo out of the window on a Monday morning. Nobody told you: you found out walking past.','Tiraram sua foto da vitrine numa segunda de manhã. Ninguém avisou: você descobriu passando na porta.') },
+ { id:'spo_bebida', paga:0.15, pide:{nota:7.0},
+   nom:L('LA BEBIDA','THE SPORTS DRINK','A BEBIDA'),
+   alta:L('La bebida deportiva te quiere en la botella chica, la del kiosco. Grabás un spot de once segundos tomando y mirando a cámara.','The sports drink wants you on the small bottle, the one at the kiosk. You shoot an eleven-second spot, drinking and looking at camera.','A bebida esportiva te quer na garrafinha, a do quiosque. Você grava um comercial de onze segundos, bebendo e olhando para a câmera.'),
+   baja:L('La botella nueva salió con otra cara. La tuya sigue en las que quedaron en el depósito.','The new bottle came out with somebody else\'s face. Yours is still on the ones left in the warehouse.','A garrafa nova saiu com outro rosto. O seu continua nas que sobraram no depósito.') },
+ { id:'spo_telefonia', paga:0.18, pide:{hinchada:70},
+   nom:L('LA TELEFÓNICA','THE PHONE COMPANY','A OPERADORA'),
+   alta:L('La telefónica no mira tu planilla: mira cuánta gente te quiere. Te ponen en la campaña del verano con tres futbolistas y una cantante.','The phone company does not look at your stat sheet: it looks at how many people love you. They put you in the summer campaign with three footballers and a singer.','A operadora não olha sua ficha: olha quanta gente gosta de você. Te colocam na campanha de verão com três jogadores de futebol e uma cantora.'),
+   baja:L('La campaña del verano se renovó sin vos. El de marketing te lo explicó con una palabra: "alcance".','The summer campaign was renewed without you. The marketing guy explained it in one word: "reach".','A campanha de verão foi renovada sem você. O cara do marketing explicou com uma palavra: "alcance".') },
+ { id:'spo_zapas', paga:0.22, pide:{nota:7.2, nivel:4},
+   nom:L('LA MARCA DE ZAPATILLAS','THE SNEAKER BRAND','A MARCA DE TÊNIS'),
+   alta:L('La marca te manda catorce pares y un contrato de tres carillas. La única condición está en la última: seguir jugando como venís.','The brand sends you fourteen pairs and a three-page contract. The only condition is on the last page: keep playing the way you are.','A marca te manda catorze pares e um contrato de três páginas. A única condição está na última: continuar jogando como está.'),
+   baja:L('Dejaron de mandarte pares en marzo. El contrato tenía una cláusula de rendimiento y vos la leíste recién ahora.','The pairs stopped coming in March. The contract had a performance clause and you only read it now.','Pararam de mandar pares em março. O contrato tinha uma cláusula de desempenho e você só leu agora.') },
+ { id:'spo_banco', paga:0.20, pide:{nivel:5},
+   nom:L('EL BANCO','THE BANK','O BANCO'),
+   alta:L('El banco te quiere en la publicidad de la cuenta sueldo. Doce segundos, un traje que no es tuyo y una frase que escribió otro.','The bank wants you for the payroll-account ad. Twelve seconds, a suit that is not yours and a line somebody else wrote.','O banco te quer na publicidade da conta salário. Doze segundos, um terno que não é seu e uma frase escrita por outro.'),
+   baja:L('El banco cambió de agencia y la agencia cambió de cara. Nadie te llamó para decírtelo.','The bank changed agencies and the agency changed faces. Nobody called to tell you.','O banco trocou de agência e a agência trocou de rosto. Ninguém ligou para avisar.') },
+ { id:'spo_auto', paga:0.22, pide:{nivel:6, hinchada:75},
+   nom:L('LA CONCESIONARIA','THE CAR DEALERSHIP','A CONCESSIONÁRIA'),
+   alta:L('La concesionaria te da un auto por temporada y una cifra por partido. Lo único que piden es que lo manejes vos y que te vean.','The dealership gives you a car for the season and a figure per game. All they ask is that you drive it yourself and that people see you.','A concessionária te dá um carro por temporada e um valor por jogo. Só pedem que você mesmo dirija e que te vejam.'),
+   baja:L('Vinieron a buscar el auto un jueves, con grúa y sin pedir disculpas.','They came for the car on a Thursday, with a tow truck and no apology.','Vieram buscar o carro numa quinta, com guincho e sem pedir desculpa.') },
+ { id:'spo_reloj', paga:0.25, pide:{nivel:8, nota:7.5},
+   nom:L('EL RELOJ','THE WATCH','O RELÓGIO'),
+   alta:L('La relojera suiza firma con tres deportistas por país. Te toman las medidas de la muñeca en un hotel y no te dejan quedarte con el reloj de la foto.','The Swiss watchmaker signs three athletes per country. They measure your wrist in a hotel and do not let you keep the watch from the photo.','A relojoaria suíça assina com três atletas por país. Medem seu pulso num hotel e não te deixam ficar com o relógio da foto.'),
+   baja:L('Te mandaron una carta. Una carta de verdad, en papel, para decirte que no siguen.','They sent you a letter. An actual letter, on paper, to tell you they are not continuing.','Mandaram uma carta. Uma carta de verdade, em papel, para dizer que não seguem.') },
+ { id:'spo_gaseosa', paga:0.30, pide:{nivel:9, nota:8.0},
+   nom:L('LA GASEOSA','THE SOFT DRINK','O REFRIGERANTE'),
+   alta:L('La gaseosa que se toma en todo el mundo te pone en una lata. Te pagan más por partido que el club, y el contrato lo firma gente que no habla tu idioma.','The soft drink the whole world drinks puts you on a can. They pay you more per game than the club does, and the contract is signed by people who do not speak your language.','O refrigerante que o mundo inteiro bebe te coloca numa lata. Pagam mais por jogo que o clube, e o contrato é assinado por gente que não fala a sua língua.'),
+   baja:L('La lata con tu cara se dejó de imprimir. Quedan las que están en las góndolas, y después no queda ninguna.','They stopped printing the can with your face. The ones on the shelves are the last ones.','Pararam de imprimir a lata com sua cara. Ficam as que estão nas prateleiras, e depois não fica nenhuma.') },
+];
+
+/* Lo que un sponsor mira de vos, en una línea. ⚠️ NO SE MUESTRA EN EL JUEGO (su corte: "el sponsor nunca te dice
+   cómo se desbloquea, sólo te van apareciendo"): vive para el chequeador y para leer el catálogo de un vistazo. */
+function sponsorPedido(s){
+  const p=[];
+  if(s.pide.nota) p.push(t(L('nota ','rating ','nota '))+s.pide.nota.toFixed(1).replace('.',','));
+  if(s.pide.hinchada) p.push(t(L('hinchada ','fans ','torcida '))+s.pide.hinchada);
+  if(s.pide.nivel) p.push('★'+s.pide.nivel);
+  return p.join(' · ');
+}
+const sponsorCumple=(s,c)=>(!s.pide.nota||c.nota>=s.pide.nota)&&(!s.pide.hinchada||c.hinchada>=s.pide.hinchada)
+  &&(!s.pide.nivel||c.nivel>=s.pide.nivel);
 'use strict';
 /* el reloj del cuarto por liga (§9.7): 12:00 NBA · 10:00 FIBA — presentación sobre el
    guion (los beats se reparten proporcional). El default es 720 (el prototipo nació NBA);
@@ -22269,7 +22418,8 @@ function abrirParteVentana(p){
 document.getElementById('parteOk').onclick=()=>{
   document.getElementById('selParte').classList.add('oculto');
   C.selParte=null; const cp=C.clubParte; C.clubParte=null; guardar(); pintaLobby();
-  if(cp&&abrirPasoParte(cp,()=>CARTAS.cartasAlEntrar())) return;   // 2026-09-10: cómo le fue al club sin vos
+  if(cp&&abrirPasoParte(cp,()=>{ if(!sponsorAviso(()=>CARTAS.cartasAlEntrar())) CARTAS.cartasAlEntrar(); })) return;   // 2026-09-10: cómo le fue al club sin vos
+  if(sponsorAviso(()=>CARTAS.cartasAlEntrar())) return;   // §2z218: lo que te firmaron o te soltaron, antes de las cartas
   CARTAS.cartasAlEntrar();
 };
 
@@ -24071,7 +24221,28 @@ const miClubEn=(objetivo)=>clubDe(miIdEn(objetivo));
 /* §12.20: el torneo que fija la barra del rol de selección, y los minutos que te da ESE rol */
 const torneoSelDe=(o)=>o&&o.etapa==='eliminatorias'?'ventana':(C.selTorneo&&C.selTorneo.torneo)||'ventana';
 const minutosSelDe=(o)=>minutosSel(C.jugador,C.jugador.nacionalidad||'ar',torneoSelDe(o),miMedia(C.jugador));
+/* ══ §2z219 EL PRECIPICIO DEL DT (§2z218 del research de NSS: allá, debajo del 50 % vas al banco y debajo del 10 %
+   te borran del equipo). Acá los minutos bajaban en rampa y `rolDeMinutos` era una etiqueta: NADIE TE CORTABA NUNCA.
+   Ahora, con el DT por debajo de PISO_NO_TE_CITA, no entrás en la lista de doce: el club juega la fecha sin vos.
+   ⚠️ No es un pozo sin fondo — cada partido que mirás de afuera se le baja un poco la bronca (+1), así que solo se
+   sale en tres o cuatro fechas; las cartas y los dilemas son el atajo. Sólo en la fase regular del club: quedarte
+   afuera de un playoff o de la selección es otra cosa y no se decidió. */
+const PISO_NO_TE_CITA = 28;
+function noTeCita(o){
+  if(!o||o.tipo!=='fecha'||!C||!C.jugador) return false;
+  const J=C.jugador, R=J.relaciones||{};
+  if((R.dt===undefined?50:R.dt)>=PISO_NO_TE_CITA) return false;
+  const e=est(); if(!e||e.fase!=='regular') return false;
+  jugarFecha(e);                                   // la juega el club, sin vos
+  R.dt=acotarRel(R.dt+1);                          // se le va bajando la bronca
+  guardar();
+  mostrarTitular(t(L('EL DT','THE COACH','O TÉCNICO')),t(L('NO TE CITÓ','LEFT OUT','FORA DA LISTA')),'mal',
+    t(L('La lista de doce se pegó en la puerta del vestuario a las siete y tu apellido no estaba. Viste el partido desde la tribuna, de campera. Cada fecha que mirás de afuera se le baja un poco la bronca.','The list of twelve went up on the locker room door at seven and your name was not on it. You watched from the stands in a tracksuit. Every game you watch from outside cools him down a little.','A lista dos doze foi colada na porta do vestiário às sete e seu sobrenome não estava. Você viu o jogo da arquibancada, de agasalho. Cada rodada que você vê de fora esfria um pouco a bronca dele.')),
+    ()=>pintaLobby());
+  return true;
+}
 function abrirPre(objetivo){
+  if(noTeCita(objetivo)) return;   /* §2z219 */
   preAbierto=objetivo;
   const e=est(), rc=clubDe(objetivo.rival);
   const pe=ponerEscudo('lobPreEscudo', escudito(objetivo.rival), 'escudoR svg'); pe.style.width='';pe.style.height='';
@@ -24476,7 +24647,10 @@ function registrarResultado(){
   const subio=J.nivel>nivelAntes, bajo=J.nivel<nivelAntes;
   /* §2z161 (su caza 2026-09-08: "al subir a nivel 4 me hizo firmar de nuevo, cuando ya lo tenía porque había estado en
      4 y bajé"): la renegociación es por estrella NUEVA — si el contrato ya se firmó con esa estrella o más, no hay oferta */
-  if(subio && !(C.contrato&&C.contrato.nivel>=J.nivel)) C.renegocia={nivel:J.nivel};   // §2z15: una renegociación por estrella; la siguiente la reemplaza
+  /* §2z222: la oferta se CONGELA acá. Antes se recalculaba en cada pintada con la nota media, y eso movía 0,7 % cada
+     cinco partidos —22 pesos sobre 3.000—: una mecánica que no se sentía porque no existía (su caza). */
+  if(subio && !(C.contrato&&C.contrato.nivel>=J.nivel))
+    C.renegocia={nivel:J.nivel, oferta:ofertaDe(J,C.ligaId,clubDe(e.miClubId),notaPromedio(e.misPartidos)), pedido:false};   // §2z15: una por estrella; la siguiente la reemplaza
   /* el contrato de NSS (§5): la relación con el plantel COMPRA posesiones (pos la lee
      en el grifo). Asistir la levanta, el partido flojo la gasta — suave y acotada. */
   /* §2z12: las tres relaciones se mueven — hinchada por el resultado, plantel por tus
@@ -24555,6 +24729,8 @@ function registrarResultado(){
       diaHoy:enPartido.tipo==='fecha'&&faseAntes==='regular'?diaDeFecha(e.semilla,e.fechaJugada,est().ritmo):enPartido.tipo==='americas'?diaAmericas(e,enPartido.ventana):diaSel(enPartido),fase:faseAntes,
       recesoSel:enPartido.tipo==='seleccion'&&enPartido.etapa!=='eliminatorias'}; }
   plata(pagoDe(C.ligaId,G.nos>G.riv,J,!!(cierre.mision&&cierre.mision.ok)));   // §2z15: partido + ganar + misión
+  /* §2z218: los sponsors pagan por partido, y se evalúan DESPUÉS de cobrar los de hoy (el que perdés hoy cobró hoy) */
+  { const spon=sponsorsPaga(); if(spon>0){ plata(spon); if(C.cuerpo) C.cuerpo.pago.sponsors=spon; } evaluarSponsors(); }
   /* el decaimiento gotea con el calendario (§2q). La ventana de mitad murió con §2z12: el rol
      es una etiqueta de los minutos, que se mueven partido a partido. */
   const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada,e.semilla,e.ritmo):[];   // §2z90: el óxido cuenta semanas, y las semanas las sabe el calendario
@@ -24615,6 +24791,111 @@ function registrarResultado(){
 /* 2026-09-10 (su caza: post partido con la selección el velo no decía cuánto recuperás): el día real de una jornada de
    eliminatorias sale de la ventana (`dias[0]`/`dias[1]`, §12.28); en el receso no hay club que espere y queda null */
 function diaSel(o){ if(!o||o.tipo!=='seleccion'||o.etapa!=='eliminatorias'||!o.ventana||!o.ventana.dias) return null; const d=o.ventana.dias[o.jornada-(o.ventana.n*2-1)]; return typeof d==='number'?d:null; }
+/* ══ §2z218 LOS SPONSORS (el catálogo, en 01x) ═════════════════════════════════════════════════════════════════
+   Se ganan solos cumpliendo lo que piden y se pierden solos dejando de cumplirlo: no hay decisión, hay rendimiento.
+   Se evalúan UNA vez por partido, después de que la nota ya está escrita. */
+function sponsorsEstado(){ if(!C.sponsors) C.sponsors={tengo:[],avisos:[]}; if(!C.sponsors.avisos) C.sponsors.avisos=[]; return C.sponsors; }
+const pagoBase=()=>((C&&C.contrato&&C.contrato.partido)||PAGO_PARTIDO);
+function sponsorCtx(){
+  const J=C.jugador;
+  const u=(C.ultimosJugados||[]).slice(-SPONSOR_NOTA_VENTANA).map(x=>x.rating).filter(x=>typeof x==='number');
+  return { nota:u.length?u.reduce((a,b)=>a+b,0)/u.length:0, hinchada:(J.relaciones||{}).hinchada||0, nivel:J.nivel||1 };
+}
+const sponsorPlata=(sp)=>Math.round(sp.paga*pagoBase());
+function sponsorsPaga(){ return sponsorsEstado().tengo.reduce((a,x)=>{ const sp=SPONSORS.find(y=>y.id===x.id); return a+(sp?sponsorPlata(sp):0); },0); }
+function evaluarSponsors(){
+  const s=sponsorsEstado(), c=sponsorCtx();
+  /* los que tenés: SPONSOR_GRACIA partidos seguidos sin cumplir y se van */
+  for(const x of [...s.tengo]){ const sp=SPONSORS.find(y=>y.id===x.id); if(!sp) continue;
+    if(sponsorCumple(sp,c)) x.fallas=0;
+    else if((x.fallas=(x.fallas||0)+1)>=SPONSOR_GRACIA){ s.tengo=s.tengo.filter(y=>y!==x); s.avisos.push({id:sp.id,tipo:'baja'}); } }
+  /* y uno nuevo si hay lugar: el más grande que hoy cumplas */
+  if(s.tengo.length<SPONSOR_TOPE){
+    const cand=SPONSORS.filter(sp=>!s.tengo.some(x=>x.id===sp.id)&&sponsorCumple(sp,c)).sort((a,b)=>b.paga-a.paga);
+    if(cand.length){ s.tengo.push({id:cand[0].id,fallas:0}); s.avisos.push({id:cand[0].id,tipo:'alta'}); }
+  }
+  guardar();
+}
+/* un aviso por vez, con el idioma del titular; se encadena hasta vaciar la cola */
+function sponsorAviso(volver){
+  const s=sponsorsEstado(); if(!s.avisos.length) return false;
+  const a=s.avisos.shift(); guardar();
+  const sp=SPONSORS.find(y=>y.id===a.id); if(!sp) return sponsorAviso(volver);
+  const seguir=()=>{ if(!sponsorAviso(volver)&&volver) volver(); };
+  /* ⚠️ §2z218 (su corte: "el sponsor NUNCA te dice cómo se desbloquea, sólo te van apareciendo"): el aviso NO dice qué
+     te pide mantener. Las reglas viven adentro; lo que ves es que te firmaron y cuánto pagan. */
+  if(a.tipo==='alta') mostrarTitular(t(sp.nom),'+'+fplata(sponsorPlata(sp))+' '+t(L('POR PARTIDO','PER GAME','POR JOGO')),'oro',t(sp.alta),seguir);
+  else mostrarTitular(t(sp.nom),t(L('TE SOLTARON','THEY DROPPED YOU','TE SOLTARAM')),'mal',t(sp.baja),seguir);
+  return true;
+}
+/* ══ §2z222 PEDIR MÁS ═══════════════════════════════════════════════════════════════════════════════════════════
+   La negociación de NSS, con nuestras reglas: allá es un Hi-Lo (un dado escondido), acá la chance está A LA VISTA
+   mientras movés la barra, y lo que la inclina es tu relación con el DT. Una sola vez por oferta; si se plantan, la
+   oferta queda intacta y lo que perdés es la relación. Las cuatro líneas, en DISEÑO §2z222. */
+const PEDIR_MIN = 5, PEDIR_MAX = 40;
+function chancePedido(pct){
+  const J=C.jugador, e=est();
+  const dt=(J.relaciones||{}).dt===undefined?50:J.relaciones.dt;
+  const nota=notaPromedio(e.misPartidos);
+  const p=0.95 - 2.2*(pct/100) + (dt-50)/220 + ((nota==null?7:nota)-7)/12;
+  return Math.max(0.05,Math.min(0.95,p));
+}
+/* de −8 (pedís 5 %) a −20 (pedís 40 %): su corte, "entre 4 y 8 es un buen partido para recuperarlo" */
+const caidaPedido=(pct)=>Math.round(8+(pct-PEDIR_MIN)*(12/(PEDIR_MAX-PEDIR_MIN)));
+const ofertaConPedido=(of,pct)=>{ const k=1+pct/100, paso=(of.partido>=500?10:1), r=(x)=>Math.max(0,Math.round(x*k/paso)*paso);
+  return {partido:r(of.partido), ganar:r(of.ganar), mision:r(of.mision), nivel:of.nivel}; };
+function abrirPedir(){
+  if(!C.renegocia||C.renegocia.pedido) return;
+  const v=$l('pedir'), barra=$l('pedirBarra');
+  const pinta=()=>{ const pct=+barra.value, of=ofertaConPedido(C.renegocia.oferta,pct);
+    $l('pedirNum').textContent=fplata(of.partido);
+    $l('pedirDelta').textContent='+'+pct+'% '+t(L('sobre lo que te ofrecen','over what they offer','sobre o que oferecem'));
+    /* §2z222 v2: las dos ramas, como en una carta — cada una con su p y lo que te deja */
+    const pc=Math.round(chancePedido(pct)*100);
+    $l('pedirRamas').innerHTML=
+      '<div class="rama ok" style="--w:'+pc+'%"><span class="p">'+pc+'%</span><span class="q">'
+        +t(L('ACEPTAN','THEY ACCEPT','ACEITAM'))+'</span><b>'+fplata(of.partido)+'</b></div>'
+      +'<div class="rama mal" style="--w:'+(100-pc)+'%"><span class="p">'+(100-pc)+'%</span><span class="q">'
+        +t(L('SE PLANTAN','THEY REFUSE','NÃO CEDEM'))+'</span><b>−'+caidaPedido(pct)+' '+t(L('DT','COACH','TÉCNICO'))+'</b></div>'; };
+  barra.value=10; barra.oninput=pinta; pinta();
+  $l('pedirRot').textContent=t(L('LA NEGOCIACIÓN','THE NEGOTIATION','A NEGOCIAÇÃO'));
+  v.classList.remove('oculto'); verQueSeVe('pedir','Pedir más');
+  $l('pedirNo').onclick=()=>v.classList.add('oculto');
+  $l('pedirOk').onclick=()=>{
+    const pct=+barra.value, p=chancePedido(pct);
+    const rng=rngFor(C.semilla,'pedir',C.anio,C.renegocia.nivel);
+    const ok=rng.chance(p);
+    C.renegocia.pedido=true;
+    v.classList.add('oculto');
+    if(ok){ C.contrato={...ofertaConPedido(C.renegocia.oferta,pct)}; C.renegocia=null; guardar();
+      mostrarTitular(t(L('LA NEGOCIACIÓN','THE NEGOTIATION','A NEGOCIAÇÃO')),t(L('ACEPTARON','THEY ACCEPTED','ACEITARAM')),'oro',
+        t(L('El presidente lo firma sin levantar la vista del papel, como si el número lo hubiera puesto él.','The president signs without looking up from the paper, as if the number had been his idea.','O presidente assina sem levantar os olhos do papel, como se o número tivesse sido ideia dele.')),
+        ()=>pintaLobby()); }
+    else { const J=C.jugador; J.relaciones.dt=acotarRel(J.relaciones.dt-caidaPedido(pct)); guardar();
+      mostrarTitular(t(L('LA NEGOCIACIÓN','THE NEGOTIATION','A NEGOCIAÇÃO')),t(L('SE PLANTARON','THEY REFUSED','NÃO CEDERAM')),'mal',
+        t(L('"Es lo que hay." El DT se entera esa misma tarde de cuánto pediste, y el número le pareció otra cosa. La oferta sigue arriba de la mesa.','"That is what there is." The coach hears that same afternoon how much you asked for, and the number struck him differently. The offer is still on the table.','"É o que tem." O técnico fica sabendo naquela tarde quanto você pediu, e o número soou diferente para ele. A oferta continua na mesa.')),
+        ()=>pintaLobby()); }
+  };
+}
+/* ══ §2z218 v4 LA PANTALLA DE LOS SPONSORS ═══════════════════════════════════════════════════════════════════
+   Los ocho rubros son casilleros: los tuyos en color con lo que pagan, los demás en gris con el nombre nomás. La
+   grilla contesta sola "¿cuántos puedo tener?" —el rótulo dice 3/3— sin una palabra de regla.
+   ⚠️ NUNCA la condición (su corte: "el sponsor nunca te dice cómo se desbloquea, sólo te van apareciendo"). Lo único
+   que se avisa es EN RIESGO: eso no es la regla, es tu estado.
+   ⚠️ LA CELDA MANDA (su caza sobre el mock): alto fijo, el nombre reserva SIEMPRE dos líneas y abajo hay UNA línea de
+   estado que dice una cosa sola —cuánto paga, o EN RIESGO—, nunca las dos. */
+function abrirSponsors(){
+  const sp=sponsorsEstado(), mios=new Map(sp.tengo.map(x=>[x.id,x]));
+  $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))+' · '+sp.tengo.length+'/'+SPONSOR_TOPE;
+  $l('sponsorsGrilla').innerHTML=SPONSORS.map(y=>{ const x=mios.get(y.id);
+    const val=!x?'<span class="v"></span>'
+      :x.fallas?'<span class="v riesgo">'+t(L('EN RIESGO','AT RISK','EM RISCO'))+'</span>'
+      :'<span class="v">+'+fplata(sponsorPlata(y))+'</span>';
+    return '<div class="spCaja'+(x?(x.fallas?' enRiesgo':''):' vacia')+'"><span class="n">'+t(y.nom)+'</span>'+val+'</div>'; }).join('');
+  $l('sponsorsTotal').innerHTML='<span>'+t(L('POR PARTIDO','PER GAME','POR JOGO'))+'</span><b>+'+fplata(sponsorsPaga())+'</b>';
+  const v=$l('sponsors'); v.classList.remove('oculto'); verQueSeVe('sponsors','Los sponsors');
+  $l('sponsorsOk').onclick=()=>v.classList.add('oculto');
+}
 function abrirCuerpo(despues){
   const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
   const e=est();
@@ -24657,11 +24938,12 @@ function abrirCuerpo(despues){
   /* §2z211: y el descanso se COBRA ACÁ, que es donde se ve (su caza: «la barra cierra en 100 y en el lobby estoy en 80»). Los
      días quedan anotados en nrgDias para que la cuenta del próximo partido no los pague de nuevo. */
   if(rec>0){ const J=C.jugador; J.energia=Math.min(100,p.despues+rec); J.nrgDias=(J.nrgDias||0)+(dias||0); guardar(); }
-  const total=p.pago.partido+p.pago.ganar+p.pago.mision; let n=0;
+  const total=p.pago.partido+p.pago.ganar+p.pago.mision+(p.pago.sponsors||0); let n=0;   // §2z218
   const plata=(desc,val,cls)=>fila(desc,'',fplata(val),cls,T3+(n++)*PASO);
   let q=plata(t(L('Partido','Game','Jogo')),p.pago.partido,'');
   if(p.gano) q+=plata(t(L('Ganar','Win','Vitória')),p.pago.ganar,'');
   if(p.misOk) q+=plata(t(L('Misión','Mission','Missão')),p.pago.mision,'');
+  if(p.pago.sponsors) q+=plata(t(L('Sponsors','Sponsors','Patrocínios')),p.pago.sponsors,'');   // §2z218
   q+=plata(t(L('Total','Total','Total')),total,'total');
   $l('cuerpoPlata').innerHTML=q;
   const v=$l('cuerpoParte'); v.classList.remove('oculto');
@@ -24955,21 +25237,39 @@ function pintaSecciones(){
   const tresNums=(o)=>'<div class="nums"><span><b>'+fplata(o.partido)+'</b><small>'+t(L('PARTIDO','GAME','JOGO'))+'</small></span>'
       +'<span><b>'+fplata(o.ganar)+'</b><small>'+t(L('GANAR','WIN','VITÓRIA'))+'</small></span>'
       +'<span><b>'+fplata(o.mision)+'</b><small>'+t(L('MISIÓN','MISSION','MISSÃO'))+'</small></span></div>';
+  /* §2z221 (medido en la cancha de 600: el panel da 219 px y con la tarjeta de oferta el contenido pedía 315). Con
+     una oferta sobre la mesa, el panel muestra SÓLO lo que sirve para decidir: el contrato de hoy contra el que te
+     ofrecen. Lo que cobraste en la carrera y los sponsors no entran en esa decisión y vuelven cuando firmás. */
+  const decidiendo=!!(C.renegocia&&!amateur);
   let html='<div class="cajTag">'+t(L('CONTRATO','CONTRACT','CONTRATO'))+' · '+anioTxt()+'</div>'+tresNums(ct)
-    +'<div class="eco"><span><b>'+fplataCorta(eco.cobT)+'</b><small>'+t(L('COBRASTE','EARNED','GANHOU'))+'</small></span>'
+    +(decidiendo?'':'<div class="eco"><span><b>'+fplataCorta(eco.cobT)+'</b><small>'+t(L('COBRASTE','EARNED','GANHOU'))+'</small></span>'
     +'<span><b>'+fplataCorta(eco.gasT)+'</b><small>'+t(L('GASTASTE','SPENT','GASTOU'))+'</small></span>'
-    +'<span><b>'+fplataCorta(eco.cob)+'</b><small>'+t(L('CARRERA','CAREER','CARREIRA'))+'</small></span></div>';
+    +'<span><b>'+fplataCorta(eco.cob)+'</b><small>'+t(L('CARRERA','CAREER','CARREIRA'))+'</small></span></div>');
   if(C.renegocia&&!amateur){
-    const of=ofertaDe(J,C.ligaId,clubDe(e.miClubId),notaPromedio(e.misPartidos));
+    /* §2z222: la congelada; las carreras viejas (sin `oferta` guardada) la calculan una vez y se la quedan */
+    if(!C.renegocia.oferta){ C.renegocia.oferta=ofertaDe(J,C.ligaId,clubDe(e.miClubId),notaPromedio(e.misPartidos)); guardar(); }
+    const of=C.renegocia.oferta;
     /* tarjeta propia (su caza: "se ve como continuación del resto"): borde naranja, los tres
        números grandes y FIRMAR adentro */
     html+='</div><div class="cajon oferta"><div class="cajTag">'+t(L('NUEVA OFERTA','NEW OFFER','NOVA OFERTA'))+' · ★'+C.renegocia.nivel+'</div>'
       +tresNums(of)
-      +'<button class="jugar ancho" id="lobFirmar">'+t(L('FIRMAR','SIGN','ASSINAR'))+'</button><div>';
+      /* §2z222: los dos verbos en UN renglón — apilados sumaban 46 px y volvían a romper la cancha de 600 (§2z221) */
+      +'<div class="dosBotones"><button class="jugar ancho" id="lobFirmar">'+t(L('FIRMAR','SIGN','ASSINAR'))+'</button>'
+      +(C.renegocia.pedido?'':'<button class="jugar ancho pedirMas" id="lobPedir">'+t(L('PEDIR MÁS','ASK FOR MORE','PEDIR MAIS'))+'</button>')+'</div></div>';
+  }
+  /* §2z218 v4: adentro del contrato queda UN RENGLÓN —lo que suman todos por partido— y la grilla se abre aparte.
+     El switch de antes le comía 34 px a un panel que en 812 tenía 15 de margen (medido con él puesto). */
+  if(!decidiendo){ const sp=sponsorsEstado();
+    html+='<div class="spResumen" id="lobSponsors" tabindex="0"><span class="izq"><span class="lbl">'
+      +t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))+'</span><b>+'+fplata(sponsorsPaga())+'</b></span>'
+      +'<span class="ver">'+(sp.tengo.length?t(L('VER ▸','VIEW ▸','VER ▸')):t(L('NINGUNO','NONE','NENHUM')))+'</span></div>';
   }
   $l('lobContrato').innerHTML=html;
+  { const b=$l('lobSponsors'); if(b){ const ab=()=>abrirSponsors(); b.onclick=ab;
+      b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); ab(); } } } }
   const bFirmar=$l('lobFirmar');
-  if(bFirmar) bFirmar.onclick=()=>{ C.contrato=ofertaDe(J,C.ligaId,clubDe(e.miClubId),notaPromedio(e.misPartidos)); C.renegocia=null; guardar(); pintaLobby(); };
+  if(bFirmar) bFirmar.onclick=()=>{ C.contrato={...C.renegocia.oferta}; C.renegocia=null; guardar(); pintaLobby(); };   /* §2z222: se firma LA QUE VISTE */
+  { const bp=$l('lobPedir'); if(bp) bp.onclick=abrirPedir; }
   /* el puntito: en la barra (VIDA) y en la pestaña CONTRATO */
   document.querySelector('#lobby .acc[data-lir=vida]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
   document.querySelector('#lobby .tab[data-lp=vida-contrato]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
@@ -25964,7 +26264,9 @@ function abrirMercado(){
   /* §2z33 v2: QUEDARTE es una puerta de la portada también en la universidad, y va ARRIBA de
      las dos listas — es la opción por defecto, no la última. Sólo desaparece cuando el ciclo
      amateur se terminó de verdad. */
-  $l('mercadoQuedo').classList.toggle('oculto',finAmateur);
+  /* §2z219: si terminás la temporada por debajo del piso, el club NO TE RENUEVA — ME QUEDO no se ofrece */
+  const peleado=!finAmateur&&((C.jugador.relaciones||{}).dt||50)<PISO_NO_TE_CITA;
+  $l('mercadoQuedo').classList.toggle('oculto',finAmateur||peleado);
   if(enNcaa) $l('mercadoPortada').insertBefore($l('mercadoQuedo'),$l('mercadoExplorar'));
   else $l('mercadoPortada').insertBefore($l('mercadoQuedo'),null);
   $l('mercadoExplorar').classList.toggle('oculto',!hayUni&&(enHs||enNcaa));
@@ -26440,7 +26742,8 @@ window.__carrera={
   guardar, pintaLobby, abrirLobby, abrirPartidas, cargarCarrera, slotKey, nuevaCarrera,
   /* el mercado vive al final de una temporada entera: sin esto, mirarlo cuesta jugar
      un año. Lo abre con la carrera que haya cargada. */
-  abrirMercado, mostrarCarta:CARTAS.mostrarCarta, get poolGeneral(){ return CARTAS.poolGeneral(); }, CARTAS,
+  abrirMercado, abrirPre, sponsorAviso, evaluarSponsors, sponsorsPaga, noTeCita, abrirSponsors, abrirPedir, chancePedido, caidaPedido,   /* §2z218/§2z219/§2z222: el arnés */
+  mostrarCarta:CARTAS.mostrarCarta, get poolGeneral(){ return CARTAS.poolGeneral(); }, CARTAS,
   comoLeFue: (lg,id,anio)=>comoLeFue(SEMILLA_MUNDO,lg,id,anio),
   aplicarEscalera, clubesDeCarrera, padronInicial, ligaDelClubEnPadron, otraTemporada,   // §2z7 + arnés
   instalarAmericas, instalarIntercontinental, crearIntercontinental, misJuegosIC, CLUBES_INTERCONTINENTAL,   // §2z27 · §2z27.3 (arnés)

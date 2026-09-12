@@ -399,12 +399,15 @@
   #sponsors .spGrilla,#sponsors .spTotal{width:min(100%,320px)}
   #sponsors button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
   /* el renglón que lo abre, adentro del contrato: el total y VER, en una línea */
-  #lobContrato .spResumen{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;
-       padding-top:8px;border-top:1px solid rgba(154,164,184,.22);cursor:pointer;min-height:30px}
-  #lobContrato .spResumen .izq{display:flex;align-items:baseline;gap:8px;min-width:0}
-  #lobContrato .spResumen .lbl{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
-  #lobContrato .spResumen b{font-size:15px;color:var(--ok);font-variant-numeric:tabular-nums}
+  /* §2z218 v5: el mismo idioma que el renglón de COBRASTE/GASTASTE — número arriba, rótulo abajo, mismos cuerpos */
+  #lobContrato .spResumen{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;
+       padding-top:6px;border-top:1px solid rgba(154,164,184,.14);cursor:pointer}
+  #lobContrato .spResumen .izq{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0}
+  #lobContrato .spResumen b{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--tinta2)}
+  #lobContrato .spResumen b.hay{color:var(--ok)}   /* el verde es de la plata, no del renglón */
+  #lobContrato .spResumen small{font-size:10px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600}
   #lobContrato .spResumen .ver{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:700;color:var(--naranja)}
+  #sponsors .spTotal.vacio b{color:var(--tinta2)}
   .spGrilla{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .spCaja{height:60px;display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px;
        border-radius:10px;background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22)}
@@ -24818,7 +24821,7 @@ function evaluarSponsors(){
   /* y uno nuevo si hay lugar: el más grande que hoy cumplas */
   if(s.tengo.length<SPONSOR_TOPE){
     const cand=SPONSORS.filter(sp=>!s.tengo.some(x=>x.id===sp.id)&&sponsorCumple(sp,c)).sort((a,b)=>b.paga-a.paga);
-    if(cand.length){ s.tengo.push({id:cand[0].id,fallas:0}); s.avisos.push({id:cand[0].id,tipo:'alta'}); }
+    if(cand.length){ s.tengo.push({id:cand[0].id,fallas:0}); s.avisos.push({id:cand[0].id,tipo:'alta'}); s.tuvo=true; }   /* §2z218 v5: el renglón nace acá */
   }
   guardar();
 }
@@ -24892,7 +24895,10 @@ function abrirPedir(){
    estado que dice una cosa sola —cuánto paga, o EN RIESGO—, nunca las dos. */
 function abrirSponsors(){
   const sp=sponsorsEstado(), mios=new Map(sp.tengo.map(x=>[x.id,x]));
-  $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))+' · '+sp.tengo.length+'/'+SPONSOR_TOPE;
+  /* §2z218 v5: "0/3" no dice nada cuando no tenés ninguno — ahí lo que pasó es que te quedaste sin ninguno */
+  $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))
+    +' · '+(sp.tengo.length?sp.tengo.length+'/'+SPONSOR_TOPE:t(L('NINGUNO','NONE','NENHUM')));
+  $l('sponsorsTotal').classList.toggle('vacio',!sp.tengo.length);
   $l('sponsorsGrilla').innerHTML=SPONSORS.map(y=>{ const x=mios.get(y.id);
     const val=!x?'<span class="v"></span>'
       :x.fallas?'<span class="v riesgo">'+t(L('EN RIESGO','AT RISK','EM RISCO'))+'</span>'
@@ -25265,10 +25271,17 @@ function pintaSecciones(){
   }
   /* §2z218 v4: adentro del contrato queda UN RENGLÓN —lo que suman todos por partido— y la grilla se abre aparte.
      El switch de antes le comía 34 px a un panel que en 812 tenía 15 de margen (medido con él puesto). */
+  /* §2z218 v5 (sus tres cazas: "¿por qué figura en verde +$0 porque no tengo ninguno? No habla el lenguaje del resto
+     del contrato" · "dice NINGUNO pero si lo clickeo me deja entrar" · "SPONSORS 0/3, ¿por qué 0/3?"). Las tres salen
+     de lo mismo: el estado vacío no estaba diseñado. Ahora el renglón **no existe hasta que te firma el primero** —el
+     alta tiene su velo de pantalla completa, no te lo vas a perder—, habla el idioma del panel (número arriba, rótulo
+     abajo, como COBRASTE/GASTASTE), el verde es sólo cuando hay plata, y VER dice VER porque entra. */
   if(!decidiendo){ const sp=sponsorsEstado();
-    html+='<div class="spResumen" id="lobSponsors" tabindex="0"><span class="izq"><span class="lbl">'
-      +t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))+'</span><b>+'+fplata(sponsorsPaga())+'</b></span>'
-      +'<span class="ver">'+(sp.tengo.length?t(L('VER ▸','VIEW ▸','VER ▸')):t(L('NINGUNO','NONE','NENHUM')))+'</span></div>';
+    if(sp.tengo.length||sp.tuvo){ const paga=sponsorsPaga();
+      html+='<div class="spResumen" id="lobSponsors" tabindex="0">'
+        +'<span class="izq"><b'+(paga?' class="hay"':'')+'>'+(paga?'+':'')+fplata(paga)+'</b>'
+        +'<small>'+t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))+'</small></span>'
+        +'<span class="ver">'+t(L('VER ▸','VIEW ▸','VER ▸'))+'</span></div>'; }
   }
   $l('lobContrato').innerHTML=html;
   { const b=$l('lobSponsors'); if(b){ const ab=()=>abrirSponsors(); b.onclick=ab;

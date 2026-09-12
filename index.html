@@ -1700,7 +1700,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='613f6eba3f';
+const BUILD='c6c66cee5a';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6967,7 +6967,7 @@ const CARTAS_PRENSA=[
        {p:55,remate:L('Ambición','Ambition','Ambição'),texto:L('La hinchada se lo toma como una promesa. El próximo partido hay más gente.','The fans take it as a promise. More people show up for the next game.','A torcida entende como promessa. No próximo jogo tem mais gente.'),ef:{rel:{hinchada:6,dt:1}}},
        {p:45,remate:L('Yo, yo, yo','Me, me, me','Eu, eu, eu'),texto:L('En el grupo del plantel alguien manda la nota sin comentario. El silencio dura dos días.','Somebody drops the article in the team chat with no comment. The silence lasts two days.','No grupo do elenco alguém manda a matéria sem comentário. O silêncio dura dois dias.'),ef:{rel:{plantel:-3}}}]}]},
  { id:'prensa_serie_ganada', repite:true, evento:true,
-   cuando:(c)=>c.u.serie&&(c.u.serie.tono==='ok'||c.u.serie.tono==='oro'),
+   cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   /* 2026-09-12 (su caza: «ganamos la LNB y una rama dice PROMETER EL TÍTULO… acá no aplica»): con el título YA ganado no hay título que prometer. El campeón tiene la suya. */
    gancho:L('El festejo del vestuario sale en vivo. Te acercan el micrófono.','The locker-room party is live on air. They hand you the mic.','A festa do vestiário está ao vivo. Te passam o microfone.'),
    opciones:[
      {tipo:'segura',label:L('Cantar con los muchachos','Sing with the boys','Cantar com os caras'),desenlaces:[{p:100,remate:null,texto:L('Nadie entiende la letra. No hace falta.','Nobody can make out the words. Nobody needs to.','Ninguém entende a letra. Não precisa.'),ef:{rel:{plantel:2}}}]},
@@ -6976,6 +6976,19 @@ const CARTAS_PRENSA=[
        {p:40,remate:L('Te la van a cobrar','They will hold you to it','Vão te cobrar'),texto:L('El DT te mira desde la otra punta del vestuario. No dice nada. Todavía.','The coach stares from across the room. Says nothing. Yet.','O técnico te olha do outro lado do vestiário. Não diz nada. Ainda.'),ef:{rel:{dt:-3,hinchada:-2}}}]}]},
  /* 2026-09-12 (su caza: "me salió dos series seguidas la del micrófono, se ve repetitivo"): la serie ganada tiene TRES cartas,
     y el sorteo no repite la última carta vista si hay otra candidata */
+ /* 2026-09-12: LA DEL CAMPEÓN. De las tres de serie ganada, dos estaban acotadas a `ok` y la tercera admitía `oro`,
+    así que al salir campeón la ÚNICA carta posible era la que te ofrecía prometer el título que acababas de ganar.
+    Ésta es la del festejo de verdad: la segura mira para atrás, la apuesta mira para adelante y puede sonar a poco
+    respeto por lo de hoy. */
+ { id:'prensa_campeon', repite:true, evento:true,
+   cuando:(c)=>c.u.serie&&c.u.serie.tono==='oro',
+   gancho:L('El vestuario es una pileta y vos seguís con la camiseta puesta. Te acercan el micrófono.','The locker room is a swimming pool and you are still in your jersey. They hand you the mic.','O vestiário é uma piscina e você ainda está de camisa. Te passam o microfone.'),
+   opciones:[
+     {tipo:'segura',label:L('Nombrar a los que no juegan','Name the ones who never play','Citar os que não jogam'),desenlaces:[{p:100,remate:null,texto:L('Decís cuatro apellidos: el kinesiólogo, el utilero, el pibe que no entró un minuto en toda la serie y tu viejo. En el club lo van a repetir por años.','You say four names: the physio, the kit man, the kid who did not play a single minute all series, and your old man. They will repeat it at the club for years.','Você diz quatro nomes: o fisio, o roupeiro, o garoto que não entrou um minuto na série inteira e seu pai. No clube vão repetir isso por anos.'),ef:{rel:{plantel:3}}}]},
+     {tipo:'apuesta',label:L('"Esto recién empieza"','"This is only the beginning"','"Isso é só o começo"'),desenlaces:[
+       {p:55,remate:L('Se lo llevaron puesto','They took it with them','Levaram com eles'),texto:L('La tribuna lo canta antes de que termines la frase. Al otro día está en la bandera nueva.','The crowd is chanting it before you finish the sentence. The next day it is on the new banner.','A torcida canta antes de você terminar a frase. No dia seguinte está na bandeira nova.'),ef:{rel:{hinchada:6}}},
+       {p:45,remate:L('Hoy no','Not tonight','Hoje não'),texto:L('El capitán te saca el micrófono sin malicia y dice "hoy festejamos éste". Tiene razón y te das cuenta tarde.','The captain takes the mic without malice and says "tonight we celebrate this one". He is right and you realize it too late.','O capitão tira o microfone sem maldade e diz "hoje a gente festeja este". Ele tem razão e você percebe tarde.'),ef:{rel:{plantel:-3}}}]}
+   ]},
  { id:'prensa_serie_ganada_2', repite:true, evento:true,
    cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   // «todavía no ganamos nada» no va con el título ganado
    gancho:L('Pasás por la zona mixta con la camiseta empapada. Un cronista quiere una frase para el título.','You walk through the mixed zone with your jersey soaked. A reporter wants a line for the headline.','Você passa pela zona mista com a camisa encharcada. Um repórter quer uma frase para a manchete.'),
@@ -12879,7 +12892,7 @@ const SPONSORS = [
    nom:L('EL BANCO','THE BANK','O BANCO'),
    alta:L('El banco te quiere en la publicidad de la cuenta sueldo. Doce segundos, un traje que no es tuyo y una frase que escribió otro.','The bank wants you for the payroll-account ad. Twelve seconds, a suit that is not yours and a line somebody else wrote.','O banco te quer na publicidade da conta salário. Doze segundos, um terno que não é seu e uma frase escrita por outro.'),
    baja:L('El banco cambió de agencia y la agencia cambió de cara. Nadie te llamó para decírtelo.','The bank changed agencies and the agency changed faces. Nobody called to tell you.','O banco trocou de agência e a agência trocou de rosto. Ninguém ligou para avisar.') },
- { id:'spo_auto', paga:0.22, pide:{nivel:6, hinchada:75},
+ { id:'spo_auto', paga:0.24, pide:{nivel:6, hinchada:75},
    nom:L('LA CONCESIONARIA','THE CAR DEALERSHIP','A CONCESSIONÁRIA'),
    alta:L('La concesionaria te da un auto por temporada y una cifra por partido. Lo único que piden es que lo manejes vos y que te vean.','The dealership gives you a car for the season and a figure per game. All they ask is that you drive it yourself and that people see you.','A concessionária te dá um carro por temporada e um valor por jogo. Só pedem que você mesmo dirija e que te vejam.'),
    baja:L('Vinieron a buscar el auto un jueves, con grúa y sin pedir disculpas.','They came for the car on a Thursday, with a tow truck and no apology.','Vieram buscar o carro numa quinta, com guincho e sem pedir desculpa.') },
@@ -13298,6 +13311,8 @@ const bonoFuego=()=> G.fuego>=6?1.20 : G.fuego>=5?1.13 : G.fuego>=ENFUEGO?1.07 :
    La clase: cuando una pieza nueva agrega un caso a un concepto viejo, hay que buscar quién leía el concepto como si
    sólo existiera el caso de antes. */
 const finalMio=()=>G.esFinal && G.tipo!=='defensa';
+/* §2z227: cuando el contacto al conducir se cobra, qué parte va a la línea y qué parte es pérdida tuya */
+const FALTA_AL_CHOCAR=0.20;
 const FRIO=3;
 const bonoFrio=()=> G.frio>=5?0.83 : G.frio>=4?0.88 : G.frio>=FRIO?0.93 : 1;
 /* UN SOLO FACTOR para los tres lugares: fuego y frío son la misma racha con signo y nunca coexisten (uno de los dos
@@ -14306,8 +14321,16 @@ function armarPosesion(){
            así es muy fácil cortar"): la pelota AFUERA, en la punta de la llave, vos ADENTRO en la ayuda, y el pase va
            hacia afuera, alejándose de vos. Es la única forma en que un cierre existe en un partido. */
         const d0=(90+nv*160)*ESC();   // v5: 90 → 250·ESC (con 1,4 s desde el tell recorrés ~210 px: en el 20 hay que salir perfecto)
-        const ang=Math.asin(clamp(0.8*d0/(R3()*0.97), 0.30, 0.90));   // las alas se abren con el nivel (radianes desde el eje)
-        const tir=(l)=>({x:clamp(a.x+l*Math.sin(ang)*R3()*0.97, MARG()+18, W-MARG()-18), y:a.y+Math.cos(ang)*R3()*0.97});
+        /* ⚠️ §2z228 (su caza 2026-09-12: "en la jugada que vienen 3 y tenés que defender el pase, ¿tiran doble largo o
+           triple? Porque si es doble largo, está muy mal"). Era doble largo: 0,97·R3 es adentro de la línea. Tres
+           bajando de contra terminan en TRIPLE, así que las alas van a 1,06·R3.
+           ⚠️ Y el ÁNGULO cede al ancho, no el radio (el precedente de §2z209): con el clamp en x, en una cancha
+           angosta el ala se corría hacia el eje y quedaba MÁS CERCA del aro — o sea que si era triple o doble lo
+           decidía el teléfono, que es la ley que no se negocia. */
+        const RT=R3()*1.06;
+        let ang=Math.asin(clamp(0.8*d0/RT, 0.30, 0.90));   // las alas se abren con el nivel (radianes desde el eje)
+        { const xMax=W/2-MARG()-18; if(Math.sin(ang)*RT>xMax) ang=Math.asin(Math.min(1,xMax/RT)); }
+        const tir=(l)=>({x:a.x+l*Math.sin(ang)*RT, y:a.y+Math.cos(ang)*RT});
         const t1=tir(-1), t2=tir(1);
         D.tirMeta=[{x:t1.x,y:t1.y},{x:t2.x,y:t2.y}];   // las alas SE ABREN a recibir durante el aguante (su caza: "parados en el mismo lugar")
         t1.x+=22*ESC(); t2.x-=22*ESC(); t1.y-=8*ESC(); t2.y-=8*ESC();
@@ -16358,10 +16381,28 @@ function lanzar(zona){
       /* §2z156 (su caza: "la pelota le apareció ATRÁS suyo y tiró «marcado» porque el juego asumía que estaba solo"):
          el que no llegó a la pelota no la teletransporta — CORRE hasta donde cayó, y recién ahí se lo juzga, con la
          defensa donde quedó */
-      if(!carrera){ G.suelo=cae;
-        correr(compi,{x:cae.x,y:cae.y},Math.min(0.5,aCompi/190),()=>{ G.suelo=null;
-          recibe(compi,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],
-            (G.corrida&&G.corrida.j===compi)?tiraElCompi(compi,cae,msArm):vaATirar); }); return; }
+      if(!carrera){
+        /* ⚠️ §2z226 (su caza 2026-09-12: "tiré un pase a propósito a la nada, se fue afuera, y un jugador nuestro se
+           TELETRANSPORTÓ de la punta derecha de la pantalla a la izquierda"). Dos cosas mal, y el comentario de
+           §2z156 acá arriba ya decía la correcta —"el que no llegó a la pelota no la teletransporta: CORRE"—:
+           1) la duración era `Math.min(0.5, d/190)`, o sea un TOPE: a 400 px daba 0,5 s = 800 px/s. Va `Math.max`, la
+              distancia manda y el reloj corre mientras (su corte: "si corre el reloj, mala suerte: es parte de que la
+              jugada es mala").
+           2) iba SIEMPRE el destinatario del pase, estuviera donde estuviera. Va el MÁS CERCANO de los tuyos.
+           Y si la pelota se fue AFUERA no va nadie: nadie persigue una pelota muerta. Es tu pérdida y se ve. */
+        const mios=(G.comps||[]).filter(Boolean);
+        let quien=compi, dQ=aCompi;
+        for(const c of mios){ const dd=dist(cae,c); if(dd<dQ){ dQ=dd; quien=c; } }
+        if(!enCancha(cae)){
+          G.suelo=null;
+          perderPelota(t(L('Tu pase se fue afuera.','Your pass sailed out of bounds.','Seu passe foi pra fora.')),
+                       t(L('¡AFUERA!','OUT OF BOUNDS!','PRA FORA!')));
+          return;
+        }
+        G.suelo=cae;
+        correr(quien,{x:cae.x,y:cae.y},Math.max(0.25,dQ/190),()=>{ G.suelo=null;
+          recibe(quien,forma,L('La manoteó como pudo — el pase salió justo.','He corralled it somehow — the pass was right on the edge.','Ele pegou como deu — o passe saiu justo.')[idioma()],
+            (G.corrida&&G.corrida.j===quien)?tiraElCompi(quien,cae,msArm):vaATirar); }); return; }
       // la pelota rueda con la carrera ya lanzada: la gana el que llegue primero
       vuelo(cae,carrera.rod,0.04,carrera.Troll,()=>{
         const rod=carrera.rod;
@@ -17106,8 +17147,12 @@ function vueloLibre(res,dirT,pot){
 function cerrarLibre(res){
   {
     G.libres.hecho++;
-    if(res==='entra'){ canastaFx(); G.libres.metidos++; G.ftm++; G.nos++; G.pts++; marcador(); veredicto(t(L('¡ADENTRO!','GOOD!','DENTRO!')),'ok'); }
-    else { if(res==='casi') hierroFx();
+    /* §2z224 v3 (su corte 2026-09-12: "es raro seguir on fire después de errar libres. ¡Pensá en el jugador de
+       básquet!"). El fuego mide tus canastas DE CAMPO —por eso meter un libre no lo prende— pero el FRÍO mide tu
+       mano, y la línea es donde más se ve. Errar un libre apaga el fuego y suma al frío; meterlo lo apaga. El `true`
+       deja intactas las SEGUIDAS de la misión, que son de campo (§2z114). */
+    if(res==='entra'){ canastaFx(); G.libres.metidos++; G.ftm++; G.nos++; G.pts++; marcador(); veredicto(t(L('¡ADENTRO!','GOOD!','DENTRO!')),'ok'); G.frio=0; }
+    else { apagaFuego(true); if(res==='casi') hierroFx();
       veredicto(res==='casi'?t(L('Bailó y salió','Rattled out','Bailou e saiu')):(res==='larga'?t(L('Larga…','Long…','Longa…')):t(L('Corta','Short','Curta'))),'mal'); }
     if(G.libres.hecho<G.libres.total){
       setTimeout(()=>{ if(G.fase!=='fin'){ G.fase='espera';
@@ -18087,10 +18132,13 @@ function siguienteBeat(){
          es de ellos y la defendés vos — la escena se sortea entre las cuatro de siempre (su corte: "puede ser
          cualquiera"). Por 3 NO entra: cuando la meten el motor hace G.riv+=2, así que en la defensiva no existe el
          triple y defenderías una pelota que no te puede empatar (las cuatro líneas, en DISEÑO §2z223). */
-      if(!G.sub && m<0 && m>=-2){
+      if(!G.sub && m<0 && m>=-3){
         cerrarRelojAnim(); G.reloj=6; G.relojAnim=null; marcador();
         G.rivAlFinal=G.riv;   // §2z223: para saber al cerrar si la aguantaste o te la metieron (el espejo de astAlFinal)
-        g.beats.push({t:'jugada', tipo:'defensa', final:true});
+        /* §2z223 c: con +3 la escena NO se sortea — es el CIERRE, la única que termina en triple desde §2z228. Con
+           la cortina o el 1v1 estarías defendiendo una pelota que no te puede empatar, que es lo que él frenó cuando
+           diseñamos esto ("midamos que sean sólo jugadas donde te pueden meter un triple"). */
+        g.beats.push({t:'jugada', tipo:(m===-3?'defCierre':'defensa'), final:true});
         setTimeout(siguienteBeat, 1400); return;
       }
       setTimeout(siguienteBeat, 300);
@@ -18174,8 +18222,9 @@ function siguienteBeat(){
     G.enPedida=!!b.pedida;   // 2026-09-10: la misión de las pedidas resueltas lee esto al cerrar la posesión
     const anunciar=()=>{
     /* §2z223: la última defensiva dice lo que está en juego — el marcador ya lo tenés arriba, esto dice qué pasa si entra */
-    fila(b.final && b.tipo==='defensa'
+    fila(b.final && (b.tipo==='defensa'||b.tipo==='defCierre')
            ? ((G.nos-G.riv)===1 ? t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, PERDISTE.','LAST SHOT IS THEIRS — IF IT DROPS, YOU LOSE.','A ÚLTIMA É DELES — SE ENTRAR, VOCÊ PERDE.'))
+            : (G.nos-G.riv)===3 ? t(L('LA ÚLTIMA ES DE ELLOS — EL TRIPLE LOS EMPATA.','LAST SHOT IS THEIRS — A THREE TIES IT.','A ÚLTIMA É DELES — O TRIPLO EMPATA.'))
                                 : t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, ES SUPLEMENTARIO.','LAST SHOT IS THEIRS — IF IT DROPS, OVERTIME.','A ÚLTIMA É DELES — SE ENTRAR, É PRORROGAÇÃO.')))
          : b.final ? ((G.riv-G.nos)===3 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE EMPATA.','LAST SHOT IS YOURS — THE THREE TIES IT.','A ÚLTIMA É SUA — O TRIPLO EMPATA.'))
                     : (G.riv-G.nos)===2 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE LO GANA.','LAST SHOT IS YOURS — THE THREE WINS IT.','A ÚLTIMA É SUA — O TRIPLO VENCE.'))
@@ -19505,7 +19554,11 @@ function frame(now){
            cobraba EN EL MISMO FRAME. El arranque del bote tiene 350 ms de gracia: ahí nadie cobra, el defensor queda
            a un cuerpo. El contacto sigue siendo tuyo si insistís contra él. */
         else if((G.tDrive||0)<0.35){ /* gracia del arranque: se planta a un cuerpo, no cobra */ }
-        else if(Math.random()<0.40){ flash(df);
+        /* §2z227 (su corte 2026-09-12: "40 % de libres es un montón; te premiamos mucho ir a chocarte como loco, y
+           hoy tirar libres sigue siendo fácil"): el contacto cobrado pasa de 40/60 a 20/80 — chocar es sobre todo
+           PERDER la pelota, que es lo que chocar debería ser. La constante vive en 05, con nombre, y los tres
+           contactos del juego (la conducción, el cuerpo y el de la cortina) leen la misma. */
+        else if(Math.random()<FALTA_AL_CHOCAR){ flash(df);
           irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); break; }
         else { flash(df); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
           perderPelota(textoChoque(),null,true); break; }
@@ -19963,7 +20016,7 @@ function frame(now){
       /* el choque con el custodio conduciendo cobra lo mismo que la contención (mismos
          strings): llevarla adentro con él comprometido es el riesgo que elegiste */
       else if(G.comprometido && G.fase==='conduzco' && dd<=26*ESC()){
-        if(Math.random()<0.40){ flash(cu);
+        if(Math.random()<FALTA_AL_CHOCAR){ flash(cu);   /* §2z227 */
           irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
         else { flash(cu); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
           perderPelota(textoChoque(),null,true); }
@@ -20134,7 +20187,7 @@ function frame(now){
         if(profundo && now>=P.dropLee){
           const ddD=dist(P.d,G.vos);
           if(ddD>26*ESC()) mv3(P.d, G.vos, Math.max(55,dif.def*2));
-          else if(Math.random()<0.40){ flash(P.d);
+          else if(Math.random()<FALTA_AL_CHOCAR){ flash(P.d);   /* §2z227 */
             irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
           else { flash(P.d); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
             perderPelota(textoChoque(),null,true); }
@@ -25009,8 +25062,21 @@ function registrarResultado(){
      que faltaba: la Copa Intercontinental, cuándo se juega. */
   /* 2026-09-11 (su caza: «ganamos la Copa de las Américas y en el palmarés sólo tengo el Juego de las Estrellas»): los títulos de
      equipo entraban recién con FIN DE TEMPORADA (asegurarPremios, que ahora no duplica); la Copa entra apenas la ganás. */
-  if(e.americas&&e.americas.campeon===e.miClubId&&!(C.palmares||[]).some(p=>p.anio===C.anio&&p.clave==='americas'))
-    (C.palmares=C.palmares||[]).push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'americas'});
+  /* ⚠️⚠️ §2z229 b, LA CLASE (su pregunta 2026-09-12: "¿tiene sentido la lógica de «se otorgan premios después de
+     cerrar la temporada»? ¿por qué lo diseñamos así? Siento que nos trae más problemas que soluciones"). No lo tiene,
+     y ayer ya habíamos arreglado este mismo bug para UNA copa sin generalizarlo. La distinción que faltaba:
+       · un TÍTULO es un HECHO y se anota cuando ocurre — se sabe en el instante en que ganás la final;
+       · un premio COMPARATIVO (el MVP, el quinteto, los líderes) necesita la temporada entera contra el campo, y ése
+         sí se calcula al cierre.
+     Meterlos en la misma bolsa hacía que un solo embudo frágil se llevara puesto el título: si el cierre no corría
+     —y con una cita de selección en el receso no corre nunca, §2z229— la LNB ganada no existía. Y con la
+     Intercontinental cayendo DESPUÉS del Mundial (su dato), "el cierre de temporada" ya no es ni un punto único.
+     Los tres títulos de equipo entran acá, apenas se ganan. `asegurarPremios` no duplica. */
+  const anotarTitulo=(clave,ok)=>{ if(ok && !(C.palmares||[]).some(p=>p.anio===C.anio&&p.clave===clave))
+    (C.palmares=C.palmares||[]).push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave}); };
+  anotarTitulo('americas', !!(e.americas&&e.americas.campeon===e.miClubId));
+  anotarTitulo('campeon', !!(e.playoffs&&e.playoffs.campeon===e.miClubId));                     /* el título de la liga */
+  anotarTitulo('intercontinental', !!(e.intercontinental&&e.intercontinental.campeon===e.miClubId));
   if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
     amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
              sub:(()=>{ const ic=icAnunciado(e); return ic?t(L('Copa Intercontinental: septiembre de ','Intercontinental Cup: September ','Copa Intercontinental: setembro de '))+ic.anio+t(L(', en ',', in ',', em '))+ic.sede.ciudad+'.':''; })()};

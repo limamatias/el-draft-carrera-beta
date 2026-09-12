@@ -870,7 +870,7 @@
   #lobby .tablita .r.corteDir{border-bottom:1px solid rgba(255,150,51,.6);padding-bottom:5px;margin-bottom:1px}
   #lobby .tablita .r.corte{border-bottom:1px dashed rgba(255,150,51,.5);padding-bottom:5px;margin-bottom:1px}
   #lobby .tablita .r.playoutTop{border-top:1px solid rgba(255,80,80,.55);padding-top:5px;margin-top:1px}
-  #lobby .tablita .leyenda{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:11px;letter-spacing:1px;color:var(--tinta2)}
+  #lobby .tablita .leyenda{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;margin-top:10px;font-size:11px;letter-spacing:1px;color:var(--tinta2)}   /* 2026-09-13 (su captura: los ítems envolvían con huecos desparejos y PLAY-OUT solo abajo): dos columnas alineadas */
   #lobby .tablita .leyenda>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
   #lobby .tablita .ley.copa{width:5px;height:5px;border:0;border-radius:50%;background:var(--ok)}
@@ -1706,7 +1706,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='868876a4fb';
+const BUILD='440c961634';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27041,13 +27041,16 @@ function abrirResumenT(final){
   let html='';
   if(mt.fila) html+=fila(t(L('RÉCORD','RECORD','CAMPANHA')),mt.fila.pg+'–'+mt.fila.pp+(mt.puesto?' · '+mt.puesto+'º':''));
   html+='<div class="fila-item goteoRes">'+$l('lobGoteo2').innerHTML+'</div>';
-  html+=fila(t(L('JUGASTE','YOU PLAYED','VOCÊ JOGOU')),jugados+' '+t(L('de','of','de'))+' '+pj);
+  /* 2026-09-13 (su captura del resumen: "es una sábana relatando cualquier cosa; es fin de la LIGA pero te tira todo junto; el
+     «jugaste 53 de 55» tampoco dice nada"): el cierre de la liga cuenta LA LIGA — récord, promedio y los premios DE LA LIGA. La
+     Copa de las Américas tuvo su velo y su carta al ganarla, la selección tuvo sus partes (§2z229 c: cada competencia, su momento).
+     Sólo el fin de la BETA (final=true) suma la selección, porque ahí sí se cierra todo. Sin JUGASTE: no cambia nada. */
   if(pj) html+=fila(t(L('PROMEDIO','AVERAGE','MÉDIA')),fdec((ml.pts+po.pts)/pj)+' PTS · '+fdec((ml.ast+po.ast)/pj)+' AST'+(nota!==null?' · '+t(L('NOTA','RATING','NOTA'))+' '+fdec(nota):''));
-  if(premios.length) html+='<div class="cajTag">'+t(L('LA TEMPORADA TE DEJÓ','THE SEASON LEFT YOU','A TEMPORADA TE DEIXOU'))+'</div>'
-    +premios.map(p=>'<div class="fila-item"><span class="desc">'+iconoDe(p.clave,C.ligaId,18)+' <b>'+t(PREMIO_TXT[p.clave][1])+'</b></span></div>').join('');
-  /* §12: LA SELECCIÓN de este año — el torneo del receso y las eliminatorias van APARTE del
-     club, porque la línea de arriba es la de tu equipo y mezclarlas la vuelve ilegible. */
-  html+=htmlResumenSeleccion(e,fila);
+  const DE_LA_LIGA=new Set(['campeon','mvp_finales','mvp','quinteto','joven','allstar','ascenso']);
+  const premiosLiga=premios.filter(p=>DE_LA_LIGA.has(p.clave));
+  if(premiosLiga.length) html+='<div class="cajTag">'+t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU'))+'</div>'
+    +premiosLiga.map(p=>'<div class="fila-item"><span class="desc">'+iconoDe(p.clave,C.ligaId,18)+' <b>'+t(PREMIO_TXT[p.clave][1])+'</b></span></div>').join('');
+  if(final===true) html+=htmlResumenSeleccion(e,fila);
   $l('resTCuerpo').innerHTML=html;
   const beta=esBeta(), fin=beta&&final===true, pend=recesoPendiente(e);
   $l('resTBeta').classList.toggle('oculto',!fin);

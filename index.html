@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='7a171e560c';
+const BUILD='332e54f029';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23055,8 +23055,9 @@ function cerrarTorneoReceso(){
   for(const pr of premiosSeleccion(t)){
     C.palmares.push({anio:C.anio,ligaId:null,club:null,clave:pr.clave,pais:t.pais});
   }
-  C.selAviso=gano?{clave:'preo',torneo:'preolimpico',pais:t.pais}
-    :{clave:'jugado',torneo:t.torneo,pais:t.pais,puesto:t.puesto,medalla:t.medalla,campeon:t.campeon};
+  /* 2026-09-14 (su caza: «MUNDIAL · AFUERA EN CUARTOS en el HOY: ¿por qué seguimos anunciando algo que ya viviste?»): el resultado
+     del torneo lo cuenta la CEREMONIA; el HOY avisa sólo lo que no viste (no clasificaste · no te llamaron) o lo que se abre (los Juegos) */
+  C.selAviso=gano?{clave:'preo',torneo:'preolimpico',pais:t.pais}:null;
   /* §12: la ceremonia queda ARMADA acá y la abre el vestuario. Si se abriera desde el circuito
      del partido, el velo del fin la taparía — la clase de bug de "el efecto disparado con el
      contenedor oculto" (CLAUDE.md, 2026-09-02). */

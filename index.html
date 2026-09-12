@@ -843,7 +843,7 @@
      sub-switch, las pestañas de grupo— van sin caja: el texto apagado contra el fondo y la píldora llena en la activa. */
   #lobby .tabs.zonaTabs,#lobby .grupoTabs,#lobby .zonaTabs.muchas{background:none;border:0;padding:0;gap:6px}
   #lobby .zonaTabs .tab.act,#lobby .grupoTabs .tab.act{background:#232d49;border:1px solid rgba(154,164,184,.3)}
-  #lobby .zonaTabs .tab,#lobby .grupoTabs .tab{border:1px solid transparent}
+  #lobby .zonaTabs .tab,#lobby .grupoTabs .tab{border:1px solid transparent} #lobby .zonaTabs .tab:not(.act),#lobby .grupoTabs .tab:not(.act){color:var(--tinta)}   /* 2026-09-14 (su caza: "las opciones flotantes sin contenedor en blanco, no en gris; el gris no contrasta") */
   /* la bandera después del nombre en las filas de grupo de la Copa y la selección: con aire (su caza: "no hay espacio") */
   #lobby #lobTablaFull .grupoSel .banMini,#lobby #lobFixFull .grupoSel .banMini{display:inline-flex;width:16px;height:11px;border-radius:2px;overflow:hidden;vertical-align:-1px;margin-left:7px}
   #lobby #lobTablaFull .grupoSel .banMini>*,#lobby #lobFixFull .grupoSel .banMini>*{width:100%;height:100%}
@@ -1741,7 +1741,7 @@
   /* la bandera: chica y delante del apellido, en la tarjeta y en el HUD del lobby */
   .ranura .apel .ban{margin-right:6px;display:inline-flex;align-items:center}
   #lobby .nombre .ban{margin-right:8px;display:inline-flex;align-items:center;vertical-align:2px}
-  .ranura .sub.donde{font-size:11px;letter-spacing:1.5px;font-weight:600;color:var(--tinta2);opacity:.85}   /* §2z85: el rótulo de dónde va la partida */
+  .ranura .sub.donde{font-size:11px;letter-spacing:1.5px;font-weight:600;color:var(--tinta2);opacity:.85;white-space:normal}   /* §2z85: el rótulo de dónde va la partida · 2026-09-14: envuelve (INTERCONTINENTAL · TERCER PUESTO no entra en ~28 letras) */
   .ranura .sub{font-size:13px;color:var(--tinta2);letter-spacing:.4px;margin-top:3px;
        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* la ✕ es lo ÚNICO irreversible del juego: va apagada, chica y lejos del centro del toque */
@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='85c6d10206';
+const BUILD='ae2bdb457c';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2215,7 +2215,11 @@ const BUILD='85c6d10206';
           <div class="verMas" id="lobVerCarrera" data-lir="carrera-full" tabindex="0" data-l-en="FULL CAREER ▸" data-l-pt="VER COMPLETA ▸">VER COMPLETO ▸</div>
         </div>
         <!-- §2z28 la vitrina: la grilla de trofeos (tocar nombra) y VER TODO para la lista; la pinta pintaPalmares() -->
-        <div class="panel" id="lp-vos-palmares"><div class="cajon" id="lobPal"><div class="fila-item vacia">—</div></div></div>
+        <!-- §2z241: el switch de lado (club ⇄ selección), el mismo molde que el del RESUMEN; lo pinta pintaPalmares() -->
+        <div class="panel" id="lp-vos-palmares">
+          <div class="tabs selSwitch oculto" id="lobPalSwitch"></div>
+          <div class="cajon" id="lobPal"><div class="fila-item vacia">—</div></div>
+        </div>
         </div>
       </div>
 
@@ -11159,7 +11163,7 @@ function misJuegosIC(e) {
   if (!ic) return out;
   for (const j of ic.juegos) {
     if (j.local !== mi && j.visita !== mi) continue;
-    out.push({ ic: true, etapa: j.etapa, n: j.n, f: ic.post ? 999 : 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+    out.push({ ic: true, etapa: j.etapa, grupo: j.grupo, n: j.n, f: ic.post ? 999 : 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   for (const j of (ic.definicion || [])) {
@@ -22474,6 +22478,22 @@ let subAm=null, grupoIcSel=null;   // §2z238 v2: adentro de INTERNACIONAL, AMÉ
 function subAmDe(e){ const am=e.americas, icx=e.intercontinental, icViva=!!icx&&icx.fase!=='terminado';
   const key=String((am&&am.anio)||'')+((am&&am.miGrupo)||'')+(am&&am.llave?'llave':'g1')+(icx?'ic':'');
   if(subAm&&subAm.k!==key) subAm=null; return {key, sub:subAm?subAm.t:(icViva?'ic':'am')}; }
+/* §2z242 (su caza 2026-09-14: "en ARG ya desapareció todo lo del Mundial en la tabla… debería haber un switch de pestañas de
+   competencias, ELIMINATORIAS · MUNDIAL; que sobreviva lo que se jugó en esa misma temporada"): el torneo del receso queda en
+   `C.selTorneoFin` hasta que arranca la temporada siguiente, y del lado de la bandera un sub-switch (el molde de AMÉRICAS ·
+   INTERCONTINENTAL) elige entre las eliminatorias y el torneo cuando los dos existen. Los tramos (RONDA 1 · RONDA 2, FASE 1 ·
+   FASE 2 · LLAVE) bajan al tope del contenido, como en Américas (regla 5: el switch de lado y UN selector más). */
+let compSel=null;   // {t:'elim'|'torneo', k}
+const torneoVista=()=>(C&&(C.selTorneo||C.selTorneoFin))||null;
+function compSelDe(e){
+  const tv=torneoVista(), el=e&&e.seleccion;
+  const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));
+  const dos=!!tv&&elTuvo, key=(C?C.anio:'')+'|'+(tv?tv.torneo:'')+'|'+(el?el.pais:'');
+  if(compSel&&compSel.k!==key) compSel=null;
+  const comp=!tv?'elim':!dos?'torneo':(compSel?compSel.t:'torneo');
+  return {dos,key,comp,tv:comp==='torneo'?tv:null};
+}
+const htmlCompSel=(comp,attr)=>htmlTramos([{t:'elim',txt:t(SEL_TXT.eliminatorias)},{t:'torneo',txt:selTorneoTxt(torneoVista().torneo)}],comp,attr);
 const htmlSubAm=(sub,attr)=>htmlTramos([{t:'am',txt:t(L('AMÉRICAS','AMERICAS','AMÉRICAS'))},{t:'ic',txt:t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL'))}],sub,attr);
 function htmlTramos(items,act,attr){   // items: [{t,txt,off}]
   return items.map(x=>'<div class="tab'+(x.t===act?' act':'')+(x.off?' off':'')+'" data-'+attr+'="'+x.t+'" tabindex="0">'+x.txt+'</div>').join('');
@@ -22500,7 +22520,7 @@ function htmlIntercontinental(e){
     else { /* §2z240 regla 2: la caja «que viene» que ya existe, no un bloque de texto */
       const so=sorteoIC(C.semilla,anio,{id:mi,fuerza:0});
       return htmlQueViene({tit:t(IC_TXT.nombre)+' '+anio, ico:icono('globo',18), linea:t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' · '+String(so.sede&&so.sede.ciudad||'').toUpperCase()+' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')), ids:[], mi, esc:()=>'', noms:()=>[]})
-        +'<div class="cajNota">'+t(L('CLASIFICA EL CAMPEÓN DE LA LIGA DE LAS AMÉRICAS','THE AMERICAS LEAGUE CHAMPION QUALIFIES','CLASSIFICA O CAMPEÃO DA LIGA DAS AMÉRICAS'))+'</div>'; }   // su corte: el reglamento no va — se ve cuando hay sorteo
+        +notas(t(L('CLASIFICA EL CAMPEÓN DE LA LIGA DE LAS AMÉRICAS','THE AMERICAS LEAGUE CHAMPION QUALIFIES','CLASSIFICA O CAMPEÃO DA LIGA DAS AMÉRICAS'))); }   // su corte: el reglamento no va — se ve cuando hay sorteo
   }
   /* su corte (2026-09-13): pestañas GRUPO A · GRUPO B como en Américas — con los dos grupos apilados no había aire y a 360 no entra */
   const gMio=ic.grupos.A.includes(mi)?'A':ic.grupos.B.includes(mi)?'B':'A';
@@ -22799,7 +22819,7 @@ function htmlRankMundial(rk){
   return h+'<div class="leyenda"><span><span class="ley"></span>'+t(L('DIRECTO A LOS JUEGOS','STRAIGHT TO THE GAMES','DIRETO AOS JOGOS'))+'</span></div>';
 }
 function htmlSeleccion(e,gVer,tramo){
-  const el=e.seleccion, t2=C.selTorneo;
+  const el=e.seleccion, t2=compSelDe(e).tv;   // §2z242
   const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ochoprevias)
   const anV=(!t2&&(!el||el.fin||!elTuvo))?torneoAnunciado(e):null;   // 2026-09-12: el torneo que viene, también en los años sin eliminatorias
   const rk=mundialRankVisible();   // §12.31
@@ -22836,9 +22856,12 @@ function htmlSeleccion(e,gVer,tramo){
           linea:t(SEL_MES_TXT[an.cual]||L(''))+(an.sede&&an.sede.ciudad?' · '+String(an.sede.ciudad).toUpperCase():''), grupo:an.grupo?t(SEL_TXT.grupo)+' '+an.grupo:t(SEL_TXT.semifinal),
           ids:an.ids, mi:pais, esc:(id)=>escuditoDe(clubDeSeleccion(id)), noms:(id)=>nombresSelDe(id)});
         /* §12.31: con el ranking arriba los directos ya se ven; queda la regla del preolímpico */
-        if(rk&&an.cual==='preolimpico') h+='<div class="cajNota">'+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'))+'</div>';
-        else if(an.directos&&an.directos.length&&!rk) h+='<div class="cajNota">'+t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · ')+(an.cual==='preolimpico'?' · '+t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA')):'')+'</div>';
-        h+='<div class="cajNota">'+t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE'))+'</div>';
+        const PREO=t(L('EL PREOLÍMPICO DA UN CUPO','THE QUALIFIER GIVES ONE SPOT','O PRÉ-OLÍMPICO DÁ UMA VAGA'));
+        h+=notas(   // 2026-09-14 (su pedido): las reglas con la flechita, una por renglón, en todos lados
+          rk&&an.cual==='preolimpico'?PREO:'',
+          an.directos&&an.directos.length&&!rk?t(L('DIRECTOS A LOS JUEGOS POR EL MUNDIAL: ','STRAIGHT TO THE GAMES FROM THE WORLD CUP: ','DIRETOS AOS JOGOS PELO MUNDIAL: '))+an.directos.map(x=>nombreSelCorto(x).toUpperCase()).join(' · '):'',
+          an.directos&&an.directos.length&&!rk&&an.cual==='preolimpico'?PREO:'',
+          t(L('AL TERMINAR LA TEMPORADA CON TU CLUB','ONCE YOUR CLUB SEASON ENDS','AO TERMINAR A TEMPORADA COM SEU CLUBE')));
       } }
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
@@ -23043,7 +23066,7 @@ function cerrarTorneoReceso(){
   C.selCeremonia={anio:C.anio,torneo:t.torneo,pais:t.pais,puesto:gano?'final':t.puesto,
     medalla:gano?null:t.medalla,linea:lineaTorneoSel(t),definicion:selDefinicion(t),
     premios:premiosSeleccion(t).map(x=>x.clave),campeon:t.campeon||null,sedeAnio:t.anio||null};   // 2026-09-13: quién lo ganó y el año del torneo (la sede), para la hoja
-  C.selTorneo=null;
+  C.selTorneoFin=t; C.selTorneo=null;   // §2z242: el torneo jugado se sigue viendo hasta la temporada siguiente
   if(gano){ guardar(); return; }              // el preolímpico ganado: torneoRecesoDe abre los Juegos
   C.selTorneoHecho=C.anio;
   guardar();
@@ -23299,7 +23322,7 @@ function htmlFixtureSeleccion(tramo){
       /* §12.33: la ronda de las eliminatorias en la cabecera de la ventana (1-3 ronda 1, 4-6 ronda 2) · §12.34: el grupo o la llave
          del torneo en la suya, porque la columna del día ahora lleva la fecha */
       const tit=v?t(SEL_TXT.ventana)+'\u00a0'+v+(elV2?' · '+(+v>=4?t(L('RONDA 2','ROUND 2','RODADA 2')):t(L('RONDA 1','ROUND 1','RODADA 1'))):'')+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')
-        :t(L('RECESO','OFFSEASON','RECESSO'))+' · '+selTorneoTxt(tor)+(C.selTorneo&&C.selTorneo.anio?' '+C.selTorneo.anio:'')+(trm==='llave'?' · '+t(L('LLAVE','BRACKET','MATA-MATA')):trm?' · '+(SEL_LETRAS2.includes(trm.slice(1))?t(L('FASE 2','ROUND 2','FASE 2'))+' · ':'')+t(SEL_TXT.grupo)+' '+trm.slice(1):(SEL_MES_TXT[tor]?' · '+t(SEL_MES_TXT[tor]):''));
+        :t(L('RECESO','OFFSEASON','RECESSO'))+' · '+selTorneoTxt(tor)+(torneoVista()&&torneoVista().anio?' '+torneoVista().anio:'')+(trm==='llave'?' · '+t(L('LLAVE','BRACKET','MATA-MATA')):trm?' · '+(SEL_LETRAS2.includes(trm.slice(1))?t(L('FASE 2','ROUND 2','FASE 2'))+' · ':'')+t(SEL_TXT.grupo)+' '+trm.slice(1):(SEL_MES_TXT[tor]?' · '+t(SEL_MES_TXT[tor]):''));
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+tit+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
     h+=f; }
   return h;
@@ -23308,7 +23331,7 @@ function htmlFixtureSeleccion(tramo){
  *  panel corto del lobby pueda mostrar 5 alrededor del próximo, como hace con el club. */
 const tramoDeSel=(f)=>f.etapa==='eliminatorias'?null:f.etapa==='grupo'?'g1':f.etapa==='segunda'?'g2':'llave';   // 2026-09-13 §2z229 g: con tramos, las eliminatorias cerradas no van (como en la tabla)
 function filasFixtureSeleccion(tramo){
-  const e=est(), fs=fechasDeSeleccion(e,C.selTorneo).filter(f=>!tramo||tramoDeSel(f)===tramo), filas=[];
+  const e=est(), cs=compSelDe(e), fs=fechasDeSeleccion(e,cs.tv).filter(f=>!tramo||tramoDeSel(f)===tramo).filter(f=>!(cs.dos&&cs.tv&&f.etapa==='eliminatorias')), filas=[];   // §2z242: con el switch, cada competencia sola
   const idxProx=fs.findIndex(f=>!f.res);
   const ban=banderaDe(C.jugador.nacionalidad||'ar',14);
   fs.forEach((f,i)=>{
@@ -23326,7 +23349,7 @@ function filasFixtureSeleccion(tramo){
        (fechasSalteadas): el mismo día que el fixture del club marca CON LA SELECCIÓN. */
     const etapa=f.etapa==='eliminatorias'
       ? diaTxt(f.dia||diaDeFecha(e.semilla,f.f+1,e.ritmo)+(f.off-1)*3)   // §12.25: "V1" sonaba a versión · §12.28: el día de la ventana · 2026-09-10 (su caza: "vs México y en Panamá back to back, es vuelo"): sin `dias`, la segunda jornada va 3 días después, no el día de la fecha pegada del club
-      : (diaTorneoDe(C.selTorneo,f.paso)?diaTxt(diaTorneoDe(C.selTorneo,f.paso)):((f.etapa==='grupo'||f.etapa==='segunda')&&f.grupo?t(SEL_TXT.grupo)+' '+f.grupo:t(SEL_TXT[f.etapa]||L(f.etapa))));   // §12.34 (su caza: "los partidos del grupo no tienen fecha"): el día; el grupo pasa a la cabecera del tramo
+      : (diaTorneoDe(cs.tv,f.paso)?diaTxt(diaTorneoDe(cs.tv,f.paso)):((f.etapa==='grupo'||f.etapa==='segunda')&&f.grupo?t(SEL_TXT.grupo)+' '+f.grupo:t(SEL_TXT[f.etapa]||L(f.etapa))));   // §12.34 (su caza: "los partidos del grupo no tienen fecha"): el día; el grupo pasa a la cabecera del tramo
     /* ⚠️ la fila DICE si jugaste vos: la selección juega aunque a vos no te llamen, y sin esta
        marca el calendario del país se leería como si fuera tuyo */
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
@@ -23643,7 +23666,7 @@ function misFechas(){
      día siguiente; llevan `am` y la fila los dibuja con el 🌎 en vez de la F */
   if(e.americas||e.intercontinental) for(const j of misJuegosAMyIC(e)){   // §2z27.3: la copa de la pretemporada entra con f=0, antes de la fecha 1
     if(j.f===undefined||j.f===null) continue;
-    out.push({am:true,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,
+    out.push({am:true,ic:!!j.ic,grupo:j.grupo||null,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,   // 2026-09-14 (su caza: la copa en el fixture vivía en LLAVE de Américas): `ic` la manda a su pestaña
       res:j.res?{ptsLocal:j.res.ptsLocal,ptsVisita:j.res.ptsVisita}:null,dia:j.dia||diaDeFecha(e.semilla,j.f,est().ritmo)+1});
   }
   /* ⚠️ §12 (su corte 2026-09-04): EN EL FIXTURE DE TU EQUIPO **NO** VAN LOS PARTIDOS DE LA
@@ -23750,20 +23773,29 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   ultimoFix=[fechas,calPorFecha,proxKey];
   pintaSwitchSel('lobFixSwitch');
   const sel=ladoSel==='sel', am=ladoSel==='am';
-  $l('lobFixTit').textContent=sel?tituloSelConAnio():(am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();
+  $l('lobFixTit').textContent=sel?anioTxt():(am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();   // 2026-09-14 (su pregunta: "¿es necesario el título? repite lo que ya sabés"): del lado de la bandera y del globo, sólo el año
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
   $l('lobFixFull').classList.toggle('ladoAm',am);   // 2026-09-10 (su caza): del lado del globo la marca es «1» o «J2», la columna de 34 px sobraba y le robaba al nombre
   /* 2026-09-13 §2z229 g: los TRAMOS también en el fixture — mismo estado que la tabla (tramoAm / tramoSel), mismos rótulos */
   const tr=$l('lobFixTramos'); let tramoF=null, tramosFixHtml='';
-  if(sel&&C.selTorneo&&SEL_FORMATOS[C.selTorneo.torneo]){
-    const t2=C.selTorneo, fmt=SEL_FORMATOS[t2.torneo];
-    const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave, actual=hayLl?'llave':hayG2?'g2':'g1', key=t2.semilla+t2.torneo+actual;   // 2026-09-13 (su caza: "cuando abrís tabla no aparece en fase 2 ahora que ya pasamos"): la fase va en la clave — al avanzar, la elección vieja se olvida
-    if(tramoSel&&tramoSel.k!==key) tramoSel=null;
-    tramoF=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayG2)||(tramoSel.t==='llave'&&hayLl)))?tramoSel.t:actual;
-    const items=fmt.segunda?[{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
-      :[{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}];
-    tr.classList.remove('oculto'); tr.innerHTML=htmlTramos(items,tramoF,'tramof');
-    tr.querySelectorAll('[data-tramof]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramof,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
+  if(sel){
+    /* §2z242: arriba el sub-switch ELIMINATORIAS · MUNDIAL (sólo cuando hay los dos); los tramos del torneo al tope de la lista */
+    const {dos,key:ck,comp,tv:t2}=compSelDe(est());
+    tr.classList.toggle('oculto',!dos);
+    if(dos){ tr.innerHTML=htmlCompSel(comp,'compf'); tr.querySelectorAll('[data-compf]').forEach(b=>b.addEventListener('click',()=>{ compSel={t:b.dataset.compf,k:ck}; tramoSel=null; pintaFixFull(fechas,calPorFecha,proxKey); })); }
+    let trH='', key=null;
+    if(t2&&SEL_FORMATOS[t2.torneo]){
+      const fmt=SEL_FORMATOS[t2.torneo];
+      const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave, actual=hayLl?'llave':hayG2?'g2':'g1'; key=t2.semilla+t2.torneo+actual;   // 2026-09-13 (su caza: "cuando abrís tabla no aparece en fase 2 ahora que ya pasamos"): la fase va en la clave — al avanzar, la elección vieja se olvida
+      if(tramoSel&&tramoSel.k!==key) tramoSel=null;
+      tramoF=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayG2)||(tramoSel.t==='llave'&&hayLl)))?tramoSel.t:actual;
+      const items=fmt.segunda?[{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
+        :[{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}];
+      trH='<div class="tabs zonaTabs grupoTabs dos">'+htmlTramos(items,tramoF,'tramof')+'</div>';
+    }
+    const box=$l('lobFixFull'); box.innerHTML=trH+htmlFixtureSeleccion(tramoF);
+    box.querySelectorAll('[data-tramof]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramof,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
+    return;
   } else if(am&&est().americas){
     /* §2z238 (su caza 2026-09-13: "la Copa Intercontinental en el fixture vive en LLAVE de Américas; la tabla ni siquiera existe"):
        la copa es su propio tramo, COPA, y abre ahí cuando es lo que estás jugando */
@@ -23771,13 +23803,12 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
     const amx=est().americas, {key,sub}=subAmDe(est());
     tr.classList.remove('oculto'); tr.innerHTML=htmlSubAm(sub,'subf');
     tr.querySelectorAll('[data-subf]').forEach(b=>b.addEventListener('click',()=>{ subAm={t:b.dataset.subf,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
-    $l('lobFixTit').textContent=t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+' · '+anioTxt();   // §2z240 regla 1
+    $l('lobFixTit').textContent=anioTxt();   // §2z240 regla 1 · 2026-09-14 (su pregunta): el switch ya dice INTERNACIONAL; el título, sólo el año
     if(sub==='ic') tramoF='copa';
     else { if(tramoAm&&tramoAm.k!==key) tramoAm=null;
       const hayLl=!!amx.llave; tramoF=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
       tramosFixHtml='<div class="tabs zonaTabs grupoTabs dos">'+htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramoF,'tramof')+'</div>'; }
   } else tr.classList.add('oculto');
-  if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(tramoF); return; }
   /* §2z177 (su caza 2026-09-08: "en la lista de partidos no se ve nunca por qué instancia jugás"): del lado del globo,
      una cabecera por instancia — FASE DE GRUPOS · GRUPO A, CUARTOS · AL MEJOR DE 3, SEMIFINAL, LA FINAL */
   const e=est(), am2=e.americas;
@@ -23796,8 +23827,11 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   for(const f of filas){
     if(conLibres&&!f.am&&!f.po&&!f.sel&&f.fecha){ for(let k=ultF+1;k<f.fecha;k++) h+=filaLibre(k); ultF=f.fecha; }
     if(am&&f.etapa!==etapaAnt){ etapaAnt=f.etapa;
-      const cab=f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
-                                :t(AM_TXT[f.etapa]||L(f.etapa))+' · '+formatoTxt(mejorDeAM(f.etapa));
+      /* 2026-09-14 (su caza: "¿por qué el fixture diría AL MEJOR DE 3?"): la cabecera nombra la instancia y nada más; el formato
+         vive en las reglas de la tabla. La copa dice su grupo (GRUPO A) y su definición. */
+      const cab=f.ic?(f.etapa==='ic-grupo'?t(AM_TXT.grupo)+' '+(f.grupo||''):t(AM_TXT[f.etapa]||L(f.etapa)))
+        :f.etapa==='grupo'?t(L('FASE DE GRUPOS','GROUP STAGE','FASE DE GRUPOS'))+' · '+t(AM_TXT.grupo)+' '+(am2?am2.miGrupo:'')
+        :t(AM_TXT[f.etapa]||L(f.etapa));
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+cab+'</span></span></div>'; }
     /* 2026-09-12: con el día en la columna, la ronda de los playoffs va de cabecera — el idioma de las instancias del continental (§2z177) */
     if(!am&&f.po&&f.dia&&f.ronda!==rondaAnt){ rondaAnt=f.ronda;
@@ -23829,11 +23863,16 @@ let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tu
 function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
   pintaSwitchSel('lobTablaSwitch');   // §12
-  $l('lobTablaTit').textContent=ladoSel==='sel'?tituloSelConAnio():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
+  $l('lobTablaTit').textContent=ladoSel==='sel'?anioTxt():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();   // 2026-09-14: del lado de la bandera, sólo el año
   if(ladoSel==='sel'){
-    /* 2026-09-13 LOS TRAMOS (ver htmlTramos): FASE 1 · FASE 2 · LLAVE arriba (los que no existen, apagados), abre en el que estás;
-       adentro de una fase, las pestañas GRUPO A..H (o I..L), la tuya por defecto — la elección se olvida al cambiar de torneo. */
-    const t2=C.selTorneo, fmt=t2&&SEL_FORMATOS[t2.torneo];
+    /* 2026-09-13 LOS TRAMOS (ver htmlTramos): FASE 1 · FASE 2 · LLAVE (los que no existen, apagados), abre en el que estás;
+       adentro de una fase, las pestañas GRUPO A..H (o I..L), la tuya por defecto — la elección se olvida al cambiar de torneo.
+       §2z242: arriba va el sub-switch ELIMINATORIAS · MUNDIAL cuando hay los dos; los tramos bajan al tope del contenido. */
+    const {dos,key:ck,comp,tv:t2}=compSelDe(e), fmt=t2&&SEL_FORMATOS[t2.torneo];
+    tabs.classList.toggle('oculto',!dos); tabs.classList.remove('muchas');
+    if(dos){ tabs.innerHTML=htmlCompSel(comp,'comp'); tabs.querySelectorAll('[data-comp]').forEach(b=>b.addEventListener('click',()=>{ compSel={t:b.dataset.comp,k:ck}; tramoSel=null; grupoSelSel=null; pintaTablaFull(); })); }
+    const trH=(items,tramo)=>'<div class="tabs zonaTabs grupoTabs dos">'+htmlTramos(items,tramo,'tramo')+'</div>';
+    const enganchaTramos=(key)=>full.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
     /* §12.33: las ELIMINATORIAS también tienen tramos (RONDA 1 · RONDA 2) y pestañas de grupo, como el torneo */
     const elE=e.seleccion;
     if(!t2&&elE&&elE.v===2&&elE.grupos&&(ventanasJugadasSel(elE)>0||elE.idx||(elE.juegos||[]).some(g=>g.jugado))){
@@ -23842,12 +23881,11 @@ function pintaTablaFull(){
       if(grupoSelSel&&grupoSelSel.t!==key) grupoSelSel=null;
       const hayR2=elE.ronda===2, actual=hayR2?'g2':'g1';
       const tramo=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayR2)))?tramoSel.t:actual;
-      tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
-      tabs.innerHTML=htmlTramos([{t:'g1',txt:t(L('RONDA 1','ROUND 1','RODADA 1'))},{t:'g2',txt:t(L('RONDA 2','ROUND 2','RODADA 2')),off:!hayR2}],tramo,'tramo');
-      tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
       const letras=Object.keys(elE.grupos).filter(k=>tramo==='g2'?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k));
       const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(tramo==='g2'?elE.miGrupo2:elE.miGrupo)||letras[0];
-      full.innerHTML=htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x)+htmlSeleccion(e,g,tramo);
+      full.innerHTML=trH([{t:'g1',txt:t(L('RONDA 1','ROUND 1','RODADA 1'))},{t:'g2',txt:t(L('RONDA 2','ROUND 2','RODADA 2')),off:!hayR2}],tramo)
+        +htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x)+htmlSeleccion(e,g,tramo);
+      enganchaTramos(key);
       full.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:key}; pintaTablaFull(); }));
       return;
     }
@@ -23860,17 +23898,15 @@ function pintaTablaFull(){
       const items=fmt.segunda
         ? [{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
         : [{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}];
-      tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
-      tabs.innerHTML=htmlTramos(items,tramo,'tramo');
-      tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
-      if(tramo==='llave'){ full.innerHTML=htmlSeleccion(e,null,'llave'); return; }
+      if(tramo==='llave'){ full.innerHTML=trH(items,tramo)+htmlSeleccion(e,null,'llave'); enganchaTramos(key); return; }
       const letras=Object.keys(t2.grupos).filter(k=>tramo==='g2'?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k));
       const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(tramo==='g2'?t2.miGrupo2:t2.miGrupo)||letras[0];
-      full.innerHTML=(letras.length>1?htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x):'')+htmlSeleccion(e,g,tramo);
+      full.innerHTML=trH(items,tramo)+(letras.length>1?htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x):'')+htmlSeleccion(e,g,tramo);
+      enganchaTramos(key);
       full.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:key}; pintaTablaFull(); }));
       return;
     }
-    tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
+    full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto · 2026-09-13: en dos tramos
     /* §2z238 v2 (su diseño 2026-09-13: "INTERNACIONAL arriba, y adentro dos switches AMÉRICAS · INTERCONTINENTAL; la Copa habilitada
        siempre, con un placeholder hasta que se define quién viaja; y el cuadrito del fondo de Américas se va") */
@@ -23878,7 +23914,7 @@ function pintaTablaFull(){
     tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
     tabs.innerHTML=htmlSubAm(sub,'sub');
     tabs.querySelectorAll('[data-sub]').forEach(b=>b.addEventListener('click',()=>{ subAm={t:b.dataset.sub,k:key}; pintaTablaFull(); }));
-    $l('lobTablaTit').textContent=t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+' · '+anioTxt();   // §2z240 regla 1: el título nombra el nivel; el sub-switch, la copa
+    $l('lobTablaTit').textContent=anioTxt();   // §2z240 regla 1 · 2026-09-14 (su pregunta): el switch ya dice INTERNACIONAL; el título, sólo el año
     if(sub==='ic'){ full.innerHTML=htmlIntercontinental(e); full.querySelectorAll('[data-gic]').forEach(b=>b.addEventListener('click',()=>{ grupoIcSel=b.dataset.gic; pintaTablaFull(); })); return; }
     if(tramoAm&&tramoAm.k!==key) tramoAm=null;
     const hayLl=!!am.llave, tramo=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
@@ -23907,11 +23943,14 @@ function pintaTablaFull(){
     if(def&&def.formato!=='federal'&&(rondas.some(r=>r.series.length)||previa)){
       const mbs=[...new Set(def.rondas.map(r=>r.mejorDe))], fin=def.rondas[def.rondas.length-1];
       const primera=def.rondas.find(r=>!['reclasificacion','playin','playin2','conferencia'].includes(r.nombre))||def.rondas[0];   // el formato del árbol, no el de la previa
-      const fmt=mbs.length===1?formatoTxt(mbs[0]):formatoTxt(primera.mejorDe)+(primera.mejorDe!==fin.mejorDe?' · '+t(L('FINAL','FINAL','FINAL'))+' '+formatoTxt(fin.mejorDe):'');
+      /* 2026-09-14 (su caza: "en Liga Nacional las reglas de la llave tienen el formato viejo"): una regla por renglón con la
+         flechita (regla 10), y cada una dice algo entero: SERIES AL MEJOR DE 5 · LA FINAL AL MEJOR DE 7 · PLAY-IN A PARTIDO ÚNICO */
+      const regla=(nom,m)=>nom+' '+(m>1?formatoTxt(m):t(L('A PARTIDO ÚNICO','IN A SINGLE GAME','EM JOGO ÚNICO')));
+      const reglas=mbs.length===1?[regla(t(L('SERIES','SERIES','SÉRIES')),mbs[0])]:[regla(t(L('SERIES','SERIES','SÉRIES')),primera.mejorDe),primera.mejorDe!==fin.mejorDe?regla(t(RONDA_TXT.final),fin.mejorDe):''];
       if(previa){ const bp=htmlBracket([serieDe(previa)],[previa],e.miClubId,{grilla:true});
-        if(bp) bkLiga+='<div class="cajTag naranja">'+t(RONDA_TXT[previa]||L(previa))+'</div>'+bp+'<div class="cajNota">'+formatoTxt(def.rondas[0].mejorDe)+'</div>'; }
-      /* 2026-09-10 (su regla de la llave, para todas): el título solo y en naranja; el formato debajo, chico */
-      if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag bkSig">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+'<div class="cajNota">'+fmt+'</div>';
+        if(bp) bkLiga+='<div class="cajTag naranja">'+t(RONDA_TXT[previa]||L(previa))+'</div>'+bp+notas(regla(t(RONDA_TXT[previa]||L(previa)),def.rondas[0].mejorDe)); }
+      /* 2026-09-10 (su regla de la llave, para todas): el título solo y en naranja; el formato debajo */
+      if(rondas.some(r=>r.series.length)) bkLiga+='<div class="cajTag bkSig">'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))+'</div>'+htmlBracket(rondas,esperadas,e.miClubId)+notas(...reglas);
     }
   }
   const PO='__po';
@@ -23963,7 +24002,7 @@ function claseCorte(k,pos,n){
    del juego, no una aclaración: sin la nota se lee como error. */
 function notaDesempate(tb){
   const decidioH2H=(tb||[]).some((f,i)=>i>0&&tb[i-1].pg===f.pg&&((tb[i-1].pf-tb[i-1].pc)<(f.pf-f.pc)));
-  return decidioH2H?'<div class="cajNota">'+t(L('EMPATE EN GANADOS: DESEMPATA EL HISTORIAL ENTRE ELLOS','TIED ON WINS: HEAD-TO-HEAD BREAKS THE TIE','EMPATE EM VITÓRIAS: DESEMPATA O CONFRONTO DIRETO'))+'</div>':'';
+  return decidioH2H?notas(t(L('EMPATE EN GANADOS: DESEMPATA EL HISTORIAL ENTRE ELLOS','TIED ON WINS: HEAD-TO-HEAD BREAKS THE TIE','EMPATE EM VITÓRIAS: DESEMPATA O CONFRONTO DIRETO'))):'';
 }
 function leyendaTabla(k){
   if(!k) return '';
@@ -25960,7 +25999,7 @@ function otraTemporada(destino){
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(C.temporada,C.ligaId,C.anio,C.tablaFinal);   // §2z27
   instalarIntercontinental(C.temporada,null,C.anio); C.icPendiente=null;   // §2z27.3 → §2z229 e: la copa ya se jugó en el receso, con el club de la Copa; acá nunca hay nada que instalar
-  C.selAviso=null; C.selTorneo=null;   // §12: el receso quedó atrás
+  C.selAviso=null; C.selTorneo=null; C.selTorneoFin=null;   // §12: el receso quedó atrás · §2z242
   instalarSeleccion(C.temporada,C.jugador,C.ligaId,C.anio,C.semilla,C.seleccion);   // §12
   C.jugador.edad++;
   const declive=aplicarDeclive(C.jugador);   // §2z196: los años cobran al dar vuelta la página
@@ -26504,6 +26543,29 @@ function verQueSeVe(id,nombre){
 /* 2026-09-12 (su caza: "si estás en postemporada, desde el cargar partida sólo dice PLAYOFFS genérico; no te dice de qué ronda estás
    ni nada"): la ranura dice la ronda y cómo va tu serie (tus victorias primero); si ya quedaste afuera, dónde; y si tu equipo no
    entró, eso. Las palabras son las del cierre de serie (SERIE GANADA · ELIMINADOS EN …). */
+/* 2026-09-14 (su caza: «cuando cargás partida, en la Intercontinental te dice RECESO; y antes decía MUNDIAL pero no en qué
+   fase»): el receso dice DÓNDE está la partida — el torneo de la selección con tu fase (grupo · fase 2 · la ronda · afuera) o la
+   Copa Intercontinental con la tuya (grupo · la final · tercer puesto · afuera); RECESO sólo cuando no hay nada en juego */
+function dondeReceso(c){
+  const afuera=(p)=>SEL_CEREMONIA_TXT[p]?t(SEL_CEREMONIA_TXT[p]):t(L('AFUERA','OUT','FORA'))+' · '+t(RONDA_TXT[p]||AM_TXT[p]||L(String(p||'').toUpperCase()));
+  const st=c.selTorneo;
+  if(st&&st.fase!=='terminado'){
+    const nom=selTorneoTxt(st.torneo);
+    if(st.fuera) return nom+' · '+afuera(st.puesto||'grupo');
+    if(st.fase==='grupo') return nom+' · '+t(SEL_TXT.grupo)+' '+(st.miGrupo||'');
+    if(st.fase==='segunda') return nom+' · '+t(L('FASE 2','ROUND 2','FASE 2'))+' · '+t(SEL_TXT.grupo)+' '+(st.miGrupo2||'');
+    return nom+' · '+t(RONDA_TXT[st.miFase]||L(String(st.miFase||'').toUpperCase()));
+  }
+  const e=c.temporada, ic=e&&e.intercontinental;
+  if(ic&&ic.fase!=='terminado'){
+    const nom=t(IC_TXT.corto), mi=e.miClubId;
+    if(ic.miFase==='grupo') return nom+' · '+t(SEL_CEREMONIA_TXT.grupo);
+    if(ic.fase==='grupo') return nom+' · '+t(AM_TXT.grupo)+' '+(ic.grupos.A.includes(mi)?'A':'B');
+    const j=(ic.definicion||[]).find(x=>x.local===mi||x.visita===mi);
+    return nom+' · '+t(AM_TXT[j?j.etapa:'ic-def']);
+  }
+  return t(L('RECESO','OFFSEASON','RECESSO'));
+}
 function dondePlayoffs(e){
   const po=e.playoffs, mi=e.miClubId, ronda=(s)=>t(RONDA_TXT[s.nombre]||L(String(s.nombre||'').toUpperCase()));
   const viva=miSerie(e);
@@ -26542,7 +26604,7 @@ function pintaPartidas(){
         '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
           const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
             :e.fase==='playoffs'?dondePlayoffs(e)
-            :e.fase==='terminada'?(c.selTorneo?t(SEL_TXT[c.selTorneo.torneo]||L(c.selTorneo.torneo)):t(L('RECESO','OFFSEASON','RECESSO')))   // §2z229 e · 2026-09-13 (su caza: decía RECESO con el Mundial en curso)
+            :e.fase==='terminada'?dondeReceso(c)   // §2z229 e · 2026-09-13 (decía RECESO con el Mundial en curso) · 2026-09-14: con la fase, y la Intercontinental
             :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
           return anioL+' · '+donde; })()+'</div>'+
       '</div>'+
@@ -27194,8 +27256,21 @@ function pintaAvisoPalmares(){
   const tab=document.querySelector('#lobby .tab[data-lp=vos-palmares]'); if(tab) tab.classList.toggle('aviso',hay);
 }
 const CARRERA_FILAS=3; let carreraTodo=false;   // §2z29: CARRERA resumida muestra las últimas tres cerradas + la actual
+let ladoPal='club';   // §2z241: el lado de la vitrina — el club (títulos y premios de liga) o la selección (medallas y premios de tu país)
 function pintaPalmares(){
-  const caja=$l('lobPal'), vit=vitrinaDe(C.palmares||[]);
+  const caja=$l('lobPal'), todo=vitrinaDe(C.palmares||[]);
+  /* §2z241 (su pedido 2026-09-13: "el palmarés partido en CLUBES y SELECCIÓN"): el switch de lado de VOS, el mismo molde que el
+     RESUMEN. Aparece cuando hay algo de la selección que mostrar; el puntito va del lado que tiene algo sin ver. */
+  const deSel=todo.filter(g=>ES_SELECCION_CLAVE(g.clave)), deClub=todo.filter(g=>!ES_SELECCION_CLAVE(g.clave));
+  const sw=$l('lobPalSwitch'), haySw=deSel.length>0; sw.classList.toggle('oculto',!haySw);
+  if(!haySw) ladoPal='club';
+  else { const clubV=clubDe(est().miClubId), paisV=C.jugador.nacionalidad||'ar';
+    const tabP=(lado,html,nuevo)=>'<div class="tab'+(ladoPal===lado?' act':'')+(nuevo?' aviso':'')+'" data-ladopal="'+lado+'" tabindex="0">'+html+'</div>';
+    sw.innerHTML=tabP('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>',deClub.some(palNuevo))
+      +tabP('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>',deSel.some(palNuevo));
+    sw.querySelectorAll('[data-ladopal]').forEach(b=>b.addEventListener('click',()=>{ if(ladoPal!==b.dataset.ladopal){ ladoPal=b.dataset.ladopal; palSel=null; palTodo=false; pintaPalmares(); animaCambio('lobPal'); } })); }
+  const enSel=ladoPal==='sel'&&haySw, vit=enSel?deSel:deClub;
+  const TAG_IND=t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL')), TAG_EQ=enSel?t(L('MEDALLAS','MEDALS','MEDALHAS')):t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES'));
   if(!vit.length){ caja.innerHTML='<div class="fila-item vacia">—</div>'; pintaAvisoPalmares(); return; }
   if(!palTodo){
     const sel=vit.find(g=>g.key===palSel)||null;
@@ -27210,8 +27285,8 @@ function pintaPalmares(){
         +iconoDe(g.clave,g.ligaId,28)+(g.veces>1?'<i>×'+g.veces+'</i>':'')+'</button>').join('')
         +(corta?'<button type="button" class="trofeo mas" data-pal="todo">+'+(lista.length-vis.length)+'</button>':'')+'</div>';
     };
-    caja.innerHTML=grilla(vit.filter(g=>!DE_CLUB.has(g.clave)),t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL')))
-      +grilla(vit.filter(g=>DE_CLUB.has(g.clave)),t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES')))
+    caja.innerHTML=grilla(vit.filter(g=>!DE_CLUB.has(g.clave)),TAG_IND)
+      +grilla(vit.filter(g=>DE_CLUB.has(g.clave)),TAG_EQ)
       +'<div class="trofeoDice">'+(sel?'<b>'+nombrePieza(sel)+'</b><span>'+lineaPieza(sel)+'</span>':'')+'</div>'
       /* 2026-09-11 (su caza: «te da VER TODO cuando tenés una sola cosa»): la vista completa agrega los años de cada pieza y las que
          no entran en la fila; si ninguna se ganó más de una vez y todo entra, no hay nada más que ver */
@@ -27220,8 +27295,8 @@ function pintaPalmares(){
     caja.querySelectorAll('.trofeo').forEach(b=>{ b.onclick=()=>{ palSel=palSel===b.dataset.k?null:b.dataset.k; const g=vit.find(x=>x.key===b.dataset.k); if(g) palMarcarVisto(g); pintaPalmares(); }; });
   } else {
     const ind=vit.filter(g=>!DE_CLUB.has(g.clave)), eq=vit.filter(g=>DE_CLUB.has(g.clave));
-    caja.innerHTML=(ind.length?'<div class="cajTag">'+t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL'))+'</div>'+ind.map(piezaHTML).join(''):'')
-      +(eq.length?'<div class="cajTag"'+(ind.length?' style="margin-top:12px"':'')+'>'+t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES'))+'</div>'+eq.map(piezaHTML).join(''):'')
+    caja.innerHTML=(ind.length?'<div class="cajTag">'+TAG_IND+'</div>'+ind.map(piezaHTML).join(''):'')
+      +(eq.length?'<div class="cajTag"'+(ind.length?' style="margin-top:12px"':'')+'>'+TAG_EQ+'</div>'+eq.map(piezaHTML).join(''):'')
       +'<div class="verMas" data-pal="menos">'+t(L('VER MENOS','SEE LESS','VER MENOS'))+'</div>';
     caja.querySelectorAll('.pieza').forEach((el,i)=>{ el.onclick=()=>{ el.classList.toggle('abierta'); const g=[...ind,...eq][i]; if(g){ palMarcarVisto(g); el.classList.remove('nuevo'); pintaAvisoPalmares(); } }; });
   }

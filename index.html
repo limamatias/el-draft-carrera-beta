@@ -1847,7 +1847,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='2320aa3417';
+const BUILD='298ee57280';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -7030,6 +7030,7 @@ function cartaDePrensa(u,volver,forzar){
      fecha, el diario no inventa: dice LA PRENSA y nada más. */
   const dedonde=u.rotulo
     ? u.rotulo
+    : u.ic?t(L('COPA INTERCONTINENTAL','INTERCONTINENTAL CUP','COPA INTERCONTINENTAL'))
     : u.americas?t(L('LIGA DE LAS AMÉRICAS','AMERICAS LEAGUE','LIGA DAS AMÉRICAS'))
     : (u.serie||u.playoffs)?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
     : u.fecha?t(L('FECHA','ROUND','RODADA'))+' '+u.fecha
@@ -13896,6 +13897,8 @@ const rachaPelota=()=> G.frio>=FRIO ? -G.frio : (G.fuego||0);
    real es la resta, y es la que se cuenta en el feed y en el récord. Se apaga con el fuego. */
 const rachaReal=()=>Math.max(0,G.fuego-(G.fuegoRegalo||0));
 /* el mismo préstamo del lado frío: los errados que puso la carta (§2z224 A) no son errados tuyos */
+/* 2026-09-12 (su caza: la última defensiva, tapa, y le dio una contra): la contra necesita reloj — ni en LA ÚLTIMA ni con menos de 8 s */
+const hayTiempoContra=()=>!G.esFinal && (G.reloj||0)>=8;
 const frioReal=()=>Math.max(0,(G.frio||0)-(G.frioRegalo||0));
 function prendeFuego(){
   G.frio=0; G.frioRegalo=0;   /* §2z224: una canasta apaga el frío, como un fallo apaga el fuego */
@@ -17390,7 +17393,7 @@ function tiraRival(j){
       const palm={x:lerp(j.x,G.vos.x,0.6), y:lerp(j.y,G.vos.y,0.6)};
       vuelo({x:j.x,y:j.y},palm,0.2,0.16,()=>{
         D.resuelto=true; D.merito=true; G.tapas++; desfile(t(L('¡TAPA TUYA!','YOUR BLOCK!','TOCO SEU!')),'corrida');
-        G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'tapa'});
+        if(hayTiempoContra()) G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'tapa'});   // 2026-09-12 (su caza): con la última o sin reloj, la tapa no da contra
         finPosesion(true,t(L('Lo tapaste: la pelota es nuestra.','You blocked it: our ball.','Deu o toco: bola nossa.')));
       });
       return;
@@ -19908,7 +19911,12 @@ function frame(now){
   if(enJuego){
     // en cancha el reloj corre 1x (se congela sólo eligiendo la forma — y en el DRILL,
     // que no es un partido: su caza 2026-08-28 18:04)
-    if(G.fase!=='forma'&&G.tipo!=='libre'&&!G.esDrill&&!finalQuieto){ G.reloj=Math.max(0,G.reloj-dt); marcador(); }
+    if(G.fase!=='forma'&&G.tipo!=='libre'&&!G.esDrill&&!finalQuieto){ G.reloj=Math.max(0,G.reloj-dt); marcador();
+      /* 2026-09-12 (su caza: "en la contra el reloj llegó a 0 pero seguía jugando — el tiempo de la jugada es otro"): fuera de LA
+         ÚLTIMA (que tiene su chicharra), el reloj del PARTIDO en cero también corta la jugada. Un tiro ya suelto vale (fase vuelo). */
+      if(G.reloj<=0 && !G.esFinal && !G.gym && G.guion && G.fase!=='vuelo'){ if(G.defensa) G.defensa.resuelto=true; if(G.slalom) G.slalom.fin=true;
+        veredicto(t(L('¡CHICHARRA!','BUZZER!','BUZINA!')),'neu',1100); sfx('chicharra',0.5);
+        finPosesion(false,t(L('Sonó la chicharra.','The buzzer sounded.','Soou a buzina.'))); } }
     // la carrera del pase vivo: los DOS corren mientras la pelota viaja y rueda
     if(G.corres){ for(const cr of G.corres){ cr.t+=dt/cr.dur; const k=Math.min(1,cr.t);
       cr.j.x=lerp(cr.x0,cr.x1,k); cr.j.y=lerp(cr.y0,cr.y1,k); } }
@@ -20245,7 +20253,7 @@ function frame(now){
           vuelo(bp,{x:G.vos.x,y:G.vos.y},0.08,0.14,()=>{
             G.pelotaEn=G.vos; G.robos++; D.merito=true; desfile(t(L('¡LA CORTASTE!','PICKED OFF!','INTERCEPTOU!')),'corrida');
             /* con transición, como el robo de siempre: el premio entra como otra jugada */
-            G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'robo'});
+            if(hayTiempoContra()) G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'contra', premio:'robo'});
             setTimeout(()=>finPosesion(true,t(L('Pisaste la línea: la robaste.','You jumped the passing lane: steal.','Você fechou a linha de passe: roubou a bola.'))),650);
           });
         }
@@ -24822,6 +24830,23 @@ function pintaLobby(){
       $l('lobHoyPorque').style.display=uC?'':'none';
       $l('lobHoyPorque').innerHTML=uC?t(RONDA_TXT[uC.nombre]||L(uC.nombre))+' '+marcaC:'';
     }
+    /* 2026-09-12 (su captura después de ganar la Intercontinental: "queda así, con aire; ¿no deberíamos armar algo como cuando gané
+       la liga?"): la copa jugada sobre la temporada cerrada es lo ÚLTIMO que pasó, así que la foto es la suya — el mismo molde que la
+       de la liga: el trofeo (o tu escudo), COPA INTERCONTINENTAL y el año, CAMPEONES o tu puesto, y el partido que lo decidió. */
+    const icF=e.intercontinental;
+    if(e.fase==='terminada'&&icF&&icF.fase==='terminado'){
+      const mi=e.miClubId, campI=icF.campeon===mi, faseI=icF.miFase||'grupo';
+      bloquePartido.style.display='';
+      const eh=ponerEscudo('lobHoyEscudo', campI?'<div>'+icono('globo',38)+'</div>':escudito(mi), campI?'escudoR oro':'escudoR svg'); eh.style.width='';eh.style.height='';
+      $l('lobHoyCuando').textContent=t(IC_TXT.nombre)+' · '+anioTxt();
+      $l('lobHoyRival').textContent=campI?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')):faseI==='final'?t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES'))
+        :faseI==='tercero'?t(AM_TXT.tercero):faseI==='cuarto'?t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR')):t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'));
+      const mioI=(icF.definicion||[]).find(j=>j.jugado&&(j.local===mi||j.visita===mi));
+      const rivI=mioI?(mioI.local===mi?mioI.visita:mioI.local):null;
+      $l('lobHoyPorque').style.display=mioI?'':'none';
+      $l('lobHoyPorque').innerHTML=mioI?t(AM_TXT[mioI.etapa]||L(mioI.etapa))+' '+(mioI.local===mi?mioI.ptsLocal+'–'+mioI.ptsVisita:mioI.ptsVisita+'–'+mioI.ptsLocal)
+        +' vs '+(clubDe(rivI)?escudito(rivI):'')+nomClubIC(rivI).toUpperCase():'';
+    }
     if(e.fase==='terminada'&&e.playoffs&&e.playoffs.campeon){
       /* §2z7: en la Federal el cierre también anuncia a los DOS que suben (los campeones
          de llave) — el tuyo incluido, que es la noticia de la categoría */
@@ -25785,8 +25810,12 @@ function cierreDeSerie(p,gano){
   /* §2z27.3: la final de la Copa Intercontinental cierra con su card (el techo del club); el tercer puesto y el grupo, sin card */
   if(p&&p.ic){
     if(p.etapa!=='ic-final') return null;
-    return gano?{txt:t(L('¡CAMPEONES INTERCONTINENTALES!','INTERCONTINENTAL CHAMPIONS!','CAMPEÕES INTERCONTINENTAIS!')),tono:'oro'}
-               :{txt:t(L('SUBCAMPEONES INTERCONTINENTALES','INTERCONTINENTAL RUNNERS-UP','VICE-CAMPEÕES INTERCONTINENTAIS')),tono:'mal'};
+    /* 2026-09-12 (su captura: «SERIE CERRADA · undefined-undefined» y el título tocando los bordes): la final es a partido único, no
+       tiene serie que contar — el rótulo nombra la copa, y el título queda corto (a 20 px «¡CAMPEONES INTERCONTINENTALES!» no entra
+       en los 300 de la card, y en portugués menos) */
+    const lbl=t(IC_TXT.nombre);
+    return gano?{txt:t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')),tono:'oro',lbl}
+               :{txt:t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES')),tono:'mal',lbl};
   }
   if(p&&p.tipo==='americas'&&p.etapa==='grupo'){
     const e=est(), am=e&&e.americas; if(!am||am.fase!=='grupo') return null;
@@ -25833,7 +25862,8 @@ function ultimoPartido(cierre,e){
   try{ revisarCarrera(e); }catch(err){}   // §2z46: la carrera se corta ACÁ, antes de la prensa, así el diario habla de la lista recién salida
   return {gano:G.nos>G.riv,nota:cierre.rating,mision:cierre.mision||null,clave:!!cierre.clave,
     grande:!!cierre.grande,clutch:cierre.clutch||null,   // §2z99 · §2z100
-    pts:G.pts,ast:G.ast,rob:G.robos,esc:ESC_RITMO(),serie:cierre.serie||null,   // §2z43.1
+    pts:G.pts,ast:G.ast,rob:G.robos,esc:ESC_RITMO(),serie:(enPartido&&enPartido.ic)?null:(cierre.serie||null),   // §2z43.1 · 2026-09-12 (su caza: salió campeón de la Copa y la prensa dijo PLAYOFFS con la carta de la serie): la card de la copa no es una serie
+    ic:enPartido&&enPartido.ic?{etapa:enPartido.etapa, campeon:enPartido.etapa==='ic-final'&&G.nos>G.riv}:null,
     aviso:(e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada)?e.avisoMVP.tipo:null, mvpPos:e.mvpPos||null,   // §2z46
     debut:!((C.historial||[]).length) && (e.misPartidos||[]).filter(p=>p.jugado&&!p.sel&&!p.am).length===1,   // §2z61: tu primer partido de la carrera
     clasico:!!(mi&&mi.rival&&enPartido&&mi.rival===enPartido.rival),local:!!(enPartido&&enPartido.local),

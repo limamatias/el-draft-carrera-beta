@@ -1840,7 +1840,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='dd3c54bcb6';
+const BUILD='32273808c2';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -13273,7 +13273,7 @@ const CARTAS_DILEMA = [
    mala racha en el bolsillo, y acá hacía falta: hasta hoy la plata era sueldo fijo + premios, o sea ingreso que NUNCA
    baja (la misma queja suya de las relaciones: "todo es subida").
    Cómo funciona: cada sponsor PIDE algo (una nota media, una relación con la hinchada, un nivel) y PAGA una fracción
-   de lo que cobrás por partido. Si dejás de cumplir tres partidos seguidos, se va. Hasta tres a la vez.
+   de lo que cobrás por partido. Si dejás de cumplir tres partidos seguidos, se va. Se acumulan: los ocho pueden ser tuyos a la vez (su corte 2026-09-12).
    ⚠️ No hay decisión: te firman y te sueltan. Lo que decidís es el partido que jugás. */
 /* ⚠️ EL CATÁLOGO ES DATO, A PROPÓSITO (su pregunta 2026-09-11: "¿sponsors no puede ser un enganche si el juego pega
    para que alguien pague para figurar como sponsor?"): la mecánica no sabe nada de quién es la marca — id, nombre,
@@ -13281,7 +13281,6 @@ const CARTAS_DILEMA = [
    Dos campos previstos para ese día: `real:true` (marca licenciada) y `logo`. Y el que pague va a querer LA ALTA, no
    la baja: una marca real no compra un lugar donde puede salir abandonándote, así que la baja queda para las
    inventadas nuestras. Eso es un flag, no un rediseño. */
-const SPONSOR_TOPE = 3;        // cuántos podés tener al mismo tiempo
 const SPONSOR_GRACIA = 3;      // partidos seguidos sin cumplir antes de que te lo saquen
 const SPONSOR_NOTA_VENTANA = 5;   // la nota que miran es la media de tus últimos cinco
 
@@ -26079,8 +26078,9 @@ function evaluarSponsors(){
   for(const x of [...s.tengo]){ const sp=SPONSORS.find(y=>y.id===x.id); if(!sp) continue;
     if(sponsorCumple(sp,c)) x.fallas=0;
     else if((x.fallas=(x.fallas||0)+1)>=SPONSOR_GRACIA){ s.tengo=s.tengo.filter(y=>y!==x); s.avisos.push({id:sp.id,tipo:'baja'}); } }
-  /* y uno nuevo si hay lugar: el más grande que hoy cumplas */
-  if(s.tengo.length<SPONSOR_TOPE){
+  /* y uno nuevo por partido: el más grande que hoy cumplas. 2026-09-12 (su corte: "está MAL que puedas tener hasta 3 a la vez;
+     la idea es que puedas ir acumulando todos"): sin tope — los ocho se pueden tener juntos */
+  {
     const cand=SPONSORS.filter(sp=>!s.tengo.some(x=>x.id===sp.id)&&sponsorCumple(sp,c)).sort((a,b)=>b.paga-a.paga);
     if(cand.length){ s.tengo.push({id:cand[0].id,fallas:0}); s.avisos.push({id:cand[0].id,tipo:'alta'}); s.tuvo=true; }   /* §2z218 v5: el renglón nace acá */
   }
@@ -26164,9 +26164,8 @@ function abrirPedir(){
    estado que dice una cosa sola —cuánto paga, o EN RIESGO—, nunca las dos. */
 function abrirSponsors(){
   const sp=sponsorsEstado(), mios=new Map(sp.tengo.map(x=>[x.id,x]));
-  /* §2z218 v5: "0/3" no dice nada cuando no tenés ninguno — ahí lo que pasó es que te quedaste sin ninguno */
-  $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'))
-    +' · '+(sp.tengo.length?sp.tengo.length+'/'+SPONSOR_TOPE:t(L('NINGUNO','NONE','NENHUM')));
+  /* 2026-09-12 (su caza: "¿qué es ese 3?"): sin tope no hay cuenta — cuáles tenés de los ocho ya lo dice la grilla */
+  $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'));
   $l('sponsorsTotal').classList.toggle('vacio',!sp.tengo.length);
   $l('sponsorsGrilla').innerHTML=SPONSORS.map(y=>{ const x=mios.get(y.id);
     const val=!x?'<span class="v"></span>'

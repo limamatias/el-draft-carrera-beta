@@ -970,9 +970,12 @@
      pasando), el que PASÓ en blanco y negrita, el que SE QUEDÓ en gris y apagado. */
   #lobby .bkRow{display:flex;align-items:center;gap:5px;height:18px;font-size:12px;letter-spacing:.8px;color:var(--tinta);font-variant-numeric:tabular-nums}
   #lobby .bkRow .escudito{width:14px;height:14px;flex:none}
-  #lobby .bkRow .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-right:2px} #lobby .bkRow .banMini>*{width:100%;height:100%}   /* 2026-09-10: la bandera en la llave del continental */
-  #lobby .bkRow .sig{flex:1;white-space:nowrap}
-  #lobby .bkRow .w{flex:none;min-width:14px;text-align:right}
+  #lobby .bkRow .banMini{flex:none;width:15px;height:10px;display:inline-flex;border-radius:2px;overflow:hidden;margin-left:2px} #lobby .bkRow .banMini>*{width:100%;height:100%}   /* 2026-09-10: la bandera en la llave del continental */
+  /* 2026-09-12 (su caza en el cuadro de la final: "la bandera está en cualquier lugar — va donde va SIEMPRE"): la bandera PEGADA al
+     nombre (gap 5 + 2 = los 7 de las filas de grupo) y el resultado contra el borde derecho; antes el nombre estiraba y empujaba la
+     bandera al medio de la caja. En las llaves angostas no cambia nada: ahí ya no sobraba lugar. */
+  #lobby .bkRow .sig{flex:0 1 auto;white-space:nowrap}
+  #lobby .bkRow .w{flex:none;min-width:14px;text-align:right;margin-left:auto}
   #lobby .bkRow.gana{font-weight:700}
   #lobby .bkRow.pierde{color:var(--tinta2);opacity:.5}
   #lobby .bkBox.pend .bkRow{color:var(--tinta2)}
@@ -994,7 +997,7 @@
   #lobby .icCol{display:flex;flex-direction:column;align-items:center;gap:7px}
   #lobby .icCol .bkTit{position:static;width:auto;display:flex;align-items:center;gap:6px;font-size:11px}
   #lobby .icCol .bkTit .ico{width:14px;height:14px}
-  #lobby .icCol .bkBox{position:static;width:170px;height:auto;padding:4px 0}
+  #lobby .icCol .bkBox{position:static;width:170px;height:auto;padding:4px 10px}
   #lobby .icCol .bkBox .bkRow{font-size:14px}
   #lobby .bkBox.queViene{position:static;width:min(100%,300px);height:auto;margin:0 auto;padding:10px 10px 8px;justify-content:flex-start}
   #lobby .queViene .qvCab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:.5px;color:var(--tinta);text-transform:uppercase}
@@ -1840,7 +1843,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='af642b812f';
+const BUILD='df35d8ca06';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6702,7 +6705,7 @@ function salidaDe(o){
   s.clave=!!(o.porqueCal||(o.tipo==='fecha'&&typeof elegirCalientes==='function'&&elegirCalientes(e).find(c=>c.fecha===o.fecha)));
   if(o.tipo==='serie'&&o.serie){ const sr=o.serie, mine=sr.alta===mi?sr.ganAlta:sr.ganBaja, riv=sr.alta===mi?sr.ganBaja:sr.ganAlta, need=Math.ceil(sr.mejorDe/2);
     s.cierro=mine===need-1; s.meCierran=riv===need-1; s.decisivo=s.cierro&&s.meCierran; s.barrida=s.cierro&&riv===0&&need>=3; s.final=sr.nombre==='final'; }
-  if(o.tipo==='seleccion'||o.tipo==='americas') s.final=o.etapa==='final';   // 2026-09-12: la final de las Américas también es LA final
+  if(o.tipo==='seleccion'||o.tipo==='americas') s.final=o.etapa==='final'||o.etapa==='ic-final';   // 2026-09-12: y la de la Copa Intercontinental (su etapa es «ic-final»: nunca le tocaba ninguna carta de final)   // 2026-09-12: la final de las Américas también es LA final
   /* §2z235 (su caza 2026-09-13: "no me viene saliendo ninguna card pre-partido en ningún partido del Mundial; esperaría más cosas"):
      lo que el torneo de la selección tiene para contar — el primer partido, el que define el grupo, la llave a partido único, el
      bronce, el rival grande */
@@ -6716,8 +6719,8 @@ function salidaDe(o){
     s.etapaTxt=typeof SEL_TXT!=='undefined'&&SEL_TXT[o.etapa]?t(SEL_TXT[o.etapa]).toLowerCase():(o.etapa||'');
   }
   /* §2z40.1 (su pedido: "el clásico contra [rival]", "la final de [competencia]"): nombres para la prosa */
-  const rc=clubDe(o.rival); s.rival=rc?(rc.corto||rc.nombre):'';
-  s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?t(L('la Liga de las Américas','the Americas League','a Liga das Américas')):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
+  const rc=clubDe(o.rival)||(o.ic?clubIC(o.rival):null); s.rival=rc?(rc.corto||rc.nombre):'';   // los de afuera del padrón (la Copa) tienen ficha en clubIC
+  s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?(o.ic?t(L('la Copa Intercontinental','the Intercontinental Cup','a Copa Intercontinental')):t(L('la Liga de las Américas','the Americas League','a Liga das Américas'))):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
   return s;
 }
 function cartaDeSalida(o,seguir){
@@ -12911,7 +12914,7 @@ const CARTAS_SALIDA=[
  /* 2026-09-12 LA FINAL DE LAS AMÉRICAS (su pedido): dos cartas con prosa propia, siempre sale una */
  { id:'sal_final_am_1', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
-   gancho:(c)=>L('La final de '+c.salida.competencia+', contra '+c.salida.rival+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. El presidente baja al vestuario y te da la mano sin decir nada.','The '+c.salida.competencia+' final, against '+c.salida.rival+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The club president comes down to the locker room and shakes your hand without a word.','A final d'+c.salida.competencia.slice(1)+', contra '+c.salida.rival+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. O presidente desce ao vestiário e te dá a mão sem dizer nada.'),
+   gancho:(c)=>L('La final de '+c.salida.competencia+', contra '+c.salida.rival+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. El presidente baja al vestuario y te da la mano sin decir nada.',c.salida.competencia.replace(/^the /,'The ')+' final, against '+c.salida.rival+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The club president comes down to the locker room and shakes your hand without a word.','A final d'+c.salida.competencia.slice(1)+', contra '+c.salida.rival+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. O presidente desce ao vestiário e te dá a mão sem dizer nada.'),
    opciones:[
      {tipo:'segura',label:L('"Un partido más"','"Just another game"','"Mais um jogo"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís en voz baja y te lo creés hasta el salto inicial.','You say it under your breath and believe it until the tip-off.','Você diz baixinho e acredita até a bola ao alto.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Hoy se gana"','"Tonight we win"','"Hoje a gente ganha"'),desenlaces:[
@@ -12919,7 +12922,7 @@ const CARTAS_SALIDA=[
        {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante durante el calentamiento y se te cierra la garganta. Ellos la leyeron también.','You read it on the big screen during warm-ups and your throat tightens. They read it too.','Você lê no telão durante o aquecimento e a garganta fecha. Eles leram também.'),ef:{rel:{dt:-2},partido:{frio:true}}}]}]},
  { id:'sal_final_am_2', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
-   gancho:(c)=>L('La final de '+c.salida.competencia+'. En el túnel se escucha la tribuna a través de la pared, y el capitán te pregunta si estás.','The '+c.salida.competencia+' final. In the tunnel you can hear the crowd through the wall, and the captain asks if you are ready.','A final d'+c.salida.competencia.slice(1)+'. No túnel dá para ouvir a torcida através da parede, e o capitão pergunta se você está pronto.'),
+   gancho:(c)=>L('La final de '+c.salida.competencia+'. En el túnel se escucha la tribuna a través de la pared, y el capitán te pregunta si estás.',c.salida.competencia.replace(/^the /,'The ')+' final. In the tunnel you can hear the crowd through the wall, and the captain asks if you are ready.','A final d'+c.salida.competencia.slice(1)+'. No túnel dá para ouvir a torcida através da parede, e o capitão pergunta se você está pronto.'),
    opciones:[
      {tipo:'segura',label:L('Respirar diez segundos','Breathe for ten seconds','Respirar dez segundos'),desenlaces:[{p:100,remate:null,texto:L('Cerrás los ojos. Cuando los abrís sos el primero de la fila.','You close your eyes. When you open them you are first in line.','Você fecha os olhos. Quando abre, é o primeiro da fila.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Dámela desde el arranque"','"Give me the ball from the tip"','"Me dá a bola desde o início"'),desenlaces:[
@@ -22815,7 +22818,7 @@ function htmlIntercontinental(e){
   /* su caza (2026-09-13: "dos llaves en el aire y lo único que dice qué es cada una está en un título alineado a la izquierda"):
      cada caja con su título encima, como las columnas del bracket, las dos centradas */
   const caja=(s,titulo)=>{ const dec=!!s.ganador;
-    const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+(LBL[id]?'':escC(id))+'<span class="sig">'+sigC(id)+'</span>'+(LBL[id]?'':banIC(id))+'<span class="w">'+(g===''||g===undefined?'':g)+'</span></div>';
+    const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+(LBL[id]?'':escC(id))+'<span class="sig">'+sigC(id)+'</span>'+(LBL[id]?'':banIC(id))+'<span class="w">'+(g===''||g===undefined?'–':g)+'</span></div>';   // sin jugar, «–» (su caza)
     return '<div class="icCol"><div class="bkTit">'+titulo+'</div><div class="bkBox'+((s.alta===mi||s.baja===mi)?' vos':'')+'">'+fila(s.alta,s.ganAlta)+fila(s.baja,s.ganBaja)+'</div></div>'; };
   h+='<div class="icDef">'+caja(ss[0],icono('copa',14)+' '+t(AM_TXT['ic-final']))+caja(ss[1],t(AM_TXT['ic-tercero']))+'</div>';   // la final arriba, con el trofeo (su corte)
   return h;
@@ -23863,7 +23866,13 @@ window.addEventListener('resize',apoyarPaneles);
 let fondoLob=null;
 function irLob(v){
   /* §2z74: la plena abre SIEMPRE del lado de la competencia del próximo partido */
-  if(v==='tabla-full'||v==='fixture-full'){ ladoSel_auto=true; const l=ladoDelProximo(); if(l!==ladoSel){ ladoSel=l; repintarPlenasSel(); } }
+  /* 2026-09-12 (su caza: "en la final, TABLA desde el lobby no me abrió la copa"): lo que elegiste adentro del lado (AMÉRICAS ·
+     INTERCONTINENTAL, el tramo, el grupo) vivía mientras no cambiara la clave, y la clave no mira la fase — así que la elección de
+     antes le ganaba al próximo. Entrar desde el lobby la olvida: se abre en lo del próximo partido. */
+  if(v==='tabla-full'||v==='fixture-full'){ ladoSel_auto=true; const l=ladoDelProximo();
+    const habia=!!(subAm||grupoIcSel||tramoAm||grupoAmSel||tramoSel||grupoSelSel||compSel);
+    subAm=null; grupoIcSel=null; tramoAm=null; grupoAmSel=null; tramoSel=null; grupoSelSel=null; compSel=null;
+    if(l!==ladoSel||habia){ ladoSel=l; repintarPlenasSel(); } }
   VISTAS.forEach(x=>$l('lv-'+x).classList.toggle('oculto',x!==v));
   apoyarPaneles();
   if(v==='fixture-full') apoyarFixEnProx();   // 2026-09-10: recién ahora el cajón mide
@@ -24043,7 +24052,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   ultimoFix=[fechas,calPorFecha,proxKey];
   pintaSwitchSel('lobFixSwitch');
   const sel=ladoSel==='sel', am=ladoSel==='am';
-  $l('lobFixTit').textContent=sel?anioTxt():(am?t(AM_TXT.nombre):t(L('TU FIXTURE','YOUR SCHEDULE','SEU CALENDÁRIO')))+' · '+anioTxt();   // 2026-09-14 (su pregunta: "¿es necesario el título? repite lo que ya sabés"): del lado de la bandera y del globo, sólo el año
+  $l('lobFixTit').textContent=anioTxt();   // 2026-09-12 (su caza): del lado del club también, sólo el año — como los otros dos lados   // 2026-09-14 (su pregunta: "¿es necesario el título? repite lo que ya sabés"): del lado de la bandera y del globo, sólo el año
   /* §2z35: del lado del globo, sólo los partidos del continental (siguen en el del club también: los jugás con el club) */
   $l('lobFixFull').classList.toggle('ladoAm',am);   // 2026-09-10 (su caza): del lado del globo la marca es «1» o «J2», la columna de 34 px sobraba y le robaba al nombre
   /* 2026-09-13 §2z229 g: los TRAMOS también en el fixture — mismo estado que la tabla (tramoAm / tramoSel), mismos rótulos */
@@ -24139,7 +24148,7 @@ let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tu
 function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
   pintaSwitchSel('lobTablaSwitch');   // §12
-  $l('lobTablaTit').textContent=ladoSel==='sel'?anioTxt():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();   // 2026-09-14: del lado de la bandera, sólo el año
+  $l('lobTablaTit').textContent=anioTxt();   // 2026-09-12 (su caza: "LIGA NACIONAL ya lo sacamos de las otras dos; si abajo no se dice, va abajo"): el título es el año; la liga, el rótulo del cajón   // 2026-09-14: del lado de la bandera, sólo el año
   if(ladoSel==='sel'){
     /* 2026-09-13 LOS TRAMOS (ver htmlTramos): FASE 1 · FASE 2 · LLAVE (los que no existen, apagados), abre en el que estás;
        adentro de una fase, las pestañas GRUPO A..H (o I..L), la tuya por defecto — la elección se olvida al cambiar de torneo.
@@ -24234,16 +24243,17 @@ function pintaTablaFull(){
   const mia=e.zonas?e.zonaDe[e.miClubId]:null;
   let z=opciones.includes(zonaTablaSel)?zonaTablaSel:(bkLiga&&e.fase==='playoffs'&&zonaTablaSel===null?PO:(mia||(bkLiga?'__tabla':null)));
   if(bkLiga&&!e.zonas&&z!==PO) z='__tabla';
-  const pestanas=bkLiga?(e.zonas?[PO,...e.zonas]:[PO,'__tabla']):(e.zonas||[]);
-  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
+  const pestanas=bkLiga?(e.zonas?[...e.zonas,PO]:['__tabla',PO]):(e.zonas||[]);   // 2026-09-12 (su caza): la tabla ADELANTE de PLAYOFFS; en playoffs abre igual en PLAYOFFS
+  const tagLiga='<div class="cajTag">'+ligaDe().nombre.toUpperCase()+'</div>';
+  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tagLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):zonaTxt(x);
   tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',pestanas.length>3);
   tabs.innerHTML=pestanas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+nomTab(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
-  if(z===PO){ full.innerHTML=bkLiga; return; }
-  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
+  if(z===PO){ full.innerHTML=tagLiga+bkLiga; return; }
+  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tagLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const tz=tablaZona(e,z);
-  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
+  full.innerHTML=tagLiga+tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
 }
 /**
  * §2z44 LAS LÍNEAS DE LA TABLA (su pedido 2026-09-05: *"pensemos cómo se ven las cosas en tablas de
@@ -24747,10 +24757,20 @@ function pintaLobby(){
       $l('lobHoyPorque').textContent=selPorqueTxt(prox,e);
     } else if(prox.tipo==='americas'){
       /* §2z27: el continental — la competencia y la etapa arriba, el grupo o la serie abajo */
-      $l('lobHoyCuando').textContent=compAM(prox)+' · '+amEtapaTxt(prox.etapa,prox.grupo);
+      /* 2026-09-12 (su caza en la final: "decimos COPA INTERCONTINENTAL · LA FINAL como en mil lugares"; su ok a la propuesta):
+         el nombre de la copa y la etapa viven SÓLO en el chip. Acá, el idioma de la liga: arriba cuándo, abajo lo que el chip no
+         dice. La serie de Américas (al mejor de 3 o 5), el de las series de la liga: RONDA · JUEGO n y SERIE x–y · AL MEJOR DE n. */
+      const srAM=!prox.ic&&prox.serie&&prox.serie.mejorDe>1?prox.serie:null;
+      let porque;
+      if(srAM){ const miG=srAM.alta===e.miClubId?srAM.ganAlta:srAM.ganBaja, riG=srAM.alta===e.miClubId?srAM.ganBaja:srAM.ganAlta;
+        $l('lobHoyCuando').textContent=amEtapaTxt(prox.etapa)+' · '+t(L('JUEGO','GAME','JOGO'))+' '+prox.juego;
+        porque=t(L('SERIE','SERIES','SÉRIE'))+' '+miG+'–'+riG+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+srAM.mejorDe; }
+      else { $l('lobHoyCuando').textContent=t(L('PRÓXIMO','NEXT UP','PRÓXIMO'))+' · '+diaTxt(diaAmericas(e,prox.ventana));
+        porque=prox.ic?(prox.etapa==='ic-grupo'?t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+(prox.total||2):'')   // la final y el tercer puesto se dicen solos en el chip
+          :amPorqueTxt(prox); }   // el grupo de Américas (partido n de 4 y lo que necesitás) y el partido único del Final Four
       $l('lobHoyRival').innerHTML=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase()+' '+banderita(prox.rival);   // 2026-09-12 (su caza): la banderita del rival, sólo en las copas internacionales (acá el próximo es siempre continental o Intercontinental)
-      $l('lobHoyPorque').style.display='';
-      $l('lobHoyPorque').textContent=amPorqueTxt(prox);
+      $l('lobHoyPorque').style.display=porque?'':'none';
+      $l('lobHoyPorque').textContent=porque;
     } else {
       const s=prox.serie;
       /* medido 2026-09-02: a 11px con 2px de espaciado entran 266; con "AL MEJOR DE n" acá
@@ -24919,7 +24939,13 @@ function pintaLobby(){
   } else if(prox.tipo==='americas'&&prox.etapa!=='grupo'){
     /* §2z27: la LLAVE del continental es clave; el grupo (su corte) se ofrece como una fecha más,
        con PASAR LA SEMANA y SALTAR AL CLAVE — el que quiere pasar la temporada no juega cuatro de más */
-    cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+(prox.ic?t(L('JUGAR · INTERCONTINENTAL','PLAY · INTERCONTINENTAL','JOGAR · INTERCONTINENTAL')):t(L('JUGAR · LIGA DE LAS AMÉRICAS','PLAY · AMERICAS LEAGUE','JOGAR · LIGA DAS AMÉRICAS')))+'</button>';   // §2z27.3
+    /* 2026-09-12 (su ok): el botón nombra EL PARTIDO, no la copa (que ya está en el chip) — JUGAR LA FINAL, JUGAR EL JUEGO 2 */
+    const JUGAR_ETAPA={final:L('JUGAR LA FINAL','PLAY THE FINAL','JOGAR A FINAL'),'ic-final':L('JUGAR LA FINAL','PLAY THE FINAL','JOGAR A FINAL'),
+      semifinal:L('JUGAR LA SEMIFINAL','PLAY THE SEMIFINAL','JOGAR A SEMIFINAL'),tercero:L('JUGAR EL TERCER PUESTO','PLAY THE THIRD-PLACE GAME','JOGAR O TERCEIRO LUGAR'),
+      'ic-tercero':L('JUGAR EL TERCER PUESTO','PLAY THE THIRD-PLACE GAME','JOGAR O TERCEIRO LUGAR'),'ic-def':L('JUGAR LA DEFINICIÓN','PLAY THE DECIDER','JOGAR A DECISÃO')};
+    const txtJ=(prox.serie&&prox.serie.mejorDe>1)?t(L('JUGAR EL JUEGO','PLAY GAME','JOGAR O JOGO'))+' '+prox.juego
+      :JUGAR_ETAPA[prox.etapa]?t(JUGAR_ETAPA[prox.etapa]):t(L('JUGAR EL PRÓXIMO','PLAY NEXT','JOGAR O PRÓXIMO'));
+    cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+txtJ+'</button>';   // §2z27.3
     $l('lobBJugar').addEventListener('click',()=>abrirPre(prox));
   } else if(proxEsClave){
     cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('JUGAR EL PRÓXIMO · PARTIDO CLAVE','PLAY NEXT · BIG GAME','JOGAR O PRÓXIMO · JOGO CHAVE'))+'</button>';

@@ -1237,9 +1237,10 @@
   #lobby .cajNota{font-size:10px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:center;margin-top:6px}   /* 2026-09-10: la regla, chica y debajo */
   /* §2z240 regla 10 (su caza 2026-09-13: "¿por qué tantas reglas una al lado de la otra? nos sobra MUCHO espacio; una regla por
      renglón, mejor espaciado, mejor señalización"): las reglas de un torneo, una por renglón, con aire y su puntito */
-  #lobby .cajNotas{display:flex;flex-direction:column;align-items:center;gap:7px;margin:14px 0 8px}
-  #lobby .cajNotas .nota{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;text-align:center;line-height:1.35;padding:0 10px}
-  #lobby .cajNotas .nota::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--naranja);margin-right:8px;vertical-align:2px;opacity:.85}
+  /* su corte: a la izquierda y con la flechita, como los renglones del pre-partido (▸) */
+  #lobby .cajNotas{display:flex;flex-direction:column;align-items:stretch;gap:7px;margin:14px 0 8px;padding:0 12px}
+  #lobby .cajNotas .nota{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;text-align:left;line-height:1.35;padding-left:14px;text-indent:-14px}
+  #lobby .cajNotas .nota::before{content:'▸';color:var(--naranja);margin-right:6px}
   /* §2z74 (su caza: "cambian de altura entre BOCA y ARG, el escudo es muy grande al lado de LIGA NACIONAL"): el
      rótulo de VOS mide lo mismo de los dos lados — escudo y bandera en la misma caja de 16 px, centrados */
   #lobby .rotuloVos{display:flex;align-items:center;gap:6px;height:20px}
@@ -1773,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='24443c8d61';
+const BUILD='b2f3e20ede';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

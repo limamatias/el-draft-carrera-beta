@@ -833,7 +833,10 @@
   /* 2026-09-13 los tramos: el que no existe todavía se ve apagado; las pestañas de los grupos viven adentro del cajón */
   #lobby .tab.off{opacity:.35;pointer-events:none}
   #lobby .grupoTabs{margin:0 0 8px;align-self:stretch}
-  #lobby .grupoTabs.dos{margin:0 auto 8px;width:max-content;max-width:100%;justify-content:center}   /* §2z240 regla 4: dos pestañas, centradas (el cajón es block: el centrado es por margen, no por align-self — su caza) */
+  /* §2z240 regla 4: dos pestañas, centradas. ⚠️ `.zonaTabs.muchas` es una GRILLA de 4 columnas a lo ancho (las pestañas GRUPO A..H):
+     con dos, ocupaban dos celdas de la izquierda — por eso seguían a la izquierda después de "centrarlas" (su caza, dos veces).
+     Con `dos` vuelve a flex, ancho por contenido y centrado por margen (el cajón es block). */
+  #lobby .grupoTabs.dos,#lobby .zonaTabs.muchas.dos{display:flex;grid-template-columns:none;margin:0 auto 10px;width:max-content;max-width:100%;justify-content:center;align-self:center}
   #lobby .zonaTabs.muchas .tab{padding:7px 4px;font-size:12px;letter-spacing:1.5px;white-space:nowrap}
   #lobby .fix{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .fix .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);align-items:center;letter-spacing:.5px}
@@ -974,10 +977,13 @@
      relleno es 10, el gap 8 y la píldora 7: sobran 9 px en castellano y 16 en inglés (el preolímpico en inglés, 25). */
   #lobby .qvSep{margin-top:14px;padding-top:12px;border-top:1px solid rgba(154,164,184,.18)}
   /* §2z238 v2: la definición de la Copa — dos cajas del bracket, cada una con su título encima, centradas */
-  #lobby .icDef{display:flex;justify-content:center;gap:16px;margin:14px 0 6px}
-  #lobby .icCol{display:flex;flex-direction:column;align-items:center;gap:4px}
-  #lobby .icCol .bkTit{position:static;width:auto}
-  #lobby .icCol .bkBox{position:static;width:110px}
+  /* su corte (2026-09-13): la final ARRIBA con el trofeo, el tercer puesto abajo, con aire — no dos cajas lado a lado */
+  #lobby .icDef{display:flex;flex-direction:column;align-items:center;gap:18px;margin:26px 0 14px}
+  #lobby .icCol{display:flex;flex-direction:column;align-items:center;gap:7px}
+  #lobby .icCol .bkTit{position:static;width:auto;display:flex;align-items:center;gap:6px;font-size:11px}
+  #lobby .icCol .bkTit .ico{width:14px;height:14px}
+  #lobby .icCol .bkBox{position:static;width:170px;height:auto;padding:4px 0}
+  #lobby .icCol .bkBox .bkRow{font-size:14px}
   #lobby .bkBox.queViene{position:static;width:min(100%,300px);height:auto;margin:0 auto;padding:10px 10px 8px;justify-content:flex-start}
   #lobby .queViene .qvCab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;letter-spacing:.5px;color:var(--tinta);text-transform:uppercase}
   #lobby .queViene .qvCab .nom{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1753,7 +1759,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='147e1f4473';
+const BUILD='0124a06d6e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22459,6 +22465,7 @@ function htmlIntercontinental(e){
      seas vos u otro; sin campeón todavía, el contrato: cuándo, dónde y quién clasifica */
   const nomC=(id)=>{ const c=clubDe(id)||clubIC(id); return c?(c.corto||c.nombre):id; };
   const escC=(id)=>clubDe(id)?escudito(id):'<span class="escudito"></span>';
+  const banIC=(id)=>{ const p=clubDe(id)?paisDeClub(id):(clubIC(id)&&clubIC(id).pais); return p?'<span class="banMini">'+banderaDe(p,16)+'</span>':''; };   // el mismo molde que `banderita` (Américas); los de la liga no traen `pais`: paisDeClub   // su caza: las banderas de los países de cada club
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
   if(!ic){
     const camp=am&&am.campeon; const cl=camp&&clubDe(camp);
@@ -22474,7 +22481,7 @@ function htmlIntercontinental(e){
   let h=htmlGrupoTabs(['A','B'],gV,'gic',(x)=>t(AM_TXT.grupo)+' '+x)
     +'<div class="cajTag">'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+(previa?' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')):'')+'</div>';
   tablaGrupoIC(ic,gV).forEach((f,i)=>{ const dif=(f.pf||0)-(f.pc||0);
-    h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
+    h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+banIC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
   h+='<div class="cajNota">'+t(L('EL 1° A LA FINAL · EL 2° AL TERCER PUESTO','1ST TO THE FINAL · 2ND TO THE THIRD-PLACE GAME','O 1º À FINAL · O 2º AO TERCEIRO LUGAR'))+'</div>';
   /* §2z240 regla 3: la definición es un BRACKET dibujado (la grilla de dos cajas de la reclasificación), con las cajas vacías
      antes de definirse — 1° A vs 1° B · 2° A vs 2° B */
@@ -22487,9 +22494,9 @@ function htmlIntercontinental(e){
   /* su caza (2026-09-13: "dos llaves en el aire y lo único que dice qué es cada una está en un título alineado a la izquierda"):
      cada caja con su título encima, como las columnas del bracket, las dos centradas */
   const caja=(s,titulo)=>{ const dec=!!s.ganador;
-    const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+(LBL[id]?'':escC(id))+'<span class="sig">'+sigC(id)+'</span><span class="w">'+(g===''||g===undefined?'':g)+'</span></div>';
+    const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+(LBL[id]?'':escC(id))+'<span class="sig">'+sigC(id)+'</span>'+(LBL[id]?'':banIC(id))+'<span class="w">'+(g===''||g===undefined?'':g)+'</span></div>';
     return '<div class="icCol"><div class="bkTit">'+titulo+'</div><div class="bkBox'+((s.alta===mi||s.baja===mi)?' vos':'')+'">'+fila(s.alta,s.ganAlta)+fila(s.baja,s.ganBaja)+'</div></div>'; };
-  h+='<div class="icDef">'+caja(ss[0],t(AM_TXT['ic-final']))+caja(ss[1],t(AM_TXT['ic-tercero']))+'</div>';
+  h+='<div class="icDef">'+caja(ss[0],icono('copa',14)+' '+t(AM_TXT['ic-final']))+caja(ss[1],t(AM_TXT['ic-tercero']))+'</div>';   // la final arriba, con el trofeo (su corte)
   return h;
 }
 function htmlAmericasGrupo(e,g){

@@ -836,8 +836,11 @@
   /* §2z240 regla 4: dos pestañas, centradas. ⚠️ `.zonaTabs.muchas` es una GRILLA de 4 columnas a lo ancho (las pestañas GRUPO A..H):
      con dos, ocupaban dos celdas de la izquierda — por eso seguían a la izquierda después de "centrarlas" (su caza, dos veces).
      Con `dos` vuelve a flex, ancho por contenido y centrado por margen (el cajón es block). */
-  #lobby .grupoTabs.dos,#lobby .zonaTabs.muchas.dos{display:flex;grid-template-columns:none;margin:0 auto 10px;width:max-content;max-width:100%;justify-content:center;align-self:center}
+  #lobby .grupoTabs.dos{display:flex;grid-template-columns:none;margin:0 auto 10px;width:max-content;max-width:100%;justify-content:center;align-self:center}
   #lobby .zonaTabs.muchas .tab{padding:7px 4px;font-size:12px;letter-spacing:1.5px;white-space:nowrap}
+  /* las pestañas de GRUPO (htmlGrupoTabs): cada fila tiene --n celdas del ancho de UNA de la grilla de cuatro, centradas — el gap es el de abajo (6) */
+  #lobby .zonaTabs.muchas.pocas{grid-template-columns:repeat(var(--n),calc((100% - 18px) / 4));justify-content:center}
+  #lobby .grupoFilas{display:flex;flex-direction:column;gap:6px;margin:0 0 8px} #lobby .grupoFilas .grupoTabs{margin:0}
   /* §2z240 regla 9 (su caza 2026-09-13: "un contenedor adentro del otro como una mamushka; ¿por qué no aprovechamos los contrastes
      contra el fondo?"): el MARCO es sólo del switch de lado (BOC · INTERNACIONAL · ARG). Las filas de adentro —los tramos, el
      sub-switch, las pestañas de grupo— van sin caja: el texto apagado contra el fondo y la píldora llena en la activa. */
@@ -1837,7 +1840,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='2438cd165a';
+const BUILD='dd3c54bcb6';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22760,7 +22763,15 @@ function htmlTramos(items,act,attr){   // items: [{t,txt,off}]
   return items.map(x=>'<div class="tab'+(x.t===act?' act':'')+(x.off?' off':'')+'" data-'+attr+'="'+x.t+'" tabindex="0">'+x.txt+'</div>').join('');
 }
 function htmlGrupoTabs(letras,g,attr,txt){
-  return '<div class="tabs zonaTabs muchas grupoTabs'+(letras.length<=2?' dos':'')+'">'+letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-'+attr+'="'+x+'" tabindex="0">'+txt(x)+'</div>').join('')+'</div>';
+  /* 2026-09-12 (su regla: «en todo lo que haya grupos, filas de 4; si son 6, dos filas de 3; si son 2, centrados; GRUPO A siempre
+     del mismo tamaño»): cada pestaña mide UNA celda de la grilla de cuatro, sea cual sea la cantidad. Las filas se reparten
+     parejas —filas = ⌈n/4⌉, por fila = ⌈n/filas⌉ (5 → 3+2 · 6 → 3+3 · 7 → 4+3 · 8 → 4+4)— y la fila corta va centrada. */
+  const filas=Math.max(1,Math.ceil(letras.length/4)), porFila=Math.ceil(letras.length/filas);
+  let h='';
+  for(let i=0;i<letras.length;i+=porFila){ const tramo=letras.slice(i,i+porFila);
+    h+='<div class="tabs zonaTabs muchas grupoTabs pocas" style="--n:'+tramo.length+'">'
+      +tramo.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-'+attr+'="'+x+'" tabindex="0">'+txt(x)+'</div>').join('')+'</div>'; }
+  return '<div class="grupoFilas">'+h+'</div>';
 }
 function htmlAmericas(e,g){ return htmlAmericasGrupo(e,g)+htmlAmericasLlave(e); }
 /* §2z238 LA COPA INTERCONTINENTAL EN LA TABLA (2026-09-13, su caza: "la tabla ni siquiera existe"): tu grupo de tres con la línea de
@@ -24077,7 +24088,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
      apoyarse. El respaldo es el primer partido de este lado sin resultado — el que viene, aunque no sea el próximo. */
   const filas=fechas.filter(f=>!am||f.am).filter(f=>!tramoF||(tramoF==='g1'?f.etapa==='grupo'&&!f.ic:tramoF==='copa'?!!f.ic:f.etapa!=='grupo'&&!f.ic));   // §2z229 g · §2z238: la copa en su tramo
   if(!filas.some(f=>f.key===proxKey)){ const n=filas.find(f=>!f.res); if(n) proxKey=n.key; }
-  let h='', etapaAnt=null, ultF=0, rondaAnt=null;
+  let h='', etapaAnt=null, ultF=0, rondaAnt=null, icAnt=null;
   /* 2026-09-12 (su caza: "paso de F33 a F35, ¿F34 estaremos libres? debería decírmelo, si no se ve raro"): la fecha libre del
      club va como fila apagada, «FECHA LIBRE», con su día. Sólo en la liga con fechas de verdad (en la NBA cada fecha es un
      día y los días sin partido son la mitad del calendario: ahí no). */
@@ -24096,6 +24107,12 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
     /* 2026-09-12: con el día en la columna, la ronda de los playoffs va de cabecera — el idioma de las instancias del continental (§2z177) */
     if(!am&&f.po&&f.dia&&f.ronda!==rondaAnt){ rondaAnt=f.ronda;
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(RONDA_TXT[f.ronda]||L(f.ronda))+'</span></span></div>'; }
+    /* 2026-09-12 (su caza: "en el fixture general del equipo no se distingue que se juega la copa intercontinental"): del lado del
+       club la copa lleva cabecera, como las rondas de los playoffs — COPA INTERCONTINENTAL · GRUPO A, después · LA FINAL */
+    if(!am&&f.ic&&f.etapa!==icAnt){ icAnt=f.etapa;
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(IC_TXT.nombre)+' · '
+        +(f.etapa==='ic-grupo'?t(AM_TXT.grupo)+' '+(f.grupo||''):t(AM_TXT[f.etapa]||L(f.etapa)))+'</span></span></div>'; }
+    else if(!f.ic) icAnt=null;
     h+=filaFix(f,calPorFecha,proxKey,am);
   }
   const box=$l('lobFixFull'); box.innerHTML=h;

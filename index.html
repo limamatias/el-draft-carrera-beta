@@ -1732,7 +1732,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='092877300b';
+const BUILD='75856973a5';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22474,7 +22474,16 @@ function htmlSeleccion(e,gVer){
       const seg=SEL_LETRAS2.includes(gV);
       if(!gVer) h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // con pestañas, el título ya lo dicen ellas (su caza: «abajo no debería decir GRUPO A de nuevo, con la bandera colgada»)
       tablaSel(t2,gV).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
-      h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
+      /* 2026-09-13 (su pregunta: «¿pasan 2 a qué? ¿cómo son las siguientes fases?»): el contrato, por fase. En el Mundial la
+         primera fase manda a la segunda (A+B → I, C+D → J, E+F → K, G+H → L, arrastrando el partido entre los dos que pasan);
+         la segunda, y los torneos sin segunda fase, mandan a cuartos. */
+      const fmt=SEL_FORMATOS[t2.torneo]||{};
+      if(fmt.segunda&&!seg){ const i=SEL_LETRAS.indexOf(gV), par=SEL_LETRAS[i^1], dest=SEL_LETRAS2[i>>1];
+        h+='<div class="cajNota">'+t(L('PASAN 2 A LA SEGUNDA FASE','TOP 2 TO THE SECOND ROUND','2 PASSAM À SEGUNDA FASE'))
+          +(par&&dest?' · '+gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:'')+'</div>'
+          +'<div class="cajNota">'+t(L('LLEVÁS EL PARTIDO CONTRA EL OTRO QUE PASA','YOU CARRY THE GAME VS THE OTHER QUALIFIER','VOCÊ LEVA O JOGO CONTRA O OUTRO QUE PASSA'))+'</div>'
+          +'<div class="cajNota">'+t(L('DESPUÉS: CUARTOS · SEMIFINAL · FINAL','THEN: QUARTERS · SEMIS · FINAL','DEPOIS: QUARTAS · SEMIFINAL · FINAL'))+'</div>'; }
+      else h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
     }
     if(t2.llave){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */

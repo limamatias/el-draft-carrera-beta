@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='ae2bdb457c';
+const BUILD='3f91208fa3';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22505,14 +22505,18 @@ function htmlAmericas(e,g){ return htmlAmericasGrupo(e,g)+htmlAmericasLlave(e); 
 /* §2z238 LA COPA INTERCONTINENTAL EN LA TABLA (2026-09-13, su caza: "la tabla ni siquiera existe"): tu grupo de tres con la línea de
    corte (pasa 1 a la final, el 2° al tercer puesto) y, cerrado el grupo, la definición con su marcador. Los clubes de afuera del
    padrón (clubIC) se nombran por su ficha. */
+/* la fila de un grupo de la Copa Intercontinental: la usan la plena y la tablita del lobby (2026-09-14) */
+const nomClubIC=(id)=>{ const c=clubDe(id)||clubIC(id); return c?(c.corto||c.nombre):id; };
+const escClubIC=(id)=>clubDe(id)?escudito(id):'<span class="escudito"></span>';
+const banClubIC=(id)=>{ const p=clubDe(id)?paisDeClub(id):(clubIC(id)&&clubIC(id).pais); return p?'<span class="banMini">'+banderaDe(p,16)+'</span>':''; };   // el mismo molde que `banderita` (Américas); los de la liga no traen `pais`: paisDeClub
+function filaGrupoIC(f,i,mi){ const dif=(f.pf||0)-(f.pc||0);
+  return '<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escClubIC(f.id)+'<span class="nom">'+nomClubIC(f.id)+banClubIC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; }
 function htmlIntercontinental(e){
   const mi=e.miClubId, am=e.americas, anio=C.anio+1;
   let ic=e.intercontinental, previa=false;
   /* v2: sin torneo armado, el sorteo YA EXISTE (es determinista): con campeón de las Américas se muestran los grupos con él adentro,
      seas vos u otro; sin campeón todavía, el contrato: cuándo, dónde y quién clasifica */
-  const nomC=(id)=>{ const c=clubDe(id)||clubIC(id); return c?(c.corto||c.nombre):id; };
-  const escC=(id)=>clubDe(id)?escudito(id):'<span class="escudito"></span>';
-  const banIC=(id)=>{ const p=clubDe(id)?paisDeClub(id):(clubIC(id)&&clubIC(id).pais); return p?'<span class="banMini">'+banderaDe(p,16)+'</span>':''; };   // el mismo molde que `banderita` (Américas); los de la liga no traen `pais`: paisDeClub   // su caza: las banderas de los países de cada club
+  const nomC=nomClubIC, escC=escClubIC, banIC=banClubIC;   // el mismo molde que `banderita` (Américas); los de la liga no traen `pais`: paisDeClub   // su caza: las banderas de los países de cada club
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
   if(!ic){
     const camp=am&&am.campeon; const cl=camp&&clubDe(camp);
@@ -22527,8 +22531,7 @@ function htmlIntercontinental(e){
   const gV=(grupoIcSel==='A'||grupoIcSel==='B')?grupoIcSel:gMio;
   let h=htmlGrupoTabs(['A','B'],gV,'gic',(x)=>t(AM_TXT.grupo)+' '+x)
     +'<div class="cajTag">'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+(previa?' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')):'')+'</div>';
-  tablaGrupoIC(ic,gV).forEach((f,i)=>{ const dif=(f.pf||0)-(f.pc||0);
-    h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+banIC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
+  tablaGrupoIC(ic,gV).forEach((f,i)=>{ h+=filaGrupoIC(f,i,mi); });
   h+=notas(t(L('EL 1° A LA FINAL','1ST TO THE FINAL','O 1º À FINAL')),t(L('EL 2° AL TERCER PUESTO','2ND TO THE THIRD-PLACE GAME','O 2º AO TERCEIRO LUGAR')));
   /* §2z240 regla 3: la definición es un BRACKET dibujado (la grilla de dos cajas de la reclasificación), con las cajas vacías
      antes de definirse — 1° A vs 1° B · 2° A vs 2° B */
@@ -22617,12 +22620,6 @@ const selTorneoTxt=(k)=>t(SEL_TXT[k]||L(k));
 /* 2026-09-10 (su caza: "en el fixture de la selección no dice en ningún lugar qué competencia es"): el título de las plenas del
    lado de la bandera nombra la competencia —el torneo del receso o las eliminatorias—, no «LA SELECCIÓN» */
 const tituloSel=()=>C&&C.selTorneo?selTorneoTxt(C.selTorneo.torneo):elimTxt();   // 2026-09-10 (su pedido): con el Mundial y su sede, en todos lados
-/* 2026-09-11 (lo destapó el arnés de capturas arreglado, clase 9): las plenas del lado de la bandera sumaban el año de la
-   temporada a un título que YA trae el año del Mundial — «MUNDIAL FRANCIA 2031 · 2029». El torneo del receso no trae año, así
-   que ahí sí va el de la temporada. */
-const tituloSelConAnio=()=>{ if(C&&C.selTorneo) return selTorneoTxt(C.selTorneo.torneo)+' · '+anioTxt();
-  const e=est(); if(e&&!e.seleccion){ const an=torneoAnunciado(e); if(an&&!an.afuera) return nombreTorneoSel(an.cual)+' '+an.anio; }   // 2026-09-12: sin eliminatorias, la plena se titula con el torneo que viene
-  return elimTxt(); };
 /* ⚠️ LAS ELIMINATORIAS SON A ALGO, Y ESE ALGO SE DICE (su caza 2026-09-04: *"debería decir en
    cómo salió el partido sin ser convocado que es eliminatorias de qué torneo, sino es
    genérico"*). Las ventanas corren en la temporada anterior a la del Mundial, así que el
@@ -23666,7 +23663,7 @@ function misFechas(){
      día siguiente; llevan `am` y la fila los dibuja con el 🌎 en vez de la F */
   if(e.americas||e.intercontinental) for(const j of misJuegosAMyIC(e)){   // §2z27.3: la copa de la pretemporada entra con f=0, antes de la fecha 1
     if(j.f===undefined||j.f===null) continue;
-    out.push({am:true,ic:!!j.ic,grupo:j.grupo||null,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,   // 2026-09-14 (su caza: la copa en el fixture vivía en LLAVE de Américas): `ic` la manda a su pestaña
+    out.push({am:true,ic:!!j.ic,grupo:j.grupo||null,neutral:!!j.neutral,etapa:j.etapa,n:j.n,fecha:j.f,key:'am'+j.etapa+j.n,rival:j.rival,local:j.local,siHaceFalta:!!j.siHaceFalta,   // 2026-09-14 (su caza: «en G League» — la copa es en cancha neutral: vs)   // 2026-09-14 (su caza: la copa en el fixture vivía en LLAVE de Américas): `ic` la manda a su pestaña
       res:j.res?{ptsLocal:j.res.ptsLocal,ptsVisita:j.res.ptsVisita}:null,dia:j.dia||diaDeFecha(e.semilla,j.f,est().ritmo)+1});
   }
   /* ⚠️ §12 (su corte 2026-09-04): EN EL FIXTURE DE TU EQUIPO **NO** VAN LOS PARTIDOS DE LA
@@ -23765,7 +23762,7 @@ function filaFix(f,calPorFecha,proxFecha,ladoAM){
      en el continental el rival es de otro país y el nombre solo no lo dice — la misma banderita que ya usa la tabla
      del torneo. Sólo en las filas del globo: en la liga son todos del mismo país y sería ruido. */
   return '<div class="r'+(f.key===proxFecha?' prox':'')+(f.am?' am':'')+(f.po?' po':'')+(f.sel?' sel':'')+(f.conSel?' conSel':'')+'"><span class="f">'+marca+'</span>'+
-    '<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local),nombresDe(f.rival))+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
+    '<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local,f.neutral),nombresDe(f.rival))+(f.am?banderita(f.rival):'')+'</span>'+   // 2026-09-10 (su caza: "el fixture de AMÉRICAS no tiene escudos, por eso lo veía distinto"): vuelven; la bandera ya está a la derecha y pesa lo que el nombre largo del club   // 2026-09-09 (su caza: "vs Fuerza Re…" con aire): del lado del globo el escudo se va, la bandera y el número ya dicen
     '<span class="dia">'+(f.dia?diaTxt(f.dia):f.po?rondaCorta(f.ronda):selTorneoTxt(f.torneo))+'</span>'+res+'</div>';
 }
 /** §12: el fixture pleno, del lado que diga el switch. */
@@ -24114,7 +24111,7 @@ function abrirPasoParte(jugados,despues){
   const paso=220;
   $l('pasoJuegos').innerHTML=filas.map((x,i)=>
     '<div class="fila-item" style="animation-delay:'+(i*paso)+'ms"><span class="desc">'
-    +(x.am?icono('globo',14):fPrefijo()+numFecha(x.fecha))+' '+escudito(x.rival)+' '+vsTxt(x.local)+nomCorto(x.rival).toUpperCase()+'</span>'
+    +(x.am?icono('globo',14):fPrefijo()+numFecha(x.fecha))+' '+escudito(x.rival)+' '+vsTxt(x.local,x.neutral)+nomCorto(x.rival).toUpperCase()+'</span>'
     +'<b class="'+(x.mios>x.sus?'g':'p')+'">'+x.mios+'–'+x.sus+'</b></div>').join('');
   /* lo tuyo: el promedio de lo que el relato te anotó — y las fechas que no jugaste porque estabas
      con la selección se dicen aparte, que es justo lo que un 0 no explica (§2z91) */
@@ -24153,8 +24150,8 @@ function abrirPasarConfirm(sig,ref,alFinal,destino){   // 2026-09-10 (su caza: "
                     :t(L('Tu equipo juega estos partidos sin vos','Your team plays these games without you','Seu time joga estes jogos sem você')))
     : t(L('Ningún partido tuyo en el medio','None of your games in between','Nenhum jogo seu no meio')))
     +(Math.round(energia)!==0?' · '+(energia>0?'+':'−')+Math.abs(Math.round(energia))+' ⚡':'');
-  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local),nombresDe(f.rival))+'</div>').join('')
-    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+nomAjustable('nom',vsTxt(destino.local),nombresDe(destino.rival),' · '+diaTxt(sig.dia))+'<span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
+  P.querySelector('.lista').innerHTML=fs.map(f=>'<div class="r"><span class="f">'+(f.am?icono('globo',14):fPrefijo()+numFecha(f.fecha))+'</span>'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local,f.neutral),nombresDe(f.rival))+'</div>').join('')
+    +(destino?'<div class="r clave"><span class="f">'+fPrefijo()+numFecha(destino.fecha)+'</span>'+escudito(destino.rival)+nomAjustable('nom',vsTxt(destino.local,destino.neutral),nombresDe(destino.rival),' · '+diaTxt(sig.dia))+'<span class="fuego">🔥</span></div>':'');   // 2026-09-10 (su caza): el clave lleva su fuego
   P.classList.remove('oculto');
   $l('lobPasarNo').onclick=()=>P.classList.add('oculto');
   $l('lobPasarSi').onclick=()=>{ P.classList.add('oculto'); pasarHasta(sig,alFinal); };
@@ -24559,13 +24556,18 @@ function pintaLobby(){
   } else if(prox&&prox.tipo==='americas'&&e.americas){
     /* §2z74: con el próximo en el continental, el panel corto es el del torneo — sus fechas alrededor del próximo y la
        tabla de tu grupo (la misma que abre VER COMPLETA del lado del globo) */
-    const fam=fechas.filter(f=>f.am), idxA=fam.findIndex(f=>f.key===proxKey);
+    /* 2026-09-14 (su caza: "el FIXTURE del lobby muestra los partidos de Américas, no sólo los de la Intercontinental"): el panel
+       corto es el de LA copa que estás jugando (la Intercontinental o Américas), y la tablita, su grupo */
+    const enIC=!!prox.ic, ic=e.intercontinental;
+    const fam=fechas.filter(f=>f.am&&!!f.ic===enIC), idxA=fam.findIndex(f=>f.key===proxKey);
     const dA=Math.max(0,Math.min(idxA-2,fam.length-5));
     $l('lobFix5').innerHTML=fam.slice(dA,dA+5).map(f=>filaFix(f,calPorFecha,proxKey)).join('');
-    let tA=''; tablaGrupoAM(e.americas,e.americas.miGrupo).slice(0,5).forEach((f,i)=>{ tA+=filaGrupoAM(f,i+1,e.miClubId); });
+    let tA='';
+    if(enIC&&ic){ const g=ic.grupos.A.includes(e.miClubId)?'A':'B'; tablaGrupoIC(ic,g).forEach((f,i)=>{ tA+=filaGrupoIC(f,i,e.miClubId); }); }
+    else tablaGrupoAM(e.americas,e.americas.miGrupo).slice(0,5).forEach((f,i)=>{ tA+=filaGrupoAM(f,i+1,e.miClubId); });
     /* §2z163 (su corte: "en la tabla, cuando vas a jugar el partido, tendría más sentido"): la condición del último del
        grupo va también acá, debajo de la tabla corta del vestuario — el grupo tiene tres filas, hay lugar */
-    { const cond=amCondicionTxt(); if(cond) tA+='<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+cond+'</span></span></div>'; }
+    { const cond=enIC?null:amCondicionTxt(); if(cond) tA+='<div class="r amTit"><span class="pos">'+icono('globo',14)+'</span><span class="club"><span class="nom">'+cond+'</span></span></div>'; }
     $l('lobTabla5').innerHTML=tA;
   } else {
     const idxProx=prox&&(prox.tipo==='fecha'||prox.tipo==='americas'||prox.tipo==='serie')?fechas.findIndex(f=>f.key===proxKey):fechas.length-1;

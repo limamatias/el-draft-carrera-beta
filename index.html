@@ -1294,8 +1294,6 @@
   /* ⚠️ ancho FIJO: con el precio adentro, el botón medía distinto en cada fila */
   #lobby .fila-tienda .btn{flex:none;width:74px;text-align:center;font-size:11px;padding:5px 0}
   /* §2z165 v3: LO TUYO, la pestaña — la economía arriba (el .eco del contrato) y una fila por compra, como la vidriera */
-  #lobby #lobTuyo .eco{margin-top:0;padding-top:0;border-top:0;padding-bottom:6px;border-bottom:1px solid rgba(154,164,184,.14);margin-bottom:2px}
-  #lobby #lobTuyo .fila-tienda .ef{color:var(--tinta2)}
   /* ⚠️ LO TUYO envuelve en dos renglones apenas comprás cuatro cosas, y esos dos renglones son
      los que devolvían el scroll: va chico y sin interlineado de más (medido a 375×600). */
   #lobby .tuyo{margin-top:4px;font-size:10px;line-height:1.25;letter-spacing:.8px;color:var(--tinta2)}
@@ -1888,7 +1886,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c5ee56357f';
+const BUILD='49bd46ee3e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2293,7 +2291,6 @@ const BUILD='c5ee56357f';
       <div class="vista oculto" id="lv-vida">
         <div class="tabs">
           <div class="tab act" data-lp="vida-tienda" tabindex="0" data-l-en="SHOP" data-l-pt="LOJA">TIENDA</div>
-          <div class="tab" data-lp="vida-tuyo" tabindex="0" data-l-en="YOURS" data-l-pt="O SEU">LO TUYO</div>
           <div class="tab" data-lp="vida-contrato" tabindex="0" data-l-en="CONTRACT" data-l-pt="CONTRATO">CONTRATO</div>
         </div>
         <div class="paneles">
@@ -2307,10 +2304,7 @@ const BUILD='c5ee56357f';
           <div class="cajon" id="lobTienda"></div>
           <div class="puertas" id="lobPuertas"></div>   <!-- §2z247: las cinco puertas de la tienda -->
         </div>
-        <!-- §2z165 v3: LO TUYO es una pestaña — un lugar propio que crece con las compras, sin cargar la vidriera -->
-        <div class="panel" id="lp-vida-tuyo">
-          <div class="cajon" id="lobTuyo"></div>
-        </div>
+        <!-- §2z247 (su corte 2026-09-12): LO TUYO se fue — cada tienda muestra su escalera con lo tuyo adentro -->
         <div class="panel" id="lp-vida-contrato">
           <div class="cajon" id="lobContrato"></div>
         </div>
@@ -26727,28 +26721,7 @@ function pintaActivosPre(){ const J=C.jugador;
     pa.classList.toggle('oculto',!ids.length);
     pa.innerHTML=ids.map(it=>'<div class="activo"><span class="ico">'+iconoPartido(it.id)+'</span><span class="que">'+t(it.nom)+' <em>· '+fraseItem('partido',it,J)+'</em></span>'+puntosEnUso(u[it.id])+'</div>').join(''); }
 }
-/* §2z165 v3 (sus dos cortes 2026-09-08: "es un flood que mantiene el mismo problema" · "me gusta la idea de fondo de LO
-   TUYO, pero todo subrayado es feo, cualquier ✓ te lleva al mismo menú con las palabras en minúscula, y si acumulás se
-   rompe"): LO TUYO es una PESTAÑA de VIDA, al lado de TIENDA. Arriba tu economía de energía —lo que las compras
-   mueven—; abajo una fila por compra con el mismo dibujo de la vidriera (ícono, NOMBRE, efecto), en el orden de las
-   cadenas. Crece como lista, en su lugar. La vidriera no cambia. */
-function pintaTuyo(){
-  const J=C.jugador, box=$l('lobTuyo'); if(!box) return;
-  /* §2z184: la lista de lo que tenés. 2026-09-12 (su caza: "¿acá se van a ir acumulando TODAS las cosas? va a desbordar; y la
-     prosa abajo de cada cosa se ve muy rara"): UNA FILA POR CADENA, sin frases — en las que reemplazan (vehículo, casa) tu
-     mejor escalón; en el staff y el lujo, los nombres juntos. Cuatro filas como máximo. Lo que da cada cosa ya lo dice la
-     vidriera (§2y: no se repite). */
-  let h='', n=0;
-  for(const k of ['staff','vehiculo','casa','lifestyle']){
-    const m=mejorDe(J,k);
-    const mios=ESCALERA[k].filter(it=>tieneItem(J,it.id)&&((k==='staff'||k==='lifestyle')||it===m));
-    if(!mios.length) continue; n+=mios.length;
-    h+='<div class="fila-tienda cad-'+k+'"><span class="ico">'+iconoTienda(k)+'</span>'
-      +'<span class="txt"><span class="nom">'+mios.map(it=>t(it.nom)).join(' · ')+'</span></span></div>';
-  }
-  if(!n) h+='<div class="fila-item"><span class="desc">'+t(L('Todavía nada','Nothing yet','Ainda nada'))+'</span></div>';
-  box.innerHTML=h;
-}
+/* §2z165 v3 LO TUYO era una pestaña de VIDA; §2z247 (su corte 2026-09-12: "ya no tiene sentido") la sacó: cada tienda muestra su escalera con lo tuyo adentro */
 /* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
    hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */
 let ladoRel='club', ladoRel_auto=true;
@@ -26795,7 +26768,7 @@ function pintaSecciones(){
     const mb=document.querySelector('#lobby .mediaBox'); if(esBeta()&&mb&&mb.offsetWidth&&!(window.MODO_BETA&&window.MODO_BETA.medidor)) chip.style.width=mb.offsetWidth+'px'; }
   pintaEntrenar();
   pintaRelaciones();
-  pintaTienda(); pintaTuyo();
+  pintaTienda();
   /* ⚠️ El contrato decía tres frases —"cobrás $110 por partido + $40 si ganan", "te queda
      esta temporada de contrato", "se renegocia en el receso — llegá con números"—. La
      última era prosa pura (su caza) y las otras dos eran un dato envuelto en una oración.

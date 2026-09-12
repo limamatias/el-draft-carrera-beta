@@ -1423,6 +1423,21 @@
        background:rgba(20,27,44,.85);border:1.5px solid rgba(154,164,184,.4);color:var(--tinta2);
        font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
   #introAjustes:active{border-color:var(--naranja);color:var(--naranja)}
+  /* §2z246.1 la cuenta: el mismo círculo que el ⚙, a su izquierda; con Google el avatar ES la foto (como BotonCuenta de la casa) */
+  #introCuenta{position:absolute;right:58px;top:12px;width:38px;height:38px;border-radius:50%;
+       background:rgba(20,27,44,.85);border:1.5px solid rgba(154,164,184,.4);color:var(--tinta2);
+       padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+  #introCuenta.oculto{display:none}
+  #introCuenta img{width:100%;height:100%;object-fit:cover}
+  #introCuenta .punto{position:absolute;right:6px;bottom:6px;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px #141b2c}
+  #introCuenta:active{border-color:var(--naranja);color:var(--naranja)}
+  #cuentaVelo{z-index:47}
+  #cuentaVelo .cuentaGoogle{display:flex;justify-content:center;min-height:44px;padding:4px 0 2px}
+  #cuentaVelo .cuentaFallo{font-size:13px;color:var(--mal);text-align:center}
+  #cuentaVelo .cuentaQuien{display:flex;align-items:center;gap:12px;padding:6px 0 12px}
+  #cuentaVelo .cuentaQuien img{width:44px;height:44px;border-radius:50%;flex:none}
+  #cuentaVelo .cuentaQuien b{font-size:17px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #cuentaVelo .oculto{display:none}
   /* el popup de confirmación del lobby: la caja del sistema, sí-no y nada más */
   #lobConfirm,#lobLataConfirm,#lobPasarConfirm{position:absolute;inset:0;z-index:5;background:rgba(5,7,13,.72);
        display:flex;align-items:center;justify-content:center;padding:24px}
@@ -1773,6 +1788,9 @@
        padding:16px;display:flex;flex-direction:column;gap:10px}
   #partidas h2{font-size:28px;letter-spacing:2px}
   #partidasRanuras{display:flex;flex-direction:column;gap:8px}
+  /* §2z246.2 el museo: el rótulo de sección (11/2px, la escala de §2z11) y la línea de la cuenta, que se toca */
+  #partidas .museoRot{font-size:11px;letter-spacing:2px;font-weight:600;color:var(--tinta2);margin-top:8px}
+  #partidas .museoCuenta{font-size:13px;color:var(--naranja);cursor:pointer;margin-top:-4px}
   .ranura{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:12px;
        cursor:pointer;border:1.5px solid rgba(154,164,184,.35);background:rgba(10,14,24,.55)}
   .ranura.vacia{justify-content:center;border-style:dashed;color:var(--tinta2);
@@ -1817,7 +1835,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='888bf50aa4';
+const BUILD='fd8a035120';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -1913,6 +1931,8 @@ const BUILD='888bf50aa4';
 <div id="vineta" class="oculto"><div class="vimg"></div><div class="vbarra"></div></div>
 <div class="velo" id="intro" style="background:linear-gradient(rgba(8,11,19,.30),rgba(8,11,19,.72)),var(--keyartVolcada) center/cover">
   <button id="introAjustes" aria-label="Ajustes">⚙</button>
+  <!-- §2z246.1 la cuenta de El Draft: sólo en /carrera (01y la muestra si el armado trae `cuentas`) -->
+  <button id="introCuenta" class="oculto" aria-label="Tu cuenta"></button>
   <!-- EL NOMBRE (2026-09-03, decisión suya): El Draft es la casa y éste es CARRERA — el hermano de
        El Draft: Destino. Es un nombre: no se traduce. -->
   <div style="color:var(--tinta2);font-size:18px;letter-spacing:5px;font-weight:700;margin-bottom:-6px">EL DRAFT</div>
@@ -2535,6 +2555,22 @@ const BUILD='888bf50aa4';
     <div class="nota2" id="betaMenuTxt"></div>
     <button class="jugar ancho" id="betaMenuLista" data-l-en="TELL ME ABOUT THE FULL GAME" data-l-pt="ME AVISA DO JOGO COMPLETO">AVISAME DEL JUEGO COMPLETO</button>
     <button class="jugar secundario ancho" id="betaMenuFeed" data-l-en="REPORT SOMETHING" data-l-pt="REPORTAR ALGO">REPORTAR ALGO</button>
+  </div>
+</div>
+<!-- §2z246.1 TU CUENTA (sólo /carrera): afuera, el botón oficial de Google; adentro, quién sos y SALIR. Nunca se pide. -->
+<div id="cuentaVelo" class="veloB oculto">
+  <div class="caja">
+    <div class="veloX" id="cuentaX" tabindex="0" aria-label="cerrar">✕</div>
+    <h2 data-l-en="YOUR ACCOUNT" data-l-pt="SUA CONTA">TU CUENTA</h2>
+    <div id="cuentaFuera">
+      <div class="gancho" data-l-en="The same one as El Draft." data-l-pt="A mesma do El Draft.">La misma de El Draft.</div>
+      <div id="cuentaGoogle" class="cuentaGoogle"></div>
+      <div class="cuentaFallo oculto" id="cuentaFallo" data-l-en="Couldn't connect to Google. Try again in a moment." data-l-pt="Não deu para conectar com o Google. Tente de novo em instantes.">No se pudo conectar con Google. Probá en un rato.</div>
+    </div>
+    <div id="cuentaDentro" class="oculto">
+      <div class="cuentaQuien" id="cuentaQuien"></div>
+      <button class="jugar secundario ancho" id="cuentaSalir" data-l-en="SIGN OUT" data-l-pt="SAIR">SALIR</button>
+    </div>
   </div>
 </div>
 <!-- §7.1 el contrato de la beta, una vez -->
@@ -13292,6 +13328,144 @@ function sponsorPedido(s){
 }
 const sponsorCumple=(s,c)=>(!s.pide.nota||c.nota>=s.pide.nota)&&(!s.pide.hinchada||c.hinchada>=s.pide.hinchada)
   &&(!s.pide.nivel||c.nivel>=s.pide.nivel);
+/* ══ §2z246.1 LA CUENTA DE EL DRAFT EN /carrera (2026-09-14, su pedido: "es clave que la partida esté conectada a la cuenta de
+   Google… incluso en la portada de /carrera tiene que estar el botón para loguearte, como está en El Draft" — y su corte: "crear
+   una partida NO pide cuenta… es recomendado, pero no pide").
+   ⚠️ SÓLO EXISTE EN EL ARMADO PARA EL DRAFT (`armar-beta.mjs --draft`), que inyecta `MODO_BETA.cuentas = {lib, google}`. En el
+   artifact de claude.ai y en Pages no hay nada de esto: otro origen, otra sesión, y el juego sigue anónimo como siempre.
+   ⚠️ La sesión ES LA DE LA CASA: /carrera es eldraftgame.com, así que se lee de la misma clave (`eldraft:auth`) con la MISMA
+   librería en la MISMA versión (`auth-draft.js`, empaquetada desde node_modules de El Draft al armar). Nada del formato se copia a
+   mano: refresco, rotación del token y el candado entre pestañas (`lock:eldraft:auth`) son los de allá. Entrar es el botón
+   oficial de Google (GIS) con el token a Supabase por atrás — el camino de BotonGoogle.tsx, sin la pantalla de supabase.co.
+   La librería se carga recién cuando hace falta (la portada con cuenta prendida), y todo fallo deja el juego anónimo y mudo. */
+const CUENTA_CFG=(typeof window!=='undefined'&&window.MODO_BETA&&window.MODO_BETA.cuentas&&window.MODO_BETA.sb)?window.MODO_BETA:null;
+const CUENTA_CLAVE='eldraft:auth';
+let cuentaCliente=null, cuentaPromesa=null, cuentaSesion=null;
+const cuentaOyentes=[];
+function cuentaActiva(){ return !!CUENTA_CFG; }
+function cuentaCargarScript(src){
+  return new Promise((ok)=>{ const s=document.createElement('script'); s.src=src; s.async=true; s.onload=()=>ok(true); s.onerror=()=>ok(false); document.head.appendChild(s); });
+}
+function cuentaAvisar(){ for(const f of cuentaOyentes){ try{ f(cuentaSesion); }catch(err){} } }
+function cuentaAlCambiar(f){ cuentaOyentes.push(f); }
+function cuentaIniciar(){
+  if(!cuentaActiva()) return Promise.resolve(null);
+  cuentaPromesa=cuentaPromesa||(async()=>{
+    try{
+      if(!(window.AuthDraft&&window.AuthDraft.GoTrueClient)){ if(!await cuentaCargarScript(CUENTA_CFG.cuentas.lib)) return null; }
+      const sb=CUENTA_CFG.sb;
+      cuentaCliente=new window.AuthDraft.GoTrueClient({url:sb.url+'/auth/v1',headers:{apikey:sb.anon},autoRefreshToken:true,
+        persistSession:true,detectSessionInUrl:false,flowType:'pkce',storageKey:CUENTA_CLAVE});
+      cuentaCliente.onAuthStateChange((ev,s)=>{ cuentaSesion=s||null; cuentaAvisar(); });   // también cuando la casa entra o sale en otra pestaña
+      const r=await cuentaCliente.getSession();
+      cuentaSesion=(r&&r.data&&r.data.session)||null; cuentaAvisar();
+      return cuentaCliente;
+    }catch(err){ return null; }
+  })();
+  return cuentaPromesa;
+}
+/* el token para las RPC: con sesión, el del usuario (y `auth.uid()` llena `user_id` en la 0096); sin sesión, la anon */
+async function cuentaToken(){
+  if(!cuentaActiva()) return null;
+  try{ const c=await cuentaIniciar(); if(!c) return null; const r=await c.getSession(); return (r&&r.data&&r.data.session&&r.data.session.access_token)||null; }catch(err){ return null; }
+}
+function cuentaFoto(){
+  const m=(cuentaSesion&&cuentaSesion.user&&cuentaSesion.user.user_metadata)||{};
+  const f=typeof m.avatar_url==='string'?m.avatar_url:typeof m.picture==='string'?m.picture:null;
+  return f&&/^https:\/\//.test(f)?f:null;
+}
+/* el nombre en TU pantalla: `user_metadata.nombre`, si no el de Google, si no el mail (nunca público — como `nombreDe` de allá) */
+function cuentaNombre(){
+  const u=cuentaSesion&&cuentaSesion.user; if(!u) return '';
+  const m=u.user_metadata||{};
+  return String((typeof m.nombre==='string'&&m.nombre.trim())||(typeof m.full_name==='string'&&m.full_name.trim())||u.email||'');
+}
+/* §2z246.2: una RPC que EXIGE sesión (el museo). Sin sesión no sale: {ok:false}. Nunca tira. */
+async function cuentaRpc(fn,body,keepalive){
+  if(!cuentaActiva()) return {ok:false};
+  /* con keepalive (la pestaña se está yendo) no hay tiempo para getSession: va el token que ya está en memoria */
+  const tk=keepalive?(cuentaSesion&&cuentaSesion.access_token):await cuentaToken(); if(!tk) return {ok:false};
+  try{
+    const sb=CUENTA_CFG.sb;
+    const r=await fetch(sb.url+'/rest/v1/rpc/'+fn,{method:'POST',keepalive:!!keepalive,headers:{apikey:sb.anon,Authorization:'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+    let json=null; try{ json=await r.json(); }catch(err){}
+    return {ok:r.ok,status:r.status,json};
+  }catch(err){ return {ok:false}; }
+}
+function cuentaHaySesion(){ return !!cuentaSesion; }
+/* §2z246.3 la partida viaja comprimida (medido: una temporada de la NBA pesa 158 KB en JSON y 19 KB en gzip; la Federal 110 → 17):
+   gzip + base64. Sin CompressionStream (navegadores viejos) va el JSON pelado y el formato lo dice. */
+async function cuentaComprimir(texto){
+  if(typeof CompressionStream==='undefined') return {formato:'json',datos:texto};
+  const buf=new Uint8Array(await new Response(new Blob([texto]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let bin=''; for(let i=0;i<buf.length;i+=0x8000) bin+=String.fromCharCode.apply(null,buf.subarray(i,i+0x8000));
+  return {formato:'gz64',datos:btoa(bin)};
+}
+async function cuentaDescomprimir(formato,datos){
+  if(formato!=='gz64') return datos;
+  const bin=atob(datos), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+  return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}
+async function cuentaSalir(){ try{ const c=await cuentaIniciar(); if(c) await c.signOut(); }catch(err){} cuentaSesion=null; cuentaAvisar(); }
+
+/* ── EL BOTÓN OFICIAL DE GOOGLE (GIS), copiado de BotonGoogle.tsx: nonce crudo a Supabase y su SHA-256 a Google; FedCM para el
+   botón (en Android el popup-pestaña moría si Chrome descartaba la del juego). Lo dibuja Google: tema oscuro, píldora, 300 de ancho. */
+let cuentaGis=null;
+function cuentaCargarGis(){
+  cuentaGis=cuentaGis||(window.google&&window.google.accounts&&window.google.accounts.id?Promise.resolve(window.google)
+    :cuentaCargarScript('https://accounts.google.com/gsi/client').then(ok=>ok?(window.google||null):null));
+  return cuentaGis;
+}
+async function cuentaBotonGoogle(caja,alFallar){
+  if(!cuentaActiva()||!CUENTA_CFG.cuentas.google||!caja) return false;
+  const [gis,cli]=await Promise.all([cuentaCargarGis(),cuentaIniciar()]);
+  if(!gis||!cli){ alFallar&&alFallar(); return false; }
+  const nonce=crypto.randomUUID();
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(nonce))),b=>b.toString(16).padStart(2,'0')).join('');
+  caja.innerHTML='';
+  gis.accounts.id.initialize({client_id:CUENTA_CFG.cuentas.google,nonce:hash,use_fedcm_for_button:true,
+    callback:(r)=>{ cli.signInWithIdToken({provider:'google',token:r.credential,nonce}).then(res=>{ if(res&&res.error) alFallar&&alFallar(); }).catch(()=>alFallar&&alFallar()); }});
+  gis.accounts.id.renderButton(caja,{theme:'filled_black',size:'large',text:'continue_with',shape:'pill',width:300,
+    locale:idioma()==='es'?'es-419':idioma()==='pt'?'pt-BR':'en',logo_alignment:'center'});
+  return true;
+}
+
+/* ── LA PORTADA: el avatar al lado del ⚙ (el lugar de BotonCuenta en la casa), y el velo TU CUENTA ── */
+function cuentaPintaBoton(){
+  const b=document.getElementById('introCuenta'); if(!b) return;
+  if(!cuentaActiva()){ b.classList.add('oculto'); return; }
+  b.classList.remove('oculto');
+  const f=cuentaFoto();
+  b.innerHTML=f?'<img src="'+f+'" alt="" referrerpolicy="no-referrer">'
+    :'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>'+(cuentaSesion?'<i class="punto"></i>':'');
+  b.setAttribute('aria-label',cuentaSesion?t(L('Tu perfil','Your profile','Seu perfil')):t(L('Tu cuenta','Your account','Sua conta')));
+}
+function cuentaPintaVelo(){
+  const v=document.getElementById('cuentaVelo'); if(!v||v.classList.contains('oculto')) return;
+  const dentro=!!cuentaSesion;
+  document.getElementById('cuentaFuera').classList.toggle('oculto',dentro);
+  document.getElementById('cuentaDentro').classList.toggle('oculto',!dentro);
+  document.getElementById('cuentaFallo').classList.add('oculto');
+  if(dentro){
+    const f=cuentaFoto();
+    document.getElementById('cuentaQuien').innerHTML=(f?'<img src="'+f+'" alt="" referrerpolicy="no-referrer">':'')+'<b></b>';
+    document.getElementById('cuentaQuien').querySelector('b').textContent=cuentaNombre();
+  }else{
+    const caja=document.getElementById('cuentaGoogle');
+    if(!caja.childElementCount) cuentaBotonGoogle(caja,()=>document.getElementById('cuentaFallo').classList.remove('oculto'));
+  }
+}
+function cuentaAbrir(){ document.getElementById('cuentaVelo').classList.remove('oculto'); cuentaPintaVelo(); }
+function cuentaCerrar(){ document.getElementById('cuentaVelo').classList.add('oculto'); }
+function cuentaInstalarPortada(){
+  if(!cuentaActiva()) return;
+  cuentaAlCambiar(()=>{ cuentaPintaBoton(); cuentaPintaVelo(); });
+  document.getElementById('introCuenta').onclick=cuentaAbrir;
+  document.getElementById('cuentaX').onclick=cuentaCerrar;
+  document.getElementById('cuentaSalir').onclick=()=>{ cuentaSalir(); cuentaCerrar(); };
+  cuentaPintaBoton();
+  cuentaIniciar();
+}
 'use strict';
 /* el reloj del cuarto por liga (§9.7): 12:00 NBA · 10:00 FIBA — presentación sobre el
    guion (los beats se reparten proporcional). El default es 720 (el prototipo nació NBA);
@@ -22020,7 +22194,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
     padron:padronInicial(),   // §2z7: la escalera de clubes vive en la carrera
     temporada};
 }
-function guardar(){ try{localStorage.setItem(slotKey(ranura),JSON.stringify(C));}catch(e){} }
+function guardar(){ if(C) C.guardadoTs=Date.now(); try{localStorage.setItem(slotKey(ranura),JSON.stringify(C));}catch(e){} nubeAgendar(); }   // §2z246.3: la hora de la copia y la subida a la cuenta
 
 /* ══ LA ESCALERA DE CLUBES (§2z7 — su corte: "¿no hay ascensos y descensos?") ══
    El padrón vive en la carrera: quién juega en qué liga y en qué zona. Las listas de 01d
@@ -23713,6 +23887,7 @@ document.querySelectorAll('#lobby .tabs').forEach(grupo=>{
 });
 /* el ⚙ vive en la portada, como NSS (su regla): las opciones son del juego en sí */
 document.getElementById('introAjustes').addEventListener('click',()=>document.getElementById('ajustes').classList.toggle('oculto'));
+cuentaInstalarPortada();   // §2z246.1: sólo hace algo en /carrera
 /* SALIR vive al fondo de VOS y confirma con un popup sí-no (su regla 2026-08-28):
    la carrera queda guardada siempre — el popup lo dice, y NO te deja donde estabas */
 $l('lobSalirPortada').addEventListener('click',()=>$l('lobConfirm').classList.remove('oculto'));
@@ -26114,26 +26289,59 @@ const SKILL_TXT_LOB={tiro:L('TIRO','SHOT','ARREMESSO'),manejo:L('MANEJO','HANDLE
 /* ══ §2z196 EL RETIRO. Desde los 33 el mercado ofrece colgarlas; a los 40, o desde los 33 sin una sola oferta, te las
    cuelga el juego. El velo cierra la carrera con los números de toda la vida y los honores; la partida queda RETIRADA
    en la ranura (se puede volver a mirar, no a jugar). ══ */
-function retirarse(forzado){
-  const J=C.jugador, hist=C.historial||[], e=est();
-  const pj=hist.reduce((a,h)=>a+(h.liga.pj||0)+(h.po?h.po.pj||0:0),0), pts=hist.reduce((a,h)=>a+(h.liga.pts||0)+(h.po?h.po.pts||0:0),0);
-  const titulos=hist.filter(h=>h.campeon).length, premios=(C.palmares||[]).length;
-  const meds=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.medalla);
+/* ══ §2z246.2 EL MUSEO (su pedido 2026-09-14: "las partidas que ya jugaste —te retiraste— terminan y se pierden, ¿no? Me gustaría
+   guardarlas"). Al retirarte la carrera se vuelve un RESUMEN chico (no el estado: ni temporada, ni padrón, ni fixtures) que alcanza
+   para volver a abrir el velo del retiro y para la estantería del perfil de El Draft. Vive en `museoNSS` (local, siempre) y, con la
+   cuenta de /carrera, en `basquet_carrera` (0108 de allá): lo pendiente sube al entrar y lo de otros teléfonos baja.
+   ⚠️ La ranura NO se borra: una carrera retirada que ya está en el museo se pinta como ranura libre, y recién la pisa la próxima
+   partida que crees ahí. Las retiradas de antes de esto se adoptan solas al abrir TUS PARTIDAS. */
+const LS_MUSEO='museoNSS';
+function museoLeer(){ try{ const x=JSON.parse(localStorage.getItem(LS_MUSEO)||'[]'); return Array.isArray(x)?x.filter(r=>r&&r.id):[]; }catch(err){ return []; } }
+function museoEscribir(l){ try{ localStorage.setItem(LS_MUSEO,JSON.stringify(l)); return true; }catch(err){ return false; } }
+function museoTiene(id){ return museoLeer().some(r=>r.id===String(id)); }
+function museoAgregar(res){
+  const l=museoLeer(); if(l.some(r=>r.id===res.id)) return true;
+  l.push(res); l.sort((a,b)=>(b.retirada||0)-(a.retirada||0));
+  return museoEscribir(l)&&museoTiene(res.id);   // se relee: la ranura se libera sólo si quedó escrito de verdad
+}
+function resumenCarrera(c){
+  const J=c.jugador, hist=c.historial||[];
+  const pjDe=(h)=>(h.liga.pj||0)+(h.po?h.po.pj||0:0), ptsDe=(h)=>(h.liga.pts||0)+(h.po?h.po.pts||0:0);
   const porClub={}; hist.forEach(h=>{ porClub[h.club]=(porClub[h.club]||0)+1; });
-  const casa=Object.keys(porClub).sort((a,b)=>porClub[b]-porClub[a])[0];
-  const camiseta=casa&&porClub[casa]>=6&&clubDe(casa);
-  $l('retiroRot').textContent=(forzado?t(L('SE TERMINÓ','IT IS OVER','ACABOU')):t(L('COLGÁS LAS ZAPATILLAS','YOU HANG THEM UP','PENDURA AS CHUTEIRAS')))+' · '+J.edad+' '+t(L('AÑOS','YEARS OLD','ANOS'));
-  $l('retiroTxt').textContent=esc(J.apellido).toUpperCase();
-  $l('retiroLinea').innerHTML=hist.length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))+' · '+pj+' PJ · '+pts+' PTS'
+  const casa=Object.keys(porClub).sort((a,b)=>porClub[b]-porClub[a])[0]||null;
+  const nomClub=(id)=>{ const k=id&&clubDeCualquierLiga(id); return k?k.nombre:(id||''); };
+  return {v:1,id:String(c.semilla),apellido:J.apellido,dorsal:J.dorsal,nacionalidad:J.nacionalidad||'ar',arquetipo:J.arquetipo||null,
+    edad:(c.retirado&&c.retirado.edad)||J.edad,anio:(c.retirado&&c.retirado.anio)||c.anio,nivel:J.nivel||1,
+    temporadas:hist.length,pj:hist.reduce((a,h)=>a+pjDe(h),0),pts:hist.reduce((a,h)=>a+ptsDe(h),0),
+    titulos:hist.filter(h=>h.campeon).length,
+    casa:casa?{id:casa,nombre:nomClub(casa),temporadas:porClub[casa]}:null,
+    camiseta:!!(casa&&porClub[casa]>=6),
+    premios:(c.palmares||[]).map(p=>({anio:p.anio,clave:p.clave,ligaId:p.ligaId||null,club:p.club||null,pais:p.pais||null})),
+    medallas:((c.seleccion&&c.seleccion.torneos)||[]).filter(x=>x.medalla).map(x=>({medalla:x.medalla,torneo:x.torneo,anio:x.anio})),
+    historial:hist.map(h=>({anio:h.anio,ligaId:h.ligaId,club:h.club,clubNombre:nomClub(h.club),pj:pjDe(h),pts:ptsDe(h),nota:h.nota||null,campeon:!!h.campeon})),
+    retirada:Date.now()};
+}
+/* el velo del retiro pinta un RESUMEN: el mismo para el que se está retirando y para el que lo mira desde el museo */
+function pintaRetiro(res,forzado){
+  const titulos=res.titulos, premios=(res.premios||[]).length, meds=res.medallas||[];
+  const camiseta=res.camiseta&&res.casa?clubDeCualquierLiga(res.casa.id):null;
+  $l('retiroRot').textContent=(forzado?t(L('SE TERMINÓ','IT IS OVER','ACABOU')):t(L('COLGÁS LAS ZAPATILLAS','YOU HANG THEM UP','PENDURA AS CHUTEIRAS')))+' · '+res.edad+' '+t(L('AÑOS','YEARS OLD','ANOS'));
+  $l('retiroTxt').textContent=String(res.apellido).toUpperCase();
+  $l('retiroLinea').innerHTML=res.temporadas+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))+' · '+res.pj+' PJ · '+res.pts+' PTS'
     +(titulos?'<br>'+titulos+' '+t(titulos===1?L('TÍTULO','TITLE','TÍTULO'):L('TÍTULOS','TITLES','TÍTULOS')):'')
     +(premios?' · '+premios+' '+t(premios===1?L('PREMIO','AWARD','PRÊMIO'):L('PREMIOS','AWARDS','PRÊMIOS')):'')
     +(meds.length?'<br>'+meds.map(m=>t(SEL_TXT[m.medalla])+' · '+selTorneoTxt(m.torneo)).join(' · '):'');
+  const J={dorsal:res.dorsal};
   $l('retiroHonor').textContent=camiseta?t(L(camiseta.nombre+' retira tu camiseta: la #'+J.dorsal+' no la usa nadie más.',camiseta.nombre+' retires your jersey: nobody wears #'+J.dorsal+' again.',camiseta.nombre+' aposenta sua camisa: ninguém mais usa a #'+J.dorsal+'.')):'';
+  }
+function retirarse(forzado){
+  const J=C.jugador;
+  pintaRetiro(resumenCarrera(C),forzado);
   $l('retiroSeguir').classList.toggle('oculto',!!forzado||!!C.retirado);
   $l('retiroOk').textContent=C.retirado?t(L('VOLVER','BACK','VOLTAR')):t(L('ME RETIRO','I RETIRE','ME APOSENTO'));
   $l('mercado').classList.add('oculto');
   const v=$l('retiro'); v.classList.remove('oculto'); verQueSeVe('retiro','El retiro');
-  $l('retiroOk').onclick=()=>{ if(!C.retirado){ C.retirado={anio:C.anio,edad:J.edad}; guardar(); } v.classList.add('oculto'); $l('lobby').classList.add('oculto'); abrirPartidas(); };
+  $l('retiroOk').onclick=()=>{ if(!C.retirado){ C.retirado={anio:C.anio,edad:J.edad}; guardar(); museoAgregar(resumenCarrera(C)); museoSincronizar(); } v.classList.add('oculto'); $l('lobby').classList.add('oculto'); abrirPartidas(); };   // §2z246.2
   $l('retiroSeguir').onclick=()=>{ v.classList.add('oculto'); $l('mercado').classList.remove('oculto'); };
 }
 
@@ -26668,10 +26876,136 @@ function dondePlayoffs(e){
   }
   return t(L('SERIE GANADA · ','SERIES WON · ','SÉRIE VENCIDA · '))+ronda(u);
 }
+/* §2z246.2 mirar una carrera del museo: el velo del retiro con VOLVER, y se vuelve a TUS PARTIDAS */
+function mirarMuseo(r){
+  pintaRetiro(r,false);
+  $l('retiroSeguir').classList.add('oculto');
+  $l('retiroOk').textContent=t(L('VOLVER','BACK','VOLTAR'));
+  const v=$l('retiro'); v.classList.remove('oculto'); verQueSeVe('retiro','El museo');
+  $l('retiroOk').onclick=()=>{ v.classList.add('oculto'); };
+}
+/* §2z246.2 con cuenta: lo local que no subió, sube; lo de la cuenta que no está acá, baja. Dispara y se olvida; un fallo espera a la
+   próxima vez que abras TUS PARTIDAS o entres a la cuenta. */
+let museoSincronizando=false;
+async function museoSincronizar(){
+  if(museoSincronizando||!cuentaActiva()||!cuentaHaySesion()) return;
+  museoSincronizando=true;
+  try{
+    const subidas=[];
+    for(const r of museoLeer().filter(x=>!x.subida)){
+      const {subida,...limpio}=r;
+      const st=await cuentaRpc('guardar_basquet_carrera',{p_semilla:r.id,p_resumen:limpio});
+      if(st.ok) subidas.push(r.id);
+    }
+    const baja=await cuentaRpc('mis_basquet_carreras',{});
+    const l=museoLeer(); let cambio=false;
+    for(const r of l) if(subidas.indexOf(r.id)>=0&&!r.subida){ r.subida=true; cambio=true; }
+    if(baja.ok&&Array.isArray(baja.json)) for(const x of baja.json){ if(x&&x.id&&!l.some(y=>y.id===x.id)){ l.push({...x,subida:true}); cambio=true; } }
+    if(cambio){ l.sort((a,b)=>(b.retirada||0)-(a.retirada||0)); museoEscribir(l); if(!$l('partidas').classList.contains('oculto')) pintaPartidas(); }
+  }catch(err){}
+  museoSincronizando=false;
+}
+cuentaAlCambiar((s)=>{ if(s){ museoSincronizar(); if(!$l('partidas').classList.contains('oculto')) nubeSincronizar(); } });
+
+/* ══ §2z246.3 LAS PARTIDAS EN LA NUBE (su pedido 2026-09-14: "es clave que la partida esté conectada a la cuenta de Google"). Sólo con
+   cuenta en /carrera; sin cuenta nada de esto corre y el guardado es el local de siempre.
+   · LA PARTIDA ES SU SEMILLA, no su ranura: dos teléfonos que crearon partidas distintas en la ranura 1 no se pisan.
+   · SUBE sola: `guardar()` agenda (4 s de retardo) y al irse la pestaña sale con keepalive. Va comprimida.
+   · CADA COPIA SABE DE QUÉ VERSIÓN DE LA NUBE SALIÓ (`C.nubeBase`): si otro teléfono subió algo más nuevo, el servidor rechaza la
+     subida y el juego avisa UNA vez — nunca pisa lo que jugaste en el otro. Al volver a TUS PARTIDAS se baja esa.
+   · BAJA sólo al abrir TUS PARTIDAS (nunca con una partida abierta): la de la nube más nueva reemplaza a la local; la que no está
+     acá entra en una ranura libre; las retiradas no bajan (viven en el museo).
+   · Borrar una partida la borra también de la nube (y si no hay red, queda anotada y se reintenta). */
+const LS_NUBE_BORRAR='nubeBorrarNSS';
+let nubeTimer=null, nubeSubiendo=false, nubeAvisado=false;
+function nubeLista(){ return cuentaActiva()&&cuentaHaySesion(); }
+function nubeAgendar(){
+  if(!nubeLista()||!C||C.nubeConflicto) return;
+  clearTimeout(nubeTimer); nubeTimer=setTimeout(()=>nubeSubir(C),4000);
+}
+async function nubeSubir(c,keepalive){
+  if(!nubeLista()||!c||!c.semilla||c.nubeConflicto||nubeSubiendo) return;
+  if(c.nubeBase&&c.guardadoTs&&c.guardadoTs<=c.nubeBase) return;   // nada nuevo desde la última subida
+  nubeSubiendo=true;
+  try{
+    const ts=c.guardadoTs||Date.now();
+    const {formato,datos}=await cuentaComprimir(JSON.stringify({...c,nubeBase:ts}));
+    const r=await cuentaRpc('guardar_basquet_partida',{p_semilla:String(c.semilla),p_ranura:ranura,p_guardado_ms:ts,p_base_ms:c.nubeBase||0,
+      p_apellido:c.jugador.apellido,p_liga:c.ligaId,p_anio:c.anio,p_retirada:!!c.retirado,p_formato:formato,p_estado:datos},keepalive);
+    if(r.ok&&r.json===true){ c.nubeBase=ts; if(c===C){ try{ localStorage.setItem(slotKey(ranura),JSON.stringify(C)); }catch(e){} } }
+    else if(r.ok&&r.json===false){
+      c.nubeConflicto=true;
+      if(c===C){ try{ localStorage.setItem(slotKey(ranura),JSON.stringify(C)); }catch(e){} }   // la marca queda escrita: al sincronizar, baja la de la nube
+      if(!nubeAvisado){ nubeAvisado=true; avisar(t(L('Esta partida se jugó en otro teléfono. Al volver a TUS PARTIDAS se carga esa.','This career was played on another phone. Go back to YOUR CAREERS to load that one.','Esta carreira foi jogada em outro celular. Volte a SUAS CARREIRAS para carregar essa.'))); }
+    }
+  }catch(err){}
+  nubeSubiendo=false;
+}
+function nubeBorrar(semilla){
+  if(!cuentaActiva()) return;
+  try{ const l=JSON.parse(localStorage.getItem(LS_NUBE_BORRAR)||'[]'); if(l.indexOf(String(semilla))<0){ l.push(String(semilla)); localStorage.setItem(LS_NUBE_BORRAR,JSON.stringify(l.slice(-50))); } }catch(e){}
+  nubeBorrarPendientes();
+}
+async function nubeBorrarPendientes(){
+  if(!nubeLista()) return;
+  let l=[]; try{ l=JSON.parse(localStorage.getItem(LS_NUBE_BORRAR)||'[]'); }catch(e){}
+  const quedan=[];
+  for(const s of l){ const r=await cuentaRpc('borrar_basquet_partida',{p_semilla:s}); if(!r.ok) quedan.push(s); }
+  try{ localStorage.setItem(LS_NUBE_BORRAR,JSON.stringify(quedan)); }catch(e){}
+}
+let nubeSincronizando=false;
+async function nubeSincronizar(){
+  if(!nubeLista()||nubeSincronizando) return;
+  nubeSincronizando=true;
+  let cambio=false;
+  try{
+    await nubeBorrarPendientes();
+    let borradas=[]; try{ borradas=JSON.parse(localStorage.getItem(LS_NUBE_BORRAR)||'[]'); }catch(e){}
+    const meta=await cuentaRpc('mis_basquet_partidas',{});
+    if(!meta.ok||!Array.isArray(meta.json)) throw 0;
+    const filas=meta.json.filter(x=>x&&x.semilla&&!x.retirada&&borradas.indexOf(x.semilla)<0);
+    const locales={};
+    for(let n=1;n<=RANURAS;n++){ const c=cargarCarrera(n); if(c&&c.semilla&&!c.retirado) locales[String(c.semilla)]={n,c}; }
+    const bajar=async(fila,n)=>{
+      const b=await cuentaRpc('bajar_basquet_partida',{p_semilla:fila.semilla});
+      if(!b.ok||!b.json||!b.json.estado) return false;
+      const c=JSON.parse(await cuentaDescomprimir(b.json.formato,b.json.estado));
+      c.nubeBase=Number(b.json.guardado_ms)||c.nubeBase; c.guardadoTs=c.nubeBase; delete c.nubeConflicto;
+      localStorage.setItem(slotKey(n),JSON.stringify(c)); return true;
+    };
+    /* lo local contra la nube: gana la copia más nueva */
+    for(const s of Object.keys(locales)){
+      const {n,c}=locales[s], fila=filas.find(x=>x.semilla===s);
+      /* la copia que ya chocó (el aviso "se jugó en otro teléfono") baja la de la nube aunque su hora sea más nueva */
+      if(fila&&(c.nubeConflicto||Number(fila.guardado_ms)>(c.guardadoTs||0))){ if(await bajar(fila,n)) cambio=true; }
+      else if(!fila||(c.guardadoTs||0)>Number(fila.guardado_ms)){
+        if(fila) c.nubeBase=Math.max(c.nubeBase||0,Number(fila.guardado_ms));   // la local gana: sube declarando la versión que reemplaza
+        delete c.nubeConflicto;
+        const r0=ranura; ranura=n; await nubeSubir(c); ranura=r0;
+        try{ localStorage.setItem(slotKey(n),JSON.stringify(c)); }catch(e){}
+      }
+    }
+    /* lo que está en la nube y no acá: a una ranura libre (la suya si está libre) */
+    for(const fila of filas){
+      if(locales[fila.semilla]) continue;
+      const libres=[]; for(let n=1;n<=RANURAS;n++){ const c=cargarCarrera(n); if(!c||(c.retirado&&museoTiene(c.semilla))) libres.push(n); }
+      if(!libres.length) break;
+      const n=libres.indexOf(Number(fila.ranura))>=0?Number(fila.ranura):libres[0];
+      if(await bajar(fila,n)) cambio=true;
+    }
+  }catch(err){}
+  nubeSincronizando=false;
+  if(cambio&&!$l('partidas').classList.contains('oculto')) pintaPartidas();
+}
+/* al irse la pestaña: lo que estaba agendado sale ya, con keepalive */
+window.addEventListener('pagehide',()=>{ if(nubeTimer&&C){ clearTimeout(nubeTimer); nubeTimer=null; nubeSubir(C,true); } });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&nubeTimer&&C){ clearTimeout(nubeTimer); nubeTimer=null; nubeSubir(C,true); } });
 function pintaPartidas(){
   let html='';
   for(let n=1;n<=RANURAS;n++){
-    const c=cargarCarrera(n);
+    let c=cargarCarrera(n);
+    /* §2z246.2: la retirada entra al museo (las de antes, al abrir esta pantalla) y su ranura queda libre */
+    if(c&&c.retirado){ try{ if(museoTiene(c.semilla)||museoAgregar(resumenCarrera(c))){ nubeBorrar(c.semilla); c=null; } }catch(err){} }
     if(!c){
       html+='<div class="ranura vacia" data-nueva="'+n+'" tabindex="0">+ '
         +t(L('NUEVA PARTIDA','NEW CAREER','NOVA CARREIRA'))+'</div>';
@@ -26699,8 +27033,28 @@ function pintaPartidas(){
       '<button class="borrar" data-borrar="'+n+'" aria-label="'+t(L('Borrar','Delete','Apagar'))+'">✕</button>'+
       '</div>';
   }
+  /* §2z246.2 EL MUSEO: el molde de la ranura, sin ✕ (lo terminado no se borra). El rótulo es el de una sección; la línea de la
+     cuenta sólo en /carrera y sin sesión, y es contrato del juego (§2y): cambia lo que creés que va a pasar con esto. */
+  const museo=museoLeer();
+  if(museo.length){
+    html+='<div class="museoRot">'+t(L('CARRERAS TERMINADAS','FINISHED CAREERS','CARREIRAS ENCERRADAS'))+'</div>'
+      +(cuentaActiva()&&!cuentaHaySesion()?'<div class="museoCuenta" id="museoCuenta" tabindex="0">'+t(L('Con tu cuenta, estas carreras no se pierden.','With your account, these careers are never lost.','Com sua conta, estas carreiras não se perdem.'))+'</div>':'');
+    for(const r of museo){
+      const club=r.casa&&clubDeCualquierLiga(r.casa.id);
+      html+='<div class="ranura museo" data-museo="'+esc(r.id)+'" tabindex="0">'+(club?escuditoDe(club):'')+
+        '<div class="datos"><div class="apel"><span class="ban">'+banderaDe(r.nacionalidad||'ar',15)+'</span>'+esc(r.apellido)+'<span class="dorsal">#'+esc(r.dorsal)+'</span></div>'+
+        '<div class="sub">'+(r.casa?esc(r.casa.nombre)+' · ':'')+r.temporadas+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))+'</div>'+
+        '<div class="sub donde">'+t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+anioDe(r.anio)+(r.titulos?' · '+r.titulos+' '+t(r.titulos===1?L('TÍTULO','TITLE','TÍTULO'):L('TÍTULOS','TITLES','TÍTULOS')):'')+'</div>'+
+        '</div></div>';
+    }
+  }
   const cont=$l('partidasRanuras');
   cont.innerHTML=html;
+  cont.querySelectorAll('[data-museo]').forEach(el=>{ const abrir=()=>{ const r=museoLeer().find(x=>x.id===el.dataset.museo); if(r) mirarMuseo(r); };
+    el.onclick=abrir; el.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); abrir(); } }; });
+  { const mc=$l('museoCuenta'); if(mc) mc.onclick=()=>cuentaAbrir(); }
+  museoSincronizar();
+  nubeSincronizar();
   const activar=(el,fn)=>{ el.onclick=fn; el.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); } }; };
   cont.querySelectorAll('[data-nueva]').forEach(el=>activar(el,()=>abrirCreacion(+el.dataset.nueva)));
   cont.querySelectorAll('[data-ir]').forEach(el=>activar(el,()=>seguirPartida(+el.dataset.ir)));
@@ -26734,7 +27088,7 @@ function pedirBorrar(n){
 })();
 $l('partidasBorrarNo').onclick=()=>{ borrarPendiente=null; $l('partidasConfirm').classList.add('oculto'); };
 $l('partidasBorrarSi').onclick=()=>{
-  if(borrarPendiente){ try{ localStorage.removeItem(slotKey(borrarPendiente)); }catch(e){} }
+  if(borrarPendiente){ const cb=cargarCarrera(borrarPendiente); if(cb&&cb.semilla) nubeBorrar(cb.semilla); try{ localStorage.removeItem(slotKey(borrarPendiente)); }catch(e){} }   // §2z246.3
   borrarPendiente=null;
   $l('partidasConfirm').classList.add('oculto');
   pintaPartidas();
@@ -28030,8 +28384,9 @@ function betaDevice(){
 let betaEnviando=false, betaTimer=null;
 function betaEnviarPronto(){ if(betaTimer) clearTimeout(betaTimer); betaTimer=setTimeout(betaEnviar,2000); }
 async function betaRpc(fn,body){
+  const tk=(await cuentaToken())||BETA_SB.anon;   // §2z246.1: con cuenta, `auth.uid()` llena el user_id de la 0096
   const r=await fetch(BETA_SB.url+'/rest/v1/rpc/'+fn,{method:'POST',keepalive:true,
-    headers:{apikey:BETA_SB.anon,Authorization:'Bearer '+BETA_SB.anon,'Content-Type':'application/json'},
+    headers:{apikey:BETA_SB.anon,Authorization:'Bearer '+tk,'Content-Type':'application/json'},
     body:JSON.stringify(body)});
   return r.status;   // 2xx: llegó · 400/422: rechazado por el check (se descarta) · 404 (la migración no está), 5xx, red: se reintenta
 }
@@ -28125,6 +28480,7 @@ window.__carrera={
   get C(){ return C; },
   get ranura(){ return ranura; },
   guardar, pintaLobby, abrirLobby, abrirPartidas, cargarCarrera, slotKey, nuevaCarrera,
+  nubeSubir, nubeSincronizar, museoSincronizar, resumenCarrera,   /* §2z246 (arnés) */
   /* el mercado vive al final de una temporada entera: sin esto, mirarlo cuesta jugar
      un año. Lo abre con la carrera que haya cargada. */
   partidoRetomable, retomarPartido, claveSalida, proximoDeHoy:()=>{ const e=est(); return e?miProximo(e):null; },   /* §2z225: el arnés */

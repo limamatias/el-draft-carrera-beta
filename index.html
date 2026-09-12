@@ -1799,7 +1799,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='928c67f5d1';
+const BUILD='4ee7cbde94';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -11389,8 +11389,16 @@ const SELECCIONES = {
   cm: { nombre: 'Camerún', fuerza: 57, barra: 0, cont: 'af' },
 };
 
-/** Las jugables: las que tienen competencia internacional en el juego (su corte). */
-const SEL_JUGABLES = ['ar', 'br', 'ca', 'cl', 'co', 'do', 'es', 'mx', 'pa', 'pr', 'us', 'uy', 've'];
+/* §2z245 (2026-09-14, su pedido: "países jugables de Europa/América" — la NACIONALIDAD del alta, no las ligas: "podés ser español
+   jugando en Argentina"): la barra de Europa sale de la fuerza con la misma escala que América (Canadá 78 → +2 · 66 → −2 · 58 → −5 ·
+   52 → −6), en vez del 0 plano que tenían como rivales. Argentina sigue siendo el ancla en 0. */
+const barraPorFuerza = (f) => f >= 72 ? Math.round((f - 72) / 2.5) : Math.round((f - 72) / 2.8);
+for (const id of Object.keys(SELECCIONES)) if (SELECCIONES[id].cont === 'eu') SELECCIONES[id].barra = barraPorFuerza(SELECCIONES[id].fuerza);
+
+/** Las jugables: las que tienen competencia internacional en el juego (su corte 2026-09-03). §2z245: desde que toda Europa tiene
+ *  eliminatorias y Eurobasket (§12.33), son TODAS las de América y Europa del padrón — 16 + 32. Asia, África y Oceanía no tienen
+ *  eliminatoria armada y siguen siendo rivales. */
+const SEL_JUGABLES = Object.keys(SELECCIONES).filter((id) => SELECCIONES[id].cont === 'am' || SELECCIONES[id].cont === 'eu');
 
 /**
  * §12.33 (2026-09-13): el campo de cada continente es TODO su padrón — América 16 y Europa 32, que son los de la
@@ -11952,7 +11960,7 @@ function tablaSel(x, grupo) {
  * ⚠️⚠️ EL QUE JUGÓ ELIMINATORIAS Y NO CLASIFICÓ, NO VA AL MUNDIAL — y hasta el 2026-09-04 sí iba (el relleno por fuerza lo
  * volvía a meter). Las eliminatorias no pueden ser partidos que no cambian nada.
  */
-function campoTorneo(torneo, clasif, fuera, clasifEu, ctx) {   // §12.32: `clasifEu` es el orden europeo del Mundial (opcional)
+function campoTorneo(torneo, clasif, fuera, clasifEu, ctx) {   // §12.32: `clasifEu` es el orden europeo del Mundial (opcional) · §2z245: ctx.pais y ctx.preo deciden los cinco europeos
   ctx = ctx || {};
   clasif = (clasif || []).filter((id) => SELECCIONES[id]);
   const conMiPais = (lista, n) => {   // tu país entra siempre al continental: si el ranking lo dejó afuera, ocupa el último lugar
@@ -11977,19 +11985,13 @@ function campoTorneo(torneo, clasif, fuera, clasifEu, ctx) {   // §12.32: `clas
   }
   const clasifAm = clasif.filter((id) => SELECCIONES[id].cont === 'am');
   if (torneo === 'jjoo') {
-    /* §12.32: el campo es el de siempre (4 de América + los 8 del resto del mundo) y lo único que cambia es ESPAÑA: entra sólo si
-       quedó entre los dos mejores europeos del Mundial. Si no, deja su lugar al mejor europeo del ranking que no esté ya —el
-       cupo no se pierde y los Juegos siguen siendo de 12—. Sin ranking europeo, nada de esto corre: España es fija, como antes. */
-    const campo = clasifAm.slice(0, SEL_JJOO_CUPOS_AM).concat(SEL_JJOO_FIJOS);
-    if (clasifEu && clasifEu.length && directosEuropa(clasifEu).indexOf('es') < 0) {
-      const i = campo.indexOf('es');
-      if (i >= 0) {
-        campo.splice(i, 1);
-        const resto = clasifEu.concat(SEL_CONTINENTAL.eu.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza));
-        const entra = resto.find((id) => id !== 'es' && campo.indexOf(id) < 0);
-        if (entra) campo.push(entra);
-      }
-    }
+    /* §12.32 → §2z245: el campo es el de siempre (4 de América + 8 del resto del mundo), y los CINCO lugares europeos los da
+       `europaEnJuegos`: con ranking del Mundial, los dos de arriba van directo y los tres que siguen representan al resto; TU país
+       (ctx.pais) no ocupa ninguno de esos tres —si no fue directo, se lo gana en el preolímpico (ctx.preo)—. Sin ranking, la lista
+       fija de siempre: una partida vieja no se rompe. */
+    const eu = europaEnJuegos(clasifEu, ctx.pais, ctx.preo && ctx.preo.ganador);
+    let k = 0;
+    const campo = clasifAm.slice(0, SEL_JJOO_CUPOS_AM).concat(SEL_JJOO_FIJOS.map((id) => SELECCIONES[id].cont === 'eu' ? eu[k++] : id)).filter(Boolean);
     return campo.slice(0, SEL_FORMATOS.jjoo.equipos);
   }
   return clasifAm.slice(0, 4);
@@ -12558,12 +12560,36 @@ const SEL_JJOO_DIRECTOS_EU = 2;
 function directosEuropa(clasifEu) {
   return (clasifEu || []).slice(0, SEL_JJOO_DIRECTOS_EU);
 }
-function fijoJJOO(pais, clasifEu) {
-  if (SEL_JJOO_FIJOS.indexOf(pais) < 0) return false;
-  return !(pais === 'es' && clasifEu && clasifEu.length);
+/** §2z245 EUROPA EN LOS JUEGOS (la regla de §12.32, que era sólo de España, para toda Europa jugable). Los cinco lugares europeos
+ *  del campo olímpico: sin ranking, los fijos de siempre (fr rs de es gr). Con el ranking europeo del Mundial: los dos de arriba
+ *  (directos) y los tres que siguen, completados por fuerza si el ranking es corto. `mio` es TU país: si no fue directo, no ocupa
+ *  ninguno de los tres —se lo gana en el preolímpico—, y si lo ganó (`ganador`) entra en el último de los tres. */
+const SEL_JJOO_EU = 5;
+function europaEnJuegos(clasifEu, mio, ganador) {
+  let out;
+  if (!clasifEu || !clasifEu.length) out = SEL_JJOO_FIJOS.filter((id) => SELECCIONES[id].cont === 'eu');
+  else {
+    const directos = directosEuropa(clasifEu);
+    const resto = clasifEu.concat(SEL_CONTINENTAL.eu.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza));
+    out = [];
+    for (const id of resto) {
+      if (out.length >= SEL_JJOO_EU) break;
+      if (out.indexOf(id) >= 0 || !SELECCIONES[id]) continue;
+      if (id === mio && directos.indexOf(id) < 0) continue;
+      out.push(id);
+    }
+  }
+  /* el que ganó el preolímpico entra en el último lugar, con o sin ranking (sin ranking, el que sale es el último fijo) */
+  if (ganador && SELECCIONES[ganador] && SELECCIONES[ganador].cont === 'eu' && out.indexOf(ganador) < 0) out[out.length - 1] = ganador;
+  return out;
+}
+function fijoJJOO(pais, clasifEu, mio) {
+  const sel = SELECCIONES[pais]; if (!sel) return false;
+  if (sel.cont === 'eu') return europaEnJuegos(clasifEu, mio).indexOf(pais) >= 0;
+  return SEL_JJOO_FIJOS.indexOf(pais) >= 0;
 }
 function vaDirectoJJOO(pais, clasifMundial, clasifEu) {
-  if (fijoJJOO(pais, clasifEu)) return true;
+  if (fijoJJOO(pais, clasifEu, pais)) return true;
   if (SELECCIONES[pais] && SELECCIONES[pais].cont === 'eu') return directosEuropa(clasifEu).indexOf(pais) >= 0;
   return directosJJOO(clasifMundial).indexOf(pais) >= 0;
 }
@@ -12577,7 +12603,7 @@ function campoPreolimpico(clasifMundial, pais, semilla, anio, clasifEu) {
   /* §12.32: los que ya están en los Juegos no juegan el preolímpico — los dos directos de América, los dos de Europa y los fijos
      que sigan siéndolo. Con ranking europeo, España puede caer acá como cualquiera. */
   const directos = directosJJOO(clasifMundial).concat(directosEuropa(clasifEu));
-  const yaEstan = (id) => directos.indexOf(id) >= 0 || fijoJJOO(id, clasifEu);
+  const yaEstan = (id) => directos.indexOf(id) >= 0 || fijoJJOO(id, clasifEu, pais);   // §2z245: el tuyo nunca "ya está" si no fue directo
   const campo = [];
   const mete = (id) => { if (id && SELECCIONES[id] && campo.indexOf(id) < 0 && !yaEstan(id)) campo.push(id); };
   if (pais && SELECCIONES[pais]) mete(pais);   // §12.32: el tuyo, sea de donde sea
@@ -12588,7 +12614,7 @@ function campoPreolimpico(clasifMundial, pais, semilla, anio, clasifEu) {
   const am = SEL_CONTINENTAL.am.filter((id) => id !== pais).sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
   for (const id of am) { if (campo.filter((x) => SELECCIONES[x].cont === 'am').length >= 2) break; mete(id); }
   const rng = rngFor(semilla || '', 'seleccion', 'preo-campo', anio || 0);
-  const pool = (conts) => Object.keys(SELECCIONES).filter((id) => conts.indexOf(SELECCIONES[id].cont) >= 0 && campo.indexOf(id) < 0 && SEL_JJOO_FIJOS.indexOf(id) < 0);
+  const pool = (conts) => Object.keys(SELECCIONES).filter((id) => conts.indexOf(SELECCIONES[id].cont) >= 0 && campo.indexOf(id) < 0 && !yaEstan(id));   // §2z245: con ranking, un fijo de antes que se cayó puede jugarlo
   const saca = (conts) => { const p = pool(conts); if (!p.length) return; mete(p[rng.int(0, p.length - 1)]); };
   const cuotas = [['eu'], ['eu'], ['as', 'oc'], ['af']];
   for (const c of cuotas) { if (campo.length >= SEL_FORMATOS.preolimpico.equipos) break; saca(c); }
@@ -22965,7 +22991,7 @@ function torneoAnunciado(e){
   let cual=torneo;
   if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm,mundialEuDe(mem))) cual='preolimpico';   // §12.32
   let campo; try{ campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1,mundialEuDe(mem))
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem))
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem),{pais,preo:preoJugado?mem.preo:null})
     :campoTorneo(cual,clasifAm,fuera); }catch(err){ return null; }
   if(!campo||campo.indexOf(pais)<0) return {cual,anio:C.anio+1,afuera:true};
   const t=crearTorneoSel(C.semilla+'-sel'+C.anio,cual,pais,campo,C.anio+1); if(!t) return null;
@@ -23000,7 +23026,7 @@ function torneoRecesoDe(){
   const preoJugado=mem.preo&&mem.preo.anio===C.anio;
   if(torneo==='jjoo'&&!preoJugado&&!vaDirectoJJOO(pais,mundialTopDe(mem)||clasifAm,mundialEuDe(mem))) cual='preolimpico';   // §12.32
   const campo=cual==='preolimpico'?campoPreolimpico(mundialTopDe(mem)||clasifAm,pais,C.semilla+'-sel'+C.anio,C.anio+1,mundialEuDe(mem))
-    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem))
+    :cual==='jjoo'?campoTorneo('jjoo',cuposJJOOAm(mundialTopDe(mem)||clasifAm,preoJugado?mem.preo:null),fuera,mundialEuDe(mem),{pais,preo:preoJugado?mem.preo:null})
     :campoTorneo(cual,clasifAm,fuera);
   if(campo.indexOf(pais)<0){ if(cual==='mundial') mundialSinVos(campo,e); C.selTorneoHecho=C.anio; C.selAviso={clave:'noClasifico',torneo:cual,pais}; guardar(); return null; }   /* §12.31: el Mundial se juega sin vos */
   /* §12.21 (su corte: "si jugaste eliminatorias o X parte de ellas, deberías ir al torneo"): tres ventanas jugadas
@@ -26710,27 +26736,33 @@ $l('partidasBorrarSi').onclick=()=>{
    que tienen competencia internacional: las de América que juegan AmeriCup y demás (y EEUU) y
    España, que le tenemos que generar la copa equivalente de Europa — capaz al principio que
    juegue sólo Mundial y JJOO porque no tenemos equipos para ese formato"*.
-   Son las DOCE de la AmeriCup más España. Las que se fueron (Australia, Francia, Grecia,
-   Italia, Lituania, Nigeria, Serbia) siguen en el padrón de 01r como RIVALES del Mundial y de
-   los Juegos: existen en la cancha, no en el alta. El día que haya Eurobasket, vuelven.
+   Eran las DOCE de la AmeriCup más España. §2z245 (2026-09-14): ya hay Eurobasket y eliminatorias
+   en toda Europa (§12.33), así que Europa volvió entera — las jugables son toda América y toda
+   Europa del padrón (48). Australia y Nigeria siguen siendo rivales: no tienen eliminatoria armada.
    ⚠️ ALFABÉTICAS (su caza: "¿por qué no están ordenadas alfabéticamente?"). Y su otra
    pregunta —"¿realmente significan algo?"— ya tiene otra respuesta: SÍ. Tu país decide qué
    selección te puede llamar, con qué barra y a qué torneos vas. */
-const NACIONALIDADES=[
-  ['ar',L('Argentina','Argentina','Argentina')],
-  ['br',L('Brasil','Brazil','Brasil')],
-  ['ca',L('Canadá','Canada','Canadá')],
-  ['cl',L('Chile','Chile','Chile')],
-  ['co',L('Colombia','Colombia','Colômbia')],
-  ['es',L('España','Spain','Espanha')],
-  ['us',L('Estados Unidos','United States','Estados Unidos')],
-  ['mx',L('México','Mexico','México')],
-  ['pa',L('Panamá','Panama','Panamá')],
-  ['pr',L('Puerto Rico','Puerto Rico','Porto Rico')],
-  ['do',L('República Dominicana','Dominican Republic','República Dominicana')],
-  ['uy',L('Uruguay','Uruguay','Uruguai')],
-  ['ve',L('Venezuela','Venezuela','Venezuela')],
-];
+/* §2z245 (2026-09-14, su pedido: "países jugables de Europa/América" — la nacionalidad, no las ligas): la lista sale de
+   SEL_JUGABLES (01r), que hoy es toda América y toda Europa del padrón — 48 —, con el nombre en los tres idiomas. Alfabéticas
+   en el idioma que se muestra (`ordenNacionalidades`). */
+const NOMBRES_NAC={
+  ar:L('Argentina','Argentina','Argentina'), br:L('Brasil','Brazil','Brasil'), ca:L('Canadá','Canada','Canadá'), cl:L('Chile','Chile','Chile'),
+  co:L('Colombia','Colombia','Colômbia'), es:L('España','Spain','Espanha'), us:L('Estados Unidos','United States','Estados Unidos'),
+  mx:L('México','Mexico','México'), pa:L('Panamá','Panama','Panamá'), pr:L('Puerto Rico','Puerto Rico','Porto Rico'),
+  do:L('República Dominicana','Dominican Republic','República Dominicana'), uy:L('Uruguay','Uruguay','Uruguai'), ve:L('Venezuela','Venezuela','Venezuela'),
+  ni:L('Nicaragua','Nicaragua','Nicarágua'), bs:L('Bahamas','Bahamas','Bahamas'), cu:L('Cuba','Cuba','Cuba'), jm:L('Jamaica','Jamaica','Jamaica'),
+  rs:L('Serbia','Serbia','Sérvia'), fr:L('Francia','France','França'), de:L('Alemania','Germany','Alemanha'), gr:L('Grecia','Greece','Grécia'),
+  it:L('Italia','Italy','Itália'), lt:L('Lituania','Lithuania','Lituânia'), si:L('Eslovenia','Slovenia','Eslovênia'), tr:L('Turquía','Turkey','Turquia'),
+  lv:L('Letonia','Latvia','Letônia'), fi:L('Finlandia','Finland','Finlândia'), ge:L('Georgia','Georgia','Geórgia'), pl:L('Polonia','Poland','Polônia'),
+  me:L('Montenegro','Montenegro','Montenegro'), cz:L('Chequia','Czechia','Tchéquia'), ua:L('Ucrania','Ukraine','Ucrânia'), hr:L('Croacia','Croatia','Croácia'),
+  il:L('Israel','Israel','Israel'), ba:L('Bosnia','Bosnia','Bósnia'), be:L('Bélgica','Belgium','Bélgica'), ee:L('Estonia','Estonia','Estônia'),
+  pt:L('Portugal','Portugal','Portugal'), nl:L('Países Bajos','Netherlands','Países Baixos'), is:L('Islandia','Iceland','Islândia'),
+  gb:L('Gran Bretaña','Great Britain','Grã-Bretanha'), hu:L('Hungría','Hungary','Hungria'), se:L('Suecia','Sweden','Suécia'),
+  bg:L('Bulgaria','Bulgaria','Bulgária'), dk:L('Dinamarca','Denmark','Dinamarca'), mk:L('Macedonia del Norte','North Macedonia','Macedônia do Norte'),
+  sk:L('Eslovaquia','Slovakia','Eslováquia'), at:L('Austria','Austria','Áustria'),
+};
+const NACIONALIDADES=SEL_JUGABLES.map(id=>[id,NOMBRES_NAC[id]||SELECCIONES[id].nombre]);
+const ordenNacionalidades=()=>NACIONALIDADES.slice().sort((a,b)=>t(a[1]).localeCompare(t(b[1]),idioma()));
 /* §2z28 LAS BANDERAS SE DIBUJAN (su corte: "se siente muy amateur si usamos emojis"): la receta de
    El Draft (Flag.tsx) — gradientes CSS, colores subidos para que se reconozcan a 15px, no para que
    sean exactos. au/ca/ng no existían allá y se escriben acá con el mismo criterio. */
@@ -26936,7 +26968,7 @@ function emojiBandera(id){
 }
 function pintaNacionalidades(){
   const sel=$l('creaPais');
-  sel.innerHTML=NACIONALIDADES.map(([id,nom])=>
+  sel.innerHTML=ordenNacionalidades().map(([id,nom])=>
     '<option value="'+id+'">'+emojiBandera(id)+' '+t(nom)+'</option>').join('');   // como El Draft: la bandera emoji adentro de la rueda
   sel.value=creaSel.nacionalidad;
   pintaNacVal();

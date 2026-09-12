@@ -1843,7 +1843,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='df35d8ca06';
+const BUILD='1328f2a408';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22506,9 +22506,10 @@ function amCondicionTxt(){
   return t(L('PASÁS GANANDO POR '+c.m+' O MÁS','THROUGH IF YOU WIN BY '+c.m+' OR MORE','PASSA GANHANDO POR '+c.m+' OU MAIS'));
 }
 function amPorqueTxt(o){
-  /* §2z27.3: la copa — el partido n de 3 y el grupo; la final y el tercer puesto se dicen solos */
-  if(o.ic) return o.etapa==='ic-grupo' ? t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||2)+' · '+t(AM_TXT.grupo)+' '+o.grupo
-    : t(AM_TXT[o.etapa]||L(o.etapa))+' · '+t(IC_TXT.corto);   // 2026-09-14: la definición dice lo que es (LA FINAL · TERCER PUESTO), sin contador
+  /* §2z27.3: la copa — el partido n de 2. 2026-09-12 (su caza, en el lobby y en la previa: "COPA INTERCONTINENTAL · LA FINAL sale dos
+     veces"): el grupo y la etapa ya están en el título de las dos pantallas, así que acá no se repiten; la final y el tercer puesto
+     no tienen nada más que decir y el renglón queda vacío (se esconde solo) */
+  if(o.ic) return o.etapa==='ic-grupo' ? t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||2) : '';
   if(o.etapa==='grupo'){ const cond=amCondicionTxt();
     return t(L('PARTIDO','GAME','JOGO'))+' '+o.juego+' '+t(L('DE','OF','DE'))+' '+(o.total||4)+(cond?' · '+cond:(esClaveAmericas(est(),o)?' · '+t(L('EL MÁS FUERTE DEL GRUPO','THE STRONGEST IN THE GROUP','O MAIS FORTE DO GRUPO')):'')); }   // §2z82 · §2z163
   const s=o.serie, mi=est().miClubId, miGan=s.alta===mi?s.ganAlta:s.ganBaja, riGan=s.alta===mi?s.ganBaja:s.ganAlta;
@@ -24766,8 +24767,7 @@ function pintaLobby(){
         $l('lobHoyCuando').textContent=amEtapaTxt(prox.etapa)+' · '+t(L('JUEGO','GAME','JOGO'))+' '+prox.juego;
         porque=t(L('SERIE','SERIES','SÉRIE'))+' '+miG+'–'+riG+' · '+t(L('AL MEJOR DE','BEST OF','MELHOR DE'))+' '+srAM.mejorDe; }
       else { $l('lobHoyCuando').textContent=t(L('PRÓXIMO','NEXT UP','PRÓXIMO'))+' · '+diaTxt(diaAmericas(e,prox.ventana));
-        porque=prox.ic?(prox.etapa==='ic-grupo'?t(L('PARTIDO','GAME','JOGO'))+' '+prox.juego+' '+t(L('DE','OF','DE'))+' '+(prox.total||2):'')   // la final y el tercer puesto se dicen solos en el chip
-          :amPorqueTxt(prox); }   // el grupo de Américas (partido n de 4 y lo que necesitás) y el partido único del Final Four
+        porque=amPorqueTxt(prox); }   // la copa (partido n de 2, o nada en la definición), el grupo de Américas y el partido único del Final Four
       $l('lobHoyRival').innerHTML=vsTxt(prox.local,prox.neutral)+rc.nombre.toUpperCase()+' '+banderita(prox.rival);   // 2026-09-12 (su caza): la banderita del rival, sólo en las copas internacionales (acá el próximo es siempre continental o Intercontinental)
       $l('lobHoyPorque').style.display=porque?'':'none';
       $l('lobHoyPorque').textContent=porque;

@@ -1840,7 +1840,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='32273808c2';
+const BUILD='af642b812f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6216,11 +6216,11 @@ const MISION_TXT = {
 const MISION_CORTA = { puntos: L('PTS', 'PTS', 'PTS'), asistencias: L('AST', 'AST', 'AST'), triples: L('TRIPLES', 'THREES', 'TRÊS'), robos: L('DEF', 'DEF', 'DEF'), perdidas: L('PÉRD', 'TO', 'PERD') };
 /* el nombre sin traducir (el HUD del partido lo indexa por idioma: ahí `t` es otra cosa) */
 const misionNombre = (m) => MISION_TXT[m.tipo] ? MISION_TXT[m.tipo][m.meta === 1 ? 0 : 1] : L(m.tipo, m.tipo, m.tipo);
-/* el enunciado entero (pre, cierre): "12 PUNTOS" · "SIN PEDIRLA" · "50 % DE TIRO" · "10 PUNTOS Y 1 PÉRDIDA COMO MÁXIMO" */
+/* el enunciado entero (pre, cierre): "12 PUNTOS" · "SIN PEDIRLA" · "50% DE TIRO" · "10 PUNTOS Y 1 PÉRDIDA COMO MÁXIMO" */
 function misionMeta(m) {
   if (m.tipo === 'mixta') return m.partes.map(misionMeta).join(t(L(' Y ', ' AND ', ' E ')));
   if (m.meta === 0) return t(misionNombre(m));
-  return m.meta + ' ' + t(misionNombre(m));
+  return m.meta + (m.tipo === 'porcentaje' ? '' : ' ') + t(misionNombre(m));   // 2026-09-12 (su caza): «50%», pegado, como en todo el juego
 }
 /* la planilla del cierre tiene 300 px: la mixta va corta ("9 PTS · ≤1 PÉRD"); las demás, como siempre */
 function misionMetaCorta(m) {
@@ -6239,10 +6239,10 @@ function misionHud(m, G) {
   if (m.tipo === 'porcentaje') {
     const tiros = G.tiros || 0, ac = G.aciertos || 0;
     const como = !tiros ? L('TODAVÍA NO TIRASTE', 'NO SHOTS YET', 'AINDA NÃO ARREMESSOU')[id]
-      : L('VAS ', 'AT ', 'VAI ')[id] + Math.round(100 * ac / tiros) + ' %';   // 2026-09-12 (su caza: "el 1/1 de más… tanto texto"): los tiros ya están en la statline
+      : L('VAS ', 'AT ', 'VAI ')[id] + Math.round(100 * ac / tiros) + '%';   // 2026-09-12 (su caza: "el 1/1 de más… tanto texto"): los tiros ya están en la statline
     /* 2026-09-12 (su caza: "cuando pasás los 4 tiros debería dejar de decir el mín. 4"): el mínimo se muestra hasta cumplirlo */
     const min = tiros < PORCENTAJE_MIN_TIROS ? L(` (MÍN. ${PORCENTAJE_MIN_TIROS})`, ` (MIN. ${PORCENTAJE_MIN_TIROS})`, ` (MÍN. ${PORCENTAJE_MIN_TIROS})`)[id] : '';
-    return m.meta + ' ' + L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO')[id] + min + ' <b>' + como + '</b>';
+    return m.meta + L('% DE TIRO', '% SHOOTING', '% DE ARREMESSO')[id] + min + ' <b>' + como + '</b>';
   }
   if (m.meta === 0) return misionNombre(m)[id] + ' <b>' + (misionCumplida(m, G) ? '✓' : '✗') + '</b>';
   return misionNombre(m)[id] + ' <b>' + misionValor(m, G) + '/' + m.meta + '</b>';

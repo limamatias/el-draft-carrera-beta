@@ -1646,8 +1646,15 @@
   /* §2z245.2: el campo es un BOTÓN con la misma piel (abre la lista interna); la cabecera de grupo va pegada arriba del scroll */
   #creacion button.campoNac{width:100%;font:inherit;color:inherit;cursor:pointer;text-align:left}
   #creacion .campoNac:focus-visible{border-color:var(--naranja);outline:0}
-  #creacion .grupoCab{position:sticky;top:0;z-index:1;padding:8px 13px 6px;font-size:11px;letter-spacing:2px;font-weight:600;
-       color:var(--tinta2);background:rgba(10,14,24,.96);border-bottom:1px solid rgba(154,164,184,.14)}
+  /* §2z245.3: la cabecera es un BOTÓN del acordeón (48 de alto como una fila, chevron a la derecha que gira al abrir, el conteo al lado) */
+  #creacion .grupoCab{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:0 36px 0 13px;
+       font:inherit;font-size:13px;letter-spacing:2px;font-weight:700;color:var(--tinta);text-align:left;cursor:pointer;
+       background:rgba(20,27,44,.98);border:0;border-bottom:1px solid rgba(154,164,184,.14);
+       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%239aa4b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+       background-repeat:no-repeat;background-position:right 13px center}
+  #creacion .grupoCab small{font-size:11px;letter-spacing:1px;color:var(--tinta2);font-weight:600}
+  #creacion .grupoCab.abierto{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 6.5 6 1.5 11 6.5' fill='none' stroke='%23ff9633' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  #creacion .grupoCab.abierto span{color:var(--naranja)}
   #creacion .clubFila .flag{border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.18);flex:none}
   /* las tarjetas de una pregunta (país, arquetipo): NADA preseleccionado — tocar elige y el
      botón de abajo cierra el paso. Preseleccionar contesta el paso antes de que lo leas. */
@@ -1803,7 +1810,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='bd19ac26c9';
+const BUILD='7e1b54e37d';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -26980,21 +26987,29 @@ function emojiBandera(id){
    lista con scroll propio, cabeceras pegadas AMÉRICA · EUROPA (§2z245.1: América primero, alfabético adentro), bandera dibujada.
    Tocar elige y vuelve a la camiseta: es 1 de 48 y el campo muestra lo elegido. */
 const GRUPOS_NAC=[['am',L('AMÉRICA','AMERICAS','AMÉRICA')],['eu',L('EUROPA','EUROPE','EUROPA')]];
-let creaNacAbierta=false, creaNacBusca='';
+/* §2z245.3 ACORDEÓN (su corte viéndolo: "AMÉRICA y EUROPA deberían ser dos displays que comiencen cerrados; si no, no sirve de nada
+   tener las categorías… si querés elegir EUROPA ni siquiera sabés que está hasta que scrolleás todo, y como AMÉRICA está en orden
+   alfabético pensás que tu país directamente no está"): las dos cabeceras CERRADAS al abrir, tocás una y se despliega (la otra se
+   cierra: una lista a la vez, como el acordeón de El Draft). Con algo escrito en el buscador se abren las dos: ahí manda la búsqueda. */
+let creaNacAbierta=false, creaNacBusca='', creaNacGrupo=null;
 function pintaNacionalidades(){
   const cont=$l('creaNacLista'), q=pelado(creaNacBusca).trim();
   let h='';
   for(const [c,rot] of GRUPOS_NAC){
-    const filas=ordenNacionalidades().filter(([id,nom])=>SELECCIONES[id].cont===c&&(!q||pelado(t(nom)).includes(q)));
-    if(!filas.length) continue;
-    h+='<div class="grupoCab">'+t(rot)+'</div>'+filas.map(([id,nom])=>
+    const todas=ordenNacionalidades().filter(([id])=>SELECCIONES[id].cont===c);
+    const filas=q?todas.filter(([id,nom])=>pelado(t(nom)).includes(q)):todas;
+    if(q&&!filas.length) continue;
+    const abierto=q?true:creaNacGrupo===c;
+    h+='<button type="button" class="grupoCab'+(abierto?' abierto':'')+'" data-grupo="'+c+'"><span>'+t(rot)+'</span><small>'+todas.length+'</small></button>';
+    if(abierto) h+=filas.map(([id,nom])=>
       '<button type="button" class="clubFila'+(creaSel.nacionalidad===id?' elegida':'')+'" data-nac="'+id+'">'+banderaDe(id,28)+
       '<span class="clubTxt"><span class="clubNom">'+t(nom)+'</span></span></button>').join('');
   }
   cont.innerHTML=h||'<div class="sinClubes">'+t(L('Ningún país con ese nombre.','No country by that name.','Nenhum país com esse nome.'))+'</div>';
+  cont.querySelectorAll('[data-grupo]').forEach(b=>b.onclick=()=>{ if(q) return; creaNacGrupo=creaNacGrupo===b.dataset.grupo?null:b.dataset.grupo; pintaNacionalidades(); cont.scrollTop=0; });
   cont.querySelectorAll('[data-nac]').forEach(b=>b.onclick=()=>{ creaSel.nacionalidad=b.dataset.nac; creaNacAbierta=false; pintaCreacion(); });
 }
-function abrirNac(abrir){ creaNacAbierta=abrir; creaNacBusca=''; $l('creaNacBuscar').value=''; pintaCreacion(); if(abrir) $l('creaNacLista').scrollTop=0; }
+function abrirNac(abrir){ creaNacAbierta=abrir; creaNacBusca=''; creaNacGrupo=null; $l('creaNacBuscar').value=''; pintaCreacion(); if(abrir) $l('creaNacLista').scrollTop=0; }
 $l('creaNacBtn').onclick=()=>abrirNac(true);
 $l('creaNacBuscar').addEventListener('input',function(){ creaNacBusca=this.value; pintaNacionalidades(); });
 /* lo que se VE del selector: la bandera dibujada y el nombre (el select va transparente encima) */

@@ -12536,7 +12536,7 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"Un partido a la vez"','"One game at a time"','"Um jogo de cada vez"'),desenlaces:[{p:100,remate:null,texto:L('El DT te lo agradece con la mirada.','The coach thanks you with a look.','O técnico agradece com o olhar.'),ef:{rel:{dt:2}}}]},
      {tipo:'apuesta',label:L('Picantearla: "Hoy barremos"','Spice it up: "Tonight we sweep"','Apimentar: "Hoje varremos"'),desenlaces:[
-       {p:55,remate:L('Tiraron la toalla','They threw in the towel','Jogaram a toalha'),texto:L('Del otro lado ya piensan en las vacaciones. Salen sin ganas.','On the other side they are already thinking about vacation. They come out flat.','Do outro lado já pensam nas férias. Saem sem vontade.'),ef:{rel:{hinchada:4},partido:{fuerzaRival:-6}}},
+       {p:55,remate:L('Tiraron la toalla','They threw in the towel','Jogaram a toalha'),texto:L('Del otro lado ya piensan en las vacaciones. Salen sin ganas.','On the other side they are already thinking about vacation. They come out flat.','Do outro lado já pensam nas férias. Saem sem vontade.'),ef:{partido:{fuerzaRival:-6}}},
        {p:45,remate:L('Te la hicieron personal','They made it personal','Fizeram pessoal'),texto:L('La escoba está pegada en su vestuario con tu cara al lado. Salís con la mano apretada.','The broom is taped in their locker room with your face next to it. You come out gripping the ball too tight.','A vassoura está colada no vestiário deles com sua cara ao lado. Você sai apertando a bola.'),ef:{rel:{plantel:-2},partido:{frio:true}}}]}]},
  { id:'sal_clasico', de:'salida', peso:200, repite:true, chance:0.6, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.clasico,
@@ -24484,9 +24484,18 @@ $l('lobSalir').addEventListener('click',()=>{
     return;
   }
   /* §2z40: entre tocar y salir, la prensa en el túnel — si hay motivo. Su SEGUIR vuelve acá con la carta pasada. */
-  if(!salidaLista && CARTAS.cartaDeSalida(preAbierto,()=>{ salidaLista=true; $l('lobSalir').click(); })) return;
+  /* 2026-09-12 (su caza: "en la pill vi EL RIVAL AFLOJA, entré, metí un tiro y me salió la imagen de ON FIRE"). El
+     catálogo no lo permite —ninguna rama junta el fuego con otra cosa—, así que el fuego no era de esa carta: era de
+     OTRA, guardada. `C.efectoSalida` vive en la carrera y sólo se consume al entrar a un partido, así que si la carta
+     del túnel se elige y ese partido NO se juega (cerrar el juego, volverse del pre), el efecto queda esperando y se
+     lo come el partido siguiente, donde la carta es otra. Ahora el efecto viene SELLADO con el partido para el que se
+     generó, y si no es ése se descarta. La clase: un efecto pendiente que sobrevive al contexto que lo creó — la
+     misma familia que la semilla de §2z11 y el aviso de sponsor de esta mañana. */
+  if(!salidaLista){ C.efSalidaClave=claveSalida(preAbierto);
+    if(CARTAS.cartaDeSalida(preAbierto,()=>{ salidaLista=true; $l('lobSalir').click(); })) return; }
   salidaLista=false;
-  const efS=C.efectoSalida||{}; C.efectoSalida=null;   // lo que la carta le hizo a ESTE partido
+  const efS=(C.efectoSalida && C.efSalidaClave===claveSalida(preAbierto)) ? C.efectoSalida : {};   // lo que la carta le hizo a ESTE partido
+  C.efectoSalida=null; C.efSalidaClave=null;
   enPartido=preAbierto;
   /* EL GRIFO (§2p): las perillas de este partido salen del SCORE del partido — nivel +
      liga + rival vs tu club + localía. El ⚙ sigue pudiendo pisarlas en vivo (testeo). */
@@ -24933,6 +24942,10 @@ function diaSel(o){ if(!o||o.tipo!=='seleccion'||o.etapa!=='eliminatorias'||!o.v
 /* ══ §2z218 LOS SPONSORS (el catálogo, en 01x) ═════════════════════════════════════════════════════════════════
    Se ganan solos cumpliendo lo que piden y se pierden solos dejando de cumplirlo: no hay decisión, hay rendimiento.
    Se evalúan UNA vez por partido, después de que la nota ya está escrita. */
+/* 2026-09-12: el sello del efecto de la carta del túnel — describe EL PARTIDO, no el momento, así que volver al
+   mismo partido lo conserva y cambiar de partido lo descarta. */
+function claveSalida(p){ if(!p) return null;
+  return [p.tipo, p.rival||'', p.tipo==='fecha'?(p.fecha||0):'', p.ventana||'', p.etapa||'', p.juego||''].join('|'); }
 function sponsorsEstado(){ if(!C.sponsors) C.sponsors={tengo:[],avisos:[]}; if(!C.sponsors.avisos) C.sponsors.avisos=[]; return C.sponsors; }
 const pagoBase=()=>((C&&C.contrato&&C.contrato.partido)||PAGO_PARTIDO);
 function sponsorCtx(){

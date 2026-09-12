@@ -358,6 +358,7 @@
   #carta .fondoCarta{position:absolute;inset:0;background:center/cover no-repeat;z-index:-1;filter:brightness(.42) saturate(.85)}
   #carta .cuerpoCarta{display:flex;flex-direction:column;gap:16px;width:100%;max-width:420px;margin:0 auto}
   #carta .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #carta .rotulo.naranja{color:var(--naranja)}
   #carta .gancho{font-size:20px;line-height:1.25;font-weight:600;color:var(--tinta)}
   /* §2z218 v6: un aviso es una carta sin gancho (y a veces sin texto). Un renglón vacío con gap es la clase 5 de
      CLAUDE.md — se esconde, no se deja con aire. */
@@ -535,6 +536,7 @@
   .fila.hito{color:var(--tinta);justify-content:center;font-weight:700;letter-spacing:2px;
              padding:7px 0}
   .fila.fuego{color:#ffb066;justify-content:center}
+  .fila.frio{color:#8cc3ec;justify-content:center}   /* §2z234: el frío, del otro lado del fuego */
   @keyframes entra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   #feedAcciones{display:flex;gap:10px;width:100%;max-width:420px}
   #feedAcciones button{flex:1;font-family:inherit;font-size:20px;font-weight:700;letter-spacing:1.5px;
@@ -1017,8 +1019,13 @@
      la del pre "de fondo, sin ningún sentido" y crecía con el texto, y cuando el título de la selección envolvía a dos
      renglones el switch BOC · AMÉRICAS · ARG saltaba de altura al cambiar de lado. Sin fondo, y con la altura de DOS
      renglones reservada siempre (2 × 1,25 × 13 px), así el switch queda quieto en los tres lados. */
-  #lobby #lv-tabla-full .fecha-pre,#lobby #lv-fixture-full .fecha-pre{background:none;padding:0 8px;border-radius:0;
-       min-height:33px;display:flex;align-items:center;justify-content:center;flex:1}
+  #lobby #lv-tabla-full .fecha-pre,#lobby #lv-fixture-full .fecha-pre,#lobby #lv-pre .fecha-pre{background:none;padding:0 8px;border-radius:0;
+       min-height:33px;display:flex;align-items:center;justify-content:center;flex:1}   /* 2026-09-13: el pre también (su caza: «MUNDIAL · CUARTOS re escondido, en un contenedor de los que no tienen sentido») */
+  /* 2026-09-13 (su caza: "MUNDIAL debería ir alineado contra los botones del switch; se ve descentrado"): el título se centraba
+     en el hueco que dejaba VOLVER, no en la pantalla. VOLVER sale del flujo y el título ocupa el ancho entero, con aire para él. */
+  #lobby #lv-tabla-full .preTop,#lobby #lv-fixture-full .preTop,#lobby #lv-carrera-full .preTop,#lobby #lv-pre .preTop{position:relative}
+  #lobby #lv-tabla-full .preTop .volver,#lobby #lv-fixture-full .preTop .volver,#lobby #lv-carrera-full .preTop .volver,#lobby #lv-pre .preTop .volver{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+  #lobby #lv-tabla-full .fecha-pre,#lobby #lv-fixture-full .fecha-pre,#lobby #lv-carrera-full .fecha-pre,#lobby #lv-pre .fecha-pre{padding:0 76px;flex:1;text-align:center;justify-content:center;font-size:15px}   /* el pre: 15 px, que sea el título del partido */
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
        display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
@@ -1740,7 +1747,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='212cfeaad6';
+const BUILD='f2cedd0c12';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6463,13 +6470,15 @@ function lineaEfectos(o){
     return '<span class="rama '+tono+' conBarra" style="--w:'+d.p+'%"><b class="p">'+d.p+'%</b><span class="tags">'+txt+'</span></span>';
   }).join('');
 }
+/* §2z237: ¿la cancha está atrás? El velo translúcido de la carta (sobreCancha) sólo tiene sentido con el partido a la vista */
+const lobbyOculto=()=>{ const l=document.getElementById('lobby'); return !l||l.classList.contains('oculto'); };
 function mostrarCarta(c,rotulo,alTerminar){
   const v=document.getElementById('carta');
   cartaAbierta={c,alTerminar};
   const fondo=c.fondo&&FONDO_CARTA[c.fondo]?FONDO_CARTA[c.fondo]():null;   // la prensa no declara fondo: va sobre la cancha
   document.getElementById('cartaFondo').style.backgroundImage=fondo?'url('+fondo+')':'none';
-  v.classList.toggle('sobreCancha',!fondo);
-  document.getElementById('cartaRotulo').textContent=rotulo;
+  v.classList.toggle('sobreCancha',!fondo&&lobbyOculto());   // 2026-09-13 (su captura: la prensa del Mundial translúcida ARRIBA del lobby): el velo translúcido es para la cancha atrás, nada más
+  document.getElementById('cartaRotulo').textContent=rotulo; document.getElementById('cartaRotulo').className='rotulo';
   /* §2z136: red — un gancho-función que llegue crudo se resuelve con el contexto general; nunca una carta muda */
   let gancho=c.gancho; if(typeof gancho==='function'){ try{ gancho=gancho(ctxCarta(null)); }catch(err){ gancho=''; } }
   document.getElementById('cartaGancho').textContent=t(gancho);
@@ -6571,6 +6580,18 @@ function salidaDe(o){
   if(o.tipo==='serie'&&o.serie){ const sr=o.serie, mine=sr.alta===mi?sr.ganAlta:sr.ganBaja, riv=sr.alta===mi?sr.ganBaja:sr.ganAlta, need=Math.ceil(sr.mejorDe/2);
     s.cierro=mine===need-1; s.meCierran=riv===need-1; s.decisivo=s.cierro&&s.meCierran; s.barrida=s.cierro&&riv===0&&need>=3; s.final=sr.nombre==='final'; }
   if(o.tipo==='seleccion'||o.tipo==='americas') s.final=o.etapa==='final';   // 2026-09-12: la final de las Américas también es LA final
+  /* §2z235 (su caza 2026-09-13: "no me viene saliendo ninguna card pre-partido en ningún partido del Mundial; esperaría más cosas"):
+     lo que el torneo de la selección tiene para contar — el primer partido, el que define el grupo, la llave a partido único, el
+     bronce, el rival grande */
+  if(o.tipo==='seleccion'&&o.etapa!=='eliminatorias'){
+    const tS=$C().selTorneo; s.torneoSel=tS?tS.torneo:null;
+    s.primeroTorneo=o.etapa==='grupo'&&o.juego===1;
+    s.cierraGrupo=(o.etapa==='grupo'||o.etapa==='segunda')&&!!o.total&&o.juego===o.total;
+    s.llaveUnica=['octavos','cuartos','semifinal'].indexOf(o.etapa)>=0;
+    s.bronce=o.etapa==='bronce';
+    s.rivalGrande=!!(typeof SELECCIONES!=='undefined'&&SELECCIONES[o.rival]&&SELECCIONES[o.rival].fuerza>=78);
+    s.etapaTxt=typeof SEL_TXT!=='undefined'&&SEL_TXT[o.etapa]?t(SEL_TXT[o.etapa]).toLowerCase():(o.etapa||'');
+  }
   /* §2z40.1 (su pedido: "el clásico contra [rival]", "la final de [competencia]"): nombres para la prosa */
   const rc=clubDe(o.rival); s.rival=rc?(rc.corto||rc.nombre):'';
   s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?t(L('la Liga de las Américas','the Americas League','a Liga das Américas')):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
@@ -6598,6 +6619,16 @@ function cartaDeSalida(o,seguir){
   salidaClave=clave;
   mostrarCarta(cc,quien+' · '+t(L('EN EL TÚNEL','IN THE TUNNEL','NO TÚNEL')),()=>{ salidaEnSel=false; salidaClave=null; seguir(); });
   return true;
+}
+/* §2z239: ¿volviste antes de lo que decía tu lugar? Con el rank por fuerza dentro del campo: los 4 de arriba deben llegar a semis, los 8
+   a cuartos, la mitad del campo a la segunda fase / la llave; el resto no debe nada. Sin rank (un save viejo) es decepción, como antes. */
+function selDecepcion(u){
+  const r=u.rank||0, p=u.puesto; if(!r) return true;
+  const antes=(lista)=>lista.indexOf(p)>=0;
+  if(r<=4) return antes(['grupo','segunda','octavos','cuartos']);
+  if(r<=8) return antes(['grupo','segunda','octavos']);
+  if(r<=Math.max(8,Math.floor((u.campo||16)/2))) return antes(['grupo']);
+  return false;
 }
 /* ── §2z42.3 LA PRENSA REGISTRA EL LUJO (su ok 2026-09-05): comprás algo de la cadena de lujo y sale la carta
    con tu compra adentro. Una sola carta, con el nombre del ítem en el gancho; repite (cada compra es noticia). ── */
@@ -6777,8 +6808,9 @@ function mostrarAviso(a, alTerminar){
   cartaAbierta={c:{}, alTerminar};
   const fondo=a.fondo&&FONDO_CARTA[a.fondo]?FONDO_CARTA[a.fondo]():null;
   document.getElementById('cartaFondo').style.backgroundImage=fondo?'url('+fondo+')':'none';
-  v.classList.toggle('sobreCancha',!fondo);
+  v.classList.toggle('sobreCancha',!fondo&&lobbyOculto());   // 2026-09-13 (su captura: la prensa del Mundial translúcida ARRIBA del lobby): el velo translúcido es para la cancha atrás, nada más
   document.getElementById('cartaRotulo').textContent=t(a.rotulo);
+  document.getElementById('cartaRotulo').className='rotulo'+(a.rotuloCls?' '+a.rotuloCls:'');   // 2026-09-13: SPONSOR NUEVO en naranja
   document.getElementById('cartaGancho').textContent='';        /* :empty lo esconde: sin renglón vacío con aire */
   const ops=document.getElementById('cartaOpciones'); ops.innerHTML=''; ops.classList.add('oculto');
   document.getElementById('cartaRemate').textContent=t(a.remate);
@@ -6905,8 +6937,17 @@ const CARTAS_PRENSA=[
        {p:60,remate:L('Una hora','An hour','Uma hora'),texto:L('Te quedás una hora contestando todo. El último en irse es el que escribe la crónica del país, y escribe que te quedaste.','You stay an hour answering everything. The last to leave is the man who writes the national wrap, and he writes that you stayed.','Você fica uma hora respondendo tudo. O último a sair é quem escreve a crônica do país, e escreve que você ficou.'),ef:{rel:{hinchada:9,dt:3}}},
        {p:40,remate:L('La pregunta de más','One question too many','A pergunta a mais'),texto:L('En la última te preguntan por el tiro que erraste faltando nueve segundos. Lo mirás y no te sale nada. Esa foto es la que sale.','The last one asks about the shot you missed with nine seconds left. You look at him and nothing comes out. That photo is the one that runs.','Na última perguntam do arremesso que você errou faltando nove segundos. Você olha e não sai nada. Essa foto é a que sai.'),ef:{rel:{hinchada:-5},energia:-8}}]}]},
 
+ /* §2z239: la eliminación que fue MÁS LEJOS de lo que tu lugar decía — el mismo momento, la otra pregunta */
+ { id:'prensa_sel_lejos', repite:true, evento:true,
+   cuando:(c)=>c.u.seleccion&&c.u.seleccion.torneo&&!c.u.seleccion.medalla&&c.u.seleccion.puesto&&c.u.seleccion.puesto!=='cuarto'&&c.u.seleccion.puesto!=='final'&&!selDecepcion(c.u.seleccion),
+   gancho:L('Se terminó, pero más lejos de lo que nadie esperaba. En el aeropuerto hay gente esperando al equipo, y a vos te preguntan si esto fue un techo o un piso.','It is over, but further than anyone expected. People are waiting for the team at the airport, and they ask you whether this was a ceiling or a floor.','Acabou, mas mais longe do que qualquer um esperava. No aeroporto tem gente esperando o time, e perguntam se isso foi um teto ou um piso.'),
+   opciones:[
+     {tipo:'segura',label:L('"Un piso"','"A floor"','"Um piso"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís corto y la gente aplaude. Te sacás fotos con todos.','You say it short and the crowd claps. You take photos with everyone.','Você diz curto e a galera aplaude. Tira foto com todo mundo.'),ef:{rel:{hinchada:3}}}]},
+     {tipo:'apuesta',label:L('"La próxima vamos por más"','"Next time we go for more"','"Na próxima vamos por mais"'),desenlaces:[
+       {p:60,remate:L('El país te tomó la palabra','The country took your word','O país te cobrou a palavra'),texto:L('La frase es el título del diario del domingo, con tu cara. El DT te llama para decirte que contaba con eso.','The line is the Sunday headline, with your face. The coach calls to say he was counting on that.','A frase é a manchete de domingo, com a sua cara. O técnico liga para dizer que contava com isso.'),ef:{rel:{hinchada:4,dt:3}}},
+       {p:40,remate:L('Dos veteranos escuchan','Two veterans hear it','Dois veteranos ouvem'),texto:L('Los dos más grandes del plantel la escuchan y saben que en «la próxima» no van a estar. No te dicen nada.','The two oldest on the squad hear it and know they will not be there "next time". They say nothing.','Os dois mais velhos do elenco ouvem e sabem que na "próxima" não vão estar. Não dizem nada.'),ef:{rel:{plantel:-3}}}]}]},
  { id:'prensa_sel_afuera', repite:true, evento:true,
-   cuando:(c)=>c.u.seleccion&&c.u.seleccion.torneo&&!c.u.seleccion.medalla&&c.u.seleccion.puesto&&c.u.seleccion.puesto!=='cuarto'&&c.u.seleccion.puesto!=='final',   // 2026-09-09: el preolímpico GANADO es puesto 'final' sin medalla, no una eliminación
+   cuando:(c)=>c.u.seleccion&&c.u.seleccion.torneo&&!c.u.seleccion.medalla&&c.u.seleccion.puesto&&c.u.seleccion.puesto!=='cuarto'&&c.u.seleccion.puesto!=='final'&&selDecepcion(c.u.seleccion),   // 2026-09-09: el preolímpico GANADO es puesto 'final' sin medalla, no una eliminación · §2z239: sólo si volviste antes de lo que tu lugar decía
    gancho:L('Se terminó, y antes de lo que decía cualquiera. El vuelo de vuelta es a la madrugada y la última pregunta es si este grupo tiene futuro.','It is over, and earlier than anyone said. The flight home is at dawn and the last question is whether this group has a future.','Acabou, e antes do que qualquer um dizia. O voo de volta é de madrugada e a última pergunta é se esse grupo tem futuro.'),
    opciones:[
      {tipo:'segura',label:L('"Este grupo tiene futuro"','"This group has a future"','"Esse grupo tem futuro"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y te lo creés a medias. Alcanza para el título de mañana.','You say it and half believe it. It is enough for tomorrow\'s headline.','Você diz e acredita pela metade. Dá para a manchete de amanhã.'),ef:{}}]},
@@ -11215,6 +11256,13 @@ const SELECCIONES = {
   pa: { nombre: 'Panamá', fuerza: 56, barra: -5, cont: 'am' },
   co: { nombre: 'Colombia', fuerza: 55, barra: -5, cont: 'am' },
   cl: { nombre: 'Chile', fuerza: 52, barra: -6, cont: 'am' },
+  /* §12.33 (2026-09-13, su corte: "armemos algo medianamente decente… donde es jugable no quiero que simplifiquemos sin
+     sentido"): los cuatro que completan los 16 de la ELIMINATORIA REAL de América (4 grupos de 4 → 2 de 6 → 7 al Mundial).
+     No son de la AmeriCup fija: se cuelan por el ranking con ruido (campoTorneo) alguna vez. */
+  ni: { nombre: 'Nicaragua', fuerza: 50, barra: -7, cont: 'am' },
+  bs: { nombre: 'Bahamas', fuerza: 54, barra: -6, cont: 'am' },
+  cu: { nombre: 'Cuba', fuerza: 48, barra: -7, cont: 'am' },
+  jm: { nombre: 'Jamaica', fuerza: 46, barra: -8, cont: 'am' },
   /* Europa — España es jugable (su corte: sin Eurobasket por ahora, no hay padrón); el resto
      son RIVALES del Mundial y los Juegos, y no salen en el alta. */
   es: { nombre: 'España', fuerza: 76, barra: 0, cont: 'eu' },
@@ -11239,6 +11287,24 @@ const SELECCIONES = {
   eg: { nombre: 'Egipto', fuerza: 55, barra: 0, cont: 'af' },
   ir: { nombre: 'Irán', fuerza: 55, barra: 0, cont: 'as' },
   ua: { nombre: 'Ucrania', fuerza: 61, barra: 0, cont: 'eu' },
+  /* §12.33: los dieciséis que completan los 32 de la División A europea (8 grupos de 4 → 4 de 6 → 12 al Mundial). Con ellos
+     el Eurobasket es de 24 como el real, y toda Europa tiene eliminatorias jugables. */
+  hr: { nombre: 'Croacia', fuerza: 66, barra: 0, cont: 'eu' },
+  il: { nombre: 'Israel', fuerza: 63, barra: 0, cont: 'eu' },
+  ba: { nombre: 'Bosnia', fuerza: 62, barra: 0, cont: 'eu' },
+  be: { nombre: 'Bélgica', fuerza: 62, barra: 0, cont: 'eu' },
+  ee: { nombre: 'Estonia', fuerza: 60, barra: 0, cont: 'eu' },
+  pt: { nombre: 'Portugal', fuerza: 60, barra: 0, cont: 'eu' },
+  nl: { nombre: 'Países Bajos', nombres: ['P. Bajos'], fuerza: 58, barra: 0, cont: 'eu' },
+  is: { nombre: 'Islandia', fuerza: 58, barra: 0, cont: 'eu' },
+  gb: { nombre: 'Gran Bretaña', nombres: ['G. Bretaña'], fuerza: 58, barra: 0, cont: 'eu' },
+  hu: { nombre: 'Hungría', fuerza: 57, barra: 0, cont: 'eu' },
+  se: { nombre: 'Suecia', fuerza: 57, barra: 0, cont: 'eu' },
+  bg: { nombre: 'Bulgaria', fuerza: 55, barra: 0, cont: 'eu' },
+  dk: { nombre: 'Dinamarca', fuerza: 54, barra: 0, cont: 'eu' },
+  mk: { nombre: 'Macedonia del Norte', corto: 'Macedonia N.', nombres: ['Macedonia'], fuerza: 54, barra: 0, cont: 'eu' },
+  sk: { nombre: 'Eslovaquia', fuerza: 52, barra: 0, cont: 'eu' },
+  at: { nombre: 'Austria', fuerza: 52, barra: 0, cont: 'eu' },
   /* ⚠️ Las ocho que entran con el MUNDIAL DE 24 (su decisión, 2026-09-04: *"a favor de
      cambiarles el formato para algo mejor si vamos al real y encima los diferencia"*). No son
      relleno: son las que de verdad van a un Mundial — Finlandia y Georgia clasificaron al de
@@ -11253,51 +11319,57 @@ const SELECCIONES = {
   ci: { nombre: 'Costa de Marfil', nombres: ['C. de Marfil'], fuerza: 58, barra: 0, cont: 'af' },
   cv: { nombre: 'Cabo Verde', fuerza: 56, barra: 0, cont: 'af' },
   kr: { nombre: 'Corea del Sur', fuerza: 55, barra: 0, cont: 'as' },
+  /* §12.33: para que en Asia/Oceanía (8 cupos) y África (5) alguien se quede AFUERA del Mundial. Catar es el anfitrión del 2027. */
+  qa: { nombre: 'Catar', fuerza: 50, barra: 0, cont: 'as' },
+  lb: { nombre: 'Líbano', fuerza: 58, barra: 0, cont: 'as' },
+  jo: { nombre: 'Jordania', fuerza: 56, barra: 0, cont: 'as' },
+  sn: { nombre: 'Senegal', fuerza: 60, barra: 0, cont: 'af' },
+  tn: { nombre: 'Túnez', fuerza: 58, barra: 0, cont: 'af' },
+  cm: { nombre: 'Camerún', fuerza: 57, barra: 0, cont: 'af' },
 };
 
 /** Las jugables: las que tienen competencia internacional en el juego (su corte). */
 const SEL_JUGABLES = ['ar', 'br', 'ca', 'cl', 'co', 'do', 'es', 'mx', 'pa', 'pr', 'us', 'uy', 've'];
 
 /**
- * El campo de cada continente. **`am` es además el campo de la AmeriCup** (12 justos); `eu` no
- * es un torneo —no hay Eurobasket armado, §12.3— pero SÍ es el grupo de las ELIMINATORIAS de
- * España, que en la realidad las juega igual que todos.
- * ⚠️ Sin esto, una carrera española (o una beta española) no tenía eliminatorias y se quedaba
- * sin la mitad de la selección (2026-09-04).
+ * §12.33 (2026-09-13): el campo de cada continente es TODO su padrón — América 16 y Europa 32, que son los de la
+ * eliminatoria real al Mundial. La AmeriCup (12) y el Eurobasket (24) salen de ahí por `rankingSel` (fuerza + ruido por
+ * ciclo), así que Nicaragua o Bahamas se cuelan alguna vez y Panamá o Chile se quedan afuera; tu país entra siempre al
+ * continental (no hay eliminatoria jugable para eso, y un dado escondido no decide un torneo tuyo — regla 1).
  */
 const SEL_CONTINENTAL = {
-  am: ['us', 'ca', 'ar', 'br', 'pr', 'do', 've', 'mx', 'uy', 'pa', 'co', 'cl'],
-  eu: ['rs', 'fr', 'de', 'es', 'gr', 'it', 'lt', 'si', 'tr', 'lv', 'fi', 'ge', 'pl', 'me', 'cz', 'ua'],
+  am: ['us', 'ca', 'ar', 'br', 'pr', 'do', 've', 'mx', 'uy', 'pa', 'co', 'cl', 'ni', 'bs', 'cu', 'jm'],
+  eu: ['rs', 'fr', 'de', 'es', 'gr', 'it', 'lt', 'si', 'tr', 'lv', 'fi', 'ge', 'pl', 'me', 'cz', 'ua',
+    'hr', 'il', 'ba', 'be', 'ee', 'pt', 'nl', 'is', 'gb', 'hu', 'se', 'bg', 'dk', 'mk', 'sk', 'at'],
 };
-/* ⚠️ EL EUROBASKET EXISTE (2026-09-04, lo que faltaba para que España no tuviera un año vacío).
-   Es el MISMO motor que la AmeriCup con otro campo y otro tamaño: 16 selecciones, 4 grupos de 4,
-   pasan 2 → cuartos. Y no es una copia de la AmeriCup: es más largo (6 partidos contra 5) y no
-   tiene equipo B, porque en Europa van todos. El casillero `continental` de cada país decide
-   cuál le toca, así que sumar un continente nuevo mañana es una línea de padrón. */
+/* Asia y Oceanía clasifican JUNTAS (FIBA Asia), así que para los cupos son un solo casillero */
+const contElim = (c) => c === 'oc' ? 'as' : c;
+function padronDe(cont) { return Object.keys(SELECCIONES).filter((id) => contElim(SELECCIONES[id].cont) === cont); }
 
 /**
- * ⚠️⚠️ EL MUNDIAL ES DE 24 Y TIENE SEGUNDA FASE (su decisión, 2026-09-04).
+ * ⚠️⚠️ EL MUNDIAL ES DE 32 CON EL FORMATO REAL (§12.33, su corte 2026-09-13: "cada copa con su formato real… tanto esfuerzo
+ * para quedarnos cortos"). 8 grupos de 4 (jugás 3) → pasan 2 → segunda fase de 4 grupos de 4 arrastrando el partido entre los
+ * dos que pasan (jugás 2 más) → cuartos · semi · final + bronce. Camino máximo **8 partidos**.
  *
- * Su pregunta fue *"¿en Mundial y JJOO necesitamos más países para que estén bien los formatos
- * o así estamos bien?"*, y la respuesta medida era: los Juegos y la AmeriCup están bien —12 es
- * el número real de los dos—, pero el Mundial de 16 **tenía la misma forma que la AmeriCup**
- * (cuatro grupos y la misma llave) y sólo un partido más. Sumar países sueltos no arreglaba eso;
- * lo que lo arregla es la SEGUNDA FASE, que es lo que el Mundial de verdad tiene y ningún otro
- * torneo del juego: los que pasan **arrastran** el resultado del cruce entre ellos y juegan dos
- * partidos más antes de los cuartos.
- *
- * Así el máximo pasa de 6 a **8 partidos** —el número de El Draft— y los tres torneos quedan de
- * tres largos distintos: AmeriCup 5, Juegos 5, Mundial 8.
- *
- * América lleva 6 (los 4 de las eliminatorias más 2 repescados), Europa 9, el resto 9.
+ * Los cupos son los de la FIBA: Europa 12 · América 7 · Asia/Oceanía 8 · África 5. El anfitrión entra fijo dentro del cupo de
+ * su continente (Catar 2027 en los 8 asiáticos, Francia 2031 en los 12 europeos). Lo que decidieron TUS eliminatorias entra
+ * tal cual (`clasificados`); el resto de cada continente sale del ranking con ruido.
  */
-const SEL_MUNDIAL_FIJOS = ['rs', 'fr', 'de', 'es', 'gr', 'it', 'lt', 'si', 'tr', 'fi', 'ge', 'pl',
-  'au', 'ss', 'cn', 'jp', 'ng', 'ci'];
-const SEL_MUNDIAL_CUPOS_AM = 6;
+const SEL_MUNDIAL_CUPOS = { eu: 12, am: 7, as: 8, af: 5 };
+const SEL_MUNDIAL_CUPOS_AM = SEL_MUNDIAL_CUPOS.am;
 /** Los Juegos: 12. Cuatro de América (2 directos del Mundial + 2 del preolímpico) y 8 fijos. */
 const SEL_JJOO_FIJOS = ['fr', 'rs', 'de', 'es', 'au', 'gr', 'ss', 'jp'];
 const SEL_JJOO_CUPOS_AM = 4;
 const SEL_JJOO_DIRECTOS_AM = 2;   // los dos mejores de América en el Mundial entran solos
+
+/** §12.33 EL RANKING CON RUIDO: fuerza + un dado de ±6 por selección, sembrado por carrera y año — una tirada por ciclo,
+ *  determinista (se tira en orden alfabético de ids, así no depende de quién pregunta primero). */
+function rankingSel(cont, semilla, anio) {
+  const ids = padronDe(cont).sort();
+  const rng = rngFor(semilla || '', 'seleccion', 'ranking', anio || 0);
+  const val = {}; for (const id of ids) val[id] = SELECCIONES[id].fuerza + rng.int(-6, 6);
+  return ids.slice().sort((a, b) => val[b] - val[a] || (a < b ? -1 : 1));
+}
 
 /* ── EL CICLO (§12.2) ──────────────────────────────────────────────────────────────────────
    El torneo se juega en el VERANO POSTERIOR a la temporada (receso), así que el año del
@@ -11413,14 +11485,22 @@ function decidirVentanaSel(e, k) {
   if (v.conv !== antes) el.avisoVentana = { n: v.n, clave: v.conv ? 'convocado' : 'afuera' };
 }
 
-/* ── LAS ELIMINATORIAS (su línea 3) ────────────────────────────────────────────────────────
-   Un grupo de SEIS del continente, ida y vuelta = 10 partidos en 5 ventanas de 2. Clasifican
-   los cuatro primeros al Mundial. Cada ventana ocupa DOS fechas del club consecutivas: el
-   club las juega sin vos.
-   Las ventanas van sobre la fase regular, repartidas y sin pisar ni la primera ni las dos
-   últimas fechas (§12.1 restricción b), y esquivando las de la Liga de las Américas. */
-const SEL_VENTANAS_FR = [0.12, 0.30, 0.46, 0.64, 0.80];
-const SEL_ELIM_CLASIFICAN = 4;
+/* ── LAS ELIMINATORIAS (su línea 3) — §12.33: EL FORMATO REAL ──────────────────────────────
+   Su corte (2026-09-13): *"armemos algo medianamente decente… donde es jugable no quiero que simplifiquemos sin sentido"*.
+   Es el mismo mecanismo en todos los continentes de la FIBA, y es el mismo arrastre que la segunda fase del Mundial:
+     RONDA 1  grupos de CUATRO, ida y vuelta (6 fechas, ventanas 1-3). Pasan 3.
+     RONDA 2  dos grupos de la ronda 1 se juntan en uno de SEIS arrastrando los resultados entre los tres que pasaron;
+              jugás ida y vuelta sólo contra los tres nuevos (6 fechas, ventanas 4-6).
+     CUPOS    desde la ronda 2: Europa 3 por grupo (4 grupos → 12) · América 3 por grupo + el mejor 4° (2 grupos → 7).
+   Se juega TODO el continente (América 16 en 4 grupos, Europa 32 en 8): las tablas de todos los grupos se ven como en
+   cualquier torneo, y el mejor cuarto se mide contra el otro grupo de verdad, no contra un dado.
+   Doce fechas en SEIS ventanas de dos: parte A = dos en temporada + dos en el receso; parte B = noviembre y febrero.
+   Cada ventana ocupa DOS fechas del club consecutivas: el club las juega sin vos. */
+const SEL_VENTANAS_FR = [0.10, 0.25, 0.40, 0.55, 0.70, 0.85];   // la beta: las seis en la temporada
+const SEL_ELIM_CLASIFICAN = 3;           // por grupo de la ronda 2 (y de la 1)
+const SEL_ELIM_FECHAS = 12, SEL_ELIM_R1 = 6;
+const SEL_ELIM_MEJOR_CUARTO = { am: true, as: true };   // el séptimo cupo
+const SEL_ELIM_JUGABLES = { am: true, eu: true };       // los continentes con eliminatorias armadas (los otros: ranking)
 
 /** Las ventanas concretas para una liga de F fechas: [{n, f}] con 1 < f ≤ F−3 (cada ventana
  *  consume la fecha f y la f+1), separadas entre sí, y NUNCA arrancando en una fecha que ya es
@@ -11437,10 +11517,10 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
   for (let f = 2; f <= F - 3; f++) if (!tomadas.has(f)) libres.push(f);
   const out = [];
   /* §12.2 v2: parte A = dos en temporada (las semanas FIBA si la liga para; si no, al 25 y al 65 %) + dos del receso
-     (f=F: se ofrecen con la temporada terminada); parte B = una sola, la quinta, en noviembre */
+     (f=F: se ofrecen con la temporada terminada); parte B = las dos de temporada, noviembre y febrero (§12.33: seis en total) */
   if (parte === 'A' || parte === 'B') {
     const cal = (semilla && ritmo && typeof calendarioDe === 'function') ? calendarioDe(ritmo) : null;
-    const cuantas = parte === 'A' ? 2 : 1, ideales = parte === 'A' ? [0.25, 0.65] : [0.25];
+    const cuantas = 2, ideales = [0.25, 0.65];
     if (cal && cal.fiba) {
       for (const [md0] of VENTANAS_FIBA_EN_TEMPORADA.slice(0, cuantas)) {
         const d0 = diaDeTemporada(cal, md0);
@@ -11474,7 +11554,7 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
       VENTANAS_VERANO.forEach(([md0, md1], i) => { let d0 = cal ? diaDeTemporada(cal, md0) : null, d1 = cal ? diaDeTemporada(cal, md1) : null;
         if (d0 !== null && d0 <= dFin) { d0 = dFin + 10 + 30 * i; d1 = d0 + 3; }
         out.push({ n: out.length + 1, f: F, receso: 'verano', dias: d0 !== null ? [d0, d1] : null }); });
-    } else out.forEach((v) => { v.n = 5; });
+    } else out.forEach((v, i) => { v.n = 5 + i; });
     return out;
   }
   /* §12.28 paso 1 (a): en las ligas que paran por FIBA, las ventanas de temporada van ADENTRO de la semana reservada
@@ -11508,55 +11588,86 @@ function ventanasSeleccion(F, ocupadas, semilla, ritmo, parte) {
   return out;
 }
 
-/** El grupo de eliminatorias de tu país: los seis, por sorteo con bombos de su continente. */
-function grupoEliminatorias(semilla, pais) {
-  const campo = (SEL_CONTINENTAL[SELECCIONES[pais].cont] || []).slice();
-  if (campo.indexOf(pais) < 0) return null;
+/** §12.33 El sorteo de la ronda 1 de un continente: grupos de 4 con cuatro bombos por fuerza (uno de cada bombo por grupo),
+ *  y los pares que se juntan en la ronda 2 (A+B → I, C+D → J, E+F → K, G+H → L). */
+function sortearEliminatorias(semilla, cont) {
+  const campo = padronDe(cont);
+  const nG = Math.floor(campo.length / 4);
+  if (nG < 2 || campo.length !== nG * 4) return null;
   const rng = rngFor(semilla, 'seleccion', 'sorteo');
-  const orden = campo.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
-  /* dos bombos de seis: uno de arriba y uno de abajo, tres de cada uno — así el grupo tiene
-     siempre a quién ganarle y a quién no, que es lo que hace que la tabla se lea */
-  const arriba = orden.slice(0, 6), abajo = orden.slice(6);
+  const orden = campo.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza || (a < b ? -1 : 1));
   const barajar = (a) => { const x = a.slice(); for (let i = x.length - 1; i > 0; i--) { const j = rng.int(0, i); [x[i], x[j]] = [x[j], x[i]]; } return x; };
-  const g = [];
-  const mio = arriba.indexOf(pais) >= 0 ? arriba : abajo;
-  g.push(pais);
-  for (const lista of [arriba, abajo]) {
-    for (const id of barajar(lista)) {
-      if (id === pais || g.indexOf(id) >= 0) continue;
-      if (g.filter((x) => (arriba.indexOf(x) >= 0) === (lista === arriba)).length >= 3) break;
-      g.push(id);
-    }
-  }
-  while (g.length < 6) for (const id of orden) if (g.indexOf(id) < 0 && g.length < 6) g.push(id);
-  return g.slice(0, 6);
+  const letras = SEL_LETRAS.slice(0, nG), grupos = {};
+  letras.forEach((g) => { grupos[g] = []; });
+  for (let b = 0; b < 4; b++) barajar(orden.slice(b * nG, (b + 1) * nG)).forEach((id, i) => grupos[letras[i]].push(id));
+  const pares = [];
+  for (let i = 0; i < nG; i += 2) pares.push([letras[i], letras[i + 1], SEL_LETRAS2[i >> 1]]);
+  return { grupos, pares };
 }
-
-/** Nace la eliminatoria de esta temporada (o null si tu país no tiene continental armado). */
+/** Las fechas de un grupo de 4 a ida y vuelta (6): el círculo, con el pivote alternando la localía. `j0` es la primera fecha. */
+function fechasGrupo4(ids, j0, grupo) {
+  const rot = ids.slice(1), out = [];
+  for (let r = 0; r < 3; r++) {
+    const arr = [ids[0]].concat(rot.slice(r).concat(rot.slice(0, r)));
+    const par = [{ local: arr[0], visita: arr[3] }, { local: arr[1], visita: arr[2] }];
+    if (r % 2) { const p0 = par[0]; par[0] = { local: p0.visita, visita: p0.local }; }
+    par.forEach((p) => { out.push({ j: j0 + r, grupo, local: p.local, visita: p.visita, jugado: false }); out.push({ j: j0 + 3 + r, grupo, local: p.visita, visita: p.local, jugado: false }); });
+  }
+  return out;
+}
+/* §12.33 Un país que no tiene eliminatorias armadas (Asia, África) no tiene selección jugable en las ventanas. */
 function crearEliminatorias(semilla, pais, F, ocupadas, ritmo, semillaCal, parte) {
-  const grupo = grupoEliminatorias(semilla, pais);
-  if (!grupo) return null;
+  const sel = SELECCIONES[pais]; if (!sel) return null;
+  const cont = contElim(sel.cont);
+  if (!SEL_ELIM_JUGABLES[cont]) return null;
+  const sorteo = sortearEliminatorias(semilla, cont);
+  if (!sorteo) return null;
   const ventanas = ventanasSeleccion(F, ocupadas, semillaCal, ritmo, parte);   // §12.28: con el calendario de la liga, si lo hay
   if (!ventanas.length) return null;
-  /* el calendario: ida y vuelta entre los seis = 30 partidos, 3 por jornada, 10 jornadas.
-     Con 5 ventanas de 2 jornadas cada una entran las 10. Round robin por el método del círculo. */
-  const rot = grupo.slice(1);
-  const jornadas = [];
-  for (let r = 0; r < 5; r++) {
-    const par = [];
-    const arr = [grupo[0]].concat(rot.slice(r).concat(rot.slice(0, r)));
-    for (let i = 0; i < 3; i++) par.push({ local: arr[i], visita: arr[5 - i] });
-    /* 2026-09-12 (su caza: "los 5 primeros de local, los 5 siguientes de visitante"): el pivote del círculo (tu país va
-       primero) era local en las cinco jornadas de ida y visitante en las cinco de vuelta. El pivote alterna: L V L V L y
-       después V L V L V. Las partidas que ya tienen el fixture armado siguen con el suyo. */
-    if (r % 2) { const p0 = par[0]; par[0] = { local: p0.visita, visita: p0.local }; }
-    jornadas.push(par);
-  }
-  for (let r = 0; r < 5; r++) jornadas.push(jornadas[r].map((p) => ({ local: p.visita, visita: p.local })));
   const juegos = [];
-  jornadas.forEach((par, j) => par.forEach((p) => juegos.push({ j: j + 1, local: p.local, visita: p.visita, jugado: false })));
-  return { tipo: 'eliminatorias', pais, grupo, ventanas, juegos, idx: 0, jornada: 0, clasificados: null };
+  let miGrupo = null;
+  for (const g of Object.keys(sorteo.grupos)) { juegos.push(...fechasGrupo4(sorteo.grupos[g], 1, g)); if (sorteo.grupos[g].indexOf(pais) >= 0) miGrupo = g; }
+  if (!miGrupo) return null;
+  /* `grupo` (los ids de TU grupo de ahora) queda por compatibilidad con lo que lo leía; `v: 2` marca el formato */
+  return { tipo: 'eliminatorias', v: 2, pais, cont, grupos: sorteo.grupos, pares: sorteo.pares, miGrupo, grupo: sorteo.grupos[miGrupo].slice(),
+    ronda: 1, ventanas, juegos, idx: 0, jornada: 0, clasificados: null };
 }
+/** §12.33 La ronda 2: con la ronda 1 cerrada, cada par de grupos se junta en uno de seis. Los partidos entre los tres que
+ *  pasaron se ARRASTRAN (marcados con `g2`, como en el Mundial); los nueve cruces nuevos van a ida y vuelta, fechas 7-12. */
+function abrirRonda2Elim(el) {
+  if (el.ronda !== 1) return;
+  el.miGrupo2 = null;
+  for (const [x, y, g2] of el.pares) {
+    const px = tablaSel(el, x).slice(0, SEL_ELIM_CLASIFICAN).map((f) => f.id), py = tablaSel(el, y).slice(0, SEL_ELIM_CLASIFICAN).map((f) => f.id);
+    el.grupos[g2] = px.concat(py);
+    for (const g of el.juegos) if ((g.grupo === x && px.indexOf(g.local) >= 0 && px.indexOf(g.visita) >= 0) || (g.grupo === y && py.indexOf(g.local) >= 0 && py.indexOf(g.visita) >= 0)) g.g2 = g2;
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 3; i++) {
+      const a = px[i], b = py[(i + r) % 3], casa = (r + i) % 2 === 0;
+      el.juegos.push({ j: SEL_ELIM_R1 + 1 + r, grupo: null, g2, segunda: true, local: casa ? a : b, visita: casa ? b : a, jugado: false });
+      el.juegos.push({ j: SEL_ELIM_R1 + 4 + r, grupo: null, g2, segunda: true, local: casa ? b : a, visita: casa ? a : b, jugado: false });
+    }
+    if (el.grupos[g2].indexOf(el.pais) >= 0) el.miGrupo2 = g2;
+  }
+  el.ronda = 2;
+  el.grupo = el.miGrupo2 ? el.grupos[el.miGrupo2].slice() : [];
+  /* quedaste afuera en la ronda 1: no jugás más, pero las eliminatorias siguen (y se miran) */
+  if (!el.miGrupo2) el.fueraR1 = true;
+}
+/** §12.33 El cierre: los tres primeros de cada grupo de la ronda 2, y en América el mejor cuarto (ganados, después diferencia). */
+function cerrarElimV2(el) {
+  const letras = el.pares.map((p) => p[2]), tablas = {}, out = [], cuartos = [];
+  for (const g of letras) { tablas[g] = tablaSel(el, g); tablas[g].slice(0, SEL_ELIM_CLASIFICAN).forEach((f) => out.push(f.id)); if (tablas[g][SEL_ELIM_CLASIFICAN]) cuartos.push(tablas[g][SEL_ELIM_CLASIFICAN]); }
+  if (SEL_ELIM_MEJOR_CUARTO[el.cont] && cuartos.length) {
+    cuartos.sort((a, b) => b.pg - a.pg || (b.pf - b.pc) - (a.pf - a.pc) || (a.id < b.id ? -1 : 1));
+    out.push(cuartos[0].id); el.mejorCuarto = cuartos[0].id;
+  }
+  el.tabla = el.miGrupo2 ? tablas[el.miGrupo2] : tablaSel(el, el.miGrupo);
+  el.clasificados = out;
+  el.fin = true;
+  el.pase = out.indexOf(el.pais) >= 0;
+}
+/** §12.33 Cuántos pasan del grupo `g` (la línea de corte de la tabla): 3 en las dos rondas. */
+function corteElim(el, g) { return SEL_ELIM_CLASIFICAN; }
 
 /** §12.2 v2: la parte B sobre el MISMO grupo que viajó de la parte A — sólo la quinta ventana, jornadas 9 y 10. */
 function continuarEliminatorias(previo, F, ocupadas, ritmo, semillaCal) {
@@ -11577,10 +11688,13 @@ function presimularEliminatorias(e, hasta, buscar) {
      cuando te toca jugar?" Podía. Se prueban semillas hasta que el país llega a la última ventana VIVO Y EN JUEGO —
      tercero o cuarto—, así el partido decide; si ninguna lo deja ahí, la primera en la que sigue vivo (a dos
      victorias del cuarto); si ninguna, la primera. Nada del resultado de la ventana se fuerza. */
-  const base = e.semilla, limpiar = () => { for (const g of el.juegos) if (g.j <= hasta) { g.jugado = false; g.ptsLocal = 0; g.ptsVisita = 0; } };
+  const base = e.semilla, limpiar = () => {
+    if (el.v === 2) { el.juegos = el.juegos.filter((g) => !g.segunda); for (const g of el.juegos) delete g.g2; for (const p of el.pares) delete el.grupos[p[2]]; el.ronda = 1; el.miGrupo2 = null; el.fueraR1 = false; el.grupo = el.grupos[el.miGrupo].slice(); }   // §12.33: la ronda 2 se rearma
+    for (const g of el.juegos) if (g.j <= hasta) { g.jugado = false; g.ptsLocal = 0; g.ptsVisita = 0; } };
   const correr = (k) => { limpiar(); e.semilla = base + (k ? '-pre' + k : ''); for (let j = 1; j <= hasta; j++) jugarJornadaSel(e, j, null); };
-  const estado = () => { const t = tablaSel(el), pos = t.findIndex((f) => f.id === el.pais), yo = t[pos], cuarto = t[SEL_ELIM_CLASIFICAN - 1];
-    return { enJuego: pos === 2 || pos === 3, vivo: pos < SEL_ELIM_CLASIFICAN || (cuarto.pg - yo.pg) <= 2 }; };
+  const estado = () => { const t = tablaSel(el), pos = t.findIndex((f) => f.id === el.pais), yo = t[pos], corte = t[SEL_ELIM_CLASIFICAN - 1];
+    if (pos < 0 || !yo) return { enJuego: false, vivo: false };   // §12.33: afuera en la ronda 1
+    return { enJuego: pos === SEL_ELIM_CLASIFICAN - 1 || pos === SEL_ELIM_CLASIFICAN, vivo: pos < SEL_ELIM_CLASIFICAN || (corte.pg - yo.pg) <= 2 }; };
   let vivoK = null;
   /* 2026-09-09: la búsqueda de semilla es de la beta (una vidriera); la carrera juega lo que salga */
   for (let k = 0; k < (buscar ? 40 : 1); k++) { correr(k); const st = estado(); if (st.enJuego) { e.semilla = base; return; } if (vivoK === null && st.vivo) vivoK = k; }
@@ -11606,7 +11720,7 @@ function proximoSeleccion(e) {
   if (!mio) return null;
   const local = mio.local === el.pais;
   return { tipo: 'seleccion', etapa: 'eliminatorias', ventana: v, jornada: j,
-    rival: local ? mio.visita : mio.local, local, juego: j, total: 10, convocado: !!el.convocado };
+    rival: local ? mio.visita : mio.local, local, juego: j, total: el.v === 2 ? SEL_ELIM_FECHAS : 10, convocado: !!el.convocado };
 }
 
 /** Resuelve UNA jornada de eliminatorias (la tuya con `miJuego` si la jugaste vos). */
@@ -11630,9 +11744,15 @@ function jugarJornadaSel(e, j, miJuego) {
      cuenta cómo le fue a tu país, la hayas jugado vos o no (su pedido 2026-09-04) */
   const vAct = el.ventanas[el.idx];
   if (vAct && jornadasDeVentana(vAct.n).every((x) => el.juegos.filter((g) => g.j === x).every((g) => g.jugado))) el.parteListo = vAct.n;
+  if (el.v === 2) {
+    /* §12.33: cerrada la ronda 1 (las seis fechas de todos los grupos) se abre la 2; cerradas las doce, el cierre real */
+    if (el.ronda === 1 && el.juegos.every((g) => g.jugado)) abrirRonda2Elim(el);
+    else if (el.ronda === 2 && el.juegos.every((g) => g.jugado)) cerrarElimV2(el);
+    return;
+  }
   if (el.juegos.every((g) => g.jugado)) {
     el.tabla = tablaSel(el);
-    el.clasificados = el.tabla.slice(0, SEL_ELIM_CLASIFICAN).map((f) => f.id);
+    el.clasificados = el.tabla.slice(0, 4).map((f) => f.id);   // el formato viejo (un save de antes de §12.33): pasaban cuatro
     el.fin = true;
     el.pase = el.clasificados.indexOf(el.pais) >= 0;
   }
@@ -11695,27 +11815,38 @@ function fechasSalteadas(el) {
 }
 
 /* ── EL TORNEO DEL RECESO (su línea 6: "acá sí hay que armar el formato") ───────────────────
-   Los tres con el mismo esqueleto y distinto tamaño de grupo, que es la diferencia real:
-     continental  12 selecciones · 4 grupos de 3 · pasan 2 → cuartos, semi, final (+ bronce)
-     mundial      16 selecciones · 4 grupos de 4 · pasan 2 → cuartos, semi, final (+ bronce)
-     jjoo         12 selecciones · 4 grupos de 3 · pasan 2 → cuartos, semi, final (+ bronce)
-     preolímpico   4 selecciones · semi y final, el ganador va a los Juegos
-   Todo a partido único, que es el formato real de los tres. ⚠️ EL PARTIDO POR EL BRONCE SE
-   JUEGA: es donde vive el "uh, casi se me da" que él pidió en El Draft, y el cuarto puesto
-   sólo existe si ese partido existe. */
-/* ⚠️ `nGrupos` y `segunda` los agregó el Mundial de 24 (2026-09-04). `segunda: true` es la
-   marca de "este torneo tiene SEGUNDA FASE de grupos", que hoy es sólo el Mundial y es
-   exactamente lo que lo diferencia de los otros dos. */
+   Los cinco con el mismo esqueleto; lo que los diferencia es el tamaño del grupo, cuántos pasan y la segunda fase:
+     continental  12 selecciones · 4 grupos de 3 · pasan 2 → cuartos, semi, final (+ bronce)       máx 5
+     eurobasket   24 selecciones · 4 grupos de 6 a una vuelta · pasan 4 → octavos, cuartos, semi, final   máx 9
+     mundial      32 selecciones · 8 grupos de 4 · pasan 2 → segunda fase (4 de 4, arrastre) · pasan 2 → cuartos…   máx 8
+     jjoo         12 selecciones · 4 grupos de 3 · pasan 2 → cuartos, semi, final (+ bronce)       máx 5
+     preolímpico   6 selecciones · 2 grupos de 3 · pasan 2 → semis cruzadas y final, el ganador va a los Juegos
+   Todos los formatos son los reales (§12.33, su corte: "cada copa con su formato real"). Todo a partido único.
+   ⚠️ EL PARTIDO POR EL BRONCE SE JUEGA: es donde vive el "uh, casi se me da" que él pidió en El Draft, y el cuarto
+   puesto sólo existe si ese partido existe. */
+/* `segunda: true` es la marca de "este torneo tiene SEGUNDA FASE de grupos" (sólo el Mundial). `pasan` los que pasan de
+   cada grupo: con 2 se va a cuartos (o a semis con dos grupos), con 4 a octavos. */
 const SEL_FORMATOS = {
-  continental: { equipos: 12, porGrupo: 3, nGrupos: 4, nombre: 'continental' },
-  eurobasket: { equipos: 16, porGrupo: 4, nGrupos: 4, nombre: 'eurobasket' },
-  mundial: { equipos: 24, porGrupo: 3, nGrupos: 8, segunda: true, nombre: 'mundial' },
-  jjoo: { equipos: 12, porGrupo: 3, nGrupos: 4, nombre: 'jjoo' },
-  preolimpico: { equipos: 6, porGrupo: 3, nGrupos: 2, nombre: 'preolimpico' },   // §12.30 (2026-09-12): el OQT real — 6, dos grupos de 3, semis cruzadas y final
+  continental: { equipos: 12, porGrupo: 3, nGrupos: 4, pasan: 2, nombre: 'continental' },
+  eurobasket: { equipos: 24, porGrupo: 6, nGrupos: 4, pasan: 4, nombre: 'eurobasket' },   // §12.33: el real — 24, grupos de 6, octavos
+  mundial: { equipos: 32, porGrupo: 4, nGrupos: 8, pasan: 2, segunda: true, nombre: 'mundial' },   // §12.33: el real — 32
+  jjoo: { equipos: 12, porGrupo: 3, nGrupos: 4, pasan: 2, nombre: 'jjoo' },
+  preolimpico: { equipos: 6, porGrupo: 3, nGrupos: 2, pasan: 2, nombre: 'preolimpico' },   // §12.30 (2026-09-12): el OQT real — 6, dos grupos de 3, semis cruzadas y final
 };
 const SEL_LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+/* §12.34 (2026-09-13, su caza: "los partidos del grupo NO TIENEN FECHA" — y la energía decía «hasta la pretemporada» entre dos
+   partidos del Mundial): el torneo del receso arranca el día real (research/CALENDARIOS.md) y juega un partido cada dos
+   días, paso a paso: grupo → segunda fase → llave. `paso` es el índice de ese partido; el día lo pone 18b (diaTorneoDe). */
+const SEL_TORNEO_INICIO = { mundial: [8, 27], continental: [8, 22], eurobasket: [8, 27], jjoo: [7, 15], preolimpico: [7, 2] };
+const pasoDeJuegoSel = (t, g) => Math.max(0, (g.mio || 1) - 1);
+function pasoDeSerieSel(t, s) {
+  const base = (t.jornadas || 0) + (t.jornadas2 || 0);
+  const primera = (t.llave && t.llave.jugadas && t.llave.jugadas.length) ? t.llave.jugadas[0].nombre : 'cuartos';
+  const n = s.nombre === 'bronce' ? 'final' : s.nombre;
+  return base + Math.max(0, SEL_RONDAS.indexOf(n) - SEL_RONDAS.indexOf(primera));
+}
 const SEL_LETRAS2 = ['I', 'J', 'K', 'L'];   // la segunda fase
-const SEL_RONDAS = ['cuartos', 'semifinal', 'final'];
+const SEL_RONDAS = ['octavos', 'cuartos', 'semifinal', 'final'];   // §12.33: octavos, para el Eurobasket de 24
 
 /** El marcador de un partido de selecciones: el mismo dado, con el delta del continental. */
 function fuerzaSel(id, torneo) {
@@ -11736,35 +11867,50 @@ function marcadorSel(rng, local, visita, torneo, sedeId) {
 function tablaSel(x, grupo) {
   /* ⚠️ `g2` es el grupo de la SEGUNDA FASE del Mundial: el partido que se ARRASTRA sigue
      teniendo su `grupo` de la primera y además cuenta en la tabla de la segunda. */
-  const juegos = grupo === undefined ? x.juegos : x.juegos.filter((g) => g.grupo === grupo || g.g2 === grupo);
+  if (grupo === undefined && x.v === 2) grupo = x.miGrupo2 || x.miGrupo;   // §12.33: las eliminatorias también tienen grupos con letra
+  const ids = grupo === undefined ? x.grupo : (x.grupos[grupo] || []);
+  /* §12.35 (2026-09-13, su research sobre el Mundial 2023: el grupo I con 5 PJ para todos): en la SEGUNDA FASE DEL MUNDIAL se
+     arrastra el RÉCORD ENTERO de la primera (los tres partidos, también contra los que no pasaron); lo que no se repite es el
+     partido contra el que ya enfrentaste. En las eliminatorias es distinto: sólo cuentan los partidos entre los que pasaron (g2). */
+  const todoR1 = x.tipo === 'torneo' && SEL_LETRAS2.indexOf(grupo) >= 0;
+  const juegos = grupo === undefined ? x.juegos : x.juegos.filter((g) => g.grupo === grupo || g.g2 === grupo || (todoR1 && !g.segunda && (ids.indexOf(g.local) >= 0 || ids.indexOf(g.visita) >= 0)));
   const res = juegos.filter((g) => g.jugado).map((g) => ({ local: g.local, visita: g.visita, ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita }));
-  const ids = grupo === undefined ? x.grupo : x.grupos[grupo];
-  return tabla(res, ids.map((id) => ({ id, nombre: SELECCIONES[id].nombre })));
+  const filas = tabla(res, ids.map((id) => ({ id, nombre: SELECCIONES[id].nombre })));
+  return todoR1 ? filas.filter((f) => ids.indexOf(f.id) >= 0) : filas;
 }
 
-/** El campo del torneo: quiénes lo juegan. `clasifAm` son los de América que entraron. */
 /**
- * ⚠️⚠️ EL QUE JUGÓ ELIMINATORIAS Y NO CLASIFICÓ, NO VA AL MUNDIAL — y hasta el 2026-09-04 sí
- * iba. Por América el relleno por fuerza lo volvía a meter (si Argentina quedaba quinta, el
- * relleno la reponía igual); por Europa entraba de fijo y las eliminatorias no decidían nada.
- * Las diez eliminatorias no pueden ser diez partidos que no cambian nada.
- * `fuera` es el país que se quedó afuera en las eliminatorias de ESTE ciclo.
+ * El campo del torneo: quiénes lo juegan (§12.33).
+ * `clasif` son los que ENTRARON por las eliminatorias jugadas de este ciclo (tu continente; los demás no tienen), y van tal
+ * cual. `fuera` es tu país si se quedó afuera en ellas. `ctx` = {semilla, anio, pais}: el ranking con ruido se tira por
+ * carrera y año, el anfitrión sale del año, y tu país entra siempre al continental.
+ * ⚠️⚠️ EL QUE JUGÓ ELIMINATORIAS Y NO CLASIFICÓ, NO VA AL MUNDIAL — y hasta el 2026-09-04 sí iba (el relleno por fuerza lo
+ * volvía a meter). Las eliminatorias no pueden ser partidos que no cambian nada.
  */
-function campoTorneo(torneo, clasifAm, fuera, clasifEu) {   // §12.32: `clasifEu` es el orden europeo del Mundial (opcional)
-  if (torneo === 'continental') return SEL_CONTINENTAL.am.slice(0, SEL_FORMATOS.continental.equipos);
-  if (torneo === 'eurobasket') return SEL_CONTINENTAL.eu.slice(0, SEL_FORMATOS.eurobasket.equipos);
-  /* ⚠️ el corte va con SEL_FORMATOS.equipos, no con un 16 escrito a mano: cuando el Mundial
-     pasó de 16 a 24 el número quedó acá adentro y el campo seguía saliendo de 16 (2026-09-04). */
+function campoTorneo(torneo, clasif, fuera, clasifEu, ctx) {   // §12.32: `clasifEu` es el orden europeo del Mundial (opcional)
+  ctx = ctx || {};
+  clasif = (clasif || []).filter((id) => SELECCIONES[id]);
+  const conMiPais = (lista, n) => {   // tu país entra siempre al continental: si el ranking lo dejó afuera, ocupa el último lugar
+    const out = lista.slice(0, n), p = ctx.pais;
+    if (p && SELECCIONES[p] && lista.indexOf(p) >= 0 && out.indexOf(p) < 0) { out.pop(); out.push(p); }
+    return out;
+  };
+  if (torneo === 'continental') return conMiPais(rankingSel('am', ctx.semilla, ctx.anio), SEL_FORMATOS.continental.equipos);
+  if (torneo === 'eurobasket') return conMiPais(rankingSel('eu', ctx.semilla, ctx.anio), SEL_FORMATOS.eurobasket.equipos);
   if (torneo === 'mundial') {
-    const campo = clasifAm.slice(0, SEL_MUNDIAL_CUPOS_AM).concat(SEL_MUNDIAL_FIJOS)
-      .filter((id) => id !== fuera);
-    /* el lugar que deja el que no clasificó lo toma el mejor que no estaba */
-    for (const id of Object.keys(SELECCIONES).sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza)) {
-      if (campo.length >= SEL_FORMATOS.mundial.equipos) break;
-      if (id !== fuera && campo.indexOf(id) < 0) campo.push(id);
+    const host = (anfitrionSel('mundial', ctx.anio || 0, ctx.semilla || '').final);
+    const campo = [];
+    for (const cont of Object.keys(SEL_MUNDIAL_CUPOS)) {
+      const cupo = SEL_MUNDIAL_CUPOS[cont], mios = [];
+      const mete = (id) => { if (id && id !== fuera && mios.length < cupo && mios.indexOf(id) < 0 && contElim(SELECCIONES[id].cont) === cont) mios.push(id); };
+      if (host && SELECCIONES[host]) mete(host);                               // el anfitrión, fijo
+      for (const id of clasif) mete(id);                                       // lo que decidieron las eliminatorias jugadas
+      for (const id of rankingSel(cont, ctx.semilla, ctx.anio)) mete(id);      // el resto, por ranking con ruido
+      campo.push(...mios);
     }
     return campo.slice(0, SEL_FORMATOS.mundial.equipos);
   }
+  const clasifAm = clasif.filter((id) => SELECCIONES[id].cont === 'am');
   if (torneo === 'jjoo') {
     /* §12.32: el campo es el de siempre (4 de América + los 8 del resto del mundo) y lo único que cambia es ESPAÑA: entra sólo si
        quedó entre los dos mejores europeos del Mundial. Si no, deja su lugar al mejor europeo del ranking que no esté ya —el
@@ -11847,14 +11993,14 @@ function proximoTorneoSel(t) {
     const rival = g.local === t.pais ? g.visita : g.local, etapa = seg ? 'segunda' : 'grupo';
     /* §2z194: la localía la dice la SEDE, no el orden del sorteo */
     const loc = localiaSel(t, etapa, seg ? t.miGrupo2 : t.miGrupo, rival), sd = sedeDe(t, etapa, seg ? t.miGrupo2 : t.miGrupo);
-    return { tipo: 'seleccion', etapa, torneo: t.torneo,
+    return { tipo: 'seleccion', etapa, torneo: t.torneo, paso: pasoDeJuegoSel(t, g),
       grupo: seg ? t.miGrupo2 : t.miGrupo, juego: seg ? g.mio - t.jornadas : g.mio,
       total: seg ? t.jornadas2 : t.jornadas, rival, local: loc === 'local', neutral: loc === 'neutral', sedeId: sd.id, ciudad: sd.ciudad, anfitrion: loc === 'local' };
   }
   const s = t.llave.series.find((x) => !x.jugado && (x.alta === t.pais || x.baja === t.pais));
   if (!s) return null;
   { const rival = s.alta === t.pais ? s.baja : s.alta, loc = localiaSel(t, s.nombre, null, rival), sd = sedeDe(t, s.nombre, null);
-    return { tipo: 'seleccion', etapa: s.nombre, torneo: t.torneo,
+    return { tipo: 'seleccion', etapa: s.nombre, torneo: t.torneo, paso: pasoDeSerieSel(t, s),
       rival, local: loc === 'local', neutral: loc === 'neutral', sedeId: sd.id, ciudad: sd.ciudad, anfitrion: loc === 'local' }; }
 }
 
@@ -11927,22 +12073,26 @@ function pasoTorneoSel(t, e, miJuego) {
 function cerrarGruposSel(t, rng) {
   const F = SEL_FORMATOS[t.torneo];
   if (t.fase === 'grupo' && F.segunda) return abrirSegundaFaseSel(t, rng);
-  /* §12.30: con DOS grupos (el preolímpico) los dos primeros van a semis cruzadas: A1–B2 · B1–A2 */
-  const dosGrupos = F.nGrupos === 2;
-  const letras = (t.fase === 'segunda' ? SEL_LETRAS2 : SEL_LETRAS).slice(0, dosGrupos ? 2 : 4), pos = {};
+  /* §12.30: con DOS grupos (el preolímpico) los dos primeros van a semis cruzadas: A1–B2 · B1–A2.
+     §12.33: con pasan 4 (el Eurobasket) van a OCTAVOS con el cruce real: A1–B4 · B2–A3 · C1–D4 · D2–C3 · B1–A4 · A2–B3 · D1–C4 · C2–D3. */
+  const seg = t.fase === 'segunda', dosGrupos = F.nGrupos === 2;
+  const letras = seg ? SEL_LETRAS2.slice(0, 4) : SEL_LETRAS.slice(0, F.nGrupos), pos = {};
   for (const g of letras) pos[g] = tablaSel(t, g).map((f) => f.id);
   const [a, b, c, d] = letras;
-  const cruces = dosGrupos ? [[a, b], [b, a]] : [[a, b], [c, d], [b, a], [d, c]];
-  const primera = dosGrupos ? 'semifinal' : 'cuartos';
-  t.llave = { ronda: 0, series: cruces.map(([x, y]) => mkSerieSel({ nombre: primera, alta: pos[x][0], baja: pos[y][1] })), jugadas: [] };
+  const pasan = seg ? 2 : (F.pasan || 2);
+  let cruces, primera;
+  if (dosGrupos) { cruces = [[a, 0, b, 1], [b, 0, a, 1]]; primera = 'semifinal'; }
+  else if (pasan === 4) { cruces = [[a, 0, b, 3], [b, 1, a, 2], [c, 0, d, 3], [d, 1, c, 2], [b, 0, a, 3], [a, 1, b, 2], [d, 0, c, 3], [c, 1, d, 2]]; primera = 'octavos'; }
+  else { cruces = [[a, 0, b, 1], [c, 0, d, 1], [b, 0, a, 1], [d, 0, c, 1]]; primera = 'cuartos'; }
+  t.llave = { ronda: 0, series: cruces.map(([x, i, y, k]) => mkSerieSel({ nombre: primera, alta: pos[x][i], baja: pos[y][k] })), jugadas: [] };
   t.llave.jugadas = t.llave.series.slice();
-  const miG = t.fase === 'segunda' ? t.miGrupo2 : t.miGrupo;
+  const miG = seg ? t.miGrupo2 : t.miGrupo;
   t.posGrupo = (pos[miG] || []).indexOf(t.pais) + 1;
   t.fase = 'llave';
   /* ⚠️ Quedar afuera NO termina el torneo: el campeón se juega igual y vos lo mirás. Es la
      misma regla del continental (§2z27) y la que hace que el "casi" tenga con qué compararse. */
   if (!t.llave.series.some((s) => s.alta === t.pais || s.baja === t.pais)) {
-    t.fuera = true; t.miFase = 'grupo'; t.puesto = t.puesto || 'grupo';
+    t.fuera = true; t.miFase = seg ? 'segunda' : 'grupo'; t.puesto = t.puesto || (seg ? 'segunda' : 'grupo');
   } else t.miFase = primera;
 }
 
@@ -11951,14 +12101,14 @@ function cerrarGruposSel(t, rng) {
  * existe (su decisión, 2026-09-04: *"a favor de cambiarles el formato para algo mejor si vamos
  * al real y encima los diferencia"*).
  *
- * Los DOS primeros de cada grupo de tres pasan (16 de 24) y se juntan de a dos grupos: A+B → I,
+ * Los DOS primeros de cada grupo de cuatro pasan (16 de 32, §12.33) y se juntan de a dos grupos: A+B → I,
  * C+D → J, E+F → K, G+H → L. **El partido que ya jugaste contra tu compañero de grupo SE
- * ARRASTRA** —marcado con `g2`, cuenta en las dos tablas— así que en la segunda fase jugás dos
- * partidos nuevos y no tres. Ése es el mecanismo real y es la mitad de lo que la hace especial:
- * llegás a la segunda fase con puntos, no de cero.
+ * ARRASTRA** —marcado con `g2`— y **el récord entero de la primera fase viaja a la tabla de la segunda** (§12.35: los tres
+ * partidos, como en el Mundial 2023), así que en la segunda fase jugás dos partidos nuevos y no tres. Ése es el mecanismo
+ * real y es la mitad de lo que la hace especial: llegás a la segunda fase con lo que hiciste, no de cero.
  *
- * Camino máximo del Mundial: 2 (grupo) + 2 (segunda) + 3 (llave) = **7 partidos**, contra los 5
- * de la AmeriCup y los Juegos.
+ * Camino máximo del Mundial: 3 (grupo) + 2 (segunda) + 3 (llave) = **8 partidos**, contra los 5
+ * de la AmeriCup y los Juegos y los 9 del Eurobasket.
  */
 function abrirSegundaFaseSel(t, rng) {
   const pos = {};
@@ -12131,7 +12281,7 @@ const SEL_FICHA = {
   eg: { sigla: 'EGY', color: '#e5253a', color2: '#111111' },
   ir: { sigla: 'IRI', color: '#12b45c', color2: '#e5253a' },
   ua: { sigla: 'UKR', color: '#3168e8', color2: '#ffd028' },
-  /* las ocho del Mundial de 24 */
+  /* las ocho que entraron con el Mundial de 24 (2026-09-04) */
   fi: { sigla: 'FIN', color: '#2a4b9b', color2: '#f2f4f8' },
   ge: { sigla: 'GEO', color: '#e5253a', color2: '#f2f4f8' },
   pl: { sigla: 'POL', color: '#e5253a', color2: '#f2f4f8' },
@@ -12140,6 +12290,33 @@ const SEL_FICHA = {
   ci: { sigla: 'CIV', color: '#f28e2b', color2: '#12b45c' },
   cv: { sigla: 'CPV', color: '#2a4b9b', color2: '#e5253a' },
   kr: { sigla: 'KOR', color: '#2a4b9b', color2: '#e5253a' },
+  /* §12.33: las 26 del padrón real de las eliminatorias */
+  ni: { sigla: 'NCA', color: '#3168e8', color2: '#f2f4f8' },
+  bs: { sigla: 'BAH', color: '#00abc9', color2: '#ffd028' },
+  cu: { sigla: 'CUB', color: '#3168e8', color2: '#e5253a' },
+  jm: { sigla: 'JAM', color: '#12b45c', color2: '#ffd028' },
+  hr: { sigla: 'CRO', color: '#e5253a', color2: '#f2f4f8' },
+  il: { sigla: 'ISR', color: '#3168e8', color2: '#f2f4f8' },
+  ba: { sigla: 'BIH', color: '#2a4b9b', color2: '#ffd028' },
+  be: { sigla: 'BEL', color: '#111111', color2: '#ffd028' },
+  ee: { sigla: 'EST', color: '#3168e8', color2: '#111111' },
+  pt: { sigla: 'POR', color: '#e5253a', color2: '#12b45c' },
+  nl: { sigla: 'NED', color: '#f28e2b', color2: '#f2f4f8' },
+  is: { sigla: 'ISL', color: '#2a4b9b', color2: '#e5253a' },
+  gb: { sigla: 'GBR', color: '#2a4b9b', color2: '#e5253a' },
+  hu: { sigla: 'HUN', color: '#e5253a', color2: '#12b45c' },
+  se: { sigla: 'SWE', color: '#3168e8', color2: '#ffd028' },
+  bg: { sigla: 'BUL', color: '#12b45c', color2: '#e5253a' },
+  dk: { sigla: 'DEN', color: '#e5253a', color2: '#f2f4f8' },
+  mk: { sigla: 'MKD', color: '#e5253a', color2: '#ffd028' },
+  sk: { sigla: 'SVK', color: '#2a4b9b', color2: '#e5253a' },
+  at: { sigla: 'AUT', color: '#e5253a', color2: '#f2f4f8' },
+  qa: { sigla: 'QAT', color: '#8a1538', color2: '#f2f4f8' },
+  lb: { sigla: 'LBN', color: '#e5253a', color2: '#12b45c' },
+  jo: { sigla: 'JOR', color: '#12b45c', color2: '#e5253a' },
+  sn: { sigla: 'SEN', color: '#12b45c', color2: '#ffd028' },
+  tn: { sigla: 'TUN', color: '#e5253a', color2: '#f2f4f8' },
+  cm: { sigla: 'CMR', color: '#12b45c', color2: '#e5253a' },
 };
 
 /* ── §12.24 LAS SEDES DE CADA SELECCIÓN (2026-09-05, su pedido: "que las selecciones jueguen de local en
@@ -12219,7 +12396,7 @@ const SEL_CIUDAD_ANFITRION = { qa: 'Doha', ee: 'Tallin', in: 'Ahmedabad', id: 'Y
   ar: 'Buenos Aires', pr: 'San Juan', co: 'Bogotá', uy: 'Montevideo', ve: 'Caracas', pl: 'Katowice', rs: 'Belgrado', lt: 'Kaunas',
   lv: 'Riga', fi: 'Helsinki', cz: 'Praga', gr: 'Atenas', si: 'Liubliana', ph: 'Manila', us: 'Los Ángeles' };
 /* el país de un anfitrión que no está en el padrón (para «MUNDIAL CATAR 2027») */
-const SEL_PAIS_ANFITRION = { qa: 'Catar', ee: 'Estonia', in: 'India', id: 'Indonesia' };
+const SEL_PAIS_ANFITRION = { in: 'India', id: 'Indonesia' };   // §12.33: Catar y Estonia ya son del padrón
 function nombreAnfitrion(id) { return (SELECCIONES[id] && SELECCIONES[id].nombre) || SEL_PAIS_ANFITRION[id] || id; }
 function ciudadAnfitrion(id, k) {
   if (!k && SEL_CIUDAD_ANFITRION[id]) return SEL_CIUDAD_ANFITRION[id];
@@ -12295,7 +12472,7 @@ function clasifAmericaDe(memoria) {
      justo los cuatro más fuertes, el relleno no tenía de dónde sacar los dos que faltaban y el
      campo quedaba en 22 (o sea, grupos incompletos). Ordenado por fuerza, siempre hay de dónde. */
   const orden = SEL_CONTINENTAL.am.slice().sort((a, b) => SELECCIONES[b].fuerza - SELECCIONES[a].fuerza);
-  const out = (memoria && memoria.clasificados ? memoria.clasificados : []).slice(0, SEL_MUNDIAL_CUPOS_AM);
+  const out = (memoria && memoria.clasificados ? memoria.clasificados : []).filter((id) => SELECCIONES[id] && SELECCIONES[id].cont === 'am').slice(0, SEL_MUNDIAL_CUPOS_AM);   // §12.33: la lista puede traer otros continentes
   for (const id of orden) if (out.length < SEL_MUNDIAL_CUPOS_AM && out.indexOf(id) < 0) out.push(id);
   return out;
 }
@@ -12371,7 +12548,7 @@ function cuposJJOOAm(clasifMundial, preo) {
    de una misma ronda decidía la fuerza en el papel y la segunda fase del Mundial empataba con el grupo: entre dos americanos
    eliminados en cuartos, el directo a los Juegos era el más fuerte, no el que había ganado más.
    Adentro de una ronda todos jugaron la misma cantidad de partidos, así que los ganados se comparan directo. */
-const SEL_RONDA_NIVEL = { oro: 0, plata: 1, bronce: 2, cuarto: 3, semifinal: 4, cuartos: 5, segunda: 6, grupo: 7 };
+const SEL_RONDA_NIVEL = { oro: 0, plata: 1, bronce: 2, cuarto: 3, semifinal: 4, cuartos: 5, octavos: 6, segunda: 7, grupo: 8 };   // §12.33: octavos
 function clasificacionFinalSel(t) {
   const f = {};
   const fila = (id) => (f[id] ||= { id, ronda: 'grupo', pg: 0, pp: 0, pf: 0, pc: 0 });
@@ -12487,14 +12664,14 @@ function fechasDeSeleccion(e, torneo) {
       if (g.local !== torneo.pais && g.visita !== torneo.pais) continue;
       const local = g.local === torneo.pais, rivalG = local ? g.visita : g.local;
       const locG = localiaSel(torneo, g.segunda ? 'segunda' : 'grupo', g.grupo, rivalG);   // §2z194
-      out.push({ etapa: g.segunda ? 'segunda' : 'grupo', grupo: g.segunda ? g.g2 : g.grupo, torneo: torneo.torneo, n: g.mio || 0, rival: rivalG,   /* 2026-09-13: la etapa real y la letra del grupo, para el fixture con tramos */
+      out.push({ etapa: g.segunda ? 'segunda' : 'grupo', grupo: g.segunda ? g.g2 : g.grupo, torneo: torneo.torneo, n: g.mio || 0, rival: rivalG, paso: pasoDeJuegoSel(torneo, g),   /* 2026-09-13: la etapa real y la letra del grupo, para el fixture con tramos */
         local: locG === 'local', neutral: locG === 'neutral', puntosMios: local, jugaste: true, res: g.jugado ? { ptsLocal: g.ptsLocal, ptsVisita: g.ptsVisita } : null });
     }
     if (torneo.llave) for (const s of torneo.llave.jugadas) {
       if (s.alta !== torneo.pais && s.baja !== torneo.pais) continue;
       const local = s.alta === torneo.pais, rivalS = local ? s.baja : s.alta;
       const locS = localiaSel(torneo, s.nombre, null, rivalS);   // §2z194
-      out.push({ etapa: s.nombre, torneo: torneo.torneo, n: 0, rival: rivalS,
+      out.push({ etapa: s.nombre, torneo: torneo.torneo, n: 0, rival: rivalS, paso: pasoDeSerieSel(torneo, s),
         local: locS === 'local', neutral: locS === 'neutral', puntosMios: local, jugaste: true, res: s.jugado ? { ptsLocal: s.ptsAlta, ptsVisita: s.ptsBaja } : null });
     }
   }
@@ -12508,6 +12685,49 @@ function fechasDeSeleccion(e, torneo) {
    matar o tira la toalla) y `partido:{fuego:1}` (arrancás en ritmo). Las relaciones, en un partido de
    selección, son las de la selección (§12.20). `ctx.salida` lo arma cartaDeSalida (01k). */
 const CARTAS_SALIDA=[
+ /* §2z235 (2026-09-13, su caza jugando el Mundial: "no me viene saliendo ninguna card pre-partido en ningún partido del Mundial;
+    esperaría más cosas"): la selección tenía tres —el debut, el anfitrión, la final—. Éstas son las del CAMINO del torneo: el
+    primer partido, el que define el grupo, la llave a partido único, el bronce y el rival grande. Ninguna repite la anterior. */
+ { id:'sal_torneo_primero', de:'salida', peso:350, repite:true, chance:0.7, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.primeroTorneo&&!c.salida.debutSel,
+   gancho:(c)=>L('Primer partido de '+c.salida.competencia+', contra '+c.salida.rival+'. En el túnel un cronista te pregunta qué se siente.','First game of '+c.salida.competencia+', against '+c.salida.rival+'. In the tunnel a reporter asks what it feels like.','Primeiro jogo de '+c.salida.competencia+', contra '+c.salida.rival+'. No túnel um repórter pergunta o que se sente.'),
+   opciones:[
+     {tipo:'segura',label:L('"Es lo que soñé de pibe"','"It\'s what I dreamed of as a kid"','"É o que sonhei quando criança"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y te acordás de la canchita. Salís liviano.','You say it and remember the old court. You walk out light.','Você diz e lembra da quadrinha. Sai leve.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('"Vinimos por algo grande"','"We came for something big"','"Viemos por algo grande"'),desenlaces:[
+       {p:55,remate:L('El plantel la firma','The squad signs it','O elenco assina'),texto:L('La frase circula por el vestuario antes de la entrada en calor. Salen todos con vos.','The line goes around the locker room before warm-ups. They all walk out with you.','A frase roda pelo vestiário antes do aquecimento. Todos saem com você.'),ef:{partido:{fuego:1},rel:{plantel:2}}},
+       {p:45,remate:L('Grande para quién','Big for whom','Grande para quem'),texto:L('Un cronista la titula con signos de pregunta. La leés en el celular antes de salir y te pesa.','A reporter runs it with a question mark. You read it on your phone before walking out and it weighs on you.','Um repórter coloca com ponto de interrogação. Você lê no celular antes de sair e pesa.'),ef:{rel:{dt:-2},partido:{frio:true}}}]}]},
+ { id:'sal_torneo_define', de:'salida', peso:350, repite:true, chance:0.6, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.cierraGrupo,
+   gancho:(c)=>L('Se define el grupo contra '+c.salida.rival+'. En el túnel el DT te dice, sin mirarte: "Hoy no hay mañana".','The group comes down to '+c.salida.rival+'. In the tunnel the coach tells you, without looking: "No tomorrow today."','O grupo se define contra '+c.salida.rival+'. No túnel o técnico diz, sem olhar: "Hoje não tem amanhã".'),
+   opciones:[
+     {tipo:'segura',label:L('Callado y a jugar','Quiet, and play','Calado e jogar'),desenlaces:[{p:100,remate:null,texto:L('Asentís. El capitán te toca el hombro al pasar.','You nod. The captain taps your shoulder as he walks by.','Você assente. O capitão toca seu ombro ao passar.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Pasamos, quedate tranquilo"','"We\'re through, relax"','"Passamos, fica tranquilo"'),desenlaces:[
+       {p:50,remate:L('Te creyó','He believed you','Ele acreditou'),texto:L('Te mira por primera vez en el día. Salís con la primera jugada dibujada para vos.','He looks at you for the first time all day. You walk out with the first play drawn up for you.','Ele te olha pela primeira vez no dia. Você sai com a primeira jogada desenhada para você.'),ef:{partido:{fuego:1},rel:{dt:2}}},
+       {p:50,remate:L('Lo escucharon del otro lado','They heard it on the other side','Ouviram do outro lado'),texto:L('El túnel es uno solo. El rival sale a demostrarte que no.','The tunnel is shared. The other team comes out to prove you wrong.','O túnel é um só. O rival sai para provar o contrário.'),ef:{partido:{fuerzaRival:3}}}]}]},
+ { id:'sal_torneo_llave', de:'salida', peso:350, repite:true, chance:0.6, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.llaveUnica,
+   gancho:(c)=>{ const et=c.salida.etapaTxt||'cuartos', E=et.charAt(0).toUpperCase()+et.slice(1); return L(E+' a partido único contra '+c.salida.rival+': el que pierde se vuelve a casa. Un compañero te pregunta si dormiste.',E+', single game against '+c.salida.rival+': lose and you go home. A teammate asks if you slept.',E+' em jogo único contra '+c.salida.rival+': quem perde volta para casa. Um companheiro pergunta se você dormiu.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Como un bebé"','"Like a baby"','"Como um bebê"'),desenlaces:[{p:100,remate:null,texto:L('Se ríe. Salen los dos más livianos.','He laughs. You both walk out lighter.','Ele ri. Os dois saem mais leves.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Si perdemos es culpa mía"','"If we lose, it\'s on me"','"Se perdermos, a culpa é minha"'),desenlaces:[
+       {p:55,remate:L('Se lo tomaron en serio','They took it seriously','Levaram a sério'),texto:L('Nadie se ríe. El DT lo escuchó y te da la primera pelota.','Nobody laughs. The coach heard it and gives you the first ball.','Ninguém ri. O técnico ouviu e te dá a primeira bola.'),ef:{partido:{fuego:1},rel:{dt:2}}},
+       {p:45,remate:L('Te la creíste','You bought it','Você acreditou'),texto:L('Salís a cargar con todo y las primeras te salen apuradas.','You come out carrying everything and rush your first ones.','Você sai carregando tudo e apressa as primeiras.'),ef:{partido:{frio:true}}}]}]},
+ { id:'sal_torneo_bronce', de:'salida', peso:350, repite:true, chance:0.9, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.bronce,
+   gancho:(c)=>L('El partido por el bronce, contra '+c.salida.rival+'. Perdieron la semi anteanoche y nadie quiere estar acá. El capitán junta a todos en el túnel.','The bronze medal game, against '+c.salida.rival+'. You lost the semi two nights ago and nobody wants to be here. The captain gathers everyone in the tunnel.','O jogo pelo bronze, contra '+c.salida.rival+'. Perderam a semi anteontem e ninguém quer estar aqui. O capitão reúne todos no túnel.'),
+   opciones:[
+     {tipo:'segura',label:L('"Volvemos con algo"','"We go home with something"','"Voltamos com algo"'),desenlaces:[{p:100,remate:null,texto:L('Alguien dice "vamos" bajito y alcanza.','Somebody says "let\'s go" quietly and it is enough.','Alguém diz "vamos" baixinho e basta.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('"Esto se gana igual"','"We win this anyway"','"Isso se ganha do mesmo jeito"'),desenlaces:[
+       {p:60,remate:L('Los levantaste','You lifted them','Você levantou o grupo'),texto:L('Se escucha un grito y salen corriendo al calentamiento. Arrancás caliente.','A shout goes up and they run out to warm-ups. You start hot.','Sai um grito e correm para o aquecimento. Você começa quente.'),ef:{partido:{fuego:1},rel:{plantel:2}}},
+       {p:40,remate:L('No era el momento','Not the moment','Não era a hora'),texto:L('Dos te miran mal. La semi todavía duele.','Two of them glare at you. The semi still hurts.','Dois te olham torto. A semi ainda dói.'),ef:{rel:{plantel:-2}}}]}]},
+ { id:'sal_torneo_grande', de:'salida', peso:250, repite:true, chance:0.35,   // su corte: no todos los partidos tienen carta fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.rivalGrande&&c.salida.torneoSel&&!c.salida.final&&!c.salida.bronce,
+   gancho:(c)=>L(c.salida.rival+' enfrente. Los cronistas ya escribieron el resultado. Uno te pregunta si tenés miedo.',c.salida.rival+' across the hall. The writers already filed the result. One asks if you are scared.',c.salida.rival+' do outro lado. Os cronistas já escreveram o resultado. Um pergunta se você tem medo.'),
+   opciones:[
+     {tipo:'segura',label:L('"Respeto. Miedo, no"','"Respect. Not fear"','"Respeito. Medo, não"'),desenlaces:[{p:100,remate:null,texto:L('Sale en la crónica de mañana, gane quien gane.','It runs in tomorrow\'s story, whoever wins.','Sai na crônica de amanhã, ganhe quem ganhar.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('"Se puede"','"It can be done"','"Dá pra ganhar"'),desenlaces:[
+       {p:50,remate:L('El estadio lo tomó','The arena took it','O ginásio abraçou'),texto:L('La cancha entera, que no es de nadie, se pone de tu lado. Arrancás caliente.','The whole building, nobody\'s home court, takes your side. You start hot.','O ginásio inteiro, que não é de ninguém, fica do seu lado. Você começa quente.'),ef:{partido:{fuego:1}}},
+       {p:50,remate:L('Los despertaste','You woke them up','Você acordou eles'),texto:L('Del otro lado alguien pegó la frase en el pizarrón. Salen a matar.','On the other side someone pinned the line on the board. They come out to kill.','Do outro lado alguém colou a frase no quadro. Saem para matar.'),ef:{partido:{fuerzaRival:3}}}]}]},
  { id:'sal_debut_sel', de:'salida', peso:400, maxVeces:1, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.debutSel,
    gancho:L('El túnel. Un cronista te agarra del brazo: "Debut con la mayor. ¿Nervios?"','The tunnel. A reporter grabs your arm: "Debut with the senior team. Nervous?"','O túnel. Um repórter te segura pelo braço: "Estreia na principal. Nervoso?"'),
@@ -16048,6 +16268,11 @@ function formaTapada(forma){
   for(const df of [G.defs[1],G.defs[2]]){
     if(!df || dist(df,desde)<40) continue;
     if(forma==='abajo' && G.corrida && df===G.corrida.ch && !G.corrida.llego) continue;
+    /* §2z236 (su caza 2026-09-13 en la sacada: "te sale TODA la pelota tapada… no podés ni siquiera tirar globeado; te destruye, te
+       miente"): las franjas son fracciones de la línea, y en un pase corto «un cuerpo» de la marca del receptor cae en el primer
+       cuarto también — o sea que el que está pegado al DESTINO tapaba el globo, que le pasa por arriba. Es la regla 4 de §2z47 del
+       carril: el que vive pegado al destino no cuenta para el globo (la recepción protegida cuida ese extremo). */
+    if(forma==='abajo' && dist(df,cae)<40*ESC()) continue;
     for(const [tz0,tz1] of zonasR){
       const pz0={x:lerp(desde.x,cae.x,tz0), y:lerp(desde.y,cae.y,tz0)}, pz1={x:lerp(desde.x,cae.x,tz1), y:lerp(desde.y,cae.y,tz1)};
       if(distSeg(df,pz0,pz1) < (forma==='medio'?30:24)) return df;
@@ -17307,13 +17532,17 @@ function tickSinPelota(dm,dt,now){
   if(sp.reacc!=null && now>=sp.reacc){
     const poR=posturaSinPelota(sp.libreto,ref,dm.compi);
     const meta={x:ref.x+poR.x*SINP.postura*e, y:ref.y+poR.y*SINP.postura*e};
-    const vMax=Math.min(0.95,0.78+0.003*dif.def)*VEL_DESMARQUE, d=dist(G.marca,meta);
+    /* §2z231 (su caza 2026-09-13 en 9/10 de la beta: «es muy difícil, como que no llego nunca a desmarcarme»): con def 56-60 la
+       marca corría al 0,95 de tu velocidad, leía en 210-226 ms y aceleraba a 630-650 — a esa altura el quiebre no ganaba un
+       paso. El tope baja a 0,90 (se alcanza en def 40: de ahí para arriba lo que escala es la lectura y el retardo, no la
+       velocidad) y la aceleración se clava en 560 (def 42). Número v0, a calibrar con sus dedos. */
+    const vMax=Math.min(0.90,0.78+0.003*dif.def)*VEL_DESMARQUE, d=dist(G.marca,meta);
     sp.v=sp.v||{x:0,y:0};
     const des = d>1 ? {x:(meta.x-G.marca.x)/d*Math.min(vMax,d/Math.max(dt,0.016)), y:(meta.y-G.marca.y)/d*Math.min(vMax,d/Math.max(dt,0.016))} : {x:0,y:0};
     /* v6 (su caza: «un cambio de ritmo no paga casi nada, el jugador se recupera rápido»): 700+8·def daba 1148 px/s² en
        estrella —invertir la marcha le costaba 0,14 s, o sea nada—. A la mitad: 430 con def 16, 630 con def 56, que son ~0,25 s
        de derrape. Ahí está el paso que gana el quiebre. */
-    const acc=(350+5*dif.def)*dt;
+    const acc=Math.min(560,350+5*dif.def)*dt;   // §2z231
     sp.v.x+=clamp(des.x-sp.v.x,-acc,acc); sp.v.y+=clamp(des.y-sp.v.y,-acc,acc);
     G.marca.x+=sp.v.x*dt; G.marca.y=Math.max(G.marca.y+sp.v.y*dt, pisoDef());
   }
@@ -17334,6 +17563,21 @@ function tickSinPelota(dm,dt,now){
 /* EL PASADOR TAMBIÉN DECIDE (§2z4.1): con el carril muerto no la regala — la tira él, con
    el modelo único de todos (§2e). Pegado al aro DEFINE (la regla del deporte: nadie erra
    eso de parado), lejos es su tiro por Q. Sin asistencia: la jugada es suya. */
+/* §2z230 (su caza 2026-09-13: «las bandejas de un jugador SOLO abajo del aro errando son más comunes de lo que debería… una
+   vez por partido»). Las odds se tomaban AL DEFINIR, pero con la Q de un tiro de spot (`calidadDesde`): esa Q baja a 0,32 con
+   CUALQUIER defensor a un cuerpo (38·ESC), esté o no entre él y el aro — y abajo del aro casi siempre hay alguien a un cuerpo.
+   Medido: solo de verdad 0,96; con uno parado al lado, 0,71-0,81 (uno de cada cuatro o cinco al aro). La bandeja no es un tiro
+   de spot: lo único que la contesta es un cuerpo ENTRE él y el aro o en el aro. Ninguno 0,97 · uno 0,58 · dos 0,40 (la misma
+   escala de `sigueYDefine`, §2z132). El corredor libre ya se chequeó al decidir; acá se mira quién llegó a taparla. */
+function pBandejaCompi(compi){
+  const a=aro(), e=ESC();
+  const encima=G.defs.filter(d=>d!==G.marca && (distSeg(d,compi,a)<30*e || dist(d,a)<36*e)).length;
+  return encima>=2?0.40:encima===1?0.58:0.97;
+}
+/* §2z232 (su caza 2026-09-13: «cuando se la pasás a un compañero y mete un triple no hay ningún feedback de que metió un
+   triple»): el veredicto del tiro asistido dice el valor — ¡TRIPLE! con asistencia se lee distinto que un doble. */
+const vAsist=(v,mio)=> v===3 ? t(mio?L('¡TRIPLE ASISTIDO!','ASSISTED THREE!','TRIPLO ASSISTIDO!'):L('¡TRIPLE DE ÉL!','HIS THREE!','TRIPLO DELE!'))
+                             : t(mio?L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!'):L('LA METIÓ ÉL','HE SCORED','ELE FEZ'));
 function tiraSolo(compi){
   G.pelotaEn=null; G.paseVivo=null; G.malDesmarque=(G.malDesmarque||0)+1;   // §2z51: lo forzaste vos, que no te desmarcaste
   /* §2z212 v8 (su caza al aprobar la jugada: «cuando tira solo no tiene que ser asistencia tuya»): en SIN PELOTA la pelota NUNCA
@@ -17346,7 +17590,7 @@ function tiraSolo(compi){
   if(dA<R3()*0.55){
     posar(compi,'bandeja',a,900);
     vuelo({x:compi.x,y:compi.y},{...a},0.35,Math.max(0.25,dA/300),()=>{
-      const p=Math.min(0.96, 0.6+calidadDesde(compi,false)*0.42);
+      const p=pBandejaCompi(compi);   // §2z230
       /* §2z25 (su caza 2026-09-02): se la diste vos y la metió — ES asistencia, aunque
          haya definido porque no tenía cómo devolvértela */
       if(Math.random()<p){ canastaFx(); G.nos+=2; if(mio){ G.ast++; G.ptsAsist+=2; aprende('pase'); } marcador();
@@ -17361,7 +17605,7 @@ function tiraSolo(compi){
     vuelo({x:compi.x,y:compi.y},{...a},0.5,Math.max(0.3,dA/520),()=>{
       const p=pMeteNPC(compi,false);
       if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; if(mio){ G.ast++; G.ptsAsist+=v; aprende('pase'); } marcador();
-        veredicto(t(mio?L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!'):L('LA METIÓ ÉL','HE SCORED','ELE FEZ')),mio?'ok':'neu');
+        veredicto(vAsist(v,mio),mio?'ok':'neu');   // §2z232
         finPosesion(true,t(mio?L('No había pase de vuelta: la tiró él y entró. Asistencia tuya.','No pass back: he shot it and it fell. Your assist.','Não tinha passe de volta: ele arremessou e caiu. Assistência sua.')
                               :L('Nunca te encontró libre: la tiró él y entró.','He never found you open: he took it and hit it.','Nunca te achou livre: ele arremessou e caiu.'))); }
       else { G.pasesTiro=(G.pasesTiro||0)+(p>=0.75?1.5:1);   /* §2z39.41: el pase que terminó en tiro suma aunque la erre; solo, más */  veredicto(t(L('La tiró él y no entró','He took it and missed','Ele arremessou e errou')),'mal');
@@ -17725,7 +17969,7 @@ function recibe(compi,forma,txt,va){
       correr(compi, meta, durB, ()=>{
         G.pelotaEn=null; posar(compi,'bandeja',aro(),650);
         vuelo({x:compi.x,y:compi.y},{...aB},0.35,0.22,()=>{
-          const p=Math.min(0.96, 0.6+calidadDesde(compi,false)*0.42);
+          const p=pBandejaCompi(compi);   // §2z230: por contest, no por la Q de spot
           if(Math.random()<p){ canastaFx(); const v=2; G.nos+=v; G.ast++; G.ptsAsist+=v; marcador();
             aprende('pase'); veredicto(t(L('¡LA BANDEJA!','THE LAYUP!','A BANDEJA!')),'ok');
             relato(t(L('Corrió y la bajó: tu pase lo dejó solo.','He ran and laid it in: your pass freed him.','Ele correu e converteu: seu passe deixou ele livre.')),true);
@@ -17753,7 +17997,7 @@ function recibe(compi,forma,txt,va){
       G.pelotaEn=null; posar(compi,'tira',aro(),1000);
       vuelo({x:compi.x,y:compi.y},{...aro()},0.5,Math.max(0.3,dAro/520),()=>{
         if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; G.ast++; G.ptsAsist+=v; marcador();
-          aprende('pase'); veredicto(t(L('¡ASISTENCIA!','ASSIST!','ASSISTÊNCIA!')),'ok');
+          aprende('pase'); veredicto(vAsist(v,true),'ok');   // §2z232
           relato(t(L('La metió él: tu pase lo dejó solo.','He knocked it down: your pass freed him.','Ele acertou: seu passe deixou ele livre.')),true); finPosesion(true,t(L('Asistencia tuya: lo dejaste solo.','Your assist: you got him open.','Assistência sua: você deixou ele livre.'))); }
         else { G.pasesTiro=(G.pasesTiro||0)+(p>=0.75?1.5:1);   /* §2z39.41: el pase que terminó en tiro suma aunque la erre; solo, más */  veredicto(t(L('La tiró él y no entró','He took it and missed','Ele arremessou e errou')),'mal');
           relato(t(L('Estaba solo pero la erró. Pasa.','He was open but missed. It happens.','Estava livre mas errou. Acontece.')),false); finPosesion(false,t(L('Tu pase fue bueno; él la erró.','Your pass was good; he missed it.','Seu passe foi bom; ele errou.'))); }
@@ -17807,7 +18051,7 @@ function recibe(compi,forma,txt,va){
       vuelo({x:compi.x,y:compi.y},{...aro()},0.65,Math.max(0.3,dAro/460),()=>{
         const p=pMeteNPC(compi,true);
         if(Math.random()<p){ canastaFx(); const v=esTriple(compi)?3:2; G.nos+=v; G.ast++; G.ptsAsist+=v; marcador();
-          aprende('pase'); veredicto(t(L('¡LA METIÓ!','HE HIT IT!','ACERTOU!')),'ok');
+          aprende('pase'); veredicto(v===3?t(L('¡TRIPLE MARCADO!','CONTESTED THREE!','TRIPLO MARCADO!')):t(L('¡LA METIÓ!','HE HIT IT!','ACERTOU!')),'ok');   // §2z232
           finPosesion(true,t(L('Asistencia tuya: la resolvió marcado.','Your assist: he scored under pressure.','Assistência sua: resolveu marcado.'))); }
         else { G.pasesTiro=(G.pasesTiro||0)+1; veredicto(t(L('Marcado — afuera','Contested — no good','Marcado — fora')),'mal');
           finPosesion(false,t(L('La tiró marcado y no entró. Estabas lejos para la devolución.','He shot it contested and missed. You were too far for the return pass.','Arremessou marcado e errou. Você estava longe pra devolução.'))); }
@@ -18017,7 +18261,7 @@ const fmtReloj=t=>{ t=Math.max(0,Math.ceil(t)); return `${Math.floor(t/60)}:${St
 function fila(txt,tono,seg){
   const l=$('#feedLista'), d=document.createElement('div');
   d.className='fila'+(tono?' '+tono:'');
-  const sinMin = tono==='hito'||tono==='fuego';
+  const sinMin = tono==='hito'||tono==='fuego'||tono==='frio';   // §2z234
   const rel=fmtReloj(seg!==undefined?seg:G.reloj);
   const min=cuartoTxt()+' '+rel;   // §2z103: SUP en el suplementario
   d.innerHTML=(sinMin?'':`<span class="min">${min}</span>`)+`<span>${txt}</span>`;
@@ -18342,6 +18586,10 @@ function finPosesion(anoto, resumen){
     if(G.fuego>=CALENTANDO && anoto && G.fuego!==G.fuegoDicho){ G.fuegoDicho=G.fuego; fila(rachaReal()>=CALENTANDO
       ? t(L(`¡Estás caliente — ${rachaReal()} seguidas!`,`You're heating up — ${rachaReal()} in a row!`,`Você está quente — ${rachaReal()} seguidas!`))
       : t(L('¡Estás caliente!',"You're heating up!",'Você está quente!')),'fuego'); }
+    /* §2z234 (su caza 2026-09-13: "cuando te enfriás sólo dice arriba «se te enfrió la mano», pero no sale en el relato como
+       cuando estás caliente"): el mismo renglón, del otro lado — sale cuando la racha fría CRECIÓ en esta posesión (fallaste). */
+    if(G.frio>=FRIO && !anoto && G.frio!==G.frioDicho){ G.frioDicho=G.frio;
+      fila(t(L(`Estás frío — ${G.frio} seguidas afuera.`,`You're cold — ${G.frio} misses in a row.`,`Você está frio — ${G.frio} erradas seguidas.`)),'frio'); }
     /* ON FIRE TE BUSCAN (su regla 2026-08-29: "cuando estás on fire deberían darte más
        posesiones"): cada canasta tuya EN FUEGO agenda una jugada extra en la próxima
        bajada — el mecanismo de la pedida, sin gastarla. La bola de nieve es tuya
@@ -22185,6 +22433,29 @@ function htmlGrupoTabs(letras,g,attr,txt){
   return '<div class="tabs zonaTabs muchas grupoTabs">'+letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-'+attr+'="'+x+'" tabindex="0">'+txt(x)+'</div>').join('')+'</div>';
 }
 function htmlAmericas(e,g){ return htmlAmericasGrupo(e,g)+htmlAmericasLlave(e); }
+/* §2z238 LA COPA INTERCONTINENTAL EN LA TABLA (2026-09-13, su caza: "la tabla ni siquiera existe"): tu grupo de tres con la línea de
+   corte (pasa 1 a la final, el 2° al tercer puesto) y, cerrado el grupo, la definición con su marcador. Los clubes de afuera del
+   padrón (clubIC) se nombran por su ficha. */
+function htmlIntercontinental(e){
+  const ic=e.intercontinental, mi=e.miClubId; if(!ic) return '';
+  const nomC=(id)=>{ const c=clubDe(id)||clubIC(id); return c?(c.corto||c.nombre):id; };
+  const escC=(id)=>clubDe(id)?escudito(id):'<span class="escudito"></span>';
+  const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
+  const g=ic.grupos.A.includes(mi)?'A':ic.grupos.B.includes(mi)?'B':'A';
+  let h=tit(t(IC_TXT.nombre)+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+' '+ic.anio);
+  for(const gg of ['A','B']){
+    h+='<div class="cajTag">'+t(AM_TXT.grupo)+' '+gg+'</div>';
+    tablaGrupoIC(ic,gg).forEach((f,i)=>{ const dif=(f.pf||0)-(f.pc||0);
+      h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
+  }
+  h+='<div class="cajNota">'+t(L('EL 1° A LA FINAL · EL 2° AL TERCER PUESTO','1ST TO THE FINAL · 2ND TO THE THIRD-PLACE GAME','O 1º À FINAL · O 2º AO TERCEIRO LUGAR'))+'</div>';
+  if(ic.definicion&&ic.definicion.length){
+    h+=tit(t(L('LA DEFINICIÓN','THE DECIDERS','A DEFINIÇÃO')));
+    for(const j of ic.definicion){ const mio=j.local===mi||j.visita===mi;
+      h+='<div class="r grupoSel'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escC(j.local)+'<span class="nom">'+t(AM_TXT[j.etapa]||L(j.etapa))+' · '+nomC(j.local)+' – '+nomC(j.visita)+'</span>'+escC(j.visita)+'</span><span class="rec2">'+(j.jugado?j.ptsLocal+'–'+j.ptsVisita:'')+'</span></div>'; }
+  }
+  return h;
+}
 function htmlAmericasGrupo(e,g){
   const am=e.americas; if(!am) return '';
   g=g||am.miGrupo;
@@ -22243,6 +22514,7 @@ const SEL_TXT={
   preolimpico:L('PREOLÍMPICO','OLYMPIC QUALIFIER','PRÉ-OLÍMPICO'),
   grupo:L('GRUPO','GROUP','GRUPO'),
   segunda:L('SEGUNDA FASE','SECOND ROUND','SEGUNDA FASE'),
+  octavos:L('OCTAVOS','ROUND OF 16','OITAVAS'),   // §12.33: el Eurobasket de 24
   cuartos:L('CUARTOS','QUARTERFINALS','QUARTAS'),
   semifinal:L('SEMIFINAL','SEMIFINALS','SEMIFINAL'),
   final:L('FINAL','FINAL','FINAL'),
@@ -22375,7 +22647,7 @@ function selCuandoTxt(prox,chip){
      Mundial —lo dice el renglón del HOY, justo abajo, con la forma corta «ELIMINATORIAS · CATAR 2027 · VENTANA 4»— */
   if(prox.etapa==='eliminatorias') return (chip?t(SEL_TXT.eliminatorias):elimTxtCorto())+' · '+t(SEL_TXT.ventana)+'\u00a0'+prox.ventana.n;
   if(prox.etapa==='grupo') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.grupo)+' '+prox.grupo;
-  if(prox.etapa==='segunda') return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT.segunda)+' '+prox.grupo;
+  if(prox.etapa==='segunda') return selTorneoTxt(prox.torneo)+' · '+t(L('FASE 2','ROUND 2','FASE 2'))+' · '+t(SEL_TXT.grupo)+' '+prox.grupo;   // 2026-09-13 (su caza: "debería decir Segunda fase - grupo K"): con el rótulo de los tramos
   return selTorneoTxt(prox.torneo)+' · '+t(SEL_TXT[prox.etapa]||L(prox.etapa));
 }
 function selPorqueTxt(prox,e){
@@ -22466,9 +22738,16 @@ function htmlSeleccion(e,gVer,tramo){
   let h='';
   if(rk) h+=htmlRankMundial(rk);   // §12.31: lo último que pasó, arriba
   if(elTuvo&&!t2){   /* 2026-09-13 (su caza): con el torneo en curso las eliminatorias ya cerraron — no van arriba */
-    h+=tit(elimTxt());
-    /* de las eliminatorias pasan CUATRO al Mundial */
-    tablaSel(el).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,SEL_ELIM_CLASIFICAN,el.pais); });
+    if(!gVer) h+=tit(elimTxt());   // con pestañas, el título ya lo dicen ellas
+    /* §12.33: las eliminatorias tienen grupos con letra (ronda 1 de 4, ronda 2 de 6) y de cada uno pasan TRES; el grupo que se
+       muestra lo eligen las pestañas (gVer), sin pestañas el tuyo. Un save del formato viejo (sin `v`) sigue con su grupo de 6 y 4. */
+    const gE=el.v===2?(gVer||el.miGrupo2||el.miGrupo):undefined;
+    { const tg=tablaSel(el,gE); tg.forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,el.v===2?SEL_ELIM_CLASIFICAN:4,el.pais); }); h+=notaDesempate(tg); }
+    if(el.v===2){
+      if(!SEL_LETRAS2.includes(gE)){ const par=(el.pares||[]).find(p=>p[0]===gE||p[1]===gE);
+        h+='<div class="cajNota">'+t(L('PASAN 3 A LA RONDA 2','TOP 3 TO ROUND 2','3 PASSAM À RODADA 2'))+(par?' · '+par[0]+' + '+par[1]+' → '+t(SEL_TXT.grupo)+' '+par[2]:'')+'</div>'; }
+      else h+='<div class="cajNota">'+t(L('PASAN 3 AL MUNDIAL','TOP 3 TO THE WORLD CUP','3 PASSAM AO MUNDIAL'))+(SEL_ELIM_MEJOR_CUARTO[el.cont]?' · '+t(L('Y EL MEJOR 4°','AND THE BEST 4TH','E O MELHOR 4º')):'')+'</div>';
+    }
     /* §12.2 v2 (su corte: "si un torneo no se juega en la misma temporada, aclararlo"): el estado del ciclo */
     const parte=esBeta()?'B':parteElim(C.anio), aM=anioMundial();
     /* 2026-09-09 (su captura: la línea decía "CIERRAN EN NOVIEMBRE" con las ventanas en enero-marzo, y se cortaba con puntos
@@ -22498,8 +22777,8 @@ function htmlSeleccion(e,gVer,tramo){
     const gV=gVer||t2.miGrupo2||t2.miGrupo;
     if(tramo!=='llave'&&gV&&t2.grupos&&t2.grupos[gV]){
       const seg=SEL_LETRAS2.includes(gV);
-      if(!gVer) h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // con pestañas, el título ya lo dicen ellas (su caza: «abajo no debería decir GRUPO A de nuevo, con la bandera colgada»)
-      tablaSel(t2,gV).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
+      if(!gVer) h+=tit((seg?t(L('FASE 2','ROUND 2','FASE 2'))+' · ':'')+t(SEL_TXT.grupo)+' '+gV);   // con pestañas, el título ya lo dicen ellas (su caza: «abajo no debería decir GRUPO A de nuevo, con la bandera colgada»)
+      { const tg=tablaSel(t2,gV); tg.forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); }); h+=notaDesempate(tg); }   // 2026-09-13 (su caza: "Grecia adelante de Italia con peores puntos… supongo que es el partido entre ellos, pero no lo dice")
       /* 2026-09-13 (su pregunta: «¿pasan 2 a qué? ¿cómo son las siguientes fases?»): el contrato, por fase. En el Mundial la
          primera fase manda a la segunda (A+B → I, C+D → J, E+F → K, G+H → L, arrastrando el partido entre los dos que pasan);
          la segunda, y los torneos sin segunda fase, mandan a cuartos. */
@@ -22509,11 +22788,12 @@ function htmlSeleccion(e,gVer,tramo){
            la tabla de la fase 2 (entrás con 1-0), y lo que viene después lo dice el tramo LLAVE. */
         h+='<div class="cajNota">'+t(L('PASAN 2 A LA FASE 2','TOP 2 TO ROUND 2','2 PASSAM À FASE 2'))
           +(par&&dest?' · '+gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:'')+'</div>'; }
-      else h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+      else h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))
+        +(fmt.segunda&&seg?'<br>'+t(L('LLEGÁS CON TU RÉCORD DE LA FASE 1 · NO SE REPITE EL PARTIDO CONTRA TU EX COMPAÑERO DE GRUPO','YOU BRING YOUR ROUND 1 RECORD · NO REMATCH AGAINST YOUR FORMER GROUPMATE','VOCÊ TRAZ SEU RETROSPECTO DA FASE 1 · SEM REVANCHE CONTRA O EX-COMPANHEIRO DE GRUPO')):'')+'</div>';   // 2026-09-13 (su caza: "me están contando un partido que no era de segunda fase"; §12.35, su research: el récord entero se arrastra): es una regla del juego, no una aclaración
     }
     if(tramo!=='g1'&&tramo!=='g2'&&t2.llave){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
-      const jug=t2.llave.jugadas||[], esp=['cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');
+      const jug=t2.llave.jugadas||[], esp=['octavos','cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');   // §12.33: octavos si los hubo
       const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
       const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
       if(bk) h+=bk+'<div class="cajNota">'+formatoTxt(1)+'</div>';   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo
@@ -22716,7 +22996,7 @@ function armarParteVentana(e,n){
   }).filter(Boolean);
   const mias=e.misPartidos.filter(p=>p.sel&&jornadasDeVentana(n).indexOf(p.n)>=0);
   const vN=el.ventanas.find(v=>v.n===n)||{};   // §12.21: la ventana que se cerró, no la que viene — por NÚMERO: en la parte B el arreglo trae sólo la quinta y `[n-1]` daba undefined ("No te convocaron" con tus dos partidos arriba, 2026-09-09)
-  C.selParte={n,total:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo, aunque esta temporada traiga dos o una
+  C.selParte={n,total:el.v===2?6:5,pais:el.pais,convocado:!!vN.conv,motivo:vN.motivo||null,   // §12.2 v2: son cinco en el ciclo (§12.33: seis), aunque esta temporada traiga dos o una
     juegos:js,mias:mias.map(p=>({pts:p.pts,ast:p.ast,min:p.minutos,rating:p.rating})),
     tabla:tablaSel(el).map(f=>({id:f.id,pg:f.pg,pp:f.pp})),fin:!!el.fin,pase:!!el.pase};
 }
@@ -22938,12 +23218,16 @@ function htmlFixtureSeleccion(tramo){
   /* §2z229 (su caza: "los partidos del Mundial figuran dentro de VENTANA 5"): el torneo del receso NO es una ventana — es su
      propio tramo, con su cabecera (RECESO · MUNDIAL 2027 · AGOSTO) y sin número de fecha, porque no son fechas de liga. */
   let h='', vAct=null;
+  const eF=est(), elV2=!!(eF&&eF.seleccion&&eF.seleccion.v===2);
   for(const f of fs.filas){ const m=f.match(/data-ventana="(\d+)"/); const v=m?m[1]:null;
     const mt=f.match(/data-torneo="([a-z]+)"/); const tor=mt?mt[1]:null;
-    const k=v?'v'+v:tor?'t'+tor:null;
+    const mtr=f.match(/data-tramo="([a-zA-Z]*)"/); const trm=mtr?mtr[1]:'';
+    const k=v?'v'+v:tor?'t'+tor+trm:null;
     if(k&&k!==vAct){ vAct=k; const pas=/data-pasada="1"/.test(f);
-      const tit=v?t(SEL_TXT.ventana)+'\u00a0'+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')
-        :t(L('RECESO','OFFSEASON','RECESSO'))+' · '+selTorneoTxt(tor)+(C.selTorneo&&C.selTorneo.anio?' '+C.selTorneo.anio:'')+(SEL_MES_TXT[tor]?' · '+t(SEL_MES_TXT[tor]):'');
+      /* §12.33: la ronda de las eliminatorias en la cabecera de la ventana (1-3 ronda 1, 4-6 ronda 2) · §12.34: el grupo o la llave
+         del torneo en la suya, porque la columna del día ahora lleva la fecha */
+      const tit=v?t(SEL_TXT.ventana)+'\u00a0'+v+(elV2?' · '+(+v>=4?t(L('RONDA 2','ROUND 2','RODADA 2')):t(L('RONDA 1','ROUND 1','RODADA 1'))):'')+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')
+        :t(L('RECESO','OFFSEASON','RECESSO'))+' · '+selTorneoTxt(tor)+(C.selTorneo&&C.selTorneo.anio?' '+C.selTorneo.anio:'')+(trm==='llave'?' · '+t(L('LLAVE','BRACKET','MATA-MATA')):trm?' · '+(SEL_LETRAS2.includes(trm.slice(1))?t(L('FASE 2','ROUND 2','FASE 2'))+' · ':'')+t(SEL_TXT.grupo)+' '+trm.slice(1):(SEL_MES_TXT[tor]?' · '+t(SEL_MES_TXT[tor]):''));
       h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+tit+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
     h+=f; }
   return h;
@@ -22970,12 +23254,12 @@ function filasFixtureSeleccion(tramo){
        (fechasSalteadas): el mismo día que el fixture del club marca CON LA SELECCIÓN. */
     const etapa=f.etapa==='eliminatorias'
       ? diaTxt(f.dia||diaDeFecha(e.semilla,f.f+1,e.ritmo)+(f.off-1)*3)   // §12.25: "V1" sonaba a versión · §12.28: el día de la ventana · 2026-09-10 (su caza: "vs México y en Panamá back to back, es vuelo"): sin `dias`, la segunda jornada va 3 días después, no el día de la fecha pegada del club
-      : (f.etapa==='grupo'||f.etapa==='segunda')&&f.grupo?t(SEL_TXT.grupo)+' '+f.grupo:t(SEL_TXT[f.etapa]||L(f.etapa));   // 2026-09-13: GRUPO E — el torneo ya lo dicen el título y el tramo
+      : (diaTorneoDe(C.selTorneo,f.paso)?diaTxt(diaTorneoDe(C.selTorneo,f.paso)):((f.etapa==='grupo'||f.etapa==='segunda')&&f.grupo?t(SEL_TXT.grupo)+' '+f.grupo:t(SEL_TXT[f.etapa]||L(f.etapa))));   // §12.34 (su caza: "los partidos del grupo no tienen fecha"): el día; el grupo pasa a la cabecera del tramo
     /* ⚠️ la fila DICE si jugaste vos: la selección juega aunque a vos no te llamen, y sin esta
        marca el calendario del país se leería como si fuera tuyo */
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
     const mio=sinVos?'<span class="nota sinVos">'+t(L('SIN VOS','WITHOUT YOU','SEM VOCÊ'))+'</span>':'';
-    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-torneo="'+(f.torneo||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
+    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-torneo="'+(f.torneo||'')+'" data-tramo="'+(f.etapa==='eliminatorias'?'':(f.etapa==='grupo'||f.etapa==='segunda')&&f.grupo?'g'+f.grupo:'llave')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
       +'<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local,f.neutral),nombresSelDe(f.rival))+mio+'</span>'
       +'<span class="dia">'+etapa+'</span>'+res+'</div>');
   });
@@ -23000,13 +23284,17 @@ function htmlTabla5Seleccion(e,prox){
   }
   /* la llave: las series de tu ronda, la tuya marcada */
   if(!t2.llave) return '';
+  /* 2026-09-13 (su caza: "están los partidos listados bien pero le falta cierto formato u orden"): la cabecera de la ronda
+     como la de las tablas de grupo, un cruce por fila (bandera SIGLA – SIGLA bandera) y el marcador en la columna del récord */
   const ss=(t2.llave.jugadas||[]).filter(x=>x.nombre===prox.etapa);
-  return ss.map(x=>{
-    const mio=x.alta===pais||x.baja===pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
-    return '<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)
-      +'<span class="nom">'+SEL_FICHA[x.alta].sigla+' '+marc+' '+SEL_FICHA[x.baja].sigla+'</span>'+escudito(x.baja)
-      +'</span><span class="rec2">'+(x.ganador?'✓':'')+'</span></div>';
+  let h='<div class="r amTit"><span class="pos">'+banderaDe(pais,14)+'</span><span class="club"><span class="nom">'+t(SEL_TXT[prox.etapa]||L(prox.etapa))+'</span></span></div>';
+  h+=ss.map(x=>{
+    const mio=x.alta===pais||x.baja===pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'';
+    return '<div class="r grupoSel'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)
+      +'<span class="nom">'+SEL_FICHA[x.alta].sigla+' – '+SEL_FICHA[x.baja].sigla+'</span>'+escudito(x.baja)
+      +'</span><span class="rec2">'+marc+'</span></div>';
   }).join('');
+  return h;
 }
 
 /** El renglón que cuenta cómo terminó (o por qué no fuiste). Se muestra una vez. */
@@ -23396,19 +23684,22 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   /* 2026-09-13 §2z229 g: los TRAMOS también en el fixture — mismo estado que la tabla (tramoAm / tramoSel), mismos rótulos */
   const tr=$l('lobFixTramos'); let tramoF=null;
   if(sel&&C.selTorneo&&SEL_FORMATOS[C.selTorneo.torneo]){
-    const t2=C.selTorneo, fmt=SEL_FORMATOS[t2.torneo], key=t2.semilla+t2.torneo;
+    const t2=C.selTorneo, fmt=SEL_FORMATOS[t2.torneo];
+    const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave, actual=hayLl?'llave':hayG2?'g2':'g1', key=t2.semilla+t2.torneo+actual;   // 2026-09-13 (su caza: "cuando abrís tabla no aparece en fase 2 ahora que ya pasamos"): la fase va en la clave — al avanzar, la elección vieja se olvida
     if(tramoSel&&tramoSel.k!==key) tramoSel=null;
-    const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave, actual=hayLl?'llave':hayG2?'g2':'g1';
     tramoF=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayG2)||(tramoSel.t==='llave'&&hayLl)))?tramoSel.t:actual;
     const items=fmt.segunda?[{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
       :[{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}];
     tr.classList.remove('oculto'); tr.innerHTML=htmlTramos(items,tramoF,'tramof');
     tr.querySelectorAll('[data-tramof]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramof,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
   } else if(am&&est().americas){
-    const amx=est().americas, key=String(amx.anio||'')+amx.miGrupo;
+    /* §2z238 (su caza 2026-09-13: "la Copa Intercontinental en el fixture vive en LLAVE de Américas; la tabla ni siquiera existe"):
+       la copa es su propio tramo, COPA, y abre ahí cuando es lo que estás jugando */
+    const amx=est().americas, icx=est().intercontinental, hayIC=!!icx, icViva=hayIC&&icx.fase!=='terminado';
+    const key=String(amx.anio||'')+amx.miGrupo+(amx.llave?'llave':'g1')+(icViva?'copa':'');
     if(tramoAm&&tramoAm.k!==key) tramoAm=null;
-    const hayLl=!!amx.llave; tramoF=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
-    tr.classList.remove('oculto'); tr.innerHTML=htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramoF,'tramof');
+    const hayLl=!!amx.llave; tramoF=(tramoAm&&(tramoAm.t==='g1'||(tramoAm.t==='llave'&&hayLl)||(tramoAm.t==='copa'&&hayIC)))?tramoAm.t:(icViva?'copa':hayLl?'llave':'g1');
+    tr.classList.remove('oculto'); tr.innerHTML=htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl},{t:'copa',txt:t(L('COPA','CUP','COPA')),off:!hayIC}],tramoF,'tramof');
     tr.querySelectorAll('[data-tramof]').forEach(b=>b.addEventListener('click',()=>{ tramoAm={t:b.dataset.tramof,k:key}; pintaFixFull(fechas,calPorFecha,proxKey); }));
   } else tr.classList.add('oculto');
   if(sel){ $l('lobFixFull').innerHTML=htmlFixtureSeleccion(tramoF); return; }
@@ -23418,7 +23709,7 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
   /* 2026-09-10 (su caza: "estoy en la ventana de eliminatorias, toco FIXTURE, paso a BOC desde el switch y me abre desde
      la F1"): con el próximo en la selección, ninguna fila del club es «prox» y el scroll de §2z178 no tiene dónde
      apoyarse. El respaldo es el primer partido de este lado sin resultado — el que viene, aunque no sea el próximo. */
-  const filas=fechas.filter(f=>!am||f.am).filter(f=>!tramoF||(tramoF==='g1'?f.etapa==='grupo':f.etapa!=='grupo'));   // §2z229 g: el tramo del globo (la copa intercontinental va con la llave)
+  const filas=fechas.filter(f=>!am||f.am).filter(f=>!tramoF||(tramoF==='g1'?f.etapa==='grupo'&&!f.ic:tramoF==='copa'?!!f.ic:f.etapa!=='grupo'&&!f.ic));   // §2z229 g · §2z238: la copa en su tramo
   if(!filas.some(f=>f.key===proxKey)){ const n=filas.find(f=>!f.res); if(n) proxKey=n.key; }
   let h='', etapaAnt=null, ultF=0, rondaAnt=null;
   /* 2026-09-12 (su caza: "paso de F33 a F35, ¿F34 estaremos libres? debería decírmelo, si no se ve raro"): la fecha libre del
@@ -23465,12 +23756,28 @@ function pintaTablaFull(){
     /* 2026-09-13 LOS TRAMOS (ver htmlTramos): FASE 1 · FASE 2 · LLAVE arriba (los que no existen, apagados), abre en el que estás;
        adentro de una fase, las pestañas GRUPO A..H (o I..L), la tuya por defecto — la elección se olvida al cambiar de torneo. */
     const t2=C.selTorneo, fmt=t2&&SEL_FORMATOS[t2.torneo];
-    if(t2&&t2.grupos&&fmt){
-      const key=t2.semilla+t2.torneo;
+    /* §12.33: las ELIMINATORIAS también tienen tramos (RONDA 1 · RONDA 2) y pestañas de grupo, como el torneo */
+    const elE=e.seleccion;
+    if(!t2&&elE&&elE.v===2&&elE.grupos&&(ventanasJugadasSel(elE)>0||elE.idx||(elE.juegos||[]).some(g=>g.jugado))){
+      const key='elim'+(elE.miGrupo||'')+(elE.pais||'')+(elE.ventanas&&elE.ventanas[0]?elE.ventanas[0].n:'')+(elE.ronda===2?'r2':'r1');
       if(tramoSel&&tramoSel.k!==key) tramoSel=null;
       if(grupoSelSel&&grupoSelSel.t!==key) grupoSelSel=null;
+      const hayR2=elE.ronda===2, actual=hayR2?'g2':'g1';
+      const tramo=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayR2)))?tramoSel.t:actual;
+      tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
+      tabs.innerHTML=htmlTramos([{t:'g1',txt:t(L('RONDA 1','ROUND 1','RODADA 1'))},{t:'g2',txt:t(L('RONDA 2','ROUND 2','RODADA 2')),off:!hayR2}],tramo,'tramo');
+      tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
+      const letras=Object.keys(elE.grupos).filter(k=>tramo==='g2'?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k));
+      const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(tramo==='g2'?elE.miGrupo2:elE.miGrupo)||letras[0];
+      full.innerHTML=htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x)+htmlSeleccion(e,g,tramo);
+      full.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:key}; pintaTablaFull(); }));
+      return;
+    }
+    if(t2&&t2.grupos&&fmt){
       const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave;
-      const actual=hayLl?'llave':hayG2?'g2':'g1';
+      const actual=hayLl?'llave':hayG2?'g2':'g1', key=t2.semilla+t2.torneo+actual;   // 2026-09-13 (su caza): la fase en la clave
+      if(tramoSel&&tramoSel.k!==key) tramoSel=null;
+      if(grupoSelSel&&grupoSelSel.t!==key) grupoSelSel=null;
       const tramo=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayG2)||(tramoSel.t==='llave'&&hayLl)))?tramoSel.t:actual;
       const items=fmt.segunda
         ? [{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
@@ -23487,12 +23794,14 @@ function pintaTablaFull(){
     }
     tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto · 2026-09-13: en dos tramos
-    const am=e.americas, key=String(am.anio||'')+am.miGrupo;
+    const am=e.americas, icx=e.intercontinental, hayIC=!!icx, icViva=hayIC&&icx.fase!=='terminado';
+    const key=String(am.anio||'')+am.miGrupo+(am.llave?'llave':'g1')+(icViva?'copa':'');   // §2z238: la copa en la clave — abre ahí mientras se juega
     if(tramoAm&&tramoAm.k!==key) tramoAm=null;
-    const hayLl=!!am.llave, tramo=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
+    const hayLl=!!am.llave, tramo=(tramoAm&&(tramoAm.t==='g1'||(tramoAm.t==='llave'&&hayLl)||(tramoAm.t==='copa'&&hayIC)))?tramoAm.t:(icViva?'copa':hayLl?'llave':'g1');
     tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
-    tabs.innerHTML=htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramo,'tramo');
+    tabs.innerHTML=htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl},{t:'copa',txt:t(L('COPA','CUP','COPA')),off:!hayIC}],tramo,'tramo');
     tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoAm={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
+    if(tramo==='copa'){ full.innerHTML=htmlIntercontinental(e); return; }
     if(tramo==='llave'){ full.innerHTML=htmlAmericasLlave(e); return; }
     const g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
     full.innerHTML=htmlGrupoTabs(AMERICAS_GRUPOS,g,'grupo',(x)=>t(AM_TXT.grupo)+' '+x)+htmlAmericasGrupo(e,g);
@@ -24836,8 +25145,11 @@ $l('lobSalir').addEventListener('click',()=>{
      compra cancha (§5). La línea registra los minutos REALMENTE jugados. */
   /* §2z12: el continuo da un paso hacia el objetivo (nivel vs club + DT + plantel) y el rol se lee de ahí */
   if(enSel){ dif.min=minutosDeNoche(minutosSelDe(preAbierto),C.jugador.energia,'federal'); }   // §12.20: el rol de selección pone los minutos; los del club no se mueven · §2z187: menos si llegás cansado
-  else { C.jugador.minutos=proximosMinutos(clubDe(preAbierto.rival));
+  else { const rolAntes=C.jugador.rol; C.jugador.minutos=proximosMinutos(clubDe(preAbierto.rival));
     C.jugador.rol=rolDeMinutos(C.ligaId,C.jugador.minutos);
+    /* §2z233 (su pregunta 2026-09-13: "¿hay algún feedback cuando cambiás de rol, o eso vive sólo en los minutos?"): no lo había.
+       El cruce se anota acá y se anuncia al volver al vestuario, con el velo de las noticias grandes. */
+    if(rolAntes&&rolAntes!==C.jugador.rol) C.rolAviso={de:rolAntes,a:C.jugador.rol};
     dif.min=minutosDeNoche(C.jugador.minutos,C.jugador.energia,C.ligaId); }   // §2z187: el castigo es de ESTA noche, el continuo no lo guarda
   /* §2z37: la fuerza del partido (mi club − rival, con el desgaste del año si lo hay) para el relato */
   { const e=est(), fz=(id)=>(e.fuerzas&&e.fuerzas[id]!==undefined)?e.fuerzas[id]:clubDe(id).fuerza;
@@ -24954,7 +25266,7 @@ terminar=function(){
       if(o.tipo==='seleccion'){
         const comp=o.etapa==='eliminatorias'?t(SEL_TXT.eliminatorias)+' · '+t(SEL_TXT.ventana)+'\u00a0'+(o.ventana?o.ventana.n:'')
           :selTorneoTxt(o.torneo)+' · '+t(SEL_TXT[o.etapa]||L(o.etapa||''));
-        h=escuditoDe(clubDeSeleccion(pais))+nomAjustable('',comp+' · '+vsTxt(o.local),nombresSelDe(o.rival).map(n=>n.toUpperCase()))+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también
+        h=escuditoDe(clubDeSeleccion(pais))+nomAjustable('',comp+' · '+vsTxt(o.local,o.neutral),nombresSelDe(o.rival).map(n=>n.toUpperCase()))+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también · 2026-09-13 (su caza: «en ESLOVENIA» en Doha): en neutral, vs
       } else {
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
         const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha
@@ -25092,7 +25404,10 @@ function ultimoPartido(cierre,e){
     seleccion:enPartido&&enPartido.tipo==='seleccion'?(function(){
       const mem=C.seleccion||{}, cer=C.selCeremonia, el=e.seleccion;
       const jugados=mem.jugados||0;   // 2026-09-09: el contador de la carrera (se incrementa al cerrar cada partido, abajo) — contar misPartidos de ESTA temporada hacía "debutar" de nuevo en la ventana 5 (clase 16)
-      return {etapa:enPartido.etapa, torneo:enPartido.torneo||null, pais:C.jugador.nacionalidad||'ar',
+      /* §2z239 (su pregunta: "¿«volver antes de lo esperado» sale siempre? Si estás en una selección chica y la llevás lejos, ¿te
+         sale igual?"): el lugar de tu país entre los del campo, por fuerza, para que la prensa sepa si decepcionaste o sorprendiste */
+      const tS=C.selTorneo, rank=tS&&tS.campo?tS.campo.slice().sort((a,b)=>SELECCIONES[b].fuerza-SELECCIONES[a].fuerza).indexOf(C.jugador.nacionalidad||'ar')+1:0;
+      return {etapa:enPartido.etapa, torneo:enPartido.torneo||null, pais:C.jugador.nacionalidad||'ar', rank, campo:tS&&tS.campo?tS.campo.length:0,
         debut:jugados<=1,
         medalla:(cer&&cer.medalla)||null, puesto:(cer&&cer.puesto)||null,
         cierraElim:!!(el&&el.fin&&enPartido.etapa==='eliminatorias'), pase:!!(el&&el.pase)};
@@ -25266,8 +25581,12 @@ function registrarResultado(){
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
   const chicos=()=>{ if(caidos.length) avisar(textoOxido(caidos));
     if(dbetaAviso) setTimeout(()=>avisar(dbetaAviso.txt,dbetaAviso.tono),caidos.length?2200:0); };   // §2z105: después del otro aviso, no encima
-  if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,amAviso.sub||'',chicos);   // §2z169: la noticia grande, en su velo
-  else chicos(); };
+  /* §2z233: el cambio de rol, después del título si lo hubo */
+  const conRol=(sig)=>{ const ra=C.rolAviso; if(!ra){ sig(); return; } C.rolAviso=null;
+    const TX={titular:[L('TITULAR','STARTER','TITULAR'),'ok'],referencia:[L('LA REFERENCIA','THE GUY','A REFERÊNCIA'),'oro'],suplente:[L('AL BANCO','TO THE BENCH','PARA O BANCO'),'mal']}[ra.a]||[L(ra.a),'ok'];
+    mostrarTitular(t(L('TU ROL','YOUR ROLE','SEU PAPEL')),t(TX[0]),TX[1],minutosDe()+"'",sig); };
+  if(amAviso) mostrarTitular(amAviso.rot,amAviso.txt,amAviso.tono,amAviso.sub||'',()=>conRol(chicos));   // §2z169: la noticia grande, en su velo
+  else conRol(chicos); };
   /* §2z99: la noche de la última salta la cadencia de la prensa ("nunca dos seguidos"): ese titular no espera */
   /* 2026-09-12: el TÍTULO tampoco espera la cadencia («nunca dos seguidos»): la carta del campeón de las Américas se salteaba si
      hubo prensa después de la semi */
@@ -25281,7 +25600,14 @@ function registrarResultado(){
    desglosado) y lo que cobraste esta noche. Entra sin scroll en 360×780: siete renglones, una barra y el botón. */
 /* 2026-09-10 (su caza: post partido con la selección el velo no decía cuánto recuperás): el día real de una jornada de
    eliminatorias sale de la ventana (`dias[0]`/`dias[1]`, §12.28); en el receso no hay club que espere y queda null */
-function diaSel(o){ if(!o||o.tipo!=='seleccion'||o.etapa!=='eliminatorias'||!o.ventana||!o.ventana.dias) return null; const d=o.ventana.dias[o.jornada-(o.ventana.n*2-1)]; return typeof d==='number'?d:null; }
+function diaSel(o){ if(!o||o.tipo!=='seleccion') return null; if(o.etapa!=='eliminatorias') return diaTorneoDe(C.selTorneo,o.paso); if(!o.ventana||!o.ventana.dias) return null; const d=o.ventana.dias[o.jornada-(o.ventana.n*2-1)]; return typeof d==='number'?d:null; }
+/* §12.34: el día (de temporada) del partido `paso` del torneo del receso — arranca el día real del torneo, uno cada dos días */
+function diaTorneoDe(t,paso){
+  if(!t||paso===undefined||paso===null) return null; const md=SEL_TORNEO_INICIO[t.torneo]; if(!md) return null;
+  const cal=LIGAS[C.ligaId]&&LIGAS[C.ligaId].calendario; let d0;
+  if(cal) d0=diaDeTemporada(cal,md); else { const a=Date.UTC(2001,9,1); let d=Date.UTC(2001,md[0]-1,md[1]); if(d<a) d=Date.UTC(2002,md[0]-1,md[1]); d0=Math.round((d-a)/86400000)+1; }
+  return d0+paso*2;
+}
 /* ══ §2z218 LOS SPONSORS (el catálogo, en 01x) ═════════════════════════════════════════════════════════════════
    Se ganan solos cumpliendo lo que piden y se pierden solos dejando de cumplirlo: no hay decisión, hay rendimiento.
    Se evalúan UNA vez por partido, después de que la nota ya está escrita. */
@@ -25369,7 +25695,7 @@ function sponsorAviso(volver){
      o sea que la pantalla nunca decía la palabra sponsor, y lo que veías era un número dorado y un nombre que no
      conocés. Ahora el rótulo dice qué te está pasando, el grande es la MARCA (ella es el hecho) y la plata es una
      píldora, como en cualquier carta. */
-  if(a.tipo==='alta') CARTAS.mostrarAviso({rotulo:L('SPONSOR NUEVO','NEW SPONSOR','NOVO PATROCINADOR'), fondo:'despacho',
+  if(a.tipo==='alta') CARTAS.mostrarAviso({rotulo:L('SPONSOR NUEVO','NEW SPONSOR','NOVO PATROCINADOR'), rotuloCls:'naranja', fondo:'despacho',   // 2026-09-13 (su pedido): que resalte
     remate:sp.nom, texto:sp.alta,
     pildoras:[{ok:true, txt:'+'+fplata(sponsorPlata(sp))+' '+t(L('POR PARTIDO','PER GAME','POR JOGO'))}]}, seguir);
   else CARTAS.mostrarAviso({rotulo:L('SPONSOR PERDIDO','SPONSOR LOST','PATROCINADOR PERDIDO'), fondo:'despacho',
@@ -25875,7 +26201,7 @@ function pintaSecciones(){
      encabezado y PJ en la grilla: no se repiten. */
   const rotulo=enSel
     ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
-    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt();   // §2z124
+    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt()+' · '+rolTxt();   // §2z124 · §2z233: el rol, pelado (su corte: "no aclaremos qué lo mueve; no es un dado")
   $l('lobResumen').innerHTML=
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
@@ -26238,15 +26564,15 @@ const BANDERAS={
   /* §2z27.3: los países de la Copa Intercontinental que no estaban */
   ly:{image:'linear-gradient(#e5253a 0 25%,#1a1a1a 25% 75%,#12b45c 75%)'},
   rw:{image:'linear-gradient(#2ea3d9 0 50%,#ffd028 50% 75%,#12b45c 75%)'},
-  lb:{image:'linear-gradient(#e5253a 0 25%,#f2f4f8 25% 75%,#e5253a 75%)'},
+  lb:{image:'radial-gradient(circle closest-side at 50% 50%,#12b45c 0 34%,transparent 35%),linear-gradient(#e5253a 0 25%,#f2f4f8 25% 75%,#e5253a 75%)'},   // §12.33: el cedro, para que no sea Austria
   sg:{image:'linear-gradient(#e5253a 0 50%,#f2f4f8 50%)'},
   it:{image:'linear-gradient(90deg,#12b45c 0 33%,#fff 33% 66%,#f04553 66%)'},
-  gr:{image:'linear-gradient(#1f7bd4 0 22%,#fff 22% 44%,#1f7bd4 44% 66%,#fff 66% 88%,#1f7bd4 88%)'},
+  gr:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#f2f4f8"/><rect y="0.000" width="30" height="2.222" fill="#1f7bd4"/><rect y="4.444" width="30" height="2.222" fill="#1f7bd4"/><rect y="8.889" width="30" height="2.222" fill="#1f7bd4"/><rect y="13.333" width="30" height="2.222" fill="#1f7bd4"/><rect y="17.778" width="30" height="2.222" fill="#1f7bd4"/><rect width="11.111" height="11.111" fill="#1f7bd4"/><rect y="4.444" width="11.111" height="2.222" fill="#f2f4f8"/><rect x="4.444" width="2.222" height="11.111" fill="#f2f4f8"/></svg>')+"')",size:'100% 100%'},   // 2026-09-13: portada de El Draft (Flag.tsx): las nueve franjas y el cantón con la cruz
   lt:{image:'linear-gradient(#ffd028 0 33%,#12b45c 33% 66%,#e5253a 66%)'},
   rs:{image:'linear-gradient(#e5253a 0 33%,#3168e8 33% 66%,#f2f4f8 66%)'},
   fr:{image:'linear-gradient(90deg,#3168e8 0 33%,#fff 33% 66%,#e5253a 66%)'},
   eu:{image:'linear-gradient(#2a4b9b,#2a4b9b)'},
-  ca:{image:'radial-gradient(circle closest-side at 50% 50%,#e5253a 0 30%,transparent 31%),linear-gradient(90deg,#e5253a 0 25%,#fff 25% 75%,#e5253a 75%)'},
+  ca:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#e5253a"/><rect x="7.5" width="15" height="20" fill="#fff"/><g transform="translate(5.75,0) scale(0.185)"><path fill="#e5253a" d="M50 95 l-2 -24 -18 3 2 -7 -19 -15 5 -2 -4 -14 13 3 3 -6 12 13 -4 -22 6 3 6 -13 6 13 6 -3 -4 22 12 -13 3 6 13 -3 -4 14 5 2 -19 15 2 7 -18 -3 -2 24 z"/></g></svg>')+"')",size:'100% 100%'},   // 2026-09-13 (su captura: el punto rojo se leía como JAPÓN): la hoja de arce de El Draft
   ng:{image:'linear-gradient(90deg,#12b45c 0 33%,#fff 33% 66%,#12b45c 66%)'},
   /* §12: las ocho que entran con el MUNDIAL DE 24 */
   pl:{image:'linear-gradient(#f2f4f8 0 50%,#e5253a 50%)'},
@@ -26272,15 +26598,43 @@ const BANDERAS={
   ph:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#3168e8"/><rect y="10" width="30" height="10" fill="#e5253a"/><polygon points="0,0 0,20 12,10" fill="#f2f4f8"/><circle cx="4" cy="10" r="2.2" fill="#ffd028"/></svg>')+"')",size:'100% 100%'},
   nz:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#2a4b9b"/><rect x="0" y="8.4" width="14" height="3.2" fill="#f2f4f8"/><rect x="5.4" y="0" width="3.2" height="20" fill="#f2f4f8"/><rect x="0" y="9.2" width="14" height="1.6" fill="#e5253a"/><rect x="6.2" y="0" width="1.6" height="20" fill="#e5253a"/><circle cx="21" cy="6" r="1.1" fill="#e5253a"/><circle cx="24.5" cy="10" r="1.1" fill="#e5253a"/><circle cx="20.5" cy="14" r="1.1" fill="#e5253a"/><circle cx="18" cy="10.5" r="1.1" fill="#e5253a"/></svg>')+"')",size:'100% 100%'},
   /* §12: las de América que entran con la selección (su corte de las nacionalidades jugables) */
-  mx:{image:'linear-gradient(90deg,#12703a 0 33%,#f2f4f8 33% 66%,#e5253a 66%)'},
-  ni:{image:'linear-gradient(#0067c6 0 33%,#f2f4f8 33% 66%,#0067c6 66%)'},   // §2z35: Real Estelí en la tabla del continental
-  co:{image:'linear-gradient(#ffd028 0 50%,#2a4b9b 50% 75%,#e5253a 75%)'},
+  mx:{image:'linear-gradient(90deg,#0a7a45 0 33.3%,#fff 33.3% 66.6%,#d92d3f 66.6%)'},   // 2026-09-13: como en El Draft
+  ni:{image:'linear-gradient(#2b5fb8 0 33%,#fff 33% 66%,#2b5fb8 66%)'},   // §2z35: Real Estelí en la tabla del continental · 2026-09-13: el azul de El Draft
+  co:{image:'linear-gradient(#ffd028 0 50%,#2f5fc4 50% 75%,#e5253a 75%)'},   // 2026-09-13: como en El Draft
   ve:{image:'linear-gradient(#ffd028 0 33%,#3168e8 33% 66%,#e5253a 66%)'},
   cl:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#f2f4f8"/><rect y="10" width="30" height="10" fill="#e5253a"/><rect width="10" height="10" fill="#3168e8"/><polygon points="5,2.2 5.9,4.6 8.5,4.6 6.4,6.2 7.2,8.6 5,7.1 2.8,8.6 3.6,6.2 1.5,4.6 4.1,4.6" fill="#fff"/></svg>')+"')",size:'100% 100%'},
   pa:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#f2f4f8"/><rect x="15" width="15" height="10" fill="#e5253a"/><rect y="10" width="15" height="10" fill="#2a4b9b"/><polygon points="7.5,2.4 8.3,4.6 10.6,4.6 8.7,6 9.5,8.2 7.5,6.8 5.5,8.2 6.3,6 4.4,4.6 6.7,4.6" fill="#2a4b9b"/><polygon points="22.5,12.4 23.3,14.6 25.6,14.6 23.7,16 24.5,18.2 22.5,16.8 20.5,18.2 21.3,16 19.4,14.6 21.7,14.6" fill="#e5253a"/></svg>')+"')",size:'100% 100%'},
   pr:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#ec4257"/><rect y="4" width="30" height="4" fill="#f2f4f8"/><rect y="12" width="30" height="4" fill="#f2f4f8"/><polygon points="0,0 0,20 14,10" fill="#3168e8"/><polygon points="4.2,7 5.1,9.4 7.7,9.4 5.6,11 6.4,13.4 4.2,11.9 2,13.4 2.8,11 0.7,9.4 3.3,9.4" fill="#fff"/></svg>')+"')",size:'100% 100%'},
   do:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#2a4b9b"/><rect x="16.5" width="13.5" height="8.5" fill="#e5253a"/><rect y="11.5" width="13.5" height="8.5" fill="#e5253a"/><rect x="13.5" width="3" height="20" fill="#f2f4f8"/><rect y="8.5" width="30" height="3" fill="#f2f4f8"/></svg>')+"')",size:'100% 100%'},
-  au:{image:'radial-gradient(circle closest-side at 76% 62%,#fff 0 12%,transparent 13%),radial-gradient(circle closest-side at 62% 30%,#fff 0 9%,transparent 10%),radial-gradient(circle closest-side at 86% 34%,#fff 0 9%,transparent 10%),linear-gradient(#e5253a,#e5253a),linear-gradient(#2a4b9b,#2a4b9b)',size:'100% 100%,100% 100%,100% 100%,44% 10%,100% 100%',position:'0 0,0 0,0 0,0 45%,0 0'},
+  /* 2026-09-13 (su caza: "parece la de un país perdido de Oceanía"): el cantón con la Union Jack (cruz roja sobre cruz blanca y
+     diagonales) en el cuarto de arriba a la izquierda, la estrella grande debajo y la Cruz del Sur a la derecha */
+  au:{image:'radial-gradient(circle closest-side at 25% 76%,#fff 0 13%,transparent 14%),radial-gradient(circle closest-side at 76% 62%,#fff 0 11%,transparent 12%),radial-gradient(circle closest-side at 63% 28%,#fff 0 8%,transparent 9%),radial-gradient(circle closest-side at 88% 34%,#fff 0 8%,transparent 9%),radial-gradient(circle closest-side at 72% 88%,#fff 0 8%,transparent 9%),linear-gradient(90deg,transparent 42%,#e5253a 42% 58%,transparent 58%),linear-gradient(transparent 42%,#e5253a 42% 58%,transparent 58%),linear-gradient(90deg,transparent 34%,#f2f4f8 34% 66%,transparent 66%),linear-gradient(transparent 34%,#f2f4f8 34% 66%,transparent 66%),linear-gradient(45deg,transparent 45%,#f2f4f8 45% 55%,transparent 55%),linear-gradient(-45deg,transparent 45%,#f2f4f8 45% 55%,transparent 55%),linear-gradient(#2a4b9b,#2a4b9b)',size:'100% 100%,100% 100%,100% 100%,100% 100%,100% 100%,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%,50% 50%,100% 100%',position:'0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0,0 0'},
+  /* §12.33 (2026-09-13): las 26 del padrón real de las eliminatorias — mismo criterio, que se reconozcan a 15 px */
+  bs:{image:'linear-gradient(90deg,#111 0 24%,transparent 24%),linear-gradient(#00abc9 0 33%,#ffd028 33% 66%,#00abc9 66%)'},
+  cu:{image:'linear-gradient(90deg,#e5253a 0 30%,transparent 30%),linear-gradient(#3168e8 0 20%,#f2f4f8 20% 40%,#3168e8 40% 60%,#f2f4f8 60% 80%,#3168e8 80%)'},
+  jm:{image:'linear-gradient(45deg,transparent 44%,#ffd028 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,#ffd028 44% 56%,transparent 56%),linear-gradient(90deg,#111 0 22%,#12b45c 22% 78%,#111 78%)'},
+  ua:{image:'linear-gradient(#3168e8 0 50%,#ffd028 50%)'},   // estaba en el padrón desde 2026-09-04 sin bandera (lo cazó el chequeador)
+  hr:{image:'linear-gradient(#e5253a 0 33%,#f2f4f8 33% 66%,#3168e8 66%)'},
+  il:{image:"url('data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="#f2f4f8"/><rect y="1.88" width="30" height="3.12" fill="#3168e8"/><rect y="15" width="30" height="3.12" fill="#3168e8"/><path d="M15 6.6 L17.94 11.7 L12.06 11.7 Z" fill="#3168e8"/><path d="M15 13.4 L12.06 8.3 L17.94 8.3 Z" fill="#3168e8"/></svg>')+"')",size:'100% 100%'},   // 2026-09-13: la de El Draft, con la estrella
+  ba:{image:'linear-gradient(135deg,transparent 40%,#ffd028 40% 68%,transparent 68%),linear-gradient(#2a4b9b,#2a4b9b)'},
+  be:{image:'linear-gradient(90deg,#111 0 33%,#ffd028 33% 66%,#e5253a 66%)'},
+  ee:{image:'linear-gradient(#3168e8 0 33%,#111 33% 66%,#f2f4f8 66%)'},
+  pt:{image:'radial-gradient(circle closest-side at 40% 50%,#ffd028 0 28%,transparent 29%),linear-gradient(90deg,#12b45c 0 40%,#e5253a 40%)'},
+  nl:{image:'linear-gradient(#e5253a 0 33%,#f2f4f8 33% 66%,#2a4b9b 66%)'},
+  is:{image:'linear-gradient(90deg,transparent 33%,#e5253a 33% 45%,transparent 45%),linear-gradient(transparent 42%,#e5253a 42% 58%,transparent 58%),linear-gradient(90deg,transparent 28%,#f2f4f8 28% 50%,transparent 50%),linear-gradient(transparent 36%,#f2f4f8 36% 64%,transparent 64%),linear-gradient(#2a4b9b,#2a4b9b)'},
+  gb:{image:'linear-gradient(90deg,transparent 42%,#e5253a 42% 58%,transparent 58%),linear-gradient(transparent 40%,#e5253a 40% 60%,transparent 60%),linear-gradient(90deg,transparent 34%,#f2f4f8 34% 66%,transparent 66%),linear-gradient(transparent 30%,#f2f4f8 30% 70%,transparent 70%),linear-gradient(45deg,transparent 46%,#f2f4f8 46% 54%,transparent 54%),linear-gradient(-45deg,transparent 46%,#f2f4f8 46% 54%,transparent 54%),linear-gradient(#2a4b9b,#2a4b9b)'},
+  hu:{image:'linear-gradient(#e5253a 0 33%,#f2f4f8 33% 66%,#12b45c 66%)'},
+  se:{image:'linear-gradient(90deg,transparent 30%,#ffd028 30% 44%,transparent 44%),linear-gradient(transparent 40%,#ffd028 40% 60%,transparent 60%),linear-gradient(#3168e8,#3168e8)'},
+  bg:{image:'linear-gradient(#f2f4f8 0 33%,#12b45c 33% 66%,#e5253a 66%)'},
+  dk:{image:'linear-gradient(90deg,transparent 30%,#f2f4f8 30% 44%,transparent 44%),linear-gradient(transparent 40%,#f2f4f8 40% 60%,transparent 60%),linear-gradient(#e5253a,#e5253a)'},
+  mk:{image:'radial-gradient(circle closest-side at 50% 50%,#ffd028 0 26%,transparent 27%),linear-gradient(45deg,transparent 47%,#ffd028 47% 53%,transparent 53%),linear-gradient(-45deg,transparent 47%,#ffd028 47% 53%,transparent 53%),linear-gradient(90deg,transparent 47%,#ffd028 47% 53%,transparent 53%),linear-gradient(transparent 46%,#ffd028 46% 54%,transparent 54%),linear-gradient(#e5253a,#e5253a)'},
+  sk:{image:'linear-gradient(#f2f4f8 0 33%,#3168e8 33% 66%,#e5253a 66%)'},
+  at:{image:'linear-gradient(#e5253a 0 33%,#f2f4f8 33% 66%,#e5253a 66%)'},
+  qa:{image:'linear-gradient(90deg,#f2f4f8 0 30%,#8a1538 30%)'},
+  jo:{image:'linear-gradient(90deg,#e5253a 0 32%,transparent 32%),linear-gradient(#111 0 33%,#f2f4f8 33% 66%,#12b45c 66%)'},
+  sn:{image:'radial-gradient(circle closest-side at 50% 50%,#12b45c 0 24%,transparent 25%),linear-gradient(90deg,#12b45c 0 33%,#ffd028 33% 66%,#e5253a 66%)'},
+  tn:{image:'radial-gradient(circle closest-side at 50% 50%,#f2f4f8 0 40%,transparent 41%),linear-gradient(#e5253a,#e5253a)'},
+  cm:{image:'radial-gradient(circle closest-side at 50% 50%,#ffd028 0 20%,transparent 21%),linear-gradient(90deg,#12b45c 0 33%,#e5253a 33% 66%,#ffd028 66%)'},
 };
 /* la bandera dibujada: `ancho` en px (alto = 2/3); un país sin receta va en gris neutro */
 function banderaDe(id,ancho){

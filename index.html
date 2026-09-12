@@ -1732,7 +1732,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1b23de9572';
+const BUILD='d541243a06';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22163,6 +22163,7 @@ const formatoTxt=(mejorDe)=>mejorDe>1?t(L('AL MEJOR DE ','BEST OF ','MELHOR DE '
    defecto, las otras a un toque. El bracket queda arriba siempre; abajo, el grupo que elegiste. El contrato
    (PASAN 2 A CUARTOS) vale para todos; la condición de §2z163 sólo en el tuyo. */
 let grupoAmSel=null;
+let grupoSelSel=null;   // 2026-09-13 (su pedido: «el fixture de la selección que siga el formato de AMÉRICAS: los grupos en switch arriba y el bracket abajo»)
 function htmlAmericas(e,g){
   const am=e.americas; if(!am) return '';
   g=g||am.miGrupo;
@@ -22428,7 +22429,7 @@ function htmlRankMundial(rk){
   });
   return h+'<div class="leyenda"><span><span class="ley"></span>'+t(L('DIRECTO A LOS JUEGOS','STRAIGHT TO THE GAMES','DIRETO AOS JOGOS'))+'</span></div>';
 }
-function htmlSeleccion(e){
+function htmlSeleccion(e,gVer){
   const el=e.seleccion, t2=C.selTorneo;
   const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ochoprevias)
   const anV=(!t2&&(!el||el.fin||!elTuvo))?torneoAnunciado(e):null;   // 2026-09-12: el torneo que viene, también en los años sin eliminatorias
@@ -22438,7 +22439,7 @@ function htmlSeleccion(e){
   const tit=(x)=>'<div class="r amTit"><span class="pos">'+ban+'</span><span class="club"><span class="nom">'+x+'</span></span></div>';
   let h='';
   if(rk) h+=htmlRankMundial(rk);   // §12.31: lo último que pasó, arriba
-  if(elTuvo){
+  if(elTuvo&&!t2){   /* 2026-09-13 (su caza): con el torneo en curso las eliminatorias ya cerraron — no van arriba */
     h+=tit(elimTxt());
     /* de las eliminatorias pasan CUATRO al Mundial */
     tablaSel(el).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,SEL_ELIM_CLASIFICAN,el.pais); });
@@ -22466,15 +22467,13 @@ function htmlSeleccion(e){
   if(t2){
     /* el torneo del receso: tu grupo y después la llave, ronda por ronda */
     /* de todo grupo de un torneo pasan DOS: ésa es la línea de corte */
-    if(t2.miGrupo){
-      h+=tit(t(SEL_TXT.grupo)+' '+t2.miGrupo);   // 2026-09-10 (su regla del grupo): el torneo ya lo dice el título de la plena
-      tablaSel(t2,t2.miGrupo).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
-      h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
-    }
-    /* §12: la segunda fase del Mundial tiene tabla propia — y ahí se ve el partido arrastrado */
-    if(t2.miGrupo2){
-      h+=tit(t(SEL_TXT.segunda)+' '+t2.miGrupo2);
-      tablaSel(t2,t2.miGrupo2).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
+    /* 2026-09-13: el grupo que se muestra lo eligen las pestañas (gVer); sin pestañas, el tuyo. La segunda fase del Mundial
+       tiene tabla propia — y ahí se ve el partido arrastrado. */
+    const gV=gVer||t2.miGrupo2||t2.miGrupo;
+    if(gV&&t2.grupos&&t2.grupos[gV]){
+      const seg=SEL_LETRAS2.includes(gV);
+      h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // 2026-09-10 (su regla del grupo): el torneo ya lo dice el título de la plena
+      tablaSel(t2,gV).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
       h+='<div class="cajNota">'+t(L('PASAN 2','TOP 2 ADVANCE','2 PASSAM'))+'</div>';
     }
     if(t2.llave){
@@ -23408,7 +23407,18 @@ function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
   pintaSwitchSel('lobTablaSwitch');   // §12
   $l('lobTablaTit').textContent=ladoSel==='sel'?tituloSelConAnio():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
-  if(ladoSel==='sel'){ tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
+  if(ladoSel==='sel'){
+    /* 2026-09-13: con el torneo del receso en curso, los grupos van en pestañas como en Américas (la segunda fase del Mundial
+       reemplaza a la primera cuando llega), el tuyo por defecto; abajo, la llave dibujada. Sin torneo, como antes. */
+    const t2=C.selTorneo, letras=t2&&t2.grupos?Object.keys(t2.grupos).filter(k=>t2.miGrupo2?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k)):[];
+    if(letras.length>1){
+      const g=letras.includes(grupoSelSel)?grupoSelSel:(t2.miGrupo2||t2.miGrupo||letras[0]);
+      tabs.classList.remove('oculto'); tabs.classList.add('muchas');
+      tabs.innerHTML=letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-gsel="'+x+'" tabindex="0">'+(letras.length>4?x:t(SEL_TXT.grupo)+' '+x)+'</div>').join('');
+      tabs.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel=b.dataset.gsel; pintaTablaFull(); }));
+      full.innerHTML=htmlSeleccion(e,g); return;
+    }
+    tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
   if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto
     const am=e.americas, g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
     tabs.classList.remove('oculto'); tabs.classList.add('muchas');
@@ -26050,7 +26060,7 @@ function pintaPartidas(){
         '<div class="sub donde">'+(function(){ const e=c.temporada, cal=liga.calendario, anioL=cal&&cal.mismoAnio?String(c.anio):anioDe(c.anio);
           const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
             :e.fase==='playoffs'?dondePlayoffs(e)
-            :e.fase==='terminada'?t(L('RECESO','OFFSEASON','RECESSO'))   // §2z229 e
+            :e.fase==='terminada'?(c.selTorneo?t(SEL_TXT[c.selTorneo.torneo]||L(c.selTorneo.torneo)):t(L('RECESO','OFFSEASON','RECESSO')))   // §2z229 e · 2026-09-13 (su caza: decía RECESO con el Mundial en curso)
             :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
           return anioL+' · '+donde; })()+'</div>'+
       '</div>'+

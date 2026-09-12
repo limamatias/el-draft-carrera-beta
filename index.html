@@ -229,7 +229,7 @@
        background:rgba(20,27,44,.95);border:2px solid currentColor;margin-bottom:6px}
   #compra .compraIco svg{width:56px;height:56px;fill:currentColor}
   #compra .compraIco.cad-vehiculo{color:#7fb3e6} #compra .compraIco.cad-casa{color:#e0a96b}
-  #compra .compraIco.cad-staff{color:#7dd087} #compra .compraIco.cad-lifestyle{color:#f2c94c}
+  #compra .compraIco.cad-staff{color:#7dd087} #compra .compraIco.cad-lifestyle{color:#f2c94c} #compra .compraIco.cad-partido{color:var(--naranja)}
   #compra .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #compra h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch;color:#f2c94c}
   #compra .linea{max-width:30ch;line-height:1.3}
@@ -1060,6 +1060,39 @@
   #lobby #lv-pre{flex:1}
   #lobby .preTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:auto}
   #lobby #lv-tabla-full,#lobby #lv-fixture-full{flex:1;min-height:0}
+  /* §2z247 LA TIENDA EN CINCO PUERTAS: la de partidos a lo ancho, las cuatro escaleras en 2×2 — el idioma de la botonera (ícono y nombre) */
+  #lobby .puertas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  #lobby .puerta{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:64px;cursor:pointer;
+       border:1px solid rgba(154,164,184,.3);border-radius:12px;background:rgba(20,27,44,.92);user-select:none}
+  #lobby .puerta.ancha{grid-column:1/-1;flex-direction:row;height:50px;gap:10px}
+  #lobby .puerta:active{transform:scale(.98)} #lobby .puerta:focus-visible{outline:2px solid var(--tinta)}
+  #lobby .puerta .icoT{width:22px;height:22px}
+  #lobby .puerta span{font-size:12px;letter-spacing:1.5px;font-weight:600;color:var(--tinta);white-space:nowrap}
+  #lobby .puerta.ancha span{font-size:13px}
+  #lobby .puerta.cad-partido .icoT{color:var(--naranja)} #lobby .puerta.cad-vehiculo .icoT{color:#7fb3e6} #lobby .puerta.cad-casa .icoT{color:#e0a96b}
+  #lobby .puerta.cad-staff .icoT{color:#7dd087} #lobby .puerta.cad-lifestyle .icoT{color:#f2c94c}
+  #lobby #lv-tienda{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+  #lobby #lv-tienda .preTop{flex:none;position:relative;margin-bottom:0}
+  #lobby #lv-tienda .preTop .volver{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+  #lobby #lv-tienda .fecha-pre{background:none;padding:0 76px;flex:1;min-height:33px;display:flex;align-items:center;justify-content:center;font-size:15px}
+  #lobby #lv-tienda .cajon{flex:0 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #lobby #lobTiendaFull .cajNotas{margin:4px 0 8px;padding:0}
+  #lobby .fila-tienda.cad-partido .ico{color:var(--naranja)}
+  #lobby .fila-tienda .ef b{color:var(--tinta);font-weight:700} #lobby .fila-tienda .ef .rayo{width:7px;height:11px;fill:var(--naranja);vertical-align:-1px}
+  #lobby .fila-tienda.reemp,#lobby .fila-tienda.bloq{opacity:.4}
+  #lobby .fila-tienda.reemp .precio,#lobby .fila-tienda.reemp .btn,#lobby .fila-tienda.bloq .btn{visibility:hidden}
+  #lobby .fila-tienda.enUso .nom{color:var(--naranja)}
+  /* los cinco partidos: sin comprar apagados, en uso naranjas los que quedan */
+  #lobby .puntos{display:inline-flex;gap:2px;flex:none;margin-left:2px} #lobby .puntos i{width:5px;height:5px;border-radius:50%;background:rgba(154,164,184,.35)}
+  #lobby .puntos i.q{background:var(--naranja)}
+  /* en la previa, debajo de la latita: lo que tenés en uso */
+  #lobby .latita{flex-wrap:wrap}
+  #lobby .activosPre{flex-basis:100%;display:flex;flex-direction:column;gap:6px;padding-top:9px;border-top:1px solid rgba(154,164,184,.14)}
+  #lobby .activosPre .activo{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:1.5px;font-weight:600}
+  #lobby .activosPre .ico{flex:none;width:16px;height:16px;color:var(--naranja);display:flex} #lobby .activosPre .icoT{width:16px;height:16px}
+  #lobby .activosPre .que{flex:1;min-width:0;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby .activosPre .que em{font-style:normal;color:var(--tinta2);letter-spacing:.5px}
+  #lobby .activosPre .puntos i{width:6px;height:6px}
   #lobby #lv-tabla-full .preTop,#lobby #lv-fixture-full .preTop,#lobby #lv-carrera-full .preTop{flex:none}
   #lobby #lv-tabla-full .cajon,#lobby #lv-fixture-full .cajon{flex:1 1 auto;min-height:0;overflow-y:auto;
        -webkit-overflow-scrolling:touch}
@@ -1855,7 +1888,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='37736bf5b3';
+const BUILD='4ab4c302bf';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2227,6 +2260,7 @@ const BUILD='37736bf5b3';
           </svg></div>
           <div class="desc"><b data-l-en="ENERGY CAN" data-l-pt="LATINHA">LATITA</b><br><span id="lobLatasTxt"></span></div>
           <button class="btn" id="lobTomar"></button>
+          <div class="activosPre oculto" id="lobPreActivos"></div>   <!-- §2z247: lo que tenés en uso -->
         </div>
         <button class="jugar ancho" id="lobSalir" data-l-en="TAKE THE COURT" data-l-pt="ENTRAR EM QUADRA">SALIR A LA CANCHA</button>
       </div>
@@ -2271,6 +2305,7 @@ const BUILD='37736bf5b3';
                La prosa que había —"una recarga entera", "recuperás +2 ⚡ extra por día de
                descanso, ya es tuyo"— decía lo mismo con veinte palabras más. -->
           <div class="cajon" id="lobTienda"></div>
+          <div class="puertas" id="lobPuertas"></div>   <!-- §2z247: las cinco puertas de la tienda -->
         </div>
         <!-- §2z165 v3: LO TUYO es una pestaña — un lugar propio que crece con las compras, sin cargar la vidriera -->
         <div class="panel" id="lp-vida-tuyo">
@@ -2280,6 +2315,15 @@ const BUILD='37736bf5b3';
           <div class="cajon" id="lobContrato"></div>
         </div>
         </div>
+      </div>
+
+      <!-- §2z247 UNA TIENDA (partidos · staff · vehículos · dónde vivís · lujo): VOLVER a VIDA; el HUD queda arriba (dinero y energía) -->
+      <div class="vista oculto" id="lv-tienda">
+        <div class="preTop">
+          <div class="volver" data-lir="vida" tabindex="0" data-l-en="◂ BACK" data-l-pt="◂ VOLTAR">◂ VOLVER</div>
+          <div class="fecha-pre" id="lobTiendaTit"></div>
+        </div>
+        <div class="cajon" id="lobTiendaFull"></div>
       </div>
 
       <!-- VOS -->
@@ -13921,12 +13965,14 @@ const finalMio=()=>G.esFinal && G.tipo!=='defensa';
 /* §2z227: cuando el contacto al conducir se cobra, qué parte va a la línea y qué parte es pérdida tuya */
 const FALTA_AL_CHOCAR=0.20;
 const FRIO=3;
-const bonoFrio=()=> G.frio>=5?0.83 : G.frio>=4?0.88 : G.frio>=FRIO?0.93 : 1;
+/* §2z247: LA PSICÓLOGA corre el frío un tiro (`G.frioExtra`): el umbral y los tres escalones del castigo */
+const frioUmbral=()=>FRIO+(G.frioExtra||0);
+const bonoFrio=()=>{ const f=(G.frio||0)-(G.frioExtra||0); return f>=5?0.83 : f>=4?0.88 : f>=FRIO?0.93 : 1; };
 /* UN SOLO FACTOR para los tres lugares: fuego y frío son la misma racha con signo y nunca coexisten (uno de los dos
    vale 1 siempre), así que no se pueden desalinear pieza por pieza — la lección de §2z40. */
 const factorRacha=()=> bonoFuego()*bonoFrio();
 /* lo que la capa visual lee para la pelota: el fuego en positivo, el frío en negativo, cero si no hay estado */
-const rachaPelota=()=> G.frio>=FRIO ? -G.frio : (G.fuego||0);
+const rachaPelota=()=> G.frio>=frioUmbral() ? -G.frio : (G.fuego||0);
 /* §2z40.1 (su caza 2026-09-05: la carta del túnel lo hizo entrar en ritmo, metió una y el feed dijo "4 seguidas"):
    el fuego que REGALA la carta no son canastas. `fuegoRegalo` guarda cuánto del contador es prestado; la racha
    real es la resta, y es la que se cuenta en el feed y en el récord. Se apaga con el fuego. */
@@ -13955,7 +14001,7 @@ function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!
      acá y no en los doce lugares que lo llaman. */
   enfriar(); }
 function enfriar(){ G.frio=(G.frio||0)+1;
-  if(G.frio===FRIO) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Se te enfrió la mano.','Your hand went cold.','Sua mão esfriou.')),true); }, 750); }
+  if(G.frio===frioUmbral()) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Se te enfrió la mano.','Your hand went cold.','Sua mão esfriou.')),true); }, 750); }
 
 /* ══════════ EL DUELO CON MEMORIA (§2b) ══════════
    Tu marca es UN tipo que se acuerda: la postura mueve SU DISTANCIA (no su velocidad — las
@@ -18946,8 +18992,8 @@ function finPosesion(anoto, resumen){
       : t(L('¡Estás caliente!',"You're heating up!",'Você está quente!')),'fuego'); }
     /* §2z234 (su caza 2026-09-13: "cuando te enfriás sólo dice arriba «se te enfrió la mano», pero no sale en el relato como
        cuando estás caliente"): el mismo renglón, del otro lado — sale cuando la racha fría CRECIÓ en esta posesión (fallaste). */
-    if(G.frio>=FRIO && !anoto && G.frio!==G.frioDicho){ G.frioDicho=G.frio;
-      fila(frioReal()>=FRIO   /* si el frío lo trajo la carta y todavía no lo ganaste errando, sin número (el espejo del fuego) */
+    if(G.frio>=frioUmbral() && !anoto && G.frio!==G.frioDicho){ G.frioDicho=G.frio;
+      fila(frioReal()>=frioUmbral()   /* si el frío lo trajo la carta y todavía no lo ganaste errando, sin número (el espejo del fuego) */
         ? t(L(`Estás frío — ${frioReal()} seguidas afuera.`,`You're cold — ${frioReal()} misses in a row.`,`Você está frio — ${frioReal()} erradas seguidas.`))
         : t(L('Estás frío.',"You're cold.",'Você está frio.')),'frio'); }
     /* ON FIRE TE BUSCAN (su regla 2026-08-29: "cuando estás on fire deberían darte más
@@ -19019,7 +19065,7 @@ function empezar(snap){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,frioRegalo:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,frioRegalo:0,frioExtra:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(snap){ Object.assign(G, snap.G||{}); if(snap.guion) G.guion=snap.guion; }
@@ -23946,8 +23992,8 @@ function avisar(msg,tono){
 
 /* ── la navegación del lobby (las reglas de vistas plenas del boceto) ── */
 const PLENAS=['tabla-full','fixture-full','carrera-full','pre'];   // §2z71: la carrera entera es una plena
-const VISTAS=['hoy','tabla-full','fixture-full','carrera-full','pre','entrenar','equipo','vida','vos'];
-const FONDO_DE={hoy:()=>FONDO_VESTUARIO,vida:()=>FONDO_VESTUARIO,'tabla-full':()=>FONDO_VESTUARIO,
+const VISTAS=['hoy','tabla-full','fixture-full','carrera-full','pre','entrenar','equipo','vida','tienda','vos'];
+const FONDO_DE={hoy:()=>FONDO_VESTUARIO,vida:()=>FONDO_VESTUARIO,tienda:()=>FONDO_VESTUARIO,'tabla-full':()=>FONDO_VESTUARIO,
   'fixture-full':()=>FONDO_VESTUARIO,'carrera-full':()=>FONDO_TUNEL,pre:()=>FONDO_TUNEL,vos:()=>FONDO_TUNEL,
   entrenar:()=>FONDO_PLAYGROUND,equipo:()=>FONDO_DESPACHO};
 /* el contenido se apoya abajo aunque el cajón scrollee: en una cancha corta lo que se pierde
@@ -23972,7 +24018,7 @@ function irLob(v){
   /* su caza 2026-09-05 (tocar VOS estando en VOS volvía a fundir el fondo): se comparaba contra `fondo.style.backgroundImage`,
      que el navegador devuelve NORMALIZADO (comillas), así que nunca era igual y el fundido corría siempre. Se recuerda el string propio. */
   if(fondoLob!==nuevoFondo){ fondoLob=nuevoFondo; fondo.style.backgroundImage=nuevoFondo; fondo.classList.remove('cambia'); void fondo.offsetWidth; fondo.classList.add('cambia'); }   // §2z14: fundido
-  document.querySelectorAll('#lobby .acc').forEach(a=>a.classList.toggle('act',a.dataset.lir===v));
+  document.querySelectorAll('#lobby .acc').forEach(a=>a.classList.toggle('act',a.dataset.lir===(v==='tienda'?'vida':v)));   // §2z247: una tienda es parte de VIDA
   const plena=PLENAS.includes(v);
   $l('lobHud').style.display=plena?'none':'';
   $l('lobSalirPortada').style.display=plena?'none':'';
@@ -25127,6 +25173,7 @@ function pintaRecursos(){
     : lleno ? '' : t(L('No te quedan','None left','Não restam'));
   $l('lobMiniN').textContent=J.latas;
   $l('lobTomarMini').disabled=lleno;
+  pintaActivosPre();   // §2z247
 }
 function tomarUna(desdeMini){
   const J=C.jugador;
@@ -25719,7 +25766,9 @@ $l('lobSalir').addEventListener('click',()=>{
      que dejarte "a UN ERRADO de que empiece a doler" (FRIO−1), no congelado de entrada. Puesto en FRIO, la carta te
      cobraba el −7 % antes de tocar la pelota y la apuesta pasaba a no convenir nunca — el problema de siempre, dado
      vuelta (lo cazó cartas-check con el EV). */
-  if(!snap && efS.frio){ G.frio=FRIO-1; G.frioRegalo=FRIO-1; }   // 2026-09-12 (su caza: «erré UNO y me dijo 3 seguidas afuera»): prestado, como el fuego
+  /* §2z247: lo que compraste para los partidos — la sesión de video da una pedida más, la psicóloga corre el frío un tiro */
+  if(!snap){ const u=C.jugador.enUso||{}; if(u.video) G.pedidas+=1; G.frioExtra=u.psicologa?1:0; }
+  if(!snap && efS.frio){ G.frio=frioUmbral()-1; G.frioRegalo=frioUmbral()-1; }   // 2026-09-12 (su caza: «erré UNO y me dijo 3 seguidas afuera»): prestado, como el fuego
   G.mision=enPartido.mision; marcador();   // el feed la muestra junto a la statline desde el primer renglón
   const mk=document.getElementById('marcador'); mk.classList.remove('cae'); void mk.offsetWidth; mk.classList.add('cae');   // §2z14: el marcador cae
 });
@@ -26069,6 +26118,7 @@ function registrarResultado(){
   if(caidos.length) e.avisoOxido={fecha:e.fechaJugada,pj:(C.pjCarrera||0)+1,txt:textoOxido(caidos)};   // pj: el partido de hoy (se cuenta dos líneas abajo)   // 2026-09-10: queda en el goteo hasta la próxima fecha
   /* §2z29: la ventana de los últimos jugados con los dedos y la identidad emergente */
   C.pjCarrera=(C.pjCarrera||0)+1;
+  gastarEnUso(J);   // §2z247: un puntito por partido jugado por vos
   C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-IDENTIDAD_VENTANA);
   C.identidad=actualizarIdentidad(C.identidad,J.skills,C.ultimosJugados,C.pjCarrera);
   /* §7.1 la dificultad dinámica de la beta: un escalón por partido, sobre las últimas 3 notas */
@@ -26166,7 +26216,7 @@ function diaTorneoDe(t,paso){
    propósito — con una lista negra, cada campo nuevo del motor entraría al guardado sin que nadie lo decida. */
 const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','rotSale','rotEntra','pts','ast','ptsAsist',
   'pasesTiro','defensas','tiros','aciertos','perdidas','malDesmarque','robos','tapas','triples','tiros3','ftm','fta','libres',
-  'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','frioRegalo','rachaTiros','rachaTirosMax',
+  'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','frioRegalo','frioExtra','rachaTiros','rachaTirosMax',
   'pedidas','pedidasUsadas','pedidasResueltas','perdidasQ4','intJugadas','intBuenas','sub','contraHubo','defensaHubo',
   'defEscenasVistas','defGanadas','esFinal','rivAlFinal','astAlFinal','clutch','ot','mision'];
 function guardarPartidoEnCurso(){
@@ -26580,32 +26630,97 @@ const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24
    demás se dice con PALABRAS. Cada ítem dice lo que hace en una frase; las cadenas que reemplazan dicen contra qué. Sin
    "por día", sin flechas, sin tildes, sin la fila de +5/−23/−18. Los números viven en el motor y se ven donde pasan: la
    barra del partido (07), el velo post partido (§2z181) y el gimnasio. */
-function fraseItem(k,it,J){
-  /* su corte 2026-09-10: "¿por qué comparamos contra el anterior? Es obvio que el auto va a recuperar más" — una frase, la misma */
-  if(it.sesion) return t(L('entrenar cansa menos','training tires you less','treinar cansa menos'));
-  if(it.partido) return t(L('los partidos cansan menos','games tire you less','os jogos cansam menos'));
-  return it.regen ? t(L('recuperás energía más rápido','you recover energy faster','você recupera energia mais rápido')) : '';
+/* §2z247: lo que dice cada ítem, EN NÚMERO y en la unidad de la barra (su corte: "arriba para qué sirven y que cada uno te diga
+   cuánto te suma/resta"). `html` lleva el rayo dibujado; sin él, el caracter (el momento de la compra es texto). */
+function fraseItem(k,it,J,html){
+  const ry=html?' '+RAYO:' ⚡', b=(x)=>html?'<b>'+x+'</b>':x;
+  if(it.sesion) return b((ENERGIA_SESION-ENERGIA_SESION_TRAINER)+ry)+t(L(' menos por sesión',' less per session',' a menos por sessão'));
+  if(it.partido) return b(it.partido+ry)+t(L(' menos por partido',' less per game',' a menos por jogo'));
+  if(it.regen) return b('+'+it.regen+ry)+t(L(' por día',' per day',' por dia'));
+  if(it.efecto==='pedida') return b('+1')+t(L(' pedida por partido',' call per game',' pedida por jogo'));
+  if(it.efecto==='frio') return b('+1')+t(L(' tiro antes del frío',' shot before cold',' arremesso antes do frio'));
+  return '';
+}
+/* ══ §2z247 LAS COMPRAS DE PARTIDOS ══ duran PARTIDOS_ENUSO partidos jugados por vos, no se acumulan, valen tres latitas */
+const PARTIDOS_ENUSO=5;
+const TIENDA_PARTIDOS=[
+  {id:'video', efecto:'pedida', nom:L('SESIÓN DE VIDEO','VIDEO SESSION','SESSÃO DE VÍDEO')},
+  {id:'psicologa', efecto:'frio', nom:L('LA PSICÓLOGA','THE SPORTS PSYCHOLOGIST','A PSICÓLOGA')},
+];
+const precioPartidos=()=>Math.round(precioLata()*3/50)*50;
+function gastarEnUso(J){ const u=J.enUso; if(!u) return;
+  for(const k of Object.keys(u)){ u[k]--; if(u[k]<=0) delete u[k]; } }
+const puntosEnUso=(q)=>'<span class="puntos">'+Array.from({length:PARTIDOS_ENUSO},(_,i)=>'<i'+(i<q?' class="q"':'')+'></i>').join('')+'</span>';
+const ICONO_PARTIDO={
+  video:'M3 5h13a2 2 0 0 1 2 2v2.5l4-2.5v10l-4-2.5V17a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm4.5 4v6l5-3-5-3Z',
+  psicologa:'M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm4 6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm4 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm4 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z'};
+const iconoPartido=(id)=>'<svg class="icoT" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="'+ICONO_PARTIDO[id]+'"/></svg>';
+function comprarPartido(id){
+  const J=C.jugador, it=TIENDA_PARTIDOS.find(x=>x.id===id); if(!it) return;
+  J.enUso=J.enUso||{}; if(J.enUso[id]) return;
+  const p=precioPartidos();
+  if(J.plata<p){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
+  plata(-p); J.enUso[id]=PARTIDOS_ENUSO;
+  guardar(); pintaRecursos(); pintaSecciones();
+  momentoCompra('partido',it);
+}
+/* las cinco puertas: la de los partidos y las cuatro escaleras (§2z247). La regla va sólo donde no se ve jugando. */
+const TIENDAS={
+  partido:{nom:L('PARA LOS PARTIDOS','FOR THE GAMES','PARA OS JOGOS'), regla:L('DURAN 5 PARTIDOS','LAST 5 GAMES','DURAM 5 JOGOS')},
+  staff:{nom:L('STAFF','STAFF','STAFF')},
+  vehiculo:{nom:L('VEHÍCULOS','VEHICLES','VEÍCULOS'), regla:L('CADA UNO REEMPLAZA AL ANTERIOR','EACH ONE REPLACES THE LAST','CADA UM SUBSTITUI O ANTERIOR')},
+  casa:{nom:L('DÓNDE VIVÍS','WHERE YOU LIVE','ONDE VOCÊ MORA'), regla:L('CADA UNO REEMPLAZA AL ANTERIOR','EACH ONE REPLACES THE LAST','CADA UM SUBSTITUI O ANTERIOR')},
+  lifestyle:{nom:L('LUJO','LUXURY','LUXO'), regla:L('NO CAMBIAN NADA EN LA CANCHA','THEY CHANGE NOTHING ON THE COURT','NÃO MUDAM NADA EM QUADRA')},
+};
+let tiendaAbierta=null;
+function abrirTienda(k){ tiendaAbierta=k; pintaTiendaPlena(); irLob('tienda'); }
+function pintaTiendaPlena(){
+  const k=tiendaAbierta, J=C.jugador, box=$l('lobTiendaFull'); if(!k||!box) return;
+  $l('lobTiendaTit').textContent=t(TIENDAS[k].nom);
+  /* estado: 'comprar' | 'tuyo' | 'enuso' | 'reemp' (lo que el escalón de arriba reemplazó) | 'bloq' (lo que viene después) */
+  const fila=(cad,ico,nom,ef,precio,estado,attr)=>
+    '<div class="fila-tienda cad-'+cad+(estado==='reemp'?' reemp':estado==='bloq'?' bloq':estado==='enuso'?' enUso':'')+'">'
+      +'<span class="ico">'+ico+'</span>'
+      +'<span class="txt"><span class="nom">'+nom+'</span>'+(ef?'<span class="ef">'+ef+'</span>':'')+'</span>'
+      +'<span class="precio">'+(estado==='comprar'||estado==='bloq'?fplata(precio):'')+'</span>'
+      +'<button class="btn"'+(estado==='comprar'?' '+attr:' disabled')+'>'
+        +(estado==='tuyo'?t(L('TUYO','YOURS','SEU')):estado==='enuso'?t(L('EN USO','IN USE','EM USO')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
+  let h=TIENDAS[k].regla?notas(t(TIENDAS[k].regla)):'';
+  if(k==='partido'){
+    const u=J.enUso||{}, p=precioPartidos();
+    h+=TIENDA_PARTIDOS.map(it=>fila('partido',iconoPartido(it.id),t(it.nom),fraseItem(k,it,J,true)+puntosEnUso(u[it.id]||0),p,u[it.id]?'enuso':'comprar','data-partido="'+it.id+'"')).join('');
+  } else {
+    const mejor=mejorDe(J,k), sig=siguienteDe(J,k), reemplaza=(k==='vehiculo'||k==='casa');
+    h+=ESCALERA[k].map(it=>{
+      const tiene=tieneItem(J,it.id);
+      const estado=tiene?((reemplaza&&it!==mejor)?'reemp':'tuyo'):(it===sig?'comprar':'bloq');
+      return fila(k,iconoTienda(k),t(it.nom),fraseItem(k,it,J,true),it.precio,estado,'data-compra="'+it.id+'"'); }).join('');
+  }
+  box.innerHTML=h;
+  box.querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
+  box.querySelectorAll('[data-partido]').forEach(b=>{ b.onclick=()=>comprarPartido(b.dataset.partido); });
 }
 function pintaTienda(){
   const J=C.jugador;
-  const item=(cad,nom,efecto,precio,id,tenes,escalones,extra)=>
-    '<div class="fila-tienda cad-'+cad+'">'+
-      '<span class="ico">'+iconoTienda(cad)+'</span>'+
-      '<span class="txt"><span class="nom">'+nom+'</span><span class="ef">'+(efecto||'')+(efecto&&escalones?'<i class="sep">·</i>':'')+(escalones||'')+'</span>'+(extra||'')+'</span>'+
-      '<span class="precio">'+(tenes?'':fplata(precio))+'</span>'+
-      '<button class="btn" data-compra="'+id+'"'+(tenes?' disabled':'')+'>'+
-        (tenes?t(L('TUYO','YOURS','SEU')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
-  /* §2z184: lo que ya tenés vive en LO TUYO, no acá (su caza: "si ya tenemos las cosas que compraste en lo tuyo, ¿por qué
-     siguen con tilde en tienda?") */
-  /* de cada cadena, el SIGUIENTE escalón; si la terminaste, el último dice TUYO */
-  const fila=k=>{ const sig=siguienteDe(J,k); const it=sig||ESCALERA[k][ESCALERA[k].length-1];
-    return item(k,t(it.nom),fraseItem(k,it,J),it.precio,it.id,!sig,''); };
+  /* §2z247: afuera, la latita (siempre a la vista) y las cinco puertas; adentro de cada una, su tienda */
+  const puerta=(k,ico,ancha)=>'<div class="puerta cad-'+k+(ancha?' ancha':'')+'" data-tienda="'+k+'" tabindex="0">'+ico+'<span>'+t(TIENDAS[k].nom)+'</span></div>';
   $l('lobTienda').innerHTML=
-    item('lata',t(L('LATITA','ENERGY CAN','LATINHA')),
-      t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas,
-      precioLata(),'lata',false)+
-    fila('staff')+fila('vehiculo')+fila('casa')+fila('lifestyle');
+    '<div class="fila-tienda cad-lata"><span class="ico">'+iconoTienda('lata')+'</span>'
+      +'<span class="txt"><span class="nom">'+t(L('LATITA','ENERGY CAN','LATINHA'))+'</span><span class="ef">'+t(L('recarga entera · tenés ','full recharge · you have ','recarga inteira · você tem '))+J.latas+'</span></span>'
+      +'<span class="precio">'+fplata(precioLata())+'</span><button class="btn" data-compra="lata">'+t(L('COMPRAR','BUY','COMPRAR'))+'</button></div>';
+  $l('lobPuertas').innerHTML=puerta('partido',iconoPartido('video'),true)+puerta('staff',iconoTienda('staff'))+puerta('vehiculo',iconoTienda('vehiculo'))
+    +puerta('casa',iconoTienda('casa'))+puerta('lifestyle',iconoTienda('lifestyle'));
   $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
+  $l('lobPuertas').querySelectorAll('[data-tienda]').forEach(b=>{ const go=()=>abrirTienda(b.dataset.tienda); b.onclick=go;
+    b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
+  if(tiendaAbierta) pintaTiendaPlena();
+}
+
+function pintaActivosPre(){ const J=C.jugador;
+  /* en la previa, debajo de la latita: lo que tenés en uso para este partido */
+  const pa=$l('lobPreActivos'); if(pa){ const u=J.enUso||{}, ids=TIENDA_PARTIDOS.filter(it=>u[it.id]);
+    pa.classList.toggle('oculto',!ids.length);
+    pa.innerHTML=ids.map(it=>'<div class="activo"><span class="ico">'+iconoPartido(it.id)+'</span><span class="que">'+t(it.nom)+' <em>· '+fraseItem('partido',it,J)+'</em></span>'+puntosEnUso(u[it.id])+'</div>').join(''); }
 }
 /* §2z165 v3 (sus dos cortes 2026-09-08: "es un flood que mantiene el mismo problema" · "me gusta la idea de fondo de LO
    TUYO, pero todo subrayado es feo, cualquier ✓ te lleva al mismo menú con las palabras en minúscula, y si acumulás se
@@ -26864,7 +26979,7 @@ function comprarLata(){
 let compraTimer=null;
 function momentoCompra(cad,it){
   const v=$('#compra'); if(!v) return;
-  const ico=$l('compraIco'); ico.innerHTML=iconoTienda(cad); ico.className='compraIco cad-'+cad;
+  const ico=$l('compraIco'); ico.innerHTML=cad==='partido'?iconoPartido(it.id):iconoTienda(cad); ico.className='compraIco cad-'+cad;   // §2z247: las de partidos tienen su ícono
   $l('compraTxt').textContent=t(it.nom); $l('compraSub').textContent=fraseItem(cad,it,C.jugador)||'';
   v.classList.remove('oculto','sale'); v.classList.add('entra');
   const cerrar=()=>{ clearTimeout(compraTimer); v.classList.remove('entra'); v.classList.add('sale'); setTimeout(()=>v.classList.add('oculto'),400); };

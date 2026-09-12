@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='b2f3e20ede';
+const BUILD='767b0f0606';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22410,10 +22410,19 @@ function htmlBracket(rondas,esperadas,mi,opts){
     else if(prev){ const n=Math.max(1,Math.ceil(prev.series.length/2)); cols.push({nombre,series:Array.from({length:n},()=>null)}); } }
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
+  /* su diseño (2026-09-13): el 3° PUESTO es una cajita más, debajo de la final, en su columna — así la regla del bronce no hace falta */
+  const conTercero=opts.tercero!==undefined, extraH=conTercero?14+TH+BH:0;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
   const todos=cols.flatMap(col=>col.series.filter(Boolean).flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]));   /* 2026-09-10 (su caza: el fixture de AMÉRICAS tiraba «reading 'alta'»): las rondas que faltan son series null */
   const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
-  let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+H+'px;--bw:'+BW+'px">';
+  let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+(H+extraH)+'px;--bw:'+BW+'px">';
+  if(conTercero){ const k=cols.length-1, x=k*(BW+GX), top=H+14+TH, s=opts.tercero;
+    h+='<div class="bkTit" style="left:'+x+'px;top:'+(top-TH)+'px">'+t(L('3° PUESTO','3RD PLACE','3º LUGAR'))+'</div>';
+    if(!s) h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>';
+    else { const dec=!!s.ganador, mio=s.alta===mi||s.baja===mi;
+      const fila=(id,g)=>'<div class="bkRow'+(dec?(s.ganador===id?' gana':' pierde'):'')+(id===mi?' yo':'')+'">'+escudito(id)+'<span class="sig">'+sig(id)+'</span>'+(opts.banderas?banderita(id):'')+'<span class="w">'+(g===undefined?'':g)+'</span></div>';
+      const gA=unico?(s.jugado?s.ptsAlta:''):s.ganAlta, gB=unico?(s.jugado?s.ptsBaja:''):s.ganBaja;
+      h+='<div class="bkBox'+(mio?' vos':'')+'" style="left:'+x+'px;top:'+top+'px">'+fila(s.alta,gA)+fila(s.baja,gB)+'</div>'; } }
   cols.forEach((col,k)=>{ const x=k*(BW+GX);
     const titCorto={reclasificacion:L('RECLASIF.','PLAY-IN','REPESC.'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),playin2:L('POR EL 8°','FOR 8TH','PELO 8º'),conferencia:L('CONFER.','CONF.','CONFER.'),semifinal:L('SEMIS','SEMIS','SEMIS'),final:L('FINAL','FINAL','FINAL')}[col.nombre];   // §2z173: en 68 px no entra entero
     h+='<div class="bkTit" style="left:'+x+'px">'+t((BW<92&&titCorto)||RONDA_TXT[col.nombre]||AM_TXT[col.nombre]||SEL_TXT[col.nombre]||L(col.nombre))+'</div>';
@@ -22537,14 +22546,14 @@ function htmlAmericasLlave(e){
   let h='';
   {
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+=htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})   /* 2026-09-13: sin el título LA LLAVE — lo dice el tramo */
-      +notas(t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos')),t(L('SEMIS Y FINAL A PARTIDO ÚNICO, EN UNA SEDE (FINAL FOUR)','SEMIS AND FINAL ARE SINGLE GAMES AT ONE VENUE (FINAL FOUR)','SEMIS E FINAL EM JOGO ÚNICO, NUMA SEDE (FINAL FOUR)')))   /* su caza: «FINAL FOUR» en el aire no decía nada */
+    h+=htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true,tercero:am.llave.seriesJugadas.find(x=>x.nombre==='tercero')||null})   /* 2026-09-13: sin el título LA LLAVE — lo dice el tramo · el 3° puesto como cajita debajo de la final (su diseño) */
+      +notas(t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos')),t(L('SEMIS Y FINAL A PARTIDO ÚNICO, EN UNA SEDE (FINAL FOUR)','SEMIS AND FINAL ARE SINGLE GAMES AT ONE VENUE (FINAL FOUR)','SEMIS E FINAL EM JOGO ÚNICO, NUMA SEDE (FINAL FOUR)')),t(L('ES LOCAL EL SEMIFINALISTA CON MEJOR CAMPAÑA EN LA COPA','THE SEMIFINALIST WITH THE BEST CUP RECORD HOSTS','É MANDANTE O SEMIFINALISTA COM MELHOR CAMPANHA NA COPA')))   /* su caza: «FINAL FOUR» en el aire no decía nada · su pedido: quién hace de local (01p: el de mejor récord grupo + cuartos) */
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
 
       /* 2026-09-12 (su corte: "que se juegue el tercer puesto; en el bracket separado del árbol"; su captura: la nota del campeón
          había quedado abajo del tercer puesto): la caja sola, con su título, DESPUÉS del contrato de la llave */
-      +(()=>{ const t3=am.llave.seriesJugadas.find(x=>x.nombre==='tercero'); return t3?'<div class="cajTag bkSig">'+t(AM_TXT.tercero)+'</div>'+htmlBracket([{nombre:'tercero',series:[t3]}],['tercero'],e.miClubId,{grilla:true,banderas:true}):''; })()
+      
       /* 2026-09-12 (su captura: "quedó todo muy pegado"): con el título ganado, la copa que viene tiene su bloque propio con
          título, después del tercer puesto — no tres renglones de nota seguidos */
       /* 2026-09-12 (su corte: "el «campeón clasifica» no va debajo del bracket, son secciones diferentes; y con campeón tiene que
@@ -22854,8 +22863,9 @@ function htmlSeleccion(e,gVer,tramo){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
       const jug=t2.llave.jugadas||[], esp=['octavos','cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');   // §12.33: octavos si los hubo
       const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
-      const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
-      if(bk) h+=bk+notas(t(L('TODA LA LLAVE A PARTIDO ÚNICO','WHOLE BRACKET IN SINGLE GAMES','TODA A CHAVE EM JOGO ÚNICO')),t(L('LOS QUE PIERDEN LA SEMI JUEGAN POR EL BRONCE','SEMIFINAL LOSERS PLAY FOR BRONZE','QUEM PERDE A SEMI JOGA PELO BRONZE')));   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo · §2z240 regla 10
+      const bronce=jug.find(x=>x.nombre==='bronce')||null, haySemis=jug.some(x=>x.nombre==='semifinal');
+      const bk=htmlBracket(rondas,esp,t2.pais,{unico:true,tercero:haySemis?bronce:undefined});   // su diseño: el 3° puesto como cajita debajo de la final, apenas hay semis
+      if(bk) h+=bk+notas(t(L('TODA LA LLAVE A PARTIDO ÚNICO','WHOLE BRACKET IN SINGLE GAMES','TODA A CHAVE EM JOGO ÚNICO')));   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo · §2z240 regla 10
       for(const x of jug.filter(x=>x.nombre==='bronce')){
         const mio=x.alta===t2.pais||x.baja===t2.pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
         h+='<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)

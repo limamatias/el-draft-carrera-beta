@@ -5957,10 +5957,16 @@ function deltasRelaciones(r) {
   if (!R) return { dH, dP, dD };
   return { dH: frenoRel(dH, R.hinchada), dP: frenoRel(dP, R.plantel), dD: frenoRel(dD, R.dt) };
 }
-/* el freno: sólo sobre lo que sube, y nunca amplifica (de 50 para abajo el factor queda en 1) */
+/* El freno: sólo sobre lo que sube, y nunca amplifica (de 50 para abajo el factor queda en 1).
+ * ⚠️ §2z217 v2 (su caza: *"¿arriba de 88 un partidazo no paga DE MÁS o no paga absolutamente nada? Si es lo último,
+ * nos pasamos"*). Era lo último: con el redondeo pelado, en 95 no pagaba NADA, ni la nota 8 con la misión cumplida —
+ * una pared. Ahora: **lo correcto deja de mover la aguja, el partidazo siempre mueve.** Un delta crudo de 2 o más
+ * nunca redondea a cero, por alto que estés; los de 1 sí se apagan, que es justo el rendimiento decreciente.
+ * Medido: la temporada termina IGUAL (crack 83/81/65, el 99/99/99 sigue sin pasar), así que el arreglo sale gratis. */
 function frenoRel(d, v) {
   if (!(d > 0) || v === undefined) return d;
-  return Math.round(d * Math.min(1, (REL_MAX - v) / (REL_MAX - 50)));
+  const x = d * Math.min(1, (REL_MAX - v) / (REL_MAX - 50));
+  return d >= 2 ? Math.max(1, Math.round(x)) : Math.round(x);
 }
 function aplicarDeltas(J, d, R) {
   R = R || J.relaciones;   // §12.20: las de la selección viajan aparte (J.relSel)

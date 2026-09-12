@@ -1018,7 +1018,19 @@
      UNA regla para todo el lobby — apoyado abajo, el vestuario se ve arriba — y VOS no se rompe porque sus DOS cajas miden siempre lo
      mismo: el alto de la vitrina llena (10 + 70 + 72 + 42 + 44 + 10 = 248, medido del CSS). Con cajas iguales apoyadas abajo, las
      pestañas y el switch caen siempre en el mismo lugar; el aire queda adentro de la caja. */
-  #lobby #lobResumen,#lobby #lobPal{min-height:252px}   /* 252: la vitrina llena medida en la captura (248 + 4 del VER TODO) */
+  /* Su séptimo corte (la captura del teléfono: "el contenedor no cierra nunca"): un alto FIJO no entra en su pantalla (el navegador
+     se come ~140 px). Las dos cajas LLENAN el panel (flex:1): el panel mide lo del más alto de los dos, capado por el medio, y la
+     caja se estira o se achica con él y scrollea por adentro. El ritmo va al pie de la caja; los playoffs, con los números. */
+  /* La celda de los paneles de VOS tiene alto PROPIO (290: switch 36 + 9 + vitrina llena ~245), no el del contenido — si no, la
+     vitrina llena la agranda y el «—» la achica, y las pestañas se mueven con el lado. Si el medio es más bajo (su teléfono, la
+     cancha corta), la celda se achica con él y las cajas scrollean por adentro. */
+  #lobby #lv-vos .paneles{height:290px;flex:0 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
+  #lobby #lv-vos .panel{min-height:0}
+  #lobby #lv-vos .panel > *:first-child{margin-top:0}
+  #lobby #lv-vos .panel .cajon{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  #lobby #lv-vos .panel .cajon::-webkit-scrollbar{display:none}
+  #lobby #lobResumen{display:flex;flex-direction:column}
+  #lobby #lobResumen .ritmoSwitch{margin-top:auto}
   #lobby .vosCab{position:relative;display:flex;justify-content:center;align-items:center;flex:none;min-height:36px}   /* 36: el alto del ícono, si no sobresale 2 px y el medio lo recorta (su caza) */
   #lobby .vosCab .tabs{align-self:auto}
   #lobby .verMas.ico{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;padding:0;justify-content:center;margin:0}
@@ -1787,7 +1799,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='6d47b2cd1e';
+const BUILD='928c67f5d1';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -26363,9 +26375,9 @@ function pintaSecciones(){
       '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
       '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
-    /* §2z43: el ritmo se cambia acá, entre partidos — nunca en el pre (ahí sería una perilla de dificultad) */
-    '<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>'+
-    (!enSel&&po.pj?'<div class="fila-item" style="padding-bottom:2px"><span class="desc">Playoffs: <b>'+fdec(po.pts/po.pj)+' PTS · '+fdec(po.ast/po.pj)+' AST</b> '+t(L('en','in','em'))+' '+po.pj+' PJ</span></div>':'');
+    (!enSel&&po.pj?'<div class="fila-item" style="padding-bottom:2px"><span class="desc">Playoffs: <b>'+fdec(po.pts/po.pj)+' PTS · '+fdec(po.ast/po.pj)+' AST</b> '+t(L('en','in','em'))+' '+po.pj+' PJ</span></div>':'')+
+    /* §2z43: el ritmo se cambia acá, entre partidos — nunca en el pre (ahí sería una perilla de dificultad) · 2026-09-14: al pie de la caja */
+    '<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>';
   $l('lobResumen').querySelectorAll('[data-ritmo]').forEach(b=>b.addEventListener('click',()=>{ const v=b.dataset.ritmo==='intenso'; if(v!==!!C.intenso){ C.intenso=v; guardar(); pintaSecciones(); } }));
   pintaPalmares();   // §2z28: la vitrina
   const bComp=$l('lobCompartir'); if(bComp) bComp.onclick=()=>CARD.abrirCard('corta');   // §2z30

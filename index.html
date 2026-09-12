@@ -1014,8 +1014,11 @@
   /* 2026-09-14, su cuarto corte ("¡no se tienen que mover los switches!"): VOS se ancla ARRIBA. Las pestañas y el switch de lado quedan
      clavados debajo del encabezado en las dos pestañas y los dos lados; la caja mide lo suyo y crece hacia abajo. (Apoyada abajo como
      VIDA, cada contenido movía el switch.) */
-  #lobby .medio>#lv-vos:not(.oculto){margin-top:0}
-  #lobby #lv-vos .panel > *:first-child{margin-top:0}
+  /* Y su quinto y sexto (*"¿no es raro que uno se ancle arriba y el otro abajo?"* · *"anclado arriba tapamos la imagen de fondo"*):
+     UNA regla para todo el lobby — apoyado abajo, el vestuario se ve arriba — y VOS no se rompe porque sus DOS cajas miden siempre lo
+     mismo: el alto de la vitrina llena (10 + 70 + 72 + 42 + 44 + 10 = 248, medido del CSS). Con cajas iguales apoyadas abajo, las
+     pestañas y el switch caen siempre en el mismo lugar; el aire queda adentro de la caja. */
+  #lobby #lobResumen,#lobby #lobPal{min-height:252px}   /* 252: la vitrina llena medida en la captura (248 + 4 del VER TODO) */
   #lobby .vosCab{position:relative;display:flex;justify-content:center;align-items:center;flex:none;min-height:36px}   /* 36: el alto del ícono, si no sobresale 2 px y el medio lo recorta (su caza) */
   #lobby .vosCab .tabs{align-self:auto}
   #lobby .verMas.ico{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;padding:0;justify-content:center;margin:0}
@@ -1784,7 +1787,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='e093e53f79';
+const BUILD='6d47b2cd1e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

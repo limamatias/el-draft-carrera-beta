@@ -1235,6 +1235,11 @@
   #lobby .cajTag{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #lobby .cajTag.bkSig,#lobby .cajTag.naranja{color:var(--naranja)}   /* 2026-09-10 (su corte): LA LLAVE en naranja; .naranja es lo mismo sin el separador de arriba (la previa abre el cajón) */
   #lobby .cajNota{font-size:10px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:center;margin-top:6px}   /* 2026-09-10: la regla, chica y debajo */
+  /* §2z240 regla 10 (su caza 2026-09-13: "¿por qué tantas reglas una al lado de la otra? nos sobra MUCHO espacio; una regla por
+     renglón, mejor espaciado, mejor señalización"): las reglas de un torneo, una por renglón, con aire y su puntito */
+  #lobby .cajNotas{display:flex;flex-direction:column;align-items:center;gap:7px;margin:14px 0 8px}
+  #lobby .cajNotas .nota{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;text-align:center;line-height:1.35;padding:0 10px}
+  #lobby .cajNotas .nota::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--naranja);margin-right:8px;vertical-align:2px;opacity:.85}
   /* §2z74 (su caza: "cambian de altura entre BOCA y ARG, el escudo es muy grande al lado de LIGA NACIONAL"): el
      rótulo de VOS mide lo mismo de los dos lados — escudo y bandera en la misma caja de 16 px, centrados */
   #lobby .rotuloVos{display:flex;align-items:center;gap:6px;height:20px}
@@ -1768,7 +1773,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='25a88aae84';
+const BUILD='24443c8d61';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22441,6 +22446,8 @@ function htmlBracket(rondas,esperadas,mi,opts){
   return h;
 }
 const formatoTxt=(mejorDe)=>mejorDe>1?t(L('AL MEJOR DE ','BEST OF ','MELHOR DE '))+mejorDe:t(L('PARTIDO ÚNICO','SINGLE GAME','JOGO ÚNICO'));
+/* §2z240 regla 10: las reglas de un torneo, una por renglón (`cajNotas`), con aire — nunca pegadas con «·» en un solo renglón */
+const notas=(...ls)=>'<div class="cajNotas">'+ls.filter(Boolean).map(x=>'<div class="nota">'+x+'</div>').join('')+'</div>';
 /* §2z172 (su pregunta 2026-09-08: "¿no deberíamos mostrar el resto de grupos? ¿cómo, sin que le saque el foco al
    tuyo?"): con las MISMAS pestañas que la tabla usa para las zonas de una liga — A · B · C · D, la tuya elegida por
    defecto, las otras a un toque. El bracket queda arriba siempre; abajo, el grupo que elegiste. El contrato
@@ -22491,7 +22498,7 @@ function htmlIntercontinental(e){
     +'<div class="cajTag">'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+(previa?' · '+t(L('AL FINAL DEL RECESO','AT THE END OF THE OFFSEASON','NO FIM DO RECESSO')):'')+'</div>';
   tablaGrupoIC(ic,gV).forEach((f,i)=>{ const dif=(f.pf||0)-(f.pc||0);
     h+='<div class="r grupoSel'+(f.id===mi?' vos':'')+(i===0?' pasa corte':'')+'"><span class="pos">'+(i+1)+'</span><span class="club">'+escC(f.id)+'<span class="nom">'+nomC(f.id)+banIC(f.id)+'</span></span><span class="rec2">'+f.pg+'–'+f.pp+'</span><span class="dif">'+(dif>0?'+':'')+dif+'</span></div>'; });
-  h+='<div class="cajNota">'+t(L('EL 1° A LA FINAL · EL 2° AL TERCER PUESTO','1ST TO THE FINAL · 2ND TO THE THIRD-PLACE GAME','O 1º À FINAL · O 2º AO TERCEIRO LUGAR'))+'</div>';
+  h+=notas(t(L('EL 1° A LA FINAL','1ST TO THE FINAL','O 1º À FINAL')),t(L('EL 2° AL TERCER PUESTO','2ND TO THE THIRD-PLACE GAME','O 2º AO TERCEIRO LUGAR')));
   /* §2z240 regla 3: la definición es un BRACKET dibujado (la grilla de dos cajas de la reclasificación), con las cajas vacías
      antes de definirse — 1° A vs 1° B · 2° A vs 2° B */
   const def=ic.definicion&&ic.definicion.length?ic.definicion:null;
@@ -22521,7 +22528,7 @@ function htmlAmericasGrupo(e,g){
      va debajo como nota chica; la llave lleva su título solo y el formato como nota debajo */
   { const tg=tablaGrupoAM(am,g); tg.forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); }); h+=notaDesempate(tg); }
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
-  h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
+  h+=notas(t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS')));
   return h;
 }
 function htmlAmericasLlave(e){
@@ -22530,7 +22537,7 @@ function htmlAmericasLlave(e){
   {
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
     h+=htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})   /* 2026-09-13: sin el título LA LLAVE — lo dice el tramo */
-      +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
+      +notas(t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos')),t(L('SEMIS Y FINAL A PARTIDO ÚNICO, EN UNA SEDE (FINAL FOUR)','SEMIS AND FINAL ARE SINGLE GAMES AT ONE VENUE (FINAL FOUR)','SEMIS E FINAL EM JOGO ÚNICO, NUMA SEDE (FINAL FOUR)')))   /* su caza: «FINAL FOUR» en el aire no decía nada */
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
 
@@ -22796,8 +22803,8 @@ function htmlSeleccion(e,gVer,tramo){
     { const tg=tablaSel(el,gE); tg.forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,el.v===2?SEL_ELIM_CLASIFICAN:4,el.pais); }); h+=notaDesempate(tg); }
     if(el.v===2){
       if(!SEL_LETRAS2.includes(gE)){ const par=(el.pares||[]).find(p=>p[0]===gE||p[1]===gE);
-        h+='<div class="cajNota">'+t(L('PASAN 3 A LA RONDA 2','TOP 3 TO ROUND 2','3 PASSAM À RODADA 2'))+(par?' · '+par[0]+' + '+par[1]+' → '+t(SEL_TXT.grupo)+' '+par[2]:'')+'</div>'; }
-      else h+='<div class="cajNota">'+t(L('PASAN 3 AL MUNDIAL','TOP 3 TO THE WORLD CUP','3 PASSAM AO MUNDIAL'))+(SEL_ELIM_MEJOR_CUARTO[el.cont]?' · '+t(L('Y EL MEJOR 4°','AND THE BEST 4TH','E O MELHOR 4º')):'')+'</div>';
+        h+=notas(t(L('PASAN 3 A LA RONDA 2','TOP 3 TO ROUND 2','3 PASSAM À RODADA 2')),par?par[0]+' + '+par[1]+' → '+t(SEL_TXT.grupo)+' '+par[2]:''); }
+      else h+=notas(t(L('PASAN 3 AL MUNDIAL','TOP 3 TO THE WORLD CUP','3 PASSAM AO MUNDIAL')),SEL_ELIM_MEJOR_CUARTO[el.cont]?t(L('Y EL MEJOR 4° DE LOS DOS GRUPOS','AND THE BEST 4TH OF THE TWO GROUPS','E O MELHOR 4º DOS DOIS GRUPOS')):'');
     }
     /* §12.2 v2 (su corte: "si un torneo no se juega en la misma temporada, aclararlo"): el estado del ciclo */
     const parte=esBeta()?'B':parteElim(C.anio), aM=anioMundial();
@@ -22837,17 +22844,17 @@ function htmlSeleccion(e,gVer,tramo){
       if(fmt.segunda&&!seg){ const i=SEL_LETRAS.indexOf(gV), par=SEL_LETRAS[i^1], dest=SEL_LETRAS2[i>>1];
         /* 2026-09-13 (su corte: "dejemos de poner todo como sábana"): UNA línea, como la de Américas. El arrastre se ve solo en
            la tabla de la fase 2 (entrás con 1-0), y lo que viene después lo dice el tramo LLAVE. */
-        h+='<div class="cajNota">'+t(L('PASAN 2 A LA FASE 2','TOP 2 TO ROUND 2','2 PASSAM À FASE 2'))
-          +(par&&dest?' · '+gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:'')+'</div>'; }
-      else h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))
-        +(fmt.segunda&&seg?'<br>'+t(L('LLEGÁS CON TU RÉCORD DE LA FASE 1 · NO SE REPITE EL PARTIDO CONTRA TU EX COMPAÑERO DE GRUPO','YOU BRING YOUR ROUND 1 RECORD · NO REMATCH AGAINST YOUR FORMER GROUPMATE','VOCÊ TRAZ SEU RETROSPECTO DA FASE 1 · SEM REVANCHE CONTRA O EX-COMPANHEIRO DE GRUPO')):'')+'</div>';   // 2026-09-13 (su caza: "me están contando un partido que no era de segunda fase"; §12.35, su research: el récord entero se arrastra): es una regla del juego, no una aclaración
+        h+=notas(t(L('PASAN 2 A LA FASE 2','TOP 2 TO ROUND 2','2 PASSAM À FASE 2')),par&&dest?gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:''); }
+      else h+=notas(t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS')),
+        fmt.segunda&&seg?t(L('LLEGÁS CON TU RÉCORD DE LA FASE 1','YOU BRING YOUR ROUND 1 RECORD','VOCÊ TRAZ SEU RETROSPECTO DA FASE 1')):'',
+        fmt.segunda&&seg?t(L('NO SE REPITE EL PARTIDO CONTRA TU EX COMPAÑERO DE GRUPO','NO REMATCH AGAINST YOUR FORMER GROUPMATE','SEM REVANCHE CONTRA O EX-COMPANHEIRO DE GRUPO')):'');   // 2026-09-13 (su caza: "me están contando un partido que no era de segunda fase"; §12.35, su research: el récord entero se arrastra): es una regla del juego, no una aclaración
     }
     if(tramo!=='g1'&&tramo!=='g2'&&t2.llave){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
       const jug=t2.llave.jugadas||[], esp=['octavos','cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');   // §12.33: octavos si los hubo
       const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
       const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
-      if(bk) h+=bk+'<div class="cajNota">'+formatoTxt(1)+'</div>';   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo
+      if(bk) h+=bk+notas(t(L('TODA LA LLAVE A PARTIDO ÚNICO','WHOLE BRACKET IN SINGLE GAMES','TODA A CHAVE EM JOGO ÚNICO')),t(L('LOS QUE PIERDEN LA SEMI JUEGAN POR EL BRONCE','SEMIFINAL LOSERS PLAY FOR BRONZE','QUEM PERDE A SEMI JOGA PELO BRONZE')));   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo · §2z240 regla 10
       for(const x of jug.filter(x=>x.nombre==='bronce')){
         const mio=x.alta===t2.pais||x.baja===t2.pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
         h+='<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)

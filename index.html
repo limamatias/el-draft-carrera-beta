@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='767b0f0606';
+const BUILD='351ea330ae';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22411,12 +22411,13 @@ function htmlBracket(rondas,esperadas,mi,opts){
   if(!cols.length) return '';
   const n0=cols[0].series.length, H=TH+n0*BH+(n0-1)*GY, W=cols.length*BW+(cols.length-1)*GX;
   /* su diseño (2026-09-13): el 3° PUESTO es una cajita más, debajo de la final, en su columna — así la regla del bronce no hace falta */
-  const conTercero=opts.tercero!==undefined, extraH=conTercero?14+TH+BH:0;
   const cy=(k,i)=>TH+(H-TH)*(2*i+1)/(2*cols[k].series.length);
+  /* su corte: la cajita va justo debajo de la caja de la FINAL (no del fondo de la columna de cuartos) */
+  const conTercero=opts.tercero!==undefined, topT=conTercero?cy(cols.length-1,0)+BH/2+10+TH:0, extraH=conTercero?Math.max(0,topT+BH-H):0;
   const todos=cols.flatMap(col=>col.series.filter(Boolean).flatMap(x=>[clubDe(x.alta),clubDe(x.baja)]));   /* 2026-09-10 (su caza: el fixture de AMÉRICAS tiraba «reading 'alta'»): las rondas que faltan son series null */
   const sig=(id)=>{ const c=clubDe(id); return c&&c.sigla?siglaEntre(c,todos).txt:String(id).toUpperCase().slice(0,3); };   // §2z185
   let h='<div class="bracket"><div class="bkIn" style="width:'+W+'px;height:'+(H+extraH)+'px;--bw:'+BW+'px">';
-  if(conTercero){ const k=cols.length-1, x=k*(BW+GX), top=H+14+TH, s=opts.tercero;
+  if(conTercero){ const k=cols.length-1, x=k*(BW+GX), top=topT, s=opts.tercero;
     h+='<div class="bkTit" style="left:'+x+'px;top:'+(top-TH)+'px">'+t(L('3° PUESTO','3RD PLACE','3º LUGAR'))+'</div>';
     if(!s) h+='<div class="bkBox pend" style="left:'+x+'px;top:'+top+'px"><div class="bkRow"><span class="sig">—</span></div><div class="bkRow"><span class="sig">—</span></div></div>';
     else { const dec=!!s.ganador, mio=s.alta===mi||s.baja===mi;

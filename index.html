@@ -6369,7 +6369,8 @@ function aplicarEfectos(ef){
   /* §2z40: el efecto sobre EL PARTIDO que viene — lo consume SALIR A LA CANCHA (18b) */
   if(ef.partido){ const P=$C().efectoSalida=$C().efectoSalida||{};
     if(ef.partido.fuerzaRival) P.fuerzaRival=(P.fuerzaRival||0)+ef.partido.fuerzaRival;
-    if(ef.partido.fuego) P.fuego=true; }
+    if(ef.partido.fuego) P.fuego=true;
+    if(ef.partido.frio) P.frio=true; }   /* §2z224 A: el espejo — la rama que sale mal te deja frío */
   if(ef.plataX) plataFn(ef.plataX*pagoPartido());
   if(ef.energia) J.energia=Math.max(0,Math.min(100,J.energia+ef.energia));
   if(ef.latas) J.latas=Math.max(0,(J.latas||0)+ef.latas);
@@ -6390,6 +6391,7 @@ function pildorasDe(ef,sinPlata){
   /* §2z40: lo que la carta le hace al partido que viene */
   if(ef.partido&&ef.partido.fuerzaRival) out.push({txt:ef.partido.fuerzaRival>0?t(L('EL RIVAL SALE A MATAR','THEY COME OUT FOR BLOOD','O RIVAL SAI PARA MATAR')):t(L('EL RIVAL AFLOJA','THEY EASE OFF','O RIVAL AFROUXA')),ok:ef.partido.fuerzaRival<0});
   if(ef.partido&&ef.partido.fuego) out.push({txt:t(L('ARRANCÁS EN RITMO','YOU START IN RHYTHM','VOCÊ COMEÇA NO RITMO')),ok:true});
+  if(ef.partido&&ef.partido.frio) out.push({txt:t(L('ARRANCÁS FRÍO','YOU START COLD','VOCÊ COMEÇA FRIO')),ok:false});   /* §2z224 */
   if(ef.verdePrimero) out.sort((a,b)=>(b.ok?1:0)-(a.ok?1:0));   // §12.28 v3 (su corte: "los dos verdes primero y los dos rojos después")
   /* §2z27: la píldora del club — lo que la carta mueve no sos vos, es el plantel en uno de los dos torneos */
   if(ef.copa) out.push({txt:ef.copa==='liga'?t(L('CLUB +2 EN LA LIGA','CLUB +2 IN THE LEAGUE','CLUBE +2 NA LIGA')):t(L('CLUB +3 EN LAS AMÉRICAS','CLUB +3 IN THE AMERICAS','CLUBE +3 NAS AMÉRICAS')),ok:true});
@@ -12422,8 +12424,8 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"Es un partido más"','"It\'s just another game"','"É só mais um jogo"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís sin creerlo y funciona igual. Salís a la cancha con las piernas tuyas.','You say it without believing it and it works anyway. You walk out on your own legs.','Você diz sem acreditar e funciona mesmo assim. Entra em quadra com as suas próprias pernas.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Vine a quedarme"','"I came to stay"','"Vim para ficar"'),desenlaces:[
-       {p:55,remate:L('La camiseta pesa bien','The shirt fits','A camisa cai bem'),texto:L('La frase sale en el estadio antes de la entrada en calor. La primera pelota te la dan a vos.','The line is up on the big screen before warm-ups. The first ball goes to you.','A frase aparece no telão antes do aquecimento. A primeira bola vai para você.'),ef:{rel:{hinchada:4},partido:{fuego:1}}},
-       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y te tiemblan las manos. El DT lo ve desde el banco.','You read it on the big screen and your hands shake. The coach sees it from the bench.','Você lê no telão e as mãos tremem. O técnico vê do banco.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
+       {p:55,remate:L('La camiseta pesa bien','The shirt fits','A camisa cai bem'),texto:L('La frase sale en el estadio antes de la entrada en calor. La primera pelota te la dan a vos.','The line is up on the big screen before warm-ups. The first ball goes to you.','A frase aparece no telão antes do aquecimento. A primeira bola vai para você.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y te tiemblan las manos. El DT lo ve desde el banco.','You read it on the big screen and your hands shake. The coach sees it from the bench.','Você lê no telão e as mãos tremem. O técnico vê do banco.'),ef:{rel:{dt:-2},partido:{frio:true}}}]}]},
  /* §2z194 (su pedido 2026-09-10: "si sos de la selección local, o del club donde se juega el Final Four, una card que te
     avise y te haga decidir algo — declarar sobre la presión de jugar de local, o el apoyo de la gente"): sale cuando el
     torneo es EN TU CASA (selección anfitriona, o tu club es la sede del Final Four). La ventaja de local ya está en el
@@ -12439,8 +12441,8 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"La gente empuja"','"The crowd carries us"','"A torcida empurra"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís y lo creés. En la entrada en calor el estadio ya canta.','You say it and you believe it. By warm-ups the arena is already singing.','Você diz e acredita. No aquecimento o ginásio já canta.'),ef:{rel:{hinchada:3}}}]},
      {tipo:'apuesta',label:L('"Acá no nos gana nadie"','"Nobody beats us here"','"Aqui ninguém ganha da gente"'),desenlaces:[
-       {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
-       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y el rival la pegó en su vestuario. Salen a callarte.','You read it on the big screen and the other team taped it in their locker room. They come out to shut you up.','Você lê no telão e o rival colou no vestiário. Eles saem para te calar.'),ef:{rel:{dt:-2},partido:{fuerzaRival:3}}}]}]},
+       {p:55,remate:L('El estadio se te sube','The arena lifts you','O ginásio te levanta'),texto:L('La frase abre los noticieros. Salís con la cancha entera a favor.','The line opens the news. You walk out with the whole building behind you.','A frase abre os jornais. Você entra com o ginásio inteiro a favor.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante y el rival la pegó en su vestuario. Salen a callarte.','You read it on the big screen and the other team taped it in their locker room. They come out to shut you up.','Você lê no telão e o rival colou no vestiário. Eles saem para te calar.'),ef:{rel:{dt:-2}}}]}]},
  /* 2026-09-12 LA FINAL DE LAS AMÉRICAS (su pedido): dos cartas con prosa propia, siempre sale una */
  { id:'sal_final_am_1', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
@@ -12448,15 +12450,15 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"Un partido más"','"Just another game"','"Mais um jogo"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís en voz baja y te lo creés hasta el salto inicial.','You say it under your breath and believe it until the tip-off.','Você diz baixinho e acredita até a bola ao alto.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Hoy se gana"','"Tonight we win"','"Hoje a gente ganha"'),desenlaces:[
-       {p:55,remate:L('Bandera','Banner','Bandeira'),texto:L('La frase la repite el estadio entero antes del himno. Salís empujado.','The whole arena repeats the line before the anthem. You walk out carried.','O ginásio inteiro repete a frase antes do hino. Você entra empurrado.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
-       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante durante el calentamiento y se te cierra la garganta. Ellos la leyeron también.','You read it on the big screen during warm-ups and your throat tightens. They read it too.','Você lê no telão durante o aquecimento e a garganta fecha. Eles leram também.'),ef:{rel:{dt:-2},partido:{fuerzaRival:2}}}]}]},
+       {p:55,remate:L('Bandera','Banner','Bandeira'),texto:L('La frase la repite el estadio entero antes del himno. Salís empujado.','The whole arena repeats the line before the anthem. You walk out carried.','O ginásio inteiro repete a frase antes do hino. Você entra empurrado.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Te comió la presión','The pressure ate you','A pressão te comeu'),texto:L('La leés en la pantalla gigante durante el calentamiento y se te cierra la garganta. Ellos la leyeron también.','You read it on the big screen during warm-ups and your throat tightens. They read it too.','Você lê no telão durante o aquecimento e a garganta fecha. Eles leram também.'),ef:{rel:{dt:-2},partido:{frio:true}}}]}]},
  { id:'sal_final_am_2', de:'salida', peso:300, repite:true, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='americas'&&c.salida.final,
    gancho:(c)=>L('La final de '+c.salida.competencia+'. En el túnel se escucha la tribuna a través de la pared, y el capitán te pregunta si estás.','The '+c.salida.competencia+' final. In the tunnel you can hear the crowd through the wall, and the captain asks if you are ready.','A final d'+c.salida.competencia.slice(1)+'. No túnel dá para ouvir a torcida através da parede, e o capitão pergunta se você está pronto.'),
    opciones:[
      {tipo:'segura',label:L('Respirar diez segundos','Breathe for ten seconds','Respirar dez segundos'),desenlaces:[{p:100,remate:null,texto:L('Cerrás los ojos. Cuando los abrís sos el primero de la fila.','You close your eyes. When you open them you are first in line.','Você fecha os olhos. Quando abre, é o primeiro da fila.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Dámela desde el arranque"','"Give me the ball from the tip"','"Me dá a bola desde o início"'),desenlaces:[
-       {p:55,remate:L('El capitán asiente','The captain nods','O capitão assente'),texto:L('Se lo dice al DT en la puerta. La primera jugada es para vos.','He tells the coach at the door. The first play is yours.','Ele fala com o técnico na porta. A primeira jogada é sua.'),ef:{rel:{plantel:3},partido:{fuego:1}}},
+       {p:55,remate:L('El capitán asiente','The captain nods','O capitão assente'),texto:L('Se lo dice al DT en la puerta. La primera jugada es para vos.','He tells the coach at the door. The first play is yours.','Ele fala com o técnico na porta. A primeira jogada é sua.'),ef:{partido:{fuego:1}}},
        {p:45,remate:L('Apurado','Rushed','Apressado'),texto:L('Salís con la cabeza a mil. El DT te lo nota en el primer tiempo muerto.','You come out with your head racing. The coach notices in the first timeout.','Você entra com a cabeça a mil. O técnico percebe no primeiro tempo técnico.'),ef:{rel:{dt:-2}}}]}]},
  { id:'sal_final_sel', de:'salida', peso:300, repite:true, chance:0.95, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='seleccion'&&c.salida.final,
@@ -12464,16 +12466,16 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"Que disfrute"','"Enjoy it"','"Que aproveite"'),desenlaces:[{p:100,remate:null,texto:L('Sonreís, y por un segundo la final es un partido.','You smile, and for a second the final is just a game.','Você sorri, e por um segundo a final é só um jogo.'),ef:{rel:{hinchada:3}}}]},
      {tipo:'apuesta',label:L('"La vamos a traer"','"We are bringing it home"','"Vamos trazer"'),desenlaces:[
-       {p:60,remate:L('El estadio entero','The whole arena','O estádio inteiro'),texto:L('Lo repite el estadio cuando entrás. Arrancás caliente.','The arena repeats it when you walk in. You start hot.','O estádio repete quando você entra. Você começa quente.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
-       {p:40,remate:L('Lo pegaron en su vestuario','They taped it in their locker room','Colaram no vestiário deles'),texto:L('Del otro lado alguien imprimió la frase. Salen a matar.','Someone on the other side printed the line. They come out for blood.','Do outro lado alguém imprimiu a frase. Eles saem para matar.'),ef:{rel:{dt:-2},partido:{fuerzaRival:4}}}]}]},
+       {p:60,remate:L('El estadio entero','The whole arena','O estádio inteiro'),texto:L('Lo repite el estadio cuando entrás. Arrancás caliente.','The arena repeats it when you walk in. You start hot.','O estádio repete quando você entra. Você começa quente.'),ef:{partido:{fuego:1}}},
+       {p:40,remate:L('Lo pegaron en su vestuario','They taped it in their locker room','Colaram no vestiário deles'),texto:L('Del otro lado alguien imprimió la frase. Salís a cumplirla y las primeras te salen forzadas.','Someone on the other side printed the line. You come out to back it up and force your first ones.','Do outro lado alguém imprimiu a frase. Você sai para cumpri-la e força os primeiros.'),ef:{rel:{dt:-2}}}]}]},
  { id:'sal_final_club', de:'salida', peso:250, repite:true, chance:0.235, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='serie'&&c.salida.final&&!c.salida.decisivo,
    gancho:(c)=>L('La final de la '+c.salida.competencia+', contra '+c.salida.rival+'. En el túnel el utilero te da la camiseta con la mano temblando.','The '+c.salida.competencia+' final, against '+c.salida.rival+'. In the tunnel the kit man hands you the shirt with a shaking hand.','A final da '+c.salida.competencia+', contra '+c.salida.rival+'. No túnel o roupeiro te entrega a camisa com a mão tremendo.'),
    opciones:[
      {tipo:'segura',label:L('Un abrazo y a la cancha','A hug and out you go','Um abraço e para a quadra'),desenlaces:[{p:100,remate:null,texto:L('Le devolvés el abrazo. El plantel lo ve.','You hug him back. The squad sees it.','Você devolve o abraço. O elenco vê.'),ef:{rel:{plantel:2}}}]},
      {tipo:'apuesta',label:L('"Hoy no se pierde"','"Not tonight"','"Hoje não se perde"'),desenlaces:[
-       {p:60,remate:L('Lo escucharon todos','Everybody heard it','Todos ouviram'),texto:L('Sale en la transmisión. Entrás con la tribuna de pie.','It goes out on the broadcast. You walk in to a standing crowd.','Vai ao ar. Você entra com a torcida de pé.'),ef:{rel:{hinchada:4},partido:{fuego:1}}},
-       {p:40,remate:L('Del otro lado también','On the other side too','Do outro lado também'),texto:L('Lo escuchó el rival. Salen a demostrarte lo contrario.','The other team heard it. They come out to prove you wrong.','O rival ouviu. Eles saem para provar o contrário.'),ef:{partido:{fuerzaRival:4}}}]}]},
+       {p:60,remate:L('Lo escucharon todos','Everybody heard it','Todos ouviram'),texto:L('Sale en la transmisión. Entrás con la tribuna de pie.','It goes out on the broadcast. You walk in to a standing crowd.','Vai ao ar. Você entra com a torcida de pé.'),ef:{partido:{fuego:1}}},
+       {p:40,remate:L('Del otro lado también','On the other side too','Do outro lado também'),texto:L('Lo escuchó el rival y te lo recuerda en el salto. Entrás apurado, con la mano dura.','The other team heard it and reminds you at the tip. You start rushed, with a heavy hand.','O rival ouviu e te lembra no salto. Você começa apressado, com a mão dura.'),ef:{partido:{frio:true}}}]}]},
  /* 2026-09-11 (su caza jugando la final: "tercer partido seguido de las finales que me sale la card pre partido del utilero").
     No era el anti-repetición (funciona: no vuelve en el juego siguiente) — era que para la final del club había UNA sola carta en el
     mazo, así que "no repetir" terminaba siendo "una sí y una no", y la serie tenía una sola postal. Cuatro más, mismo peso, para que una
@@ -12486,23 +12488,23 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('Meterte adentro','Head back in','Voltar para dentro'),desenlaces:[{p:100,remate:null,texto:L('Te metés al vestuario sin saludar. A las nueve de la noche nadie te va a reclamar nada.','You slip back into the locker room without waving. At nine tonight nobody will hold it against you.','Você volta ao vestiário sem acenar. Às nove da noite ninguém vai te cobrar nada.'),ef:{}}]},
      {tipo:'apuesta',label:L('Salir solo al medio de la cancha','Walk out alone to midcourt','Ir sozinho até o meio da quadra'),desenlaces:[
-       {p:55,remate:L('Se levantó entera','The whole place stood up','Levantou inteiro'),texto:L('Levantás una mano y el estadio te devuelve el apellido. Entrás en calor con eso encima.','You raise a hand and the arena gives you back your name. You warm up with that on your shoulders.','Você levanta a mão e o ginásio devolve o seu sobrenome. Aquece com aquilo em cima.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
-       {p:45,remate:L('Te quemaste antes de empezar','Burned out before tip-off','Você se queimou antes de começar'),texto:L('Veinte minutos de más en las piernas y la cabeza gastada antes del himno.','Twenty extra minutes in your legs and your head spent before the anthem.','Vinte minutos a mais nas pernas e a cabeça gasta antes do hino.'),ef:{rel:{dt:-2},partido:{fuerzaRival:2}}}]}]},
+       {p:55,remate:L('Se levantó entera','The whole place stood up','Levantou inteiro'),texto:L('Levantás una mano y el estadio te devuelve el apellido. Entrás en calor con eso encima.','You raise a hand and the arena gives you back your name. You warm up with that on your shoulders.','Você levanta a mão e o ginásio devolve o seu sobrenome. Aquece com aquilo em cima.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Te quemaste antes de empezar','Burned out before tip-off','Você se queimou antes de começar'),texto:L('Veinte minutos de más en las piernas y la cabeza gastada antes del himno.','Twenty extra minutes in your legs and your head spent before the anthem.','Vinte minutos a mais nas pernas e a cabeça gasta antes do hino.'),ef:{rel:{dt:-2},partido:{frio:true}}}]}]},
  { id:'sal_final_club_3', de:'salida', peso:250, repite:true, chance:0.235, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='serie'&&c.salida.final&&!c.salida.decisivo,
    gancho:(c)=>L('Final contra '+c.salida.rival+'. En el túnel te muestran el titular: su base dijo que te tienen leído desde el primer juego.','Final against '+c.salida.rival+'. In the tunnel they show you the headline: their point guard says they have had you figured out since game one.','Final contra '+c.salida.rival+'. No túnel te mostram a manchete: o armador deles disse que te têm lido desde o primeiro jogo.'),
    opciones:[
      {tipo:'segura',label:L('"Que lo demuestre en la cancha"','"Let him prove it on the floor"','"Que prove na quadra"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís sin subir la voz. El vestuario te lo festeja en silencio.','You say it without raising your voice. The locker room celebrates it silently.','Você diz sem levantar a voz. O vestiário comemora em silêncio.'),ef:{rel:{plantel:2}}}]},
      {tipo:'apuesta',label:L('"Que me marque él, entonces"','"Then let him guard me"','"Então que ele me marque"'),desenlaces:[
-       {p:55,remate:L('Lo puso sobre vos','They put him on you','Botaram ele em cima de você'),texto:L('El DT rival lo manda a marcarte desde el salto, y vos lo estabas esperando.','Their coach puts him on you from the tip, and you were waiting for it.','O técnico deles manda ele te marcar desde a bola ao alto, e você estava esperando.'),ef:{rel:{hinchada:3},partido:{fuego:1}}},
-       {p:45,remate:L('Se lo tomaron a pecho','They took it personally','Levaram para o pessoal'),texto:L('La frase da la vuelta antes del himno. Salen los cinco a buscarte.','The line goes around before the anthem. All five come out looking for you.','A frase dá a volta antes do hino. Os cinco saem para te buscar.'),ef:{partido:{fuerzaRival:4}}}]}]},
+       {p:55,remate:L('Lo puso sobre vos','They put him on you','Botaram ele em cima de você'),texto:L('El DT rival lo manda a marcarte desde el salto, y vos lo estabas esperando.','Their coach puts him on you from the tip, and you were waiting for it.','O técnico deles manda ele te marcar desde a bola ao alto, e você estava esperando.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Se lo tomaron a pecho','They took it personally','Levaram para o pessoal'),texto:L('La frase da la vuelta antes del himno. Ahora la tenés que sostener vos, y se te traba la mano.','The line goes around before the anthem. Now you are the one who has to back it, and your hand tightens.','A frase dá a volta antes do hino. Agora quem tem que sustentar é você, e a mão trava.'),ef:{partido:{frio:true}}}]}]},
  { id:'sal_final_club_4', de:'salida', peso:250, repite:true, chance:0.235, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='serie'&&c.salida.final&&!c.salida.decisivo,
    gancho:(c)=>L('Media hora antes suena el teléfono: es el club donde aprendiste a jugar. Juntaron dos micros y están en la puerta.','Half an hour before, the phone rings: it is the club where you learned to play. They filled two buses and they are at the door.','Meia hora antes toca o telefone: é o clube onde você aprendeu a jogar. Encheram dois ônibus e estão na porta.'),
    opciones:[
      {tipo:'segura',label:L('Agradecer y cortar','Say thanks and hang up','Agradecer e desligar'),desenlaces:[{p:100,remate:null,texto:L('Cortás con un nudo en la garganta. Salís sabiendo dónde están sentados.','You hang up with a lump in your throat. You walk out knowing exactly where they are sitting.','Você desliga com um nó na garganta. Entra sabendo onde eles estão sentados.'),ef:{}}]},
      {tipo:'apuesta',label:L('Dejarles las entradas de tu familia','Give them your family seats','Dar os ingressos da sua família'),desenlaces:[
-       {p:60,remate:L('Te la cantaron toda','They sang the whole night','Cantaram a noite inteira'),texto:L('Los escuchás desde la entrada en calor, arriba del aro contrario.','You can hear them from warm-ups, up behind the far basket.','Você os escuta desde o aquecimento, atrás da cesta do outro lado.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
+       {p:60,remate:L('Te la cantaron toda','They sang the whole night','Cantaram a noite inteira'),texto:L('Los escuchás desde la entrada en calor, arriba del aro contrario.','You can hear them from warm-ups, up behind the far basket.','Você os escuta desde o aquecimento, atrás da cesta do outro lado.'),ef:{partido:{fuego:1}}},
        {p:40,remate:L('La cabeza en la tribuna','Your head in the stands','A cabeça na arquibancada'),texto:L('Los buscás en cada pausa y llegás al salto pensando en otra cosa.','You look for them in every stoppage and reach the tip thinking about something else.','Você os procura em cada parada e chega à bola ao alto pensando em outra coisa.'),ef:{rel:{dt:-2}}}]}]},
  { id:'sal_final_club_5', de:'salida', peso:250, repite:true, chance:0.235, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.tipo==='serie'&&c.salida.final&&!c.salida.decisivo,
@@ -12510,7 +12512,7 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('Callarte con ellos','Stay quiet with them','Ficar calado com eles'),desenlaces:[{p:100,remate:null,texto:L('Te sentás y mirás el piso también. A veces alcanza con estar.','You sit down and stare at the floor too. Sometimes being there is enough.','Você senta e olha para o chão também. Às vezes basta estar.'),ef:{rel:{plantel:2}}}]},
      {tipo:'apuesta',label:L('Pararte y hablar vos','Stand up and speak','Levantar e falar'),desenlaces:[
-       {p:55,remate:L('Se levantaron todos','Everybody stood up','Todos levantaram'),texto:L('No te vas a acordar de qué dijiste. Salieron todos atrás tuyo.','You will not remember what you said. Every one of them walked out behind you.','Você não vai lembrar o que disse. Saíram todos atrás de você.'),ef:{rel:{plantel:5},partido:{fuego:1}}},
+       {p:55,remate:L('Se levantaron todos','Everybody stood up','Todos levantaram'),texto:L('No te vas a acordar de qué dijiste. Salieron todos atrás tuyo.','You will not remember what you said. Every one of them walked out behind you.','Você não vai lembrar o que disse. Saíram todos atrás de você.'),ef:{partido:{fuego:1}}},
        {p:45,remate:L('No era tu lugar','It was not your place','Não era o seu lugar'),texto:L('El capitán te deja terminar y después habla él. Te lo hacen saber sin decírtelo.','The captain lets you finish and then speaks himself. They let you know without saying it.','O capitão te deixa terminar e depois fala ele. Te fazem saber sem dizer.'),ef:{rel:{plantel:-3}}}]}]},
  { id:'sal_decisivo_local', de:'salida', peso:200, repite:true, chance:0.45, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.decisivo&&c.salida.local,
@@ -12518,16 +12520,16 @@ const CARTAS_SALIDA=[
    opciones:[
      {tipo:'segura',label:L('"Se siente"','"You can feel it"','"Dá para sentir"'),desenlaces:[{p:100,remate:null,texto:L('Es verdad y no dice nada. Salís.','It is true and it says nothing. You go out.','É verdade e não diz nada. Você sai.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Hoy lo cerramos"','"We close it tonight"','"Hoje fechamos"'),desenlaces:[
-       {p:60,remate:L('La gente lo compró','The crowd bought it','A torcida comprou'),texto:L('Cantan tu nombre desde el túnel. Arrancás en ritmo.','They chant your name from the tunnel. You start in rhythm.','Cantam seu nome desde o túnel. Você começa no ritmo.'),ef:{rel:{hinchada:4},partido:{fuego:1}}},
-       {p:40,remate:L('Les llegó la frase','The line reached them','A frase chegou lá'),texto:L('Al rival le llegó la frase. Salen a matar.','The line got to the other side. They come out for blood.','A frase chegou ao rival. Eles saem para matar.'),ef:{partido:{fuerzaRival:4}}}]}]},
+       {p:60,remate:L('La gente lo compró','The crowd bought it','A torcida comprou'),texto:L('Cantan tu nombre desde el túnel. Arrancás en ritmo.','They chant your name from the tunnel. You start in rhythm.','Cantam seu nome desde o túnel. Você começa no ritmo.'),ef:{partido:{fuego:1}}},
+       {p:40,remate:L('Les llegó la frase','The line reached them','A frase chegou lá'),texto:L('Al rival le llegó la frase, y ahora sos vos el que la tiene que cumplir. Arrancás pensando de más.','The line got to the other side, and now you are the one who has to deliver. You start overthinking.','A frase chegou ao rival, e agora quem tem que cumprir é você. Você começa pensando demais.'),ef:{partido:{frio:true}}}]}]},
  { id:'sal_decisivo_visita', de:'salida', peso:200, repite:true, chance:0.45, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.decisivo&&!c.salida.local&&!c.salida.neutral,   // §2z194: «en su cancha» no vale en cancha neutral
    gancho:(c)=>L('El decisivo contra '+c.salida.rival+', en su cancha. Te preguntan si el ambiente pesa.','The decider against '+c.salida.rival+', on their floor. They ask if the atmosphere weighs on you.','O decisivo contra '+c.salida.rival+', na casa deles. Perguntam se o clima pesa.'),
    opciones:[
      {tipo:'segura',label:L('"Nos gusta el silencio"','"We like the silence"','"Gostamos do silêncio"'),desenlaces:[{p:100,remate:null,texto:L('El plantel se ríe en el túnel. Salen enteros.','The squad laughs in the tunnel. They walk out whole.','O elenco ri no túnel. Saem inteiros.'),ef:{rel:{plantel:2}}}]},
      {tipo:'apuesta',label:L('"Les vamos a callar la boca"','"We are going to shut them up"','"Vamos calar a boca deles"'),desenlaces:[
-       {p:55,remate:L('Silencio de cementerio','Dead silence','Silêncio de cemitério'),texto:L('Los primeros minutos son tuyos y la cancha se calla.','The first minutes are yours and the arena goes quiet.','Os primeiros minutos são seus e o ginásio se cala.'),ef:{rel:{hinchada:3},partido:{fuego:1}}},
-       {p:45,remate:L('Los despertaste','You woke them up','Você acordou eles'),texto:L('La tribuna entera te silba desde la entrada en calor y el rival juega con eso.','The whole crowd whistles you from warm-ups on and the other team feeds off it.','A torcida inteira te vaia desde o aquecimento e o rival joga com isso.'),ef:{partido:{fuerzaRival:4}}}]}]},
+       {p:55,remate:L('Silencio de cementerio','Dead silence','Silêncio de cemitério'),texto:L('Los primeros minutos son tuyos y la cancha se calla.','The first minutes are yours and the arena goes quiet.','Os primeiros minutos são seus e o ginásio se cala.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Los despertaste','You woke them up','Você acordou eles'),texto:L('La tribuna entera te silba desde la entrada en calor. La primera la tirás para callarlos y sale dura.','The whole crowd whistles you from warm-ups on. You take the first one to quiet them and it comes out heavy.','A torcida inteira te vaia desde o aquecimento. O primeiro você arremessa para calar e sai duro.'),ef:{partido:{frio:true}}}]}]},
  { id:'sal_barrida', de:'salida', peso:300, repite:true, chance:0.8, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.barrida,
    gancho:(c)=>L('Arriba en la serie contra '+c.salida.rival+' sin perder un juego. Un cronista te muestra una escoba.','Up in the series against '+c.salida.rival+' without dropping a game. A reporter shows you a broom.','Na frente na série contra '+c.salida.rival+' sem perder um jogo. Um repórter te mostra uma vassoura.'),
@@ -12535,15 +12537,15 @@ const CARTAS_SALIDA=[
      {tipo:'segura',label:L('"Un partido a la vez"','"One game at a time"','"Um jogo de cada vez"'),desenlaces:[{p:100,remate:null,texto:L('El DT te lo agradece con la mirada.','The coach thanks you with a look.','O técnico agradece com o olhar.'),ef:{rel:{dt:2}}}]},
      {tipo:'apuesta',label:L('Picantearla: "Hoy barremos"','Spice it up: "Tonight we sweep"','Apimentar: "Hoje varremos"'),desenlaces:[
        {p:55,remate:L('Tiraron la toalla','They threw in the towel','Jogaram a toalha'),texto:L('Del otro lado ya piensan en las vacaciones. Salen sin ganas.','On the other side they are already thinking about vacation. They come out flat.','Do outro lado já pensam nas férias. Saem sem vontade.'),ef:{rel:{hinchada:4},partido:{fuerzaRival:-6}}},
-       {p:45,remate:L('Salen a matar','They come out for blood','Saem para matar'),texto:L('La escoba está pegada en su vestuario con tu cara al lado. Es otro partido.','The broom is taped in their locker room with your face next to it. It is a different game.','A vassoura está colada no vestiário deles com sua cara ao lado. É outro jogo.'),ef:{rel:{plantel:-2},partido:{fuerzaRival:5}}}]}]},
+       {p:45,remate:L('Te la hicieron personal','They made it personal','Fizeram pessoal'),texto:L('La escoba está pegada en su vestuario con tu cara al lado. Salís con la mano apretada.','The broom is taped in their locker room with your face next to it. You come out gripping the ball too tight.','A vassoura está colada no vestiário deles com sua cara ao lado. Você sai apertando a bola.'),ef:{rel:{plantel:-2},partido:{frio:true}}}]}]},
  { id:'sal_clasico', de:'salida', peso:200, repite:true, chance:0.6, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.clasico,
    gancho:(c)=>L('El clásico contra '+c.salida.rival+'. "¿Qué le decís a la gente de enfrente?"','The derby against '+c.salida.rival+'. "Anything to say to the other side?"','O clássico contra '+c.salida.rival+'. "O que você diz para a torcida de lá?"'),
    opciones:[
      {tipo:'segura',label:L('"Es un partido más"','"Just another game"','"É só mais um jogo"'),desenlaces:[{p:100,remate:null,texto:L('Nadie te cree, y está bien.','Nobody believes you, and that is fine.','Ninguém acredita, e tudo bem.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Somos más"','"We are bigger"','"Somos maiores"'),desenlaces:[
-       {p:55,remate:L('La tribuna explotó','The stands exploded','A torcida explodiu'),texto:L('Lo cantan mientras entrás. Arrancás caliente.','They sing it as you walk in. You start hot.','Cantam enquanto você entra. Você começa quente.'),ef:{rel:{hinchada:5},partido:{fuego:1}}},
-       {p:45,remate:L('Les diste el partido','You handed them the game','Você deu o jogo para eles'),texto:L('Enfrente lo tomaron personal. Hoy corren el doble.','The other side took it personally. Tonight they run twice as hard.','Do outro lado levaram para o pessoal. Hoje correm o dobro.'),ef:{rel:{hinchada:-3},partido:{fuerzaRival:3}}}]}]},
+       {p:55,remate:L('La tribuna explotó','The stands exploded','A torcida explodiu'),texto:L('Lo cantan mientras entrás. Arrancás caliente.','They sing it as you walk in. You start hot.','Cantam enquanto você entra. Você começa quente.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Les diste el partido','You handed them the game','Você deu o jogo para eles'),texto:L('Enfrente lo tomaron personal, y vos entrás a demostrarlo. Las primeras te salen forzadas.','The other side took it personally, and you come out to prove it. You force your first ones.','Do outro lado levaram para o pessoal, e você entra para provar. Você força os primeiros.'),ef:{rel:{hinchada:-3},partido:{frio:true}}}]}]},
 ];
 /* ══ 01u — LAS CARTAS DE LA VIDA (§2z42.3, 2026-09-05). Su diagnóstico: la tienda era "un lugar sin vida" y la
    plata no tenía nada que hacer. Estas cartas son lo que la plata HACE fuera de la cancha: el asado, la clínica, el
@@ -13243,11 +13245,28 @@ $('#cIntro').textContent = rachas()? t(L(`Partidos jugados: ${rachas()}`,`Games 
    nada, ni en los números ni en la pantalla. */
 const CALENTANDO=3, ENFUEGO=4;
 const bonoFuego=()=> G.fuego>=6?1.20 : G.fuego>=5?1.13 : G.fuego>=ENFUEGO?1.07 : 1;
+/* ══════════ §2z224 EL FRÍO: el espejo que faltaba (su pedido 2026-09-12) ══════════
+   "El NBA 2K tiene ese espejo: si errás varias pasás a estar frío, y se te complica meter cada vez más — un estado
+   absorbente que te condena, que lo necesitamos. Debería ser a los 3 errados seguidos (o pérdida… que se combinen)."
+   El contador sube con un tiro errado O una pérdida —se combinan, su corte— y se apaga con una canasta, igual que el
+   fuego se apaga con un fallo. Pega EN LOS MISMOS TRES LUGARES que el fuego, para el otro lado: la tolerancia del
+   apuntado (12-lanzar) y las dos medidas del medidor (la calidad y el ancho de la banda). Su corte: "hagamos lo
+   opuesto a donde pega el on fire". Lo que se achica es la banda que VES: sin dado escondido (regla 1).
+   ⚠️ LA ASIMETRÍA ES A PROPÓSITO: el fuego avisa en 3 (CALENTANDO) y recién paga en 4, porque un premio se anuncia
+   antes de darse; el frío PEGA EN 3, que es su número, porque un castigo que avisa y no muerde no condena a nadie. */
+const FRIO=3;
+const bonoFrio=()=> G.frio>=5?0.83 : G.frio>=4?0.88 : G.frio>=FRIO?0.93 : 1;
+/* UN SOLO FACTOR para los tres lugares: fuego y frío son la misma racha con signo y nunca coexisten (uno de los dos
+   vale 1 siempre), así que no se pueden desalinear pieza por pieza — la lección de §2z40. */
+const factorRacha=()=> bonoFuego()*bonoFrio();
+/* lo que la capa visual lee para la pelota: el fuego en positivo, el frío en negativo, cero si no hay estado */
+const rachaPelota=()=> G.frio>=FRIO ? -G.frio : (G.fuego||0);
 /* §2z40.1 (su caza 2026-09-05: la carta del túnel lo hizo entrar en ritmo, metió una y el feed dijo "4 seguidas"):
    el fuego que REGALA la carta no son canastas. `fuegoRegalo` guarda cuánto del contador es prestado; la racha
    real es la resta, y es la que se cuenta en el feed y en el récord. Se apaga con el fuego. */
 const rachaReal=()=>Math.max(0,G.fuego-(G.fuegoRegalo||0));
 function prendeFuego(){
+  G.frio=0;   /* §2z224: una canasta apaga el frío, como un fallo apaga el fuego */
   G.fuego++; G.fuegoMax=Math.max(G.fuegoMax,rachaReal());
   /* 2026-09-12 (su caza: "4/4 de campo y la misión de 3 seguidas en 2/3"): la misión contaba la racha del FUEGO, que también se
      apaga con una pérdida — dos canastas, una pérdida, dos canastas daban 2. Las SEGUIDAS de la misión son canastas de campo
@@ -13261,7 +13280,12 @@ function prendeFuego(){
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
 }
-function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0; }   // §2z114: la próxima racha se vuelve a anunciar
+function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0;   // §2z114: la próxima racha se vuelve a anunciar
+  /* §2z224: TODO apagaFuego es un fallo tuyo o una pérdida (`soloFuego`), y los dos suman al frío — por eso entra
+     acá y no en los doce lugares que lo llaman. */
+  enfriar(); }
+function enfriar(){ G.frio=(G.frio||0)+1;
+  if(G.frio===FRIO) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Se te enfrió la mano.','Your hand went cold.','Sua mão esfriou.')),true); }, 750); }
 
 /* ══════════ EL DUELO CON MEMORIA (§2b) ══════════
    Tu marca es UN tipo que se acuerda: la postura mueve SU DISTANCIA (no su velocidad — las
@@ -15658,7 +15682,7 @@ function bandaDe(d){
      él ya tiene en el dedo no se toca (§2e). Lo que cambió es cómo se PAGA, no cómo se
      anuncia. */
   const skillF=0.55+dif.tiro*0.05;
-  const Q=clamp(cst*distF*skillF*bonoFuego(), 0, 1.05);
+  const Q=clamp(cst*distF*skillF*factorRacha(), 0, 1.05);
   const tier=Q>=0.55?'verde':Q>=0.25?'amarilla':'roja';
   /* EL PICO ES DEL PERSONAJE (su límite 2026-08-30: "no hacerlo demasiado fácil, y con un
      techo tan alto, al principio para el que ya coordina"): cuánto paga soltar PERFECTO lo
@@ -15674,7 +15698,7 @@ function bandaDe(d){
   /* EL ANCHO ES DE LA SITUACIÓN: marca, distancia y fuego. Acá vive lo que él pidió —
      "el resto te dé valores más bajos si no estás totalmente libre": abierto la campana es
      ancha y errarle por poco sigue pagando; con la marca encima sólo el pico paga. */
-  const w=Math.max(MEDIDOR.anchoMin, MEDIDOR.ancho*cst*distF*bonoFuego());
+  const w=Math.max(MEDIDOR.anchoMin, MEDIDOR.ancho*cst*distF*factorRacha());
   const colR = tier==='roja'?'224,108,90':'255,193,77';
   return {Q,tier,pico,w,colR,T:MEDIDOR.sub};
 }
@@ -15792,7 +15816,7 @@ function soltarMedidor(){
                              colR:md.colR, flash:col, col, hasta:performance.now()+1200}; };
   const punto=f=>({x:desde.x+Math.cos(dir)*d*f, y:desde.y+Math.sin(dir)*d*f});
   /* el tiro viaja con el fuego que tenías al soltarlo (la llama muere donde el tiro muere) */
-  const fallo=(hastaF,ver,chipTxt)=>{ const fu=G.fuego; apagaFuego();
+  const fallo=(hastaF,ver,chipTxt)=>{ const fu=rachaPelota(); apagaFuego();   /* §2z224: con signo — el errado que salía ardiendo ahora también puede salir congelado */
     vuelo(desde,hastaF,0.5,dur,()=>{ veredicto(ver,'mal'); if(chipTxt)chip(chipTxt);
       if(!reboteTrasBailar(hastaF,L('Tu tiro no entró y el rebote fue de ellos.','Your shot missed and they got the board.','Seu arremesso não caiu e o rebote foi deles.')[idioma()])){   // §2z146
         correr(G.defs[2]||G.defs[0], {x:hastaF.x+rnd(-10,10), y:Math.max(hastaF.y,aro().y+24)}, 0.45, ()=>{});
@@ -15801,7 +15825,7 @@ function soltarMedidor(){
     canastaFx(); G.nos+=v; G.pts+=v; G.aciertos++; if(v===3)G.triples++;
     prendeFuego(); aprende('jumper');
     veredicto(v===3?L('¡TRIPLE!','THREE!','DE TRÊS!')[idioma()]:L('¡ADENTRO!','COUNT IT!','DENTRO!')[idioma()],'ok'); marcador(); finPosesion(true,L(`Lo metiste: ${v===3?'triple':'doble'}.`,`Knocked it down: ${v===3?'a three':'a two'}.`,`Você acertou: ${v===3?'de três':'de dois'}.`)[idioma()]); };
-  const entraF=()=>{ vuelo(desde,hasta,0.5,dur,anotaF, G.fuego); };
+  const entraF=()=>{ vuelo(desde,hasta,0.5,dur,anotaF, rachaPelota()); };
   /* EL BAILA-Y-ENTRA (su reporte 2026-08-25: el traqueteo "parece que va a entrar... es
      medio engañoso"): estaba al revés — el acierto del casi volaba LIMPIO y el errado
      escupía un botecito ambiguo. Ahora el acierto marginal PEGA Y CAE (la promesa del
@@ -15949,7 +15973,7 @@ function lanzar(zona){
        la distancia angosta la banda y pasada la línea larga es plegaria */
     let fDist=clamp(1.05 - d/(R3()*2.2), 0.4, 1.05);
     if(d>R3()*1.3) fDist*=0.55;
-    tol*=fDist*bonoFuego();   // el fuego agranda la ventana — y el semáforo ya lo mostró
+    tol*=fDist*factorRacha();   // el fuego agranda la ventana — y el semáforo ya lo mostró
     const timing=dif.tiro2==='timing';
     /* en timing la presión ya se cobró en la subida rápida; el ÚNICO castigo extra es
        determinístico y se ve venir: soltar TARDE con la mano en la cara es tapa */
@@ -16018,7 +16042,7 @@ function lanzar(zona){
         if(!reboteTrasBailar(cae,L('Tu tiro no entró y el rebote fue de ellos.','Your shot missed and they got the board.','Seu arremesso não caiu e o rebote foi deles.')[idioma()])){
           correr(G.defs[2]||G.defs[0], {x:cae.x+rnd(-10,10), y:Math.max(cae.y,aro().y+24)}, 0.45, ()=>{});
           finPosesion(false,L('Tu tiro no entró.','Your shot didn\'t fall.','Seu arremesso não caiu.')[idioma()]); } }
-    }, G.fuego);
+    }, rachaPelota());   /* §2z224 */
   } else {
     /* EL PASE EN EL AIRE ES TIEMPO TUYO (su regla 2026-08-28): mientras viaja, el reloj
        corre y vos te podés mover (el flick del desmarque) — el precio del pase es el
@@ -16382,10 +16406,17 @@ function reboteTrasBailar(esc, txtEllos){
      dibujado; y la que pasa de largo, detrás del aro, es de ellos: ahí no hay nadie tuyo. */
   const enElAro=dist(esc,a)<26;
   const caeR=enElAro ? {x:esc.x, y:a.y+26} : {x:esc.x, y:esc.y};
-  const miBig=G.comps.find(c=>c.big)||G.comps[0], zona=R3()*REBOTE_ZONA;
+  const zona=R3()*REBOTE_ZONA;
   const rivales=G.defs.filter(Boolean);
   let suBig=G.defs[2]||G.defs[0], dRiv=Infinity;
   for(const d of rivales){ const dd=dist(d,caeR); if(dd<dRiv){ dRiv=dd; suBig=d; } }   // el rival MÁS CERCANO la pelea
+  /* 2026-09-12 (su caza: "le cayó una pelota al lado a nuestro big y la agarró un jugador del otro equipo que estaba
+     MÁS LEJOS; se lo robaron en la cara, lento"): el que la pelea de los tuyos era `G.comps.find(big)` a secas — el
+     otro compañero no existía para el rebote, aunque estuviera encima de la pelota. Ahora es el MÁS CERCANO de los
+     tuyos, igual que del otro lado se toma el rival más cercano. Simetría, que es lo que él vio que faltaba. */
+  let miBig=null, dMio=Infinity;
+  for(const c of G.comps.filter(Boolean)){ const dd=dist(c,caeR); if(dd<dMio){ dMio=dd; miBig=c; } }
+  if(!miBig){ miBig=G.comps[0]; dMio=miBig?dist(miBig,caeR):Infinity; }
   const dVos=dist(G.vos,caeR);
   /* 2026-09-12 (su caza: "el big se teletransportó hacia la pelota, era una pelota que medio se fue afuera y no había nadie
      cerca"): el rival corría a la pelota en 0,45 s fijos, estuviera a un cuerpo o a media cancha. Ahora corre a su velocidad
@@ -16398,7 +16429,10 @@ function reboteTrasBailar(esc, txtEllos){
      la pelota y no tuve chance"): con el rival ENCIMA de la pelota (a menos de un cuerpo, 30·ESC — el mismo umbral del
      palmeo, §2z4.1) no hay pelea que abrir: es de ellos, y se lo ve agarrarla. La pelea sólo se abre cuando los dos
      tienen que correr. */
-  if(dRiv<30*ESC() || caeR.y<a.y-8*ESC()){ armaEllos(txtEllos); return true; }   // §2z159: de largo, detrás del aro, es de ellos
+  /* 2026-09-12: §2z152 daba la pelota a ellos con el rival a menos de un cuerpo SIN MIRAR a los tuyos — con tu big
+     pegado a la pelota y un rival a 29 px era de ellos y ni se abría la pelea. La regla era "nadie llega a disputarla",
+     no "el rival está cerca": ahora pide además que ninguno de los tuyos esté tan cerca como él. */
+  if((dRiv<30*ESC() && dRiv<=Math.min(dMio,dVos)) || caeR.y<a.y-8*ESC()){ armaEllos(txtEllos); return true; }   // §2z159: de largo, detrás del aro, es de ellos
   if(dVos<zona && dVos<dRiv*0.85){
     /* TUYA SIN PELEA: nadie más cerca — la levantás donde cayó */
     G.fase='vuelo'; G.suelo=caeR; corteEscena();
@@ -16422,7 +16456,11 @@ function reboteTrasBailar(esc, txtEllos){
   }
   /* LEJOS: el grandote, por relato — sin dado: la gana si está en zona y claramente mejor
      parado que el de ellos (los dos cuerpos están a la vista) */
-  if(miBig && dist(miBig,caeR)<zona && dist(miBig,caeR)<dRiv*0.85){
+  /* 2026-09-12: el big ganaba sólo si estaba un 15 % MÁS CERCA (`<dRiv*0.85`) — a 50 px contra 55 del rival estaba
+     más cerca y la perdía igual, que es exactamente lo que él vio. El 0,85 tiene sentido para VOS (ahí la alternativa
+     es abrirte la pelea jugable, y para saltearla hay que estar claramente mejor parado), no para un cuerpo que
+     resuelve por relato: entre dos que corren, la gana el que está más cerca. */
+  if(miBig && dMio<zona && dMio<dRiv){
     G.fase='vuelo'; G.suelo=caeR;
     correr(miBig,caeR,0.45,()=>{ G.suelo=null;
       G.scr={mi:miBig, su:suBig, t:caeR, boost:0, t0:performance.now()};   // el estado que resolverRebote lee
@@ -18207,7 +18245,7 @@ function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
@@ -18934,7 +18972,7 @@ function jugador(p,eq,opts={}){
     ctx.beginPath(); ctx.arc(p.x,p.y-11*s,5.1*s,Math.PI*1.15,Math.PI*1.85); ctx.stroke(); }
   if(conPelota){
     if(opts.apunta!==undefined){
-      const fu=vos?G.fuego:0;   // el fuego es TUYO: la pelota arde en tu mano, no en la de un NPC
+      const fu=vos?rachaPelota():0;   // el fuego es TUYO: la pelota arde en tu mano, no en la de un NPC (§2z224: y se congela igual)
       if(volcada||bandeja) pelotita(p.x+Math.cos(opts.apunta)*22*s, p.y+Math.sin(opts.apunta)*22*s, 7, 1, 0, fu);
       else if(opts.pasa) pelotita(p.x+Math.cos(opts.apunta)*15*s, p.y+Math.sin(opts.apunta)*15*s, 7, 1, 0, fu);
       else pelotita(p.x+Math.cos(opts.apunta)*10*s, p.y-11*s+Math.sin(opts.apunta)*10*s, 7, 1, 0, fu);
@@ -18950,8 +18988,8 @@ function jugador(p,eq,opts={}){
       if(boteVivo){ const tb=performance.now()/1000, by=Math.abs(Math.sin(tb*5.2))*9;
         ctx.fillStyle='rgba(0,0,0,.28)';
         ctx.beginPath(); ctx.ellipse(p.x+14,p.y+7,5,2.2,0,0,Math.PI*2); ctx.fill();
-        pelotita(p.x+14,p.y-2-by,7,1,0,G.fuego);
-      } else pelotita(p.x+14,p.y-4,7,1,0,vos?G.fuego:0);
+        pelotita(p.x+14,p.y-2-by,7,1,0,rachaPelota());
+      } else pelotita(p.x+14,p.y-4,7,1,0,vos?rachaPelota():0);   /* §2z224: con signo — el fuego arriba de 0, el hielo abajo */
     }
   }
 }
@@ -18960,8 +18998,35 @@ function jugador(p,eq,opts={}){
    cálido, "calentando"), a 3+ ARDE — lenguas de llama que suben, flameo determinista por
    tiempo (sin dado por frame), y la pelota misma se pone más caliente. Las llamas suben
    "hacia arriba de pantalla": el mismo permiso que la sombra-altímetro. */
+/* §2z224 EL HIELO (su pedido 2026-09-12: "el frío tiene que tener hielo en la pelota, como hoy tenemos con el
+   fuego"): el mismo lugar y el mismo peso que las llamas, el tono opuesto. `fuego` NEGATIVO es frío (rachaPelota, 05).
+   El hielo no flamea: LATE, lento — el fuego respira a 95 ms, la escarcha a 620. Y en vez de lenguas que suben,
+   púas cortas que salen para todos lados, porque el hielo crece desde la superficie, no hacia arriba. */
 function pelotita(x,y,r,esc,rot,fuego){
   ctx.save(); ctx.translate(x,y); ctx.scale(esc,esc);
+  if(fuego<=-FRIO){
+    const tC=performance.now(), hondo=fuego<=-4;
+    const gl=ctx.createRadialGradient(0,0,r*0.3,0,0,r*2.2);
+    const aH=(hondo?0.30:0.18)*(0.85+0.15*Math.sin(tC/620));
+    gl.addColorStop(0,`rgba(150,205,255,${aH})`); gl.addColorStop(1,'rgba(90,150,230,0)');
+    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(0,0,r*2.2,0,Math.PI*2); ctx.fill();
+    /* la escarcha sobre el cuero: un velo azul que no tapa los gajos */
+    ctx.fillStyle=`rgba(190,225,255,${hondo?0.26:0.15})`;
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+    const nPu=hondo?8:6;
+    for(let i=0;i<nPu;i++){
+      const ang=(i/nPu)*Math.PI*2+0.3, lat=0.75+0.25*Math.sin(tC/620+i*1.7);
+      const l0=r*1.02, l1=r*(hondo?1.62:1.38)*lat, w=r*0.15;
+      const cx=Math.cos(ang), cy=Math.sin(ang), px=-cy, py=cx;
+      const capa=(k,col)=>{ ctx.fillStyle=col;
+        ctx.beginPath(); ctx.moveTo(cx*l0+px*w*k, cy*l0+py*w*k);
+        ctx.lineTo(cx*l1, cy*l1);
+        ctx.lineTo(cx*l0-px*w*k, cy*l0-py*w*k);
+        ctx.closePath(); ctx.fill(); };
+      capa(1,'rgba(120,180,240,0.85)');    // la púa de afuera
+      capa(0.55,'rgba(205,235,255,0.95)'); // el corazón, casi blanco
+    }
+  }
   if(fuego>=CALENTANDO){
     const tF=performance.now();
     const gl=ctx.createRadialGradient(0,0,r*0.3,0,0,r*2.5);
@@ -24464,6 +24529,12 @@ $l('lobSalir').addEventListener('click',()=>{
   if(btn) btn.textContent=t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
   empezar();
   if(efS.fuego && typeof CALENTANDO!=='undefined'){ G.fuego=CALENTANDO; G.fuegoRegalo=CALENTANDO; }   // §2z40: arrancás en ritmo (§2z40.1: prestado, no son canastas)
+  /* §2z224 A: el espejo EXACTO del regalo de fuego, que es lo que se me había escapado. `efS.fuego` te deja en
+     CALENTANDO (3) y el bono recién paga en 4: o sea "a UNA CANASTA de que empiece a pagar". Así que el castigo tiene
+     que dejarte "a UN ERRADO de que empiece a doler" (FRIO−1), no congelado de entrada. Puesto en FRIO, la carta te
+     cobraba el −7 % antes de tocar la pelota y la apuesta pasaba a no convenir nunca — el problema de siempre, dado
+     vuelta (lo cazó cartas-check con el EV). */
+  if(efS.frio) G.frio=FRIO-1;
   G.mision=enPartido.mision; marcador();   // el feed la muestra junto a la statline desde el primer renglón
   const mk=document.getElementById('marcador'); mk.classList.remove('cae'); void mk.offsetWidth; mk.classList.add('cae');   // §2z14: el marcador cae
 });

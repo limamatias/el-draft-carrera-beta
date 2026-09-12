@@ -1700,7 +1700,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c6c66cee5a';
+const BUILD='a1f56b8525';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22800,9 +22800,12 @@ let ladoSel_auto=true;   // §12.22: sigue al próximo partido (selección → d
    te abre ARG, si tu próximo es la liga de las Américas te abre ese torneo — tanto al abrir el completo como en el
    lobby común"): el lado por defecto es LA COMPETENCIA DEL PRÓXIMO PARTIDO. El switch que tocás vale mientras estás
    adentro de la plena; al volver a abrirla, el default otra vez. */
+let proxLobby=null;   // §2z229: el próximo que el lobby ofrece (club, continental, selección del receso), para las plenas
 function ladoDelProximo(){
   const e=est(); if(!e) return 'club';
-  const prox=miProximo(e), lados=ladosQueVer();
+  /* §2z229 (su caza: "en tabla, VER COMPLETA no te abre el Mundial sino BOC"): el próximo del RECESO no sale de miProximo —
+     ese sólo sabe del club—, así que las plenas seguían abriendo por el club con el Mundial en curso. Se lee el del lobby. */
+  const prox=proxLobby||miProximo(e), lados=ladosQueVer();
   if(prox&&prox.tipo==='seleccion'&&lados.includes('sel')) return 'sel';
   if(prox&&prox.tipo==='americas'&&lados.includes('am')) return 'am';
   return 'club';
@@ -22862,10 +22865,16 @@ function htmlFixtureSeleccion(){
   if(!fs.filas.length) return '<div class="r"><span class="pos"></span><span class="club"><span class="nom">'
     +t(L('Todavía no hay partidos.','No games yet.','Ainda não há jogos.'))+'</span></span></div>';
   /* §12.25: cada ventana con su cabecera (VENTANA 1 · 2 partidos), como los grupos en la tabla */
+  /* §2z229 (su caza: "los partidos del Mundial figuran dentro de VENTANA 5"): el torneo del receso NO es una ventana — es su
+     propio tramo, con su cabecera (RECESO · MUNDIAL 2027 · AGOSTO) y sin número de fecha, porque no son fechas de liga. */
   let h='', vAct=null;
   for(const f of fs.filas){ const m=f.match(/data-ventana="(\d+)"/); const v=m?m[1]:null;
-    if(v&&v!==vAct){ vAct=v; const pas=/data-pasada="1"/.test(f);
-      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(SEL_TXT.ventana)+'\u00a0'+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
+    const mt=f.match(/data-torneo="([a-z]+)"/); const tor=mt?mt[1]:null;
+    const k=v?'v'+v:tor?'t'+tor:null;
+    if(k&&k!==vAct){ vAct=k; const pas=/data-pasada="1"/.test(f);
+      const tit=v?t(SEL_TXT.ventana)+'\u00a0'+v+(pas?' · '+t(L('TEMPORADA PASADA','LAST SEASON','TEMPORADA PASSADA')):'')
+        :t(L('RECESO','OFFSEASON','RECESSO'))+' · '+selTorneoTxt(tor)+(C.selTorneo&&C.selTorneo.anio?' '+C.selTorneo.anio:'')+(SEL_MES_TXT[tor]?' · '+t(SEL_MES_TXT[tor]):'');
+      h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+tit+'</span></span></div>'; }   // 2026-09-09: la parte A, en la parte B
     h+=f; }
   return h;
 }
@@ -22895,7 +22904,7 @@ function filasFixtureSeleccion(){
        marca el calendario del país se leería como si fuera tuyo */
     const sinVos=f.jugaste===false;   // §12.22: null = sin decidir, y no dice nada
     const mio=sinVos?'<span class="nota sinVos">'+t(L('SIN VOS','WITHOUT YOU','SEM VOCÊ'))+'</span>':'';
-    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
+    filas.push('<div class="r sel'+(sinVos?' conSel':'')+(esProx?' prox':'')+'" data-ventana="'+(f.ventana||'')+'" data-torneo="'+(f.torneo||'')+'" data-pasada="'+(f.pasada?1:0)+'"><span class="f">'+ban+'</span>'
       +'<span class="q">'+escudito(f.rival)+nomAjustable('nom',vsTxt(f.local,f.neutral),nombresSelDe(f.rival))+mio+'</span>'
       +'<span class="dia">'+etapa+'</span>'+res+'</div>');
   });
@@ -23707,7 +23716,15 @@ function pintaLobby(){
   pintaSecciones();
   /* §12: con la temporada cerrada, el próximo puede ser un partido del TORNEO DEL RECESO —
      si no, el panel de HOY quedaba vacío y el botón ofrecía un partido que no se veía */
-  const prox=miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICBeta(e)):null);   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
+  /* §2z229 (su noche 2026-09-12: ganó la LNB y "de la nada aparecí en el Mundial: ni card, ni escena, nada", y el título
+     no entró al palmarés): la temporada del CLUB cierra cuando se acaban los partidos DEL CLUB, sin mirar a la selección.
+     Antes el cierre esperaba a que NO hubiera próximo, y las citas del receso (ventanas de verano, el torneo) se ofrecían
+     con la temporada terminada — así que el próximo nunca era null y el cierre no corría NUNCA. El orden que se
+     reproduce: termina la liga → FIN DE TEMPORADA (resumen, premios) → el receso de la selección → el mercado. */
+  if(e.fase==='terminada') premiarLiga();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento)
+  const cierrePend=e.fase==='terminada'&&C.cierreAnio!==C.anio;
+  const prox=cierrePend?null:(miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICBeta(e)):null));   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
+  proxLobby=prox;
   const calientes=e.fase==='regular'?elegirCalientes(e):[];
   const calPorFecha={}; for(const c of calientes) calPorFecha[c.fecha]=c;
   const mt=miTabla(e);
@@ -24014,9 +24031,19 @@ function pintaLobby(){
   if(!prox){
     if(e.fase==='terminada'){
       /* §7.1 (su corte: "el resumen de temporada va SIEMPRE en el juego"): primero el resumen; de ahí
-         al mercado — o, en la beta, el gancho del juego completo */
-      cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(esBeta()?L('FIN DE TEMPORADA ▸','SEASON OVER ▸','FIM DE TEMPORADA ▸'):L('EL MERCADO ▸ OTRA TEMPORADA','THE MARKET ▸ NEXT SEASON','O MERCADO ▸ OUTRA TEMPORADA'))+'</button>';
-      $l('lobBJugar').addEventListener('click',abrirResumenT);
+         al receso de la selección si lo hay, y al mercado — o, en la beta, el gancho del juego completo.
+         §2z229: el cierre es UNO por año (cierreAnio); cuando ya pasó y no queda nada, el botón es el del mercado
+         (o, en la beta, el fin: el resumen otra vez, ahora con el receso adentro y el gancho). */
+      if(cierrePend){
+        cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('FIN DE TEMPORADA ▸','SEASON OVER ▸','FIM DE TEMPORADA ▸'))+'</button>';
+        $l('lobBJugar').addEventListener('click',()=>abrirResumenT(false));
+      } else if(esBeta()){
+        cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('FIN DE LA BETA ▸','END OF THE BETA ▸','FIM DA BETA ▸'))+'</button>';
+        $l('lobBJugar').addEventListener('click',()=>abrirResumenT(true));
+      } else {
+        cont.innerHTML='<button class="jugar ancho" id="lobBJugar">'+t(L('EL MERCADO ▸ OTRA TEMPORADA','THE MARKET ▸ NEXT SEASON','O MERCADO ▸ OUTRA TEMPORADA'))+'</button>';
+        $l('lobBJugar').addEventListener('click',abrirMercado);
+      }
     } else {
       /* §2z19: no debería pasar (cerrarSinVos deja la temporada terminada); si pasa, se ve */
       cont.innerHTML='';
@@ -25077,6 +25104,8 @@ function registrarResultado(){
   anotarTitulo('americas', !!(e.americas&&e.americas.campeon===e.miClubId));
   anotarTitulo('campeon', !!(e.playoffs&&e.playoffs.campeon===e.miClubId));                     /* el título de la liga */
   anotarTitulo('intercontinental', !!(e.intercontinental&&e.intercontinental.campeon===e.miClubId));
+  premiarAmericas(e);                                   /* §2z229 c: el MVP de las Américas, al cerrar la Copa */
+  if(e.fase==='terminada') premiarLiga();               /* §2z229 c: los de la liga, cuando la liga termina */
   if(ult&&ult.americas&&ult.americas.campeon&&ult.americas.etapa==='final')
     amAviso={rot:t(AM_TXT.nombre),txt:t(L('¡CAMPEONES DE LAS AMÉRICAS!','AMERICAS CHAMPIONS!','CAMPEÕES DAS AMÉRICAS!')),tono:'oro',
              sub:(()=>{ const ic=icAnunciado(e); return ic?t(L('Copa Intercontinental: septiembre de ','Intercontinental Cup: September ','Copa Intercontinental: setembro de '))+ic.anio+t(L(', en ',', in ',', em '))+ic.sede.ciudad+'.':''; })()};
@@ -26597,28 +26626,58 @@ function pintaPalmares(){
   }
   caja.querySelectorAll('[data-pal]').forEach(b=>{ b.onclick=()=>{ palTodo=b.dataset.pal==='todo'; pintaPalmares(); }; });
 }
+/* ⚠️⚠️ §2z229 c (su corte 2026-09-12: "¿MVP y demás por qué salen al final? ¿No deberían ser al final del TORNEO que estás
+   jugando? Nadie te va a dar un MVP de la LNB por cómo te va en el Mundial"). LA REGLA: cada premio pertenece a UNA
+   competencia y se otorga cuando ESA competencia termina. No existe un "fin de temporada" donde repartir todo: los torneos
+   terminan en momentos distintos y se cruzan (la Intercontinental cae DESPUÉS del Mundial).
+   · los de la LIGA (MVP · quinteto · joven · MVP de finales) → premiarLiga(), cuando la liga termina (fase terminada);
+   · el MVP de las Américas → premiarAmericas(), al ganar la Copa (los títulos ya entraban al ganarlos, §2z229 b);
+   · el ascenso → con la escalera aplicada, en el cierre/mercado (su propia guarda).
+   asegurarPremios() queda como la red idempotente del cierre y del mercado, y devuelve lo del año para la lista. */
+function premiarLiga(){
+  if(!C.palmares) C.palmares=[];
+  const e=est(); if(!e||e.fase!=='terminada'||C.premiadoAnio===C.anio) return false;
+  C.premiadoAnio=C.anio;
+  const mt=miTabla(e);
+  const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc);   // §2z45: contra el campo de la liga
+  for(const p of nuevos) if(!C.palmares.some(q=>q.anio===C.anio&&q.clave===p.clave)) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});
+  guardar();
+  return true;
+}
+function premiarAmericas(e){
+  if(!e||!(e.americas&&e.americas.campeon===e.miClubId)) return;
+  if(!C.palmares) C.palmares=[];
+  if(C.palmares.some(q=>q.anio===C.anio&&q.clave==='mvp_americas')) return;
+  /* §2z28 el MVP de las Américas: campeón con nota ≥7 en al menos tres partidos de LLAVE (el molde del MVP de las finales) */
+  const llave=e.misPartidos.filter(p=>p.am&&p.etapa!=='grupo'&&p.rating!==undefined);
+  if(llave.length>=3&&llave.reduce((s,p)=>s+p.rating,0)/llave.length>=7) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'mvp_americas'});
+}
 function asegurarPremios(){
   if(!C.palmares) C.palmares=[];
-  if(C.premiadoAnio===C.anio) return C.palmares.filter(p=>p.anio===C.anio);
-  C.premiadoAnio=C.anio;
-  const e=est(), mt=miTabla(e);
-  const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc);   // §2z45: contra el campo de la liga
-  if(e.intercontinental&&e.intercontinental.campeon===e.miClubId) nuevos.push({clave:'intercontinental'});   // §2z27.3
-  if(e.americas&&e.americas.campeon===e.miClubId){   // §2z27
-    nuevos.push({clave:'americas'});
-    /* §2z28 el MVP de las Américas: campeón con nota ≥7 en al menos tres partidos de LLAVE (el molde del MVP de las finales) */
-    const llave=e.misPartidos.filter(p=>p.am&&p.etapa!=='grupo'&&p.rating!==undefined);
-    if(llave.length>=3&&llave.reduce((s,p)=>s+p.rating,0)/llave.length>=7) nuevos.push({clave:'mvp_americas'});
-  }
-  for(const p of nuevos) if(!C.palmares.some(q=>q.anio===C.anio&&q.clave===p.clave)) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});   // 2026-09-11: la Copa ya pudo entrar al ganarla
+  const e=est();
+  premiarLiga(); premiarAmericas(e);
   /* §2z28 el ascenso: la escalera de ESTE receso (ya aplicada, §2z7) subió a tu club — se guarda con la liga DESTINO */
   const esc=C.ultimaEscalera;
-  if(esc&&esc.anio===C.anio){
+  if(esc&&esc.anio===C.anio&&C.ascensoAnio!==C.anio){
+    C.ascensoAnio=C.anio;
     const destino=esc.subeLA===e.miClubId?'nacional':(esc.subenFed||[]).includes(e.miClubId)?'argentina':null;
-    if(destino){ nuevos.push({clave:'ascenso'}); C.palmares.push({anio:C.anio,ligaId:destino,club:e.miClubId,clave:'ascenso'}); }
+    if(destino) C.palmares.push({anio:C.anio,ligaId:destino,club:e.miClubId,clave:'ascenso'});
+    guardar();
   }
-  guardar();
-  return nuevos;
+  /* lo del año, del lado del CLUB: lo de la selección (pais) va en su propia sección del resumen */
+  return C.palmares.filter(p=>p.anio===C.anio&&!p.pais&&PREMIO_TXT[p.clave]);
+}
+/* §2z229: ¿queda algo de la selección (o la copa de la beta) en este receso? SIN efectos —no convoca, no simula, no crea—:
+   decide qué dice el botón del resumen; el lobby es el que resuelve de verdad. */
+function recesoPendiente(e){
+  if(!e||e.fase!=='terminada') return false;
+  const el=e.seleccion;
+  if(el&&!el.fin){ const v=el.ventanas[el.idx]; if(v&&v.receso==='verano'&&v.conv!==false) return true; }
+  if(C.selTorneo) return !!proximoTorneoSel(C.selTorneo);
+  if(C.selTorneoHecho!==C.anio){ const pais=C.jugador.nacionalidad||'ar'; if(SELECCIONES[pais]&&torneoDelReceso(C.anio,pais)) return true; }
+  if(esBeta()&&!e.intercontinental&&e.americas&&e.americas.fase==='terminado'&&e.americas.campeon===e.miClubId) return true;   // §7.1: la copa de la beta
+  if(e.intercontinental&&e.intercontinental.post&&proximoIntercontinental(e)) return true;
+  return false;
 }
 let mercadoSel=null, mercadoOfertas=[];
 function abrirMercado(){
@@ -26917,9 +26976,12 @@ function armarBeta(c){
 }
 /* EL RESUMEN DE TEMPORADA (su corte: "es una pieza del juego, no de la beta"): al tocar el
    botón del cierre, siempre. De ahí al mercado; en la beta, al gancho del juego completo. */
-function abrirResumenT(){
+/* §2z229: se abre DOS veces como mucho — al terminar la liga (final=false: el cierre, una vez por año) y, en la beta, al
+   terminar el receso (final=true: el mismo resumen con la selección adentro, y el gancho). */
+function abrirResumenT(final){
   if(!esBeta()) aplicarEscalera();   // 2026-09-09: en la beta no hay mercado y simular tres ligas en seco era un colgón en el A32   // §2z7/§2z28: el ascenso se premia con el mundo ya movido (idempotente, el mercado lo repite)
   const e=est(), J=C.jugador, mt=miTabla(e), ml=e.miLinea, po=e.miLineaPO||lineaVacia();
+  if(C.cierreAnio!==C.anio){ C.cierreAnio=C.anio; guardar(); }
   const club=clubDe(e.miClubId), premios=asegurarPremios();
   const jugados=(e.misPartidos||[]).filter(p=>p.jugado).length, pj=ml.pj+po.pj;
   const nota=notaPromedio(e.misPartidos);
@@ -26937,15 +26999,15 @@ function abrirResumenT(){
      club, porque la línea de arriba es la de tu equipo y mezclarlas la vuelve ilegible. */
   html+=htmlResumenSeleccion(e,fila);
   $l('resTCuerpo').innerHTML=html;
-  const beta=esBeta();
-  $l('resTBeta').classList.toggle('oculto',!beta);
-  $l('resTSeguir').classList.toggle('oculto',beta);
-  $l('resTSeguir').textContent=t(L('AL MERCADO ▸','TO THE MARKET ▸','AO MERCADO ▸'));
+  const beta=esBeta(), fin=beta&&final===true, pend=recesoPendiente(e);
+  $l('resTBeta').classList.toggle('oculto',!fin);
+  $l('resTSeguir').classList.toggle('oculto',beta&&!pend);   // en la beta no hay mercado: sólo AL RECESO, o VOLVER
+  $l('resTSeguir').textContent=pend?t(L('AL RECESO ▸','TO THE OFFSEASON ▸','AO RECESSO ▸')):t(L('AL MERCADO ▸','TO THE MARKET ▸','AO MERCADO ▸'));
   $l('resumenT').classList.remove('oculto');
   verQueSeVe('resumenT','EL RESUMEN DE TEMPORADA');
-  if(beta&&!C.beta.finAvisado){ C.beta.finAvisado=true; guardar(); betaEvento('fin',{jugados,pj,nota,dbeta:J.dbeta,puesto:mt.puesto||null}); }
+  if(fin&&!C.beta.finAvisado){ C.beta.finAvisado=true; guardar(); betaEvento('fin',{jugados,pj,nota,dbeta:J.dbeta,puesto:mt.puesto||null}); }
 }
-$l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto'); abrirMercado(); };
+$l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto'); if(recesoPendiente(est())){ pintaLobby(); irLob('hoy'); } else abrirMercado(); };   // §2z229: al receso, o al mercado
 $l('resTVolver').onclick=()=>{ $l('resumenT').classList.add('oculto'); };
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); abrirBetaVelo('lista'); };
 /* la tira fija del lobby y el velo (lista de espera / feedback) */

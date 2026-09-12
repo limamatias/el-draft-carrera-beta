@@ -359,6 +359,9 @@
   #carta .cuerpoCarta{display:flex;flex-direction:column;gap:16px;width:100%;max-width:420px;margin:0 auto}
   #carta .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
   #carta .gancho{font-size:20px;line-height:1.25;font-weight:600;color:var(--tinta)}
+  /* §2z218 v6: un aviso es una carta sin gancho (y a veces sin texto). Un renglón vacío con gap es la clase 5 de
+     CLAUDE.md — se esconde, no se deja con aire. */
+  #carta .gancho:empty,#carta .texto:empty{display:none}
   #carta .opciones{display:flex;flex-direction:column;gap:8px}
   #carta .opc{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:12px;padding:12px 14px;
               display:flex;flex-direction:column;gap:4px;min-height:48px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -6702,8 +6705,34 @@ function mostrarEventoRel(x,alTerminar){
   },550);
   document.getElementById('bajonOk').onclick=()=>{ v.classList.add('oculto'); if(alTerminar) alTerminar(); };
 }
+/* §2z218 v6 UN AVISO ES UNA CARTA DE UN PASO (su caza 2026-09-12: «me apareció un sponsor por $117 pero no vi
+   nada de que firmé el sponsor… debería ser una pantalla, tipo la card de decisiones con algo de fondo»). El velo
+   es el MISMO de la carta —fondo, rótulo, remate, texto, píldoras, SEGUIR—, sin opciones: un aviso no es una
+   decisión, y fabricarle un botón de mentira sería peor. */
+function mostrarAviso(a, alTerminar){
+  const v=document.getElementById('carta');
+  cartaAbierta={c:{}, alTerminar};
+  const fondo=a.fondo&&FONDO_CARTA[a.fondo]?FONDO_CARTA[a.fondo]():null;
+  document.getElementById('cartaFondo').style.backgroundImage=fondo?'url('+fondo+')':'none';
+  v.classList.toggle('sobreCancha',!fondo);
+  document.getElementById('cartaRotulo').textContent=t(a.rotulo);
+  document.getElementById('cartaGancho').textContent='';        /* :empty lo esconde: sin renglón vacío con aire */
+  const ops=document.getElementById('cartaOpciones'); ops.innerHTML=''; ops.classList.add('oculto');
+  document.getElementById('cartaRemate').textContent=t(a.remate);
+  document.getElementById('cartaTexto').textContent=a.texto?t(a.texto):'';
+  document.getElementById('cartaPildoras').innerHTML=(a.pildoras||[])
+    .map(x=>'<span class="pil '+(x.ok?'ok':'mal')+'">'+x.txt+'</span>').join('');
+  document.getElementById('cartaDesenlace').classList.remove('oculto');
+  document.getElementById('fin').classList.add('oculto');
+  v.classList.remove('oculto');
+  verQueSeVe('carta','LA CARTA');
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
+  /* §2z218 v6: los avisos de sponsor van ACÁ y no colgados de un camino — vivían en el onclick del parte de la
+     selección, que en un partido de club no corre nunca, así que el sponsor se firmaba en silencio (clase 9 de
+     CLAUDE.md: una pieza que no se muestra no se revisa). Éste es el embudo por el que entran todos los caminos. */
+  if(dep.sponsorAviso(()=>{ pintaLobby(); cartasAlEntrar(); })) return true;
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
   if(ev){ const e=est(); mostrarCarta(ev,rotuloCarta(e),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
@@ -6959,7 +6988,7 @@ const CARTAS_PRENSA=[
  /* §2z99: LA ÚLTIMA FUE TUYA (su pedido 2026-09-07: "esa jugada CLUTCH tiene que generar algo en la prensa"). Van
     ANTES de las de misión y las tapan: el titular de esa noche es uno solo. */
  { id:'prensa_clutch_metida', repite:true,
-   cuando:(c)=>!!(c.u.clutch&&c.u.clutch.anoto&&!c.u.clutch.asistio&&c.u.gano),
+   cuando:(c)=>!!(c.u.clutch&&!c.u.clutch.def&&c.u.clutch.anoto&&!c.u.clutch.asistio&&c.u.gano),   /* §2z223: las tres del clutch son del lado ofensivo */
    gancho:L('La última fue tuya y la metiste. Te esperan todos los micrófonos.','The last one was yours and you hit it. Every microphone is waiting.','A última foi sua e você acertou. Todos os microfones te esperam.'),
    opciones:[
      {tipo:'segura',label:L('Era la jugada','That was the play','Era a jogada'),desenlaces:[{p:100,remate:null,texto:L('El DT dice que la dibujó él. Vos sonreís.','The coach says he drew it up. You smile.','O técnico diz que foi ele que desenhou. Você sorri.'),ef:{rel:{dt:1,hinchada:2}}}]},
@@ -6968,7 +6997,7 @@ const CARTAS_PRENSA=[
        {p:40,remate:L('Mucho ruido','Loud','Muito barulho'),texto:L('Un compañero: "una entró, tranquilo". El vestuario se ríe, pero no con vos.','A teammate: "one went in, easy". The locker room laughs, but not with you.','Um companheiro: "uma entrou, calma". O vestiário ri, mas não com você.'),ef:{rel:{plantel:-2}}}]}]},
  /* §2z138: LA ÚLTIMA LA PASASTE (su caza 2026-09-07): la asistencia sobre la chicharra tiene su propio titular. */
  { id:'prensa_clutch_asistida', repite:true,
-   cuando:(c)=>!!(c.u.clutch&&c.u.clutch.anoto&&c.u.clutch.asistio&&c.u.gano),
+   cuando:(c)=>!!(c.u.clutch&&!c.u.clutch.def&&c.u.clutch.anoto&&c.u.clutch.asistio&&c.u.gano),
    gancho:L('La última fue tuya y la pasaste: la metió él. Te preguntan por qué no la tiraste.','The last one was yours and you passed it: he hit it. They ask why you did not shoot.','A última foi sua e você passou: ele acertou. Perguntam por que não arremessou.'),
    opciones:[
      {tipo:'segura',label:L('Estaba solo','He was open','Ele estava livre'),desenlaces:[{p:100,remate:null,texto:L('El que la metió te abraza en la nota. El vestuario lo anota.','The one who hit it hugs you on camera. The locker room takes note.','Quem acertou te abraça na entrevista. O vestiário anota.'),ef:{rel:{plantel:2}}}]},
@@ -6976,7 +7005,7 @@ const CARTAS_PRENSA=[
        {p:60,remate:L('Con hambre','Hungry','Com fome'),texto:L('El DT lee el titular y sonríe: la quiere en tus manos.','The coach reads the headline and smiles: he wants it in your hands.','O técnico lê a manchete e sorri: quer na sua mão.'),ef:{minutos:3,rel:{dt:2,hinchada:3}}},
        {p:40,remate:L('Desagradecido','Ungrateful','Ingrato'),texto:L('El que la metió lee que "la próxima la tirás vos". No te la devuelve en una semana.','The one who hit it reads that "next time you shoot it". He does not pass to you for a week.','Quem acertou lê que "a próxima é sua". Não te devolve a bola por uma semana.'),ef:{rel:{plantel:-3}}}]}]},
  { id:'prensa_clutch_errada', repite:true,
-   cuando:(c)=>!!(c.u.clutch&&!c.u.clutch.anoto),
+   cuando:(c)=>!!(c.u.clutch&&!c.u.clutch.def&&!c.u.clutch.anoto),   /* la defensiva aguantada NO es una última errada */
    gancho:L('Tuviste la última y no entró. Te preguntan si la volverías a tirar.','You had the last one and it did not go in. They ask if you would take it again.','Você teve a última e não entrou. Perguntam se arremessaria de novo.'),
    opciones:[
      {tipo:'segura',label:L('Mil veces','A thousand times','Mil vezes'),desenlaces:[{p:100,remate:null,texto:L('El DT lo lee y asiente: la quiere en tus manos igual.','The coach reads it and nods: he still wants it in your hands.','O técnico lê e assente: quer na sua mão mesmo assim.'),ef:{rel:{dt:1}}}]},
@@ -7072,7 +7101,7 @@ const CARTAS_PRENSA=[
        {p:40,remate:L('Mirá quién habla','Look who is talking','Olha quem fala'),texto:L('El pívot lo lee en voz alta en el vestuario. Con tu tono.','The center reads it out loud in the locker room. In your voice.','O pivô lê em voz alta no vestiário. Com sua voz.'),ef:{rel:{plantel:-4}}}]}]},
 ];
 
-return {mostrarCarta,cartaDePrensa,cartasAlEntrar,eventoRelPendiente,mostrarEventoRel,cartaDeDilema,cartaDeReceso,cartaDeSalida,cartaDeLujo,salidaDe,poolGeneral,poolReceso,CARTAS_PRENSA,ctxCarta,aplicarEfectos,pildorasDe,cartaElegible,cartasEstado};
+return {mostrarCarta,mostrarAviso,cartaDePrensa,cartasAlEntrar,eventoRelPendiente,mostrarEventoRel,cartaDeDilema,cartaDeReceso,cartaDeSalida,cartaDeLujo,salidaDe,poolGeneral,poolReceso,CARTAS_PRENSA,ctxCarta,aplicarEfectos,pildorasDe,cartaElegible,cartasEstado};
 }
 /* ══ 01l — EL CATÁLOGO CRIBADO DE EL DRAFT (§2z26, 2026-09-02). Copiado y convertido a nuestro
    vocabulario (skills · relaciones · plataX · energía · latas · minutos), NO compartido. Cada carta
@@ -17944,6 +17973,17 @@ function siguienteBeat(){
         g.beats.push({t:'jugada', tipo:'decision', final:true});
         setTimeout(siguienteBeat, 1400); return;
       }
+      /* §2z223 LA ÚLTIMA TAMBIÉN SE DEFIENDE (su idea 2026-09-12: "ganamos 91-90 y me dio ganas de que haya una
+         jugada donde tenga que defender o perder"): el espejo del tiro final. Ganando por 1 o 2, la última pelota
+         es de ellos y la defendés vos — la escena se sortea entre las cuatro de siempre (su corte: "puede ser
+         cualquiera"). Por 3 NO entra: cuando la meten el motor hace G.riv+=2, así que en la defensiva no existe el
+         triple y defenderías una pelota que no te puede empatar (las cuatro líneas, en DISEÑO §2z223). */
+      if(!G.sub && m<0 && m>=-2){
+        cerrarRelojAnim(); G.reloj=6; G.relojAnim=null; marcador();
+        G.rivAlFinal=G.riv;   // §2z223: para saber al cerrar si la aguantaste o te la metieron (el espejo de astAlFinal)
+        g.beats.push({t:'jugada', tipo:'defensa', final:true});
+        setTimeout(siguienteBeat, 1400); return;
+      }
       setTimeout(siguienteBeat, 300);
     }
     return;
@@ -18024,7 +18064,11 @@ function siguienteBeat(){
     if(!b.tipo && !b.final && !b.heredada && !b.drill && !b.slalom) b.tipo=sortearTipo(!!b.pedida || !!b.fuego);
     G.enPedida=!!b.pedida;   // 2026-09-10: la misión de las pedidas resueltas lee esto al cerrar la posesión
     const anunciar=()=>{
-    fila(b.final ? ((G.riv-G.nos)===3 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE EMPATA.','LAST SHOT IS YOURS — THE THREE TIES IT.','A ÚLTIMA É SUA — O TRIPLO EMPATA.'))
+    /* §2z223: la última defensiva dice lo que está en juego — el marcador ya lo tenés arriba, esto dice qué pasa si entra */
+    fila(b.final && b.tipo==='defensa'
+           ? ((G.nos-G.riv)===1 ? t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, PERDISTE.','LAST SHOT IS THEIRS — IF IT DROPS, YOU LOSE.','A ÚLTIMA É DELES — SE ENTRAR, VOCÊ PERDE.'))
+                                : t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, ES SUPLEMENTARIO.','LAST SHOT IS THEIRS — IF IT DROPS, OVERTIME.','A ÚLTIMA É DELES — SE ENTRAR, É PRORROGAÇÃO.')))
+         : b.final ? ((G.riv-G.nos)===3 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE EMPATA.','LAST SHOT IS YOURS — THE THREE TIES IT.','A ÚLTIMA É SUA — O TRIPLO EMPATA.'))
                     : (G.riv-G.nos)===2 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE LO GANA.','LAST SHOT IS YOURS — THE THREE WINS IT.','A ÚLTIMA É SUA — O TRIPLO VENCE.'))
                     : t(L('LA ÚLTIMA ES TUYA — PARA GANARLO.','LAST SHOT IS YOURS — TO WIN IT.','A ÚLTIMA É SUA — PRA VENCER.')))
          : b.premio ? (b.premio==='robo' ? t(L('El robo abre la contra: ES TUYA.','The steal opens the break: IT\'S YOURS.','O roubo abre o contra-ataque: É SUA.'))
@@ -18054,6 +18098,9 @@ $('#btnSeguir').onclick=()=>{
   siguienteBeat();
 };
 
+/* §2z223: la última salió bien = la metiste, o —si fue defensiva— la aguantaste. Una partida guardada de antes
+   no tiene `ok`: ahí manda `anoto`, como siempre. */
+function clutchOk(c){ return !!c && (c.ok!==undefined ? !!c.ok : !!c.anoto); }
 /* al cerrar TU posesión: el resultado entra al feed y el guion sigue */
 function finPosesion(anoto, resumen){
   if(G.fase==='fin'||G.fase==='feed') return;
@@ -18068,7 +18115,12 @@ function finPosesion(anoto, resumen){
      viñeta de la volcada — se siente raro"): `asistio` distingue la última pasada de la última tirada. La viñeta de la
      volcada es de TU canasta; la prensa tiene su propia carta para la asistencia. */
   const asistio=!!anoto && G.astAlFinal!=null && G.ast>G.astAlFinal;
-  if(G.esFinal) G.clutch={anoto:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
+  /* §2z223: si la última fue defensiva, lo que la define no es si anotaste sino si la AGUANTASTE. `ok` es EL campo
+     que mira todo lo de afuera (la nota, la planilla, la prensa): antes miraban `anoto`, y una defensiva aguantada
+     —donde anoto es false por construcción— te bajaba la nota y te sacaba la carta de "erraste la última". */
+  if(G.esFinal && G.tipo==='defensa'){ const aguanto=G.riv===(G.rivAlFinal!=null?G.rivAlFinal:G.riv);
+    G.clutch={def:true, aguanto, ok:aguanto, gano:G.nos>G.riv, empataba:G.nos===G.riv, anoto:false, asistio:false}; }
+  else if(G.esFinal) G.clutch={anoto:!!anoto, ok:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
   if(G.esFinal && anoto && G.nos>G.riv && !asistio) vineta('volcada',2300);   // el buzzer-beater ganado
   /* el lamento de la tribuna es de TU tiro errado (los resúmenes arrancan igual EN CADA
      IDIOMA — i18n: si un resumen de tiro errado nuevo no arranca así en los tres, el uhh
@@ -18124,7 +18176,11 @@ function terminar(){
   localStorage.setItem(rachasKey, rachas()+1);
   if(G.fuegoMax>record()) localStorage.setItem(recKey, G.fuegoMax);
   const gano=G.nos>G.riv;
-  $('#finTitulo').textContent = gano ? (G.esFinal?t(L('¡SOBRE LA CHICHARRA!','AT THE BUZZER!','NA BUZINA!')):t(L('¡LO GANAMOS!','WE WON IT!','VENCEMOS!'))) : t(L('NO ALCANZÓ','NOT ENOUGH','NÃO DEU'));
+  /* §2z223: ganar aguantando la última no es ganarla sobre la chicharra — el título dice lo que hiciste */
+  $('#finTitulo').textContent = gano
+    ? (G.clutch&&G.clutch.def&&G.clutch.aguanto ? t(L('¡LA AGUANTASTE!','YOU HELD ON!','VOCÊ SEGUROU!'))
+       : G.esFinal ? t(L('¡SOBRE LA CHICHARRA!','AT THE BUZZER!','NA BUZINA!')) : t(L('¡LO GANAMOS!','WE WON IT!','VENCEMOS!')))
+    : t(L('NO ALCANZÓ','NOT ENOUGH','NÃO DEU'));
   $('#finTitulo').className=gano?'gano':'perdio';
   $('#finMarcador').innerHTML=`<b>${G.nos}</b> — <b>${G.riv}</b>`;
   /* LA LÍNEA ES UNA STATLINE (su caza 2026-08-29: "el número grande se lee como puntos
@@ -18151,7 +18207,7 @@ function empezar(){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
-    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});
+    intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
@@ -22429,9 +22485,8 @@ function abrirParteVentana(p){
 document.getElementById('parteOk').onclick=()=>{
   document.getElementById('selParte').classList.add('oculto');
   C.selParte=null; const cp=C.clubParte; C.clubParte=null; guardar(); pintaLobby();
-  if(cp&&abrirPasoParte(cp,()=>{ if(!sponsorAviso(()=>CARTAS.cartasAlEntrar())) CARTAS.cartasAlEntrar(); })) return;   // 2026-09-10: cómo le fue al club sin vos
-  if(sponsorAviso(()=>CARTAS.cartasAlEntrar())) return;   // §2z218: lo que te firmaron o te soltaron, antes de las cartas
-  CARTAS.cartasAlEntrar();
+  if(cp&&abrirPasoParte(cp,()=>{ CARTAS.cartasAlEntrar(); })) return;   // 2026-09-10: cómo le fue al club sin vos
+  CARTAS.cartasAlEntrar();   /* §2z218 v6: el aviso de sponsor ya vive adentro, para todos los caminos */
 };
 
 /* ══ §12 LA CEREMONIA — el único título del juego que no es de un club, y por eso tiene velo
@@ -24425,7 +24480,7 @@ terminar=function(){
   const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tap:G.tapas||0,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // 2026-09-10: las tapas entran a la nota   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
   let rating=ratingDe(linea,gano,enPartido.contexto);
   /* §2z99: la última es tuya y pesa — medio punto en cada sentido (la metiste / no entró) */
-  if(G.clutch) rating=Math.max(0,Math.min(10,Math.round((rating+(G.clutch.anoto?0.5:-0.5))*10)/10));
+  if(G.clutch) rating=Math.max(0,Math.min(10,Math.round((rating+(clutchOk(G.clutch)?0.5:-0.5))*10)/10));   /* §2z223: aguantar la última vale lo mismo que meterla */
   const mision=enPartido.mision?{...enPartido.mision,valor:misionValor(enPartido.mision,G),ok:misionCumplida(enPartido.mision,G)}:null;
   /* §2z39.61: la misión ya no suma a la nota (su corte: "le pega al DT, no al puntaje de cómo jugaste"); el DT la lee en deltasRelaciones */
   const expAntes=J.exp||0, nivelAntes=J.nivel||1, dExp=expDelta(rating), expDespues=Math.max(0,expAntes+dExp), nivelDespues=nivelDeExp(expDespues);   // §2z101: con signo
@@ -24456,7 +24511,9 @@ terminar=function(){
   const filas=[];
   if(mision) filas.push([t(L('MISIÓN','MISSION','MISSÃO'))+' · '+misionMetaCorta(mision),'<span class="'+(mision.ok?'ok':'mal')+'">'+(mision.ok?'✓':'✗')+'</span>']);
   /* §2z99: la última fue tuya — un hecho de la noche, como la misión */
-  if(G.clutch) filas.push([t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')),'<span class="'+(G.clutch.anoto?'ok':'mal')+'">'+(G.clutch.anoto?'✓':'✗')+'</span>']);
+  if(G.clutch){ const cok=clutchOk(G.clutch);
+    filas.push([G.clutch.def?t(L('LA ÚLTIMA, DEFENDIDA','LAST STOP','A ÚLTIMA, DEFENDIDA')):t(L('LA ÚLTIMA','LAST SHOT','A ÚLTIMA')),
+                '<span class="'+(cok?'ok':'mal')+'">'+(cok?'✓':'✗')+'</span>']); }
   /* §2z74 (su pedido: "al final del partido no te dice cuánto cobraste"): la misma cuenta que paga el cierre
      (partido + ganar + misión, §2z15), como una fila más de la planilla. El amateur no cobra: sin fila. */
   /* 2026-09-10 (su caza: "lo que cobraste no tiene sentido acá si aparece en la siguiente pantalla"): la fila se fue — el
@@ -24599,7 +24656,7 @@ function priorizarCopa(cual){
   if(cual==='liga'){ e.fuerzas[mi]+=2; e.americas.fuerzas[mi]-=3; }
   else { e.americas.fuerzas[mi]+=3; e.fuerzas[mi]-=2; }
 }
-const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata,elimTxt,ordEn,anioMundial,eleccionVentanaSel});   // §2z42: la plata pasa por la contabilidad · §12.28: la carta de la ventana lee el torneo
+const CARTAS=instalarCartas({get C(){ return C; },est,clubDe,guardar,pintaLobby,verQueSeVe,priorizarCopa,plata,tieneItem,fplata,elimTxt,ordEn,anioMundial,eleccionVentanaSel,sponsorAviso});   /* §2z218 v6: el aviso de sponsor entra por el embudo de cartasAlEntrar */   // §2z42: la plata pasa por la contabilidad · §12.28: la carta de la ventana lee el torneo
 /* §2z26: lo que LA PRENSA puede leer del partido que acabás de jugar. Se arma antes de soltar
    enPartido; la serie y la clave vienen del cierre que calculó el velo de fin. */
 function ultimoPartido(cierre,e){
@@ -24835,8 +24892,16 @@ function sponsorAviso(volver){
   const seguir=()=>{ if(!sponsorAviso(volver)&&volver) volver(); };
   /* ⚠️ §2z218 (su corte: "el sponsor NUNCA te dice cómo se desbloquea, sólo te van apareciendo"): el aviso NO dice qué
      te pide mantener. Las reglas viven adentro; lo que ves es que te firmaron y cuánto pagan. */
-  if(a.tipo==='alta') mostrarTitular(t(sp.nom),'+'+fplata(sponsorPlata(sp))+' '+t(L('POR PARTIDO','PER GAME','POR JOGO')),'oro',t(sp.alta),seguir);
-  else mostrarTitular(t(sp.nom),t(L('TE SOLTARON','THEY DROPPED YOU','TE SOLTARAM')),'mal',t(sp.baja),seguir);
+  /* §2z218 v6 (su caza 2026-09-12): el titular decía la PLATA en grande y el nombre de la marca en el rótulo —
+     o sea que la pantalla nunca decía la palabra sponsor, y lo que veías era un número dorado y un nombre que no
+     conocés. Ahora el rótulo dice qué te está pasando, el grande es la MARCA (ella es el hecho) y la plata es una
+     píldora, como en cualquier carta. */
+  if(a.tipo==='alta') CARTAS.mostrarAviso({rotulo:L('SPONSOR NUEVO','NEW SPONSOR','NOVO PATROCINADOR'), fondo:'despacho',
+    remate:sp.nom, texto:sp.alta,
+    pildoras:[{ok:true, txt:'+'+fplata(sponsorPlata(sp))+' '+t(L('POR PARTIDO','PER GAME','POR JOGO'))}]}, seguir);
+  else CARTAS.mostrarAviso({rotulo:L('SPONSOR PERDIDO','SPONSOR LOST','PATROCINADOR PERDIDO'), fondo:'despacho',
+    remate:sp.nom, texto:sp.baja,
+    pildoras:[{ok:false, txt:'−'+fplata(sponsorPlata(sp))+' '+t(L('POR PARTIDO','PER GAME','POR JOGO'))}]}, seguir);
   return true;
 }
 /* ══ §2z222 PEDIR MÁS ═══════════════════════════════════════════════════════════════════════════════════════════

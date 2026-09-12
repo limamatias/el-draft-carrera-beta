@@ -1700,7 +1700,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='12b8142e35';
+const BUILD='613f6eba3f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -13290,6 +13290,14 @@ const bonoFuego=()=> G.fuego>=6?1.20 : G.fuego>=5?1.13 : G.fuego>=ENFUEGO?1.07 :
    opuesto a donde pega el on fire". Lo que se achica es la banda que VES: sin dado escondido (regla 1).
    ⚠️ LA ASIMETRÍA ES A PROPÓSITO: el fuego avisa en 3 (CALENTANDO) y recién paga en 4, porque un premio se anuncia
    antes de darse; el frío PEGA EN 3, que es su número, porque un castigo que avisa y no muerde no condena a nadie. */
+/* ⚠️ §2z223 b (su caza 2026-09-12, jugando: "LA ÚLTIMA DE ELLOS está completamente rota: ganábamos por 1, me salió el
+   1v1 CON LA PELOTA EN MIS MANOS y el aro atrás mío; dribbleé al aro, salió la volcada del clutch y ganamos por 3").
+   Hasta §2z223 "la última" y "la última es TUYA" eran la misma cosa, así que medio motor lee `G.esFinal` para decir
+   "tenés la pelota": el bote se habilita, la píldora dice ATACÁ y el tiro cuenta como definición. Al existir la última
+   DEFENSIVA ese supuesto quedó mintiendo. El concepto ahora tiene nombre propio y se usa donde se quería decir eso.
+   La clase: cuando una pieza nueva agrega un caso a un concepto viejo, hay que buscar quién leía el concepto como si
+   sólo existiera el caso de antes. */
+const finalMio=()=>G.esFinal && G.tipo!=='defensa';
 const FRIO=3;
 const bonoFrio=()=> G.frio>=5?0.83 : G.frio>=4?0.88 : G.frio>=FRIO?0.93 : 1;
 /* UN SOLO FACTOR para los tres lugares: fuego y frío son la misma racha con signo y nunca coexisten (uno de los dos
@@ -14534,7 +14542,12 @@ function armarPosesion(){
   /* la situación se ANUNCIA en grande y queda fija en la píldora (reclamo suyo: el texto
      chico no se leía y las situaciones se veían idénticas) */
   const sit=$('#sit');
-  if(G.esFinal){
+  /* ⚠️⚠️ §2z223 b, LA CAUSA RAÍZ de su caza ("me salió el 1v1 CON LA PELOTA EN MIS MANOS"): esta cadena de if/else
+     ARRANCA con la última y termina en `else if(G.tipo==='defensa')`. O sea que cuando la posesión era la última, la
+     cadena se cortaba acá y NUNCA llegaba a la rama defensiva: no corría `G.fase='defiendo'` ni `G.pelotaEn=portador`,
+     y la posesión se quedaba con la configuración ofensiva de más arriba. Por eso él tenía la pelota y podía atacar.
+     Ahora sólo la última TUYA se lleva la cadena; la defensiva sigue de largo hasta su rama y anuncia desde adentro. */
+  if(finalMio()){
     veredicto(t(L('¡LA ÚLTIMA!','LAST SHOT!','A ÚLTIMA!')),'fuego',1600); tensionArrancar();
     /* §2z102 (su caza 2026-09-07: "en LA ÚLTIMA sale todo en rojo, nada te hace dar cuenta que es una jugada con
        dribble; tardé 1 segundo en entender que no tenía que tirar de parado"): la píldora va en VERDE, el color del
@@ -14603,7 +14616,12 @@ function armarPosesion(){
       : G.defEscena==='1v1' ? t(L('Viene de frente: plantate.','He is coming at you: get set.','Ele vem de frente: se planta.'))
       : t(L('Vienen ellos: mantené apretado y deslizá.',"They're coming: hold down and slide.",'Eles vêm: segura apertado e desliza.')), true);   // un renglón (su caza 2026-09-03: tapaba el aro)
     G.fase='defiendo'; G.pelotaEn=G.defensa.portador;
-    G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0; }
+    G.carreraVos=null; G.flickIni=null; G.joy=null; G.joyLock=0;
+    /* §2z223 b: si ésta es la última, el mismo momento que la tuya —el veredicto grande y la tensión— con el verbo
+       dado vuelta, y la píldora en rojo, que es el color de lo que se acaba. Va DESPUÉS de armar la escena, para
+       pisar el cartel de la defensiva común. */
+    if(G.esFinal){ veredicto(t(L('¡LA ÚLTIMA DE ELLOS!','THEIR LAST SHOT!','A ÚLTIMA DELES!')),'fuego',1600); tensionArrancar();
+      sit.textContent=t(L('LA ÚLTIMA · AGUANTÁ','LAST STOP · HOLD','A ÚLTIMA · SEGURA')); sit.className='cierre'; } }
   else if(G.tipo==='sinPelota'){
     /* §2z207: la tiene él y arranca el desmarque — tu marca, su cuerpo y la lectura del compañero viven en 14 (tickSinPelota) */
     veredicto(t(L('¡DESMARCATE!','GET OPEN!','DESMARQUE-SE!')),'neu',1200);
@@ -15347,7 +15365,7 @@ function textoChoque(){
 }
 function boteDeEscena(){
   return G.tipo==='carril'||G.tipo==='avance'||G.tipo==='contra'||G.tipo==='bloqueo'
-      || G.tipo==='slalom' || G.esFinal || !!G.devuelta;
+      || G.tipo==='slalom' || finalMio() || !!G.devuelta;   /* §2z223 b: la última DEFENSIVA no te habilita el dribble */
 }
 /* LA CANCHA TIENE LÍNEAS EN SERIO — AHORA TAMBIÉN PARA EL PUNTO DE CAÍDA (sus dos cazas
    2026-08-27: un pase largo hacia mitad de cancha en la cámara de esquina "desapareció y
@@ -15574,7 +15592,7 @@ function juntar(){
   for(const d of G.defs){ const q=dist(d,a); if(q<dBD){dBD=q;bigDef=d;} }
   const tapa = dBD<40*ESC() && limpio<0.35-0.015*(dif.fis||3);
   const vola = calidad>0.75;
-  if(G.esFinal) G.sueltaFinal=true;   // la definición también es un tiro suelto
+  if(finalMio()) G.sueltaFinal=true;   // la definición también es un tiro suelto
   G.fase='vuelo'; G.tiros++; G.tiro=null;
   /* el porqué a la vista: la definición la decidió TU llegada, no un dado */
   chip(vola?t(L('Llegaste limpio · Volcada','Got there clean · Dunk','Chegou limpo · Enterrada')):(limpio>0.35?t(L('Llegaste justo · Bandeja','Got there just in time · Layup','Chegou no limite · Bandeja')):t(L('Llegaste trabado · Bandeja forzada','Got there smothered · Forced layup','Chegou travado · Bandeja forçada'))));
@@ -15993,7 +16011,7 @@ function lanzar(zona){
   const cae={x:desde.x+Math.cos(dir)*alcance(t.potencia), y:desde.y+Math.sin(dir)*alcance(t.potencia)};
 
   if(esTiro){
-    if(G.esFinal) G.sueltaFinal=true;   // el tiro ya salió: la chicharra no lo mata
+    if(finalMio()) G.sueltaFinal=true;   // el tiro ya salió: la chicharra no lo mata
     const es3=esTriple(desde);
     G.tiros++; if(es3)G.tiros3++;
     let tol=0.10, tapable=false, arco=0.5, dur=d/520;
@@ -17069,7 +17087,24 @@ function vueloLibre(res,dirT,pot){
   const desde={x:G.vos.x,y:G.vos.y}, hasta=aro();
   const cae={x:desde.x+Math.cos(dirT)*alcance(pot), y:desde.y+Math.sin(dirT)*alcance(pot)};
   G.fase='vuelo';
-  vuelo(desde, (res==='entra'||res==='casi')?hasta:cae, 0.85, 0.5, ()=>{
+  /* 2026-09-12 (su caza: "erré un libre y el efecto fue como que la pelota ENTRABA"). Y era literal: el `casi`
+     volaba AL CENTRO DEL ARO igual que el que entra, y el "bailó y salió" llegaba después, cuando el ojo ya había
+     leído canasta. El tiro normal hace lo correcto desde §2z116 —pega en el BORDE y el hierro lo escupe hacia
+     afuera, "el errado se VE irse"— y el libre se había quedado sin eso. Mismo tratamiento, mismos números. */
+  if(res==='casi'){
+    const dir=Math.atan2(hasta.y-desde.y,hasta.x-desde.x), off=rnd(14,26)*(Math.random()<0.5?1:-1);
+    const borde={x:hasta.x+Math.cos(dir)*off, y:hasta.y+Math.sin(dir)*off};
+    vuelo(desde,borde,0.85,0.5,()=>{ hierroFx();
+      const angO=Math.atan2(borde.y-hasta.y,borde.x-hasta.x)+rnd(-0.5,0.5);
+      const esc={x:borde.x+Math.cos(angO)*rnd(36,72), y:borde.y+Math.sin(angO)*rnd(36,72)};
+      vuelo(borde,esc,0.5,0.28,()=>cerrarLibre(res), rachaPelota());
+    }, rachaPelota());
+    return;
+  }
+  vuelo(desde, res==='entra'?hasta:cae, 0.85, 0.5, ()=>cerrarLibre(res), rachaPelota());
+}
+function cerrarLibre(res){
+  {
     G.libres.hecho++;
     if(res==='entra'){ canastaFx(); G.libres.metidos++; G.ftm++; G.nos++; G.pts++; marcador(); veredicto(t(L('¡ADENTRO!','GOOD!','DENTRO!')),'ok'); }
     else { if(res==='casi') hierroFx();
@@ -17081,7 +17116,7 @@ function vueloLibre(res,dirT,pot){
       const m=G.libres.metidos, tot=G.libres.total; G.libres=null;
       finPosesion(m>0, t(L(`De la línea: ${m} de ${tot}.`,`From the line: ${m} of ${tot}.`,`Da linha: ${m} de ${tot}.`)));
     }
-  }, G.fuego);
+  }
 }
 
 /* la devolución es TUYA (idea suya: "¿capaz deberías poder moverte mientras esperás que te
@@ -18195,7 +18230,7 @@ function finPosesion(anoto, resumen){
   if(G.esFinal && G.tipo==='defensa'){ const aguanto=G.riv===(G.rivAlFinal!=null?G.rivAlFinal:G.riv);
     G.clutch={def:true, aguanto, ok:aguanto, gano:G.nos>G.riv, empataba:G.nos===G.riv, anoto:false, asistio:false}; }
   else if(G.esFinal) G.clutch={anoto:!!anoto, ok:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
-  if(G.esFinal && anoto && G.nos>G.riv && !asistio) vineta('volcada',2300);   // el buzzer-beater ganado
+  if(finalMio() && anoto && G.nos>G.riv && !asistio) vineta('volcada',2300);   // el buzzer-beater ganado (§2z223 b: la volcada es de TU última, no de la que defendés)
   /* el lamento de la tribuna es de TU tiro errado (los resúmenes arrancan igual EN CADA
      IDIOMA — i18n: si un resumen de tiro errado nuevo no arranca así en los tres, el uhh
      muere en silencio; las pérdidas ya tienen su golpe y el libre no corta el murmullo */
@@ -19048,17 +19083,28 @@ function pelotita(x,y,r,esc,rot,fuego){
   ctx.save(); ctx.translate(x,y); ctx.scale(esc,esc);
   if(fuego<=-FRIO){
     const tC=performance.now(), hondo=fuego<=-4;
-    const gl=ctx.createRadialGradient(0,0,r*0.3,0,0,r*2.2);
-    const aH=(hondo?0.30:0.18)*(0.85+0.15*Math.sin(tC/620));
-    gl.addColorStop(0,`rgba(150,205,255,${aH})`); gl.addColorStop(1,'rgba(90,150,230,0)');
-    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(0,0,r*2.2,0,Math.PI*2); ctx.fill();
+    /* v2 (su caza jugándolo: "se ve, pero le falta un poco más de efecto al hielo"): el halo crece y pesa el doble,
+       la escarcha sobre el cuero se nota, las púas son más y más largas, y cae un polvo de escarcha —el espejo de
+       las chispas del fuego, pero hacia ABAJO, porque el hielo no sube. */
+    const gl=ctx.createRadialGradient(0,0,r*0.25,0,0,r*2.6);
+    const aH=(hondo?0.52:0.34)*(0.85+0.15*Math.sin(tC/620));
+    gl.addColorStop(0,`rgba(170,215,255,${aH})`); gl.addColorStop(0.55,`rgba(120,180,240,${aH*0.5})`); gl.addColorStop(1,'rgba(90,150,230,0)');
+    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(0,0,r*2.6,0,Math.PI*2); ctx.fill();
     /* la escarcha sobre el cuero: un velo azul que no tapa los gajos */
-    ctx.fillStyle=`rgba(190,225,255,${hondo?0.26:0.15})`;
+    ctx.fillStyle='rgba(190,225,255,'+(hondo?0.42:0.26)+')';
     ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
-    const nPu=hondo?8:6;
+    /* el polvo que se desprende: cae, no sube (determinista por tiempo, como el flameo) */
+    for(let i=0;i<(hondo?5:3);i++){
+      const f=((tC/900+i*0.37)%1), ang=i*2.4+0.6;
+      ctx.globalAlpha=(1-f)*(hondo?0.75:0.5);
+      ctx.fillStyle='rgba(215,240,255,1)';
+      ctx.beginPath(); ctx.arc(Math.cos(ang)*r*0.8, r*0.5+f*r*1.9, r*0.13*(1-f*0.5), 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+    const nPu=hondo?10:7;
     for(let i=0;i<nPu;i++){
       const ang=(i/nPu)*Math.PI*2+0.3, lat=0.75+0.25*Math.sin(tC/620+i*1.7);
-      const l0=r*1.02, l1=r*(hondo?1.62:1.38)*lat, w=r*0.15;
+      const l0=r*1.0, l1=r*(hondo?2.05:1.68)*lat, w=r*0.19;
       const cx=Math.cos(ang), cy=Math.sin(ang), px=-cy, py=cx;
       const capa=(k,col)=>{ ctx.fillStyle=col;
         ctx.beginPath(); ctx.moveTo(cx*l0+px*w*k, cy*l0+py*w*k);
@@ -20383,7 +20429,9 @@ function frame(now){
         for(const fz of (s.fantasmas||[])){ const a=clamp(1-(now-fz.t)/450,0,1); if(!a) continue; const p=aPantalla(fz);
           ctx.globalAlpha=a*0.45; ctx.fillStyle='#e9ecf3'; ctx.beginPath(); ctx.arc(p.x,p.y,12,0,Math.PI*2); ctx.fill(); }
         ctx.restore(); } }
-    if(G.pelotaEn&&!G.pelota){ const q=aPantalla(G.pelotaEn); pelotita(q.x+14,q.y-4,7,1); }
+    /* §2z224 (su caza: "en la de desmarcarte la pelota no se congela cuando la agarro"): la que está EN LA MANO
+       de alguien se dibuja acá cuando no hay muñeco que la lleve — y es tuya sólo si el que la tiene sos vos. */
+    if(G.pelotaEn&&!G.pelota){ const q=aPantalla(G.pelotaEn); pelotita(q.x+14,q.y-4,7,1,0, G.pelotaEn===G.vos?rachaPelota():0); }
     /* boteando, LA PELOTA se ve adelantada: es tu bote viajando, y es lo que se pincha */
     const bolaSep = G.fase==='conduzco' && G.bola && dist(G.bola,G.vos)>12;
     if(bolaSep){ const q=aPantalla(G.bola); pelotita(q.x,q.y,7,1); }
@@ -20814,7 +20862,7 @@ function frame(now){
       ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
       ctx.fillStyle='rgba(0,0,0,.30)';
       ctx.beginPath(); ctx.ellipse(pb.x,pb.y+pb.r*1.12,pb.r*0.66,pb.r*0.13,0,0,Math.PI*2); ctx.fill();
-      pelotita(pb.x,pb.y,pb.r,1,0,G.fuego);   // eligiendo la forma, TU pelota también arde
+      pelotita(pb.x,pb.y,pb.r,1,0,rachaPelota());   // eligiendo la forma, TU pelota también arde (§2z224: y se congela)
       /* §2z48 a: el gajo TAPADO se ve apagado y lo dice — la misma geometría que el robo (formaTapada, 12-lanzar) */
       const tap=esT?{}:{arriba:!!formaTapada('arriba'), abajo:!!formaTapada('abajo'), medio:!!formaTapada('medio')};
       const pildora=(txt,x,y,muerta)=>{

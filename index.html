@@ -254,6 +254,25 @@
   #titular .linea{max-width:30ch;line-height:1.3}
   #titular .linea:empty{display:none}
   #titular button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
+  /* §2z215 LO QUE PASA SIN QUE DECIDAS: el mismo idioma que el titular (rótulo · titular · línea) más la BARRA de la
+     relación CAYENDO. No hay opciones: pasó, lo ves caer, seguís. La pista es la de la planilla; el tramo perdido queda
+     pintado en rojo detrás y la barra viva se corre hasta el valor nuevo. */
+  #bajon{z-index:32;background:rgba(8,11,19,.93);gap:10px}
+  #bajon .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  #bajon h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch;color:var(--mal)}
+  #bajon .linea{max-width:32ch;line-height:1.35;font-size:17px}
+  #bajon .bajonRel{width:min(100%,300px);display:flex;flex-direction:column;gap:5px;margin-top:4px}
+  #bajon .bajonCab{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;letter-spacing:2px;
+       color:var(--tinta2);font-weight:600}
+  #bajon .bajonCab b{font-size:22px;letter-spacing:0;color:var(--tinta);font-variant-numeric:tabular-nums}
+  #bajon .bajonCab b.cae{color:var(--mal)}
+  /* el reset del DT puede dejarte MEJOR: ni título rojo ni tramo perdido */
+  #bajon.sube h1{color:var(--tinta)}
+  #bajon .pista{width:100%;height:10px;border-radius:5px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
+  #bajon .pista i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+  #bajon #bajonPerdida{background:var(--mal)}
+  #bajon #bajonBarra{background:var(--ok);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  #bajon button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
   /* §2z196: el velo del retiro habla el idioma del titular */
   #retiro{z-index:46;background:rgba(8,11,19,.96)}
   #retiro .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
@@ -344,6 +363,8 @@
   #carta .opc{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:12px;padding:12px 14px;
               display:flex;flex-direction:column;gap:4px;min-height:48px;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #carta .opc.apuesta{border-color:rgba(255,150,51,.55)}
+  /* §2z216: en un dilema las dos cuestan — las dos cajas llevan el borde de lo que duele, y ninguna es la cómoda */
+  #carta .opc.dilema{border-color:rgba(224,108,90,.5)}
   #carta .opc:active{transform:scale(.985)}
   #carta .opc:focus-visible{outline:3px solid var(--tinta)}
   #carta .opc b{font-size:15px;line-height:1.2;color:var(--tinta)}
@@ -1750,6 +1771,16 @@
   <h1 id="titularTxt"></h1>
   <div class="linea" id="titularSub"></div>
   <button id="titularOk" data-l-en="CONTINUE ▸" data-l-pt="SEGUIR ▸">SEGUIR ▸</button>
+</div>
+<div class="velo oculto" id="bajon">
+  <div class="rotulo" id="bajonRot"></div>
+  <h1 id="bajonTxt"></h1>
+  <div class="linea" id="bajonSub"></div>
+  <div class="bajonRel">
+    <div class="bajonCab"><span id="bajonQuien"></span><b id="bajonNum"></b></div>
+    <div class="pista"><i id="bajonPerdida"></i><i id="bajonBarra"></i></div>
+  </div>
+  <button id="bajonOk" data-l-en="CONTINUE &#9656;" data-l-pt="SEGUIR &#9656;">SEGUIR &#9656;</button>
 </div>
 <div class="velo oculto" id="fin">
   <h1 id="finTitulo"></h1>
@@ -5832,7 +5863,21 @@ function deltasRelaciones(r) {
   let dD = r.rating >= 8 ? 2 : r.rating >= 7 ? 1 : r.rating < 4 ? -2 : r.rating < 6 ? -1 : 0;
   if (r.mision) dD += r.mision.ok ? 2 : -2;
   if (r.clave && !r.gano) dD -= 1;
-  return { dH, dP, dD };
+  /* §2z217 RENDIMIENTOS DECRECIENTES (su ok 2026-09-11, después de terminar una temporada en 99/99/99): los últimos
+     puntos de una relación son los MÁS CAROS. El delta positivo se apaga a medida que la relación se acerca al techo
+     —×(99−R)/49, tope 1— así que de 50 para abajo nada cambia, a 80 un +2 vale +1 y de 88 para arriba un +2 ya no
+     mueve. Lo NEGATIVO nunca se frena: caer siempre cuesta lo mismo.
+     ⚠️ Va acá y no en `aplicarDeltas` porque el velo de fin MUESTRA estos deltas antes de aplicarlos (§2z12): con el
+     freno en el aplicar, el chip diría +2 y la barra se movería 0,6. Medido (2000 temporadas, el modelo real): un
+     crack pasa de 98/98/77 a 83/81/65 y el 99/99/99 deja de pasar; al regular casi no lo toca (51/62 contra 51/65). */
+  const R = r.rel;
+  if (!R) return { dH, dP, dD };
+  return { dH: frenoRel(dH, R.hinchada), dP: frenoRel(dP, R.plantel), dD: frenoRel(dD, R.dt) };
+}
+/* el freno: sólo sobre lo que sube, y nunca amplifica (de 50 para abajo el factor queda en 1) */
+function frenoRel(d, v) {
+  if (!(d > 0) || v === undefined) return d;
+  return Math.round(d * Math.min(1, (REL_MAX - v) / (REL_MAX - 50)));
 }
 function aplicarDeltas(J, d, R) {
   R = R || J.relaciones;   // §12.20: las de la selección viajan aparte (J.relSel)
@@ -5840,7 +5885,9 @@ function aplicarDeltas(J, d, R) {
   R.plantel = acotarRel(R.plantel + d.dP);
   R.dt = acotarRel(R.dt + d.dD);
 }
-const moverRelaciones = (J, r, R) => { const d = deltasRelaciones(r); aplicarDeltas(J, d, R); return d; };
+/* §2z217: el que aplica pasa SIEMPRE las relaciones de destino, así el freno usa las que corresponden
+   (las del club o las de la selección, §12.20) */
+const moverRelaciones = (J, r, R) => { const d = deltasRelaciones({ ...r, rel: r.rel || R || J.relaciones }); aplicarDeltas(J, d, R); return d; };
 /* lo que compra la HINCHADA (v0): el pago por partido, ±16% */
 const factorHinchada = (J) => 0.8 + J.relaciones.hinchada / 250;
 
@@ -6098,6 +6145,8 @@ function fechasDeCartas(){
        primera ventana, así la carta de las dos copas tiene dónde salir */
     /* §2z46: la fecha extra del continental (§2z39.51) ya no va — las cartas del continental y la selección salen por el cupo de EVENTO cuando su `cuando` se cumple */
     s.anio=$C().anio; s.fechas=out.sort((a,b)=>a-b); s.prensaN=0; s.eventosN=0; s.ultimoEvento=-99;   // §2z46: los cupos se renuevan con el año
+    s.evRelN=0; s.evRelUlt=-99; s.evRelUltId=null;   /* §2z215: el cupo de los eventos sin decisión también */
+    s.dilemaN=0; s.dilemaUlt=-99;   /* §2z216: y el de los dilemas */
   }
   return s;
 }
@@ -6503,11 +6552,71 @@ function rivalQueViene(u){
   try{ const o=miProximo(e); if(o&&o.tipo==='serie'&&o.rival) return {conocido:nom(o.rival),ronda:null}; }catch(err){}
   return null;
 }
+/* ══ §2z216 EL DILEMA (el catálogo, en 01w): las dos opciones cuestan, y elegís a quién le fallás ══ */
+function cartaDeDilema(){
+  const e=est(); if(!e||!$C()||e.fase!=='regular'||!e.fechaJugada) return null;
+  const s=fechasDeCartas();
+  if((s.dilemaN||0)>=DILEMAS_POR_TEMPORADA) return null;
+  if(e.fechaJugada-(s.dilemaUlt===undefined?-99:s.dilemaUlt)<DILEMA_CADA) return null;
+  const rng=rngFor($C().semilla,'dilema',$C().anio,e.fechaJugada);
+  if(!rng.chance(DILEMA_CHANCE)) return null;
+  const c=sortearCarta(CARTAS_DILEMA,ctxCarta(),rng);
+  if(!c) return null;
+  s.dilemaN=(s.dilemaN||0)+1; s.dilemaUlt=e.fechaJugada; guardar();
+  return c;
+}
+/* ══ §2z215 LO QUE PASA SIN QUE DECIDAS (su pedido; el catálogo y las perillas, en 01v) ═════════════════════════
+   Hasta cuatro por temporada, nunca a menos de EVENTO_REL_CADA fechas de la anterior, y sólo sobre una relación que
+   esté de EVENTO_REL_PISO para arriba. No hay opciones: pasó, la barra cae y seguís. */
+function eventoRelPendiente(){
+  const e=est(); if(!e||!$C()||e.fase!=='regular'||!e.fechaJugada) return null;
+  const s=fechasDeCartas();
+  if((s.evRelN||0)>=EVENTOS_REL_POR_TEMPORADA) return null;
+  if(e.fechaJugada-(s.evRelUlt===undefined?-99:s.evRelUlt)<EVENTO_REL_CADA) return null;
+  const rng=rngFor($C().semilla,'evrel',$C().anio,e.fechaJugada);
+  if(!rng.chance(EVENTO_REL_CHANCE)) return null;
+  const ctx=ctxCarta(), R=$C().jugador.relaciones;
+  /* el piso es la regla: al que ya la tiene baja no se le pega más */
+  const cand=EVENTOS_REL.filter(v=>(v.sinPiso||R[v.rel]>=EVENTO_REL_PISO)&&v.id!==s.evRelUltId&&(!v.cuando||v.cuando(ctx)));
+  if(!cand.length) return null;
+  const ev=rng.weighted(cand,(v)=>v.peso||100);
+  /* el que resetea (el DT que se va) no baja: te deja donde empieza cualquiera con él */
+  const baja=ev.reset!==undefined?R[ev.rel]-ev.reset:(ev.baja||EVENTO_REL_BAJA_DEF);
+  s.evRelN=(s.evRelN||0)+1; s.evRelUlt=e.fechaJugada; s.evRelUltId=ev.id; guardar();
+  return {ev,baja};
+}
+function mostrarEventoRel(x,alTerminar){
+  const R=$C().jugador.relaciones, antes=R[x.ev.rel], ahora=acotarRel(antes-x.baja), sube=ahora>antes;
+  R[x.ev.rel]=ahora; guardar();
+  const v=document.getElementById('bajon'), pct=(n)=>Math.max(0,Math.min(100,n))+'%';
+  v.classList.toggle('sube',sube);   /* un reset puede salirte a favor: ahí no es rojo y no hay tramo perdido */
+  document.getElementById('bajonRot').textContent=t(EVENTO_REL_ROTULO[x.ev.rel]);
+  document.getElementById('bajonTxt').textContent=t(x.ev.titular);
+  document.getElementById('bajonSub').textContent=t(x.ev.sub);
+  document.getElementById('bajonQuien').textContent=t(EVENTO_REL_NOMBRE[x.ev.rel]);
+  const num=document.getElementById('bajonNum'), barra=document.getElementById('bajonBarra'), perd=document.getElementById('bajonPerdida');
+  /* la barra arranca donde estabas; el tramo perdido ya está pintado en rojo detrás */
+  /* cayendo: el tramo perdido queda pintado en rojo detrás y la barra se corre hasta el valor nuevo.
+     Subiendo (el reset del DT): no hay nada perdido — la barra sube sola sobre la pista. */
+  perd.style.width=pct(sube?0:antes); barra.style.width=pct(antes); num.textContent=antes; num.classList.remove('cae');
+  v.classList.remove('oculto');
+  verQueSeVe('bajon','El parte');
+  setTimeout(()=>{
+    barra.style.width=pct(ahora); if(!sube) num.classList.add('cae');
+    const t0=Date.now(), dur=900;   /* el número baja con la barra */
+    const paso=()=>{ const k=Math.min(1,(Date.now()-t0)/dur);
+      num.textContent=Math.round(antes-(antes-ahora)*k); if(k<1) requestAnimationFrame(paso); };
+    requestAnimationFrame(paso);
+  },550);
+  document.getElementById('bajonOk').onclick=()=>{ v.classList.add('oculto'); if(alTerminar) alTerminar(); };
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
   if(ev){ const e=est(); mostrarCarta(ev,rotuloCarta(e),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
+  { const dl=cartaDeDilema(); if(dl){ mostrarCarta(dl,t(L('EL DILEMA','THE DILEMMA','O DILEMA')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }   /* §2z216 */
+  { const er=eventoRelPendiente(); if(er){ mostrarEventoRel(er,()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }   /* §2z215 */
   const c=cartaPendiente(); if(!c) return false;
   const e=est();
   mostrarCarta(c,rotuloCarta(e),()=>{ pintaLobby(); });
@@ -6871,7 +6980,7 @@ const CARTAS_PRENSA=[
        {p:40,remate:L('Mirá quién habla','Look who is talking','Olha quem fala'),texto:L('El pívot lo lee en voz alta en el vestuario. Con tu tono.','The center reads it out loud in the locker room. In your voice.','O pivô lê em voz alta no vestiário. Com sua voz.'),ef:{rel:{plantel:-4}}}]}]},
 ];
 
-return {mostrarCarta,cartaDePrensa,cartasAlEntrar,cartaDeReceso,cartaDeSalida,cartaDeLujo,salidaDe,poolGeneral,poolReceso,CARTAS_PRENSA,ctxCarta,aplicarEfectos,pildorasDe,cartaElegible,cartasEstado};
+return {mostrarCarta,cartaDePrensa,cartasAlEntrar,eventoRelPendiente,mostrarEventoRel,cartaDeDilema,cartaDeReceso,cartaDeSalida,cartaDeLujo,salidaDe,poolGeneral,poolReceso,CARTAS_PRENSA,ctxCarta,aplicarEfectos,pildorasDe,cartaElegible,cartasEstado};
 }
 /* ══ 01l — EL CATÁLOGO CRIBADO DE EL DRAFT (§2z26, 2026-09-02). Copiado y convertido a nuestro
    vocabulario (skills · relaciones · plataX · energía · latas · minutos), NO compartido. Cada carta
@@ -12458,6 +12567,118 @@ const CARTA_LUJO={ id:'prensa_lujo', de:'vida', repite:true, fondo:'despacho',
         {p:65, remate:L('La tapa', 'The cover', 'A capa'), texto:L('La hinchada la pega en el bar. Alguien ya la tiene de fondo de pantalla.', 'The fans pin it up at the bar. Somebody already has it as a wallpaper.', 'A torcida cola no bar. Alguém já usa de papel de parede.'), ef:{ rel:{hinchada:4} }},
         {p:35, remate:L('El agrandado', 'The big shot', 'O metido'), texto:L('En el vestuario la foto circula con otro título.', 'In the locker room the photo goes around with a different headline.', 'No vestiário a foto circula com outro título.'), ef:{ rel:{plantel:-3, hinchada:2} }} ] },
   ] };
+/* ══ 01v — LO QUE PASA SIN QUE DECIDAS (§2z215, su pedido 2026-09-11: "durante la temporada debería haber algún evento
+   o alguna cosa que te haga bajar la relación, como para compensar. Hoy salvo que juegues mal, subís y subís… terminé
+   la temporada en 99/99/99". Es el evento de NSS: no hay decisión, se te informa que pasó X y la barra CAE) ═══════
+   Medido antes de escribir esto (`deltasRelaciones` real, 36 fechas, arrancando en 50): un crack toca el techo de 99
+   con el DT en la fecha 17 y con el plantel en la 25 — media temporada con dos relaciones clavadas donde nada las mueve.
+   ⚠️ NUNCA le pega a una relación que ya está para abajo (`EVENTO_REL_PISO`): el contrapeso es contra el trinquete,
+   no contra el que la está pasando mal. Y el que tiene `cuando` pesa más: si el juego puede engancharlo a algo que te
+   está pasando, se siente justo en vez de arbitrario (su corte: "en general azar; si alguno lo enganchamos, mejor"). */
+const EVENTO_REL_PISO = 65;              // de acá para abajo no te tocan
+/* §2z215 v2 (su pregunta: "¿cuánto decís que debería impactar cada una?"): la baja la trae CADA EVENTO, no un
+   rango suelto — lo que pesa es lo que pasó. La escala: −4 un roce social, −5 un aviso, −6 algo que se dijo en
+   público, −7 lo que hiciste vos y vio todo el mundo. */
+const EVENTO_REL_BAJA_DEF = 5;           // el que no declare `baja`
+const EVENTOS_REL_POR_TEMPORADA = 4;
+const EVENTO_REL_CADA = 4;               // fechas mínimas entre dos
+const EVENTO_REL_CHANCE = 0.45;          // no toda fecha que cumple trae uno
+const EVENTO_REL_ROTULO = {
+  dt:       L('EL DT','THE COACH','O TÉCNICO'),
+  plantel:  L('EL VESTUARIO','THE LOCKER ROOM','O VESTIÁRIO'),
+  hinchada: L('LA TRIBUNA','THE STANDS','A TORCIDA') };
+/* el nombre que va al lado de la barra: el mismo de los chips del velo de fin (§2z12) */
+const EVENTO_REL_NOMBRE = {
+  dt:       L('DT','COACH','TÉCNICO'),
+  plantel:  L('PLANTEL','SQUAD','ELENCO'),
+  hinchada: L('HINCHADA','FANS','TORCIDA') };
+
+const EVENTOS_REL = [
+ /* ── de puro azar: el mundo se mueve y a vos te salpica ── */
+ { id:'evr_refuerzo', rel:'dt', baja:5, peso:100,
+   titular:L('LLEGÓ UNO DE TU PUESTO','A SIGNING IN YOUR SPOT','CHEGOU UM DA SUA POSIÇÃO'),
+   sub:L('El club lo presenta un martes a la mañana, con la camiseta y las fotos. En la práctica el DT lo pone con los titulares y a vos te deja del otro lado.','The club unveils him on a Tuesday morning, shirt and photos and all. At practice the coach puts him with the starters and leaves you on the other side.','O clube o apresenta numa terça de manhã, com camisa e fotos. No treino o técnico o coloca com os titulares e deixa você do outro lado.') },
+ { id:'evr_radio_te_vas', rel:'hinchada', baja:6, peso:100,
+   titular:L('DIJERON QUE TE VAS','THEY SAID YOU ARE LEAVING','DISSERAM QUE VOCÊ VAI EMBORA'),
+   sub:L('Una radio asegura que ya arreglaste con otro club. Es mentira y no importa: para el jueves está en todos lados y colgaron un trapo en la puerta del club.','A radio station swears you have already agreed terms elsewhere. It is false and it does not matter: by Thursday it is everywhere, and somebody hung a banner on the club gates.','Uma rádio garante que você já acertou com outro clube. É mentira e não importa: na quinta está em todo lugar, e penduraram uma faixa no portão do clube.') },
+ { id:'evr_no_circula', rel:'plantel', baja:6, peso:100,
+   titular:L('LA PELOTA NO CIRCULA','THE BALL DOES NOT MOVE','A BOLA NÃO CIRCULA'),
+   sub:L('Un compañero lo dijo en una nota, sin nombrarte. No hacía falta que te nombrara. El lunes el vestuario habla más bajo cuando entrás.','A teammate said it in an interview without naming you. He did not need to. On Monday the locker room talks quieter when you walk in.','Um companheiro disse numa entrevista sem te citar. Não precisava citar. Na segunda o vestiário fala mais baixo quando você entra.') },
+ { id:'evr_foto', rel:'hinchada', baja:7, peso:90,
+   titular:L('LA FOTO DE LAS CUATRO','THE FOUR A.M. PHOTO','A FOTO DAS QUATRO'),
+   sub:L('Alguien te filmó a las cuatro de la mañana en un boliche, dos días antes de un partido. El video dura once segundos y lo vio toda la ciudad.','Someone filmed you in a nightclub at four in the morning, two days before a game. The clip is eleven seconds long and the whole city saw it.','Alguém te filmou às quatro da manhã numa balada, dois dias antes de um jogo. O vídeo tem onze segundos e a cidade inteira viu.') },
+ { id:'evr_representante', rel:'dt', baja:6, peso:90,
+   titular:L('TU REPRESENTANTE HABLÓ','YOUR AGENT TALKED','SEU EMPRESÁRIO FALOU'),
+   sub:L('Dijo en la radio que en este club no te están usando bien. Vos no te enteraste hasta que el DT te lo leyó en voz alta, delante de todos.','He went on the radio to say this club is not using you properly. You found out when the coach read it out loud, in front of everybody.','Ele disse na rádio que neste clube não estão te usando bem. Você só soube quando o técnico leu em voz alta, na frente de todos.') },
+ { id:'evr_grupo', rel:'plantel', baja:4, peso:90,
+   titular:L('EL GRUPO SIN VOS','THE GROUP WITHOUT YOU','O GRUPO SEM VOCÊ'),
+   sub:L('Te enterás por una historia que subió uno: hubo asado en la casa del capitán y a vos no te avisó nadie. Dicen que fue un mal entendido.','You find out from somebody\'s story: there was a barbecue at the captain\'s place and nobody told you. They say it was a misunderstanding.','Você descobre por um story: teve churrasco na casa do capitão e ninguém te avisou. Dizem que foi um mal-entendido.') },
+ /* ── enganchados a lo que te está pasando ── */
+ /* su idea (2026-09-11): "se va el DT, por ejemplo, y ahí la relación se resetea". No es una baja: es empezar de
+    cero con otro tipo. Puede salirte a favor —si venías peleado, el que llega no sabe nada— y por eso es el único
+    evento sin piso: sale cuando el DT te tiene MUY bien o MUY mal (a menos de 8 del medio no cambiaría nada). */
+ { id:'evr_dt_nuevo', rel:'dt', peso:130, reset:50, sinPiso:true, cuando:(c)=>Math.abs(c.rel.dt-50)>=8&&c.avance>0.2,
+   titular:L('SE FUE EL DT','THE COACH IS GONE','O TÉCNICO FOI EMBORA'),
+   sub:L('Lo echaron un domingo a la noche, por teléfono. El martes hay otro parado en el medio de la cancha, con una carpeta y una lista de nombres, y el tuyo es uno más.','They fired him on a Sunday night, over the phone. On Tuesday there is another man standing at midcourt with a folder and a list of names, and yours is just one of them.','Demitiram numa domingo à noite, por telefone. Na terça tem outro parado no meio da quadra, com uma pasta e uma lista de nomes, e o seu é mais um.') },
+ { id:'evr_tres_derrotas', rel:'hinchada', baja:6, peso:220, cuando:(c)=>c.racha<=-3,
+   titular:L('LOS ESPERABAN EN LA PUERTA','THEY WERE WAITING AT THE DOOR','ESPERAVAM NA PORTA'),
+   sub:L('Tercera derrota seguida. Cuando el micro llega al club hay treinta esperando, y no vinieron a pedir fotos.','Third straight loss. When the bus pulls in there are thirty of them waiting, and they did not come for photos.','Terceira derrota seguida. Quando o ônibus chega ao clube há trinta esperando, e não vieram pedir foto.') },
+ { id:'evr_ultimos', rel:'hinchada', baja:5, peso:200, cuando:(c)=>c.posicion&&c.nClubes&&c.posicion>=c.nClubes-1&&c.avance>0.35,
+   titular:L('LA TABLA NO MIENTE','THE TABLE DOES NOT LIE','A TABELA NÃO MENTE'),
+   sub:L('El club está donde nadie quiere estar y la tribuna dejó de cantar en el tercer cuarto. Ahora se van antes de que suene la chicharra.','The club is where nobody wants to be, and the crowd stopped singing in the third quarter. Now they leave before the buzzer.','O clube está onde ninguém quer estar, e a torcida parou de cantar no terceiro quarto. Agora saem antes da buzina.') },
+ { id:'evr_celos_mvp', rel:'plantel', baja:5, peso:210, cuando:(c)=>c.mvpPos&&c.mvpPos<=3,
+   titular:L('LO LEYÓ EN VOZ ALTA','HE READ IT OUT LOUD','LEU EM VOZ ALTA'),
+   sub:L('Salió la lista de candidatos al MVP y estás ahí arriba. Un compañero la leyó en voz alta en el vestuario, con una sonrisa que no era una sonrisa.','The MVP shortlist came out and you are on it. A teammate read it out loud in the locker room, with a smile that was not a smile.','Saiu a lista de candidatos a MVP e você está lá em cima. Um companheiro leu em voz alta no vestiário, com um sorriso que não era um sorriso.') },
+ { id:'evr_le_sacaste_el_lugar', rel:'plantel', baja:4, peso:190, cuando:(c)=>c.minutos>=30,
+   titular:L('DEJÓ DE SALUDARTE','HE STOPPED SAYING HELLO','PAROU DE TE CUMPRIMENTAR'),
+   sub:L('El que perdió su lugar por vos entrena a diez metros y mira para otro lado. No hizo ni una escena: simplemente dejó de saludarte.','The man who lost his spot to you trains ten metres away and looks the other way. He never made a scene: he just stopped saying hello.','O que perdeu o lugar para você treina a dez metros e olha para o outro lado. Não fez cena nenhuma: simplesmente parou de te cumprimentar.') },
+];
+/* ══ 01w — LOS DILEMAS (§2z216, su pedido 2026-09-11: "los dilemas también están buenos para implementarse… hoy es
+   todo subida; terminé la temporada en 99/99/99") ═══════════════════════════════════════════════════════════════
+   La diferencia con una carta común: una carta es SEGURA o APUESTA —las dos ramas buenas, la mala sólo si apostás—.
+   Un dilema **te cobra las dos**: el DT quiere una cosa y el vestuario la contraria, y lo que elegís es A QUIÉN LE
+   FALLÁS. Las dos opciones son p:100 (no hay dado: no estás jugando a la suerte, estás eligiendo) y las dos tienen
+   que salir en negativo — si una de las dos sale gratis, no es un dilema, es una carta con una trampa.
+   ⚠️ No tiene piso de relación (a diferencia de §2z215): como las dos opciones le pegan a cosas DISTINTAS, siempre
+   podés elegir la que hoy te podés bancar. Ésa es la decisión. */
+const DILEMAS_POR_TEMPORADA = 3;
+const DILEMA_CADA = 5;            // fechas mínimas entre dos
+const DILEMA_CHANCE = 0.5;
+
+const CARTAS_DILEMA = [
+ { id:'dil_homenaje', de:'dilema', peso:100, repite:true, fondo:'vestuario',
+   gancho:L('El club juega un amistoso a beneficio de un ex que está enfermo. La tribuna ya vendió las entradas con tu cara en el afiche, y el DT te dice en la práctica que ni se te ocurra: tenés tres partidos en seis días.','The club is playing a benefit game for a former player who is ill. The fans already sold tickets with your face on the poster, and at practice the coach tells you not even to think about it: you have three games in six days.','O clube joga um amistoso beneficente por um ex que está doente. A torcida já vendeu ingressos com sua cara no cartaz, e no treino o técnico diz para nem pensar: você tem três jogos em seis dias.'),
+   opciones:[
+     {tipo:'dilema',label:L('Jugarlo igual','Play it anyway','Jogar mesmo assim'),desenlaces:[{p:100,remate:L('Veinte minutos y una foto','Twenty minutes and a photo','Vinte minutos e uma foto'),texto:L('Jugás veinte minutos y te sacás la foto con la familia. El DT no te dice nada en toda la semana, que es peor que si te dijera algo.','You play twenty minutes and take the photo with the family. The coach says nothing to you all week, which is worse than if he did.','Você joga vinte minutos e tira a foto com a família. O técnico não te diz nada a semana inteira, o que é pior do que se dissesse.'),ef:{rel:{dt:-6},energia:-8}}]},
+     {tipo:'dilema',label:L('Hacerle caso al DT','Do what the coach says','Obedecer o técnico'),desenlaces:[{p:100,remate:L('El afiche quedó','The poster stayed up','O cartaz ficou'),texto:L('No vas. El afiche con tu cara siguió pegado en la puerta del club toda la semana, y alguien le escribió algo encima.','You do not go. The poster with your face stayed on the club door all week, and somebody wrote something across it.','Você não vai. O cartaz com sua cara ficou colado na porta do clube a semana toda, e alguém escreveu algo em cima.'),ef:{rel:{hinchada:-7}}}]}]},
+ { id:'dil_reclamo', de:'dilema', peso:100, repite:true, fondo:'vestuario',
+   gancho:L('Hace dos meses que no cobran los premios. El plantel decidió que hable uno solo y todos te miran a vos, que sos el que sale en la tele.','The bonuses have not been paid in two months. The squad decided one man should speak, and everyone is looking at you — you are the one who is on TV.','Há dois meses que não pagam os prêmios. O elenco decidiu que fale um só, e todos olham para você, que é quem aparece na TV.'),
+   opciones:[
+     {tipo:'dilema',label:L('Poner la cara','Be the one who speaks','Dar a cara'),desenlaces:[{p:100,remate:L('Sale en todos lados','It is everywhere','Sai em todo lugar'),texto:L('Hablás dos minutos, sin levantar la voz. El presidente lo lee esa noche y al DT lo llaman a la mañana siguiente para preguntarle por qué no lo frenó.','You speak for two minutes, without raising your voice. The president reads it that night, and the next morning they call the coach in to ask why he did not stop you.','Você fala dois minutos, sem levantar a voz. O presidente lê à noite, e de manhã chamam o técnico para perguntar por que não te segurou.'),ef:{rel:{dt:-7,plantel:2}}}]},
+     {tipo:'dilema',label:L('Que hable otro','Let somebody else do it','Que fale outro'),desenlaces:[{p:100,remate:L('Nadie habló','Nobody spoke','Ninguém falou'),texto:L('Decís que no es tu lugar. Nadie te discute y nadie habla. Los premios siguen sin pagarse y el vestuario sabe quién podía y no quiso.','You say it is not your place. Nobody argues and nobody speaks. The bonuses go unpaid, and the locker room knows who could have and chose not to.','Você diz que não é seu lugar. Ninguém discute e ninguém fala. Os prêmios seguem sem pagar, e o vestiário sabe quem podia e não quis.'),ef:{rel:{plantel:-7}}}]}]},
+ { id:'dil_tapa', de:'dilema', peso:95, repite:true, fondo:'prensa',
+   gancho:L('Un periodista te ofrece la tapa del domingo. La quiere con una frase sobre cómo maneja el club los minutos, y te aclara que sin esa frase no hay tapa.','A journalist offers you the Sunday front page. He wants it with a line about how the club handles minutes, and makes clear there is no front page without that line.','Um jornalista te oferece a capa de domingo. Quer com uma frase sobre como o clube administra os minutos, e avisa que sem essa frase não tem capa.'),
+   opciones:[
+     {tipo:'dilema',label:L('Darle la frase','Give him the line','Dar a frase'),desenlaces:[{p:100,remate:L('Tapa del domingo','Sunday front page','Capa de domingo'),texto:L('Salís a toda página y la ciudad te da la razón. En el club nadie te felicita, y el lunes la práctica empieza sin vos en el quinteto.','You get the full page and the city agrees with you. Nobody at the club congratulates you, and on Monday practice starts without you in the first five.','Você sai em página inteira e a cidade te dá razão. No clube ninguém te parabeniza, e na segunda o treino começa sem você entre os cinco.'),ef:{rel:{dt:-7,hinchada:3}}}]},
+     {tipo:'dilema',label:L('Sin frase no hay nota','No line, no interview','Sem frase não tem nota'),desenlaces:[{p:100,remate:L('La tapa fue de otro','Somebody else got the cover','A capa foi de outro'),texto:L('La tapa del domingo es de un juvenil de otro club. La nota de al lado dice que vos no quisiste hablar, y esa es la frase que queda.','Sunday\'s cover goes to a kid from another club. The sidebar says you refused to talk, and that is the line that sticks.','A capa de domingo é de um garoto de outro clube. A nota ao lado diz que você não quis falar, e é essa frase que fica.'),ef:{rel:{hinchada:-5}}}]}]},
+ { id:'dil_tobillo', de:'dilema', peso:95, repite:true, fondo:'vestuario',
+   gancho:L('Te doblaste el tobillo el jueves. El médico dice tres partidos; el jueves a la noche el DT te llama aparte y te pregunta, sin rodeos, si el sábado podés jugar el clásico.','You rolled your ankle on Thursday. The doctor says three games; on Thursday night the coach pulls you aside and asks, flat out, whether you can play the derby on Saturday.','Você torceu o tornozelo na quinta. O médico fala em três jogos; na quinta à noite o técnico te chama de lado e pergunta, sem rodeios, se no sábado você joga o clássico.'),
+   opciones:[
+     {tipo:'dilema',label:L('Jugar infiltrado','Play with a shot','Jogar infiltrado'),desenlaces:[{p:100,remate:L('Aguantó el tobillo','The ankle held','O tornozelo aguentou'),texto:L('Te infiltran a las siete y jugás veintiséis minutos sin apoyar bien. El vestuario lo vio entrar al vestuario rengueando y salir a la cancha igual. El lunes no podés ni bajar una escalera.','They inject you at seven and you play twenty-six minutes without ever planting properly. The locker room saw you limp in and walk out to play anyway. On Monday you cannot get down a staircase.','Te infiltram às sete e você joga vinte e seis minutos sem apoiar direito. O vestiário viu você entrar mancando e sair para jogar mesmo assim. Na segunda você não consegue descer uma escada.'),ef:{rel:{plantel:3},energia:-18}}]},
+     {tipo:'dilema',label:L('Hacerle caso al médico','Listen to the doctor','Ouvir o médico'),desenlaces:[{p:100,remate:L('Lo viste de traje','You watched it in a suit','Você viu de terno'),texto:L('Ves el clásico de traje, en la tercera fila. El DT no te mira en todo el partido y el lunes la práctica arranca con otro en tu lugar.','You watch the derby in a suit, third row. The coach does not look at you all game, and on Monday practice starts with somebody else in your spot.','Você vê o clássico de terno, na terceira fila. O técnico não olha para você o jogo inteiro, e na segunda o treino começa com outro no seu lugar.'),ef:{rel:{dt:-7}}}]}]},
+ { id:'dil_pibe', de:'dilema', peso:90, repite:true, fondo:'vestuario',
+   /* su caza: el DT no le pregunta esto a un pibe. Para que te lo pregunte a vos tenés que ser el veterano. */
+   cuando:(c)=>c.edad>=25,
+   gancho:L('El DT te pregunta delante de todos si el pibe de diecisiete está para jugar el clásico. El pibe está a dos metros, mirándose las zapatillas.','In front of everyone, the coach asks you whether the seventeen-year-old is ready for the derby. The kid is two metres away, staring at his shoes.','O técnico pergunta na frente de todos se o garoto de dezessete está pronto para o clássico. O moleque está a dois metros, olhando para os próprios tênis.'),
+   opciones:[
+     {tipo:'dilema',label:L('"Está para jugar"','"He is ready"','"Está pronto"'),desenlaces:[{p:100,remate:L('Le contestaste al DT','You answered the coach','Você respondeu ao técnico'),texto:L('El DT tenía decidido que no. Lo decís igual y el pibe juega catorce minutos. Con vos el DT no vuelve a hablar de básquet en dos semanas.','The coach had already decided against it. You say it anyway and the kid plays fourteen minutes. The coach does not talk basketball with you for two weeks.','O técnico já tinha decidido que não. Você diz mesmo assim e o garoto joga catorze minutos. O técnico não fala de basquete com você por duas semanas.'),ef:{rel:{dt:-5,plantel:2}}}]},
+     {tipo:'dilema',label:L('"Le falta"','"Not yet"','"Falta"'),desenlaces:[{p:100,remate:L('Lo escuchó todo el vestuario','The whole room heard it','O vestiário inteiro ouviu'),texto:L('Lo decís mirando al DT, no al pibe. El pibe igual lo escuchó, y los cuatro que se criaron con él también.','You say it looking at the coach, not at the kid. The kid heard it anyway, and so did the four who came up with him.','Você diz olhando para o técnico, não para o garoto. O garoto ouviu mesmo assim, e os quatro que cresceram com ele também.'),ef:{rel:{plantel:-6}}}]}]},
+ { id:'dil_barrio', de:'dilema', peso:90, repite:true, fondo:'vestuario',
+   gancho:L('El club donde aprendiste cumple cien años el sábado. Te quieren en la cancha, con la camiseta de ellos. El sábado a la noche tenés partido.','The club where you learned to play turns a hundred on Saturday. They want you on the court in their shirt. Saturday night you have a game.','O clube onde você aprendeu faz cem anos no sábado. Querem você na quadra, com a camisa deles. No sábado à noite você tem jogo.'),
+   opciones:[
+     {tipo:'dilema',label:L('Ir a la mañana y jugar a la noche','Go in the morning, play at night','Ir de manhã e jogar à noite'),desenlaces:[{p:100,remate:L('Dos canchas en un día','Two courts in one day','Duas quadras num dia'),texto:L('Llegás al estadio a las siete con la voz gastada de saludar gente. Jugás. No es tu mejor noche y el DT lo sabe por qué.','You get to the arena at seven with your voice gone from greeting people. You play. It is not your best night, and the coach knows why.','Você chega ao ginásio às sete com a voz gasta de cumprimentar gente. Joga. Não é sua melhor noite, e o técnico sabe por quê.'),ef:{rel:{dt:-5},energia:-12}}]},
+     {tipo:'dilema',label:L('Mandar un video','Send a video','Mandar um vídeo'),desenlaces:[{p:100,remate:L('Treinta segundos','Thirty seconds','Trinta segundos'),texto:L('Grabás treinta segundos desde el vestuario. Lo pasan por un parlante, en una cancha llena de gente que te vio empezar.','You record thirty seconds from the locker room. They play it over a loudspeaker, in a gym full of people who watched you start.','Você grava trinta segundos do vestiário. Passam num alto-falante, numa quadra cheia de gente que te viu começar.'),ef:{rel:{hinchada:-5}}}]}]},
+];
 'use strict';
 /* el reloj del cuarto por liga (§9.7): 12:00 NBA · 10:00 FIBA — presentación sobre el
    guion (los beats se reparten proporcional). El default es 720 (el prototipo nació NBA);
@@ -24029,7 +24250,8 @@ terminar=function(){
   const esClave=enPartido.tipo==='serie'||(enPartido.tipo==='americas'&&enPartido.etapa!=='grupo')||esClaveAmericas(est(),enPartido)
     ||(enPartido.tipo==='seleccion'&&enPartido.etapa!=='grupo'&&enPartido.etapa!=='eliminatorias')
     ||!!(enPartido.porqueCal||elegirCalientes(est()).find(c=>c.fecha===enPartido.fecha));
-  const deltas=deltasRelaciones({gano,clave:esClave,local:!!enPartido.local,ast:G.ast/ESC_RITMO(),rating,mision});   // §2z43.1: el plantel cuenta asistencias por partido normal
+  const deltas=deltasRelaciones({gano,clave:esClave,local:!!enPartido.local,ast:G.ast/ESC_RITMO(),rating,mision,
+    rel:enPartido.tipo==='seleccion'?relSelDe(J):J.relaciones});   // §2z43.1: el plantel cuenta asistencias por partido normal · §2z217: el freno necesita saber de dónde venís
   /* §2z100: "el partido del año" es la final o el decisivo de una serie, no cualquier clave (su caza: "no puede
      aplicarle a TODOS los partidos clave") */
   const grande=(()=>{ const o=enPartido; if(o.tipo==='seleccion') return o.etapa==='final';

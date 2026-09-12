@@ -1732,7 +1732,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='39829244e5';
+const BUILD='1b23de9572';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -25647,6 +25647,7 @@ function pintaTuyo(){
    hinchada"). El switch aparece recién cuando la selección te abrió las suyas (la primera convocatoria). */
 let ladoRel='club', ladoRel_auto=true;
 let ladoVos='club';   // §2z71: el lado del resumen de VOS   // auto: sigue al próximo partido hasta que tocás el switch
+let ladoVos_auto=true;   // 2026-09-13 (su caza: «VOS no se ancla a que estés en el Mundial; el resto sí»): el comentario de arriba lo prometía y nadie lo hacía
 function pintaRelaciones(){
   const J=C.jugador, e=est(), sw=$l('lobRelSwitch');
   /* §12.20.1 (su caza: "juego contra Panamá y en EQUIPO me siguen figurando las de Boca"): en una partida de antes
@@ -25774,13 +25775,16 @@ function pintaSecciones(){
   const lClub=sumar(mp.filter(p=>!p.sel&&!p.po&&!p.conSeleccion));
   const torAnio=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.anio===C.anio&&x.linea);
   const lSel=sumar(mp.filter(p=>p.sel)); for(const x of torAnio){ const l=x.linea; lSel.pj+=l.pj||0; lSel.min+=l.min||0; lSel.pts+=l.pts||0; lSel.ast+=l.ast||0; lSel.rob+=l.rob||0; lSel.tap+=l.tap||0; }
+  /* 2026-09-13: el torneo del receso EN CURSO todavía no está en mem.torneos (entra al cerrarse): sus partidos se suman de C.selTorneo.mis */
+  if(C.selTorneo) for(const p of (C.selTorneo.mis||[])){ lSel.pj++; lSel.min+=p.minutos||0; lSel.pts+=p.pts||0; lSel.ast+=p.ast||0; lSel.rob+=p.rob||0; lSel.tap+=p.tap||0; }
   const haySelVos=lSel.pj>0;
   if(!haySelVos) ladoVos='club';
+  if(ladoVos_auto&&haySelVos) ladoVos=(proxLobby&&proxLobby.tipo==='seleccion')?'sel':'club';   // §2z74 para VOS: abre del lado del próximo hasta que tocás el switch
   const swV=$l('lobVosSwitch'); swV.classList.toggle('oculto',!haySelVos);
   if(haySelVos){ const clubV=clubDe(e.miClubId), paisV=J.nacionalidad||'ar';
     const tabV=(lado,html)=>'<div class="tab'+(ladoVos===lado?' act':'')+'" data-ladovos="'+lado+'" tabindex="0">'+html+'</div>';
     swV.innerHTML=tabV('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>')+tabV('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>');
-    swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
+    swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ ladoVos_auto=false; if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
   const enSel=ladoVos==='sel'&&haySelVos, lv=enSel?lSel:lClub;
   const stat=(v)=>lv.pj?fdec(v/lv.pj):'—';
   /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el

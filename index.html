@@ -1420,6 +1420,26 @@
   #selVelo #selPremios .fila-item .desc{color:var(--tinta)}
   #selVelo #selPremios svg{fill:#f2c94c;vertical-align:-3px}
   #resTBeta{display:flex;flex-direction:column;gap:8px}
+  /* 2026-09-13 EL CIERRE DE LA LIGA: héroe · tres fichas · lo que te dejó (escala §2z11: rótulo 11 · título 28 · fichas 22/11) */
+  #resumenT h2 small{display:block;font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600;margin-bottom:2px}
+  #resumenT .resHero{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 0 8px;text-align:center}
+  #resumenT .resHero .resIco{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+       background:#31427a;border:2px solid rgba(233,236,243,.7);overflow:hidden}
+  #resumenT .resHero .resIco svg{width:44px;height:44px}
+  #resumenT .resHero.oro .resIco{background:#2b2310;border-color:#f2c94c;color:#f2c94c;box-shadow:0 0 22px rgba(242,201,76,.4)}
+  #resumenT .resHero .resTit{font-size:28px;font-weight:700;letter-spacing:2px;line-height:1.05;margin-top:4px}
+  #resumenT .resHero.oro .resTit{color:#f2c94c}
+  #resumenT .resHero .resSub{font-size:13px;letter-spacing:1px;color:var(--naranja);font-weight:600}
+  #resumenT .resStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+  #resumenT .resStats .st{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:10px;padding:7px 0 5px;text-align:center}
+  #resumenT .resStats .st b{display:block;font-size:22px;line-height:1.05;font-variant-numeric:tabular-nums}
+  #resumenT .resStats .st span{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap}
+  #resumenT .resPremios{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+  #resumenT .resPremios .pr{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:10px;background:rgba(20,27,44,.92);
+       border:1px solid rgba(154,164,184,.22);font-size:12px;letter-spacing:1.4px;font-weight:600;color:var(--tinta)}
+  #resumenT .resPremios .pr svg{flex:none}
+  #resumenT .resPremios .pr.oro{color:#f2c94c;border-color:rgba(242,201,76,.45)}
+  #resumenT .cajTag{margin-top:12px}
   .veloB input,.veloB textarea{font:inherit;font-size:16px;width:100%;box-sizing:border-box;border-radius:12px;
        border:1px solid rgba(154,164,184,.45);background:#141b2c;color:var(--tinta);padding:10px 12px}
   .veloB textarea{resize:none;min-height:96px}
@@ -1706,7 +1726,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='440c961634';
+const BUILD='ad41f83701';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27035,21 +27055,38 @@ function abrirResumenT(final){
   const club=clubDe(e.miClubId), premios=asegurarPremios();
   const jugados=(e.misPartidos||[]).filter(p=>p.jugado).length, pj=ml.pj+po.pj;
   const nota=notaPromedio(e.misPartidos);
-  $l('resTTit').textContent=ligaDe().nombre.toUpperCase()+' '+anioTxt();   // §2z229 e: el resumen es de la LIGA que cerró
+  $l('resTTit').innerHTML='<small>'+(final===true?t(L('FIN DE LA BETA','END OF THE BETA','FIM DA BETA')):t(L('FIN DE LA LIGA','END OF THE LEAGUE','FIM DA LIGA')))+'</small>'+ligaDe().nombre.toUpperCase()+' '+anioTxt();   // §2z229 e: el resumen es de la LIGA que cerró
   $l('resTClub').innerHTML=escuditoDe(club)+' <b>'+club.nombre.toUpperCase()+'</b>';
   const fila=(k,v)=>'<div class="fila-item"><span class="desc">'+k+'</span><b>'+v+'</b></div>';
   let html='';
-  if(mt.fila) html+=fila(t(L('RÉCORD','RECORD','CAMPANHA')),mt.fila.pg+'–'+mt.fila.pp+(mt.puesto?' · '+mt.puesto+'º':''));
-  html+='<div class="fila-item goteoRes">'+$l('lobGoteo2').innerHTML+'</div>';
+  /* 2026-09-13 (su corte: "no es sólo de limpiar sino de ajustar el diseño"): el cierre de la liga tiene un HÉROE —el trofeo
+     dorado y CAMPEONES con la serie que lo decidió, o tu escudo con el puesto y dónde te eliminaron— y tres fichas (récord,
+     puntos, nota) con el idioma de la planilla del fin. Abajo, lo que te dejó. Sin goteo copiado, sin JUGASTE. */
+  { const camp=!!(e.playoffs&&e.playoffs.campeon===e.miClubId);
+    const mias=((e.playoffs&&e.playoffs.seriesJugadas)||[]).filter(s=>s.ganador&&(s.alta===e.miClubId||s.baja===e.miClubId));
+    const u=mias[mias.length-1];
+    const marca=u?(u.alta===e.miClubId?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase():'';
+    const sub=camp&&u?t(RONDA_TXT[u.nombre]||L(u.nombre))+' '+marca
+      :u&&u.playout&&u.ganador===e.miClubId?t(L('NOS QUEDAMOS','WE STAY UP','FICAMOS'))+' · '+marca
+      :u&&u.ganador!==e.miClubId?t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(RONDA_TXT[u.nombre]||L(u.nombre))+' · '+marca
+      :e.playoffs?t(L('SIN PLAYOFFS','NO PLAYOFFS','SEM PLAYOFFS')):'';
+    html+='<div class="resHero'+(camp?' oro':'')+'"><div class="resIco">'+(camp?icono(C.ligaId==='nba'?'anillo':'copa',40):escudito(e.miClubId))+'</div>'
+      +'<div class="resTit">'+(camp?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')):(mt.puesto?mt.puesto+'º':''))+'</div>'
+      +(sub?'<div class="resSub">'+sub+'</div>':'')+'</div>';
+    const st=(v,k)=>'<div class="st"><b>'+v+'</b><span>'+k+'</span></div>';
+    html+='<div class="resStats">'
+      +(mt.fila?st(mt.fila.pg+'–'+mt.fila.pp,t(L('RÉCORD','RECORD','CAMPANHA'))+(camp&&mt.puesto?' · '+mt.puesto+'º':'')):'')   /* sin campeonato el puesto ya es el héroe */
+      +(pj?st(fdec((ml.pts+po.pts)/pj),'PTS'):'')
+      +(nota!==null?st(fdec(nota),t(L('NOTA','RATING','NOTA'))):'')
+      +'</div>'; }
   /* 2026-09-13 (su captura del resumen: "es una sábana relatando cualquier cosa; es fin de la LIGA pero te tira todo junto; el
      «jugaste 53 de 55» tampoco dice nada"): el cierre de la liga cuenta LA LIGA — récord, promedio y los premios DE LA LIGA. La
      Copa de las Américas tuvo su velo y su carta al ganarla, la selección tuvo sus partes (§2z229 c: cada competencia, su momento).
      Sólo el fin de la BETA (final=true) suma la selección, porque ahí sí se cierra todo. Sin JUGASTE: no cambia nada. */
-  if(pj) html+=fila(t(L('PROMEDIO','AVERAGE','MÉDIA')),fdec((ml.pts+po.pts)/pj)+' PTS · '+fdec((ml.ast+po.ast)/pj)+' AST'+(nota!==null?' · '+t(L('NOTA','RATING','NOTA'))+' '+fdec(nota):''));
   const DE_LA_LIGA=new Set(['campeon','mvp_finales','mvp','quinteto','joven','allstar','ascenso']);
-  const premiosLiga=premios.filter(p=>DE_LA_LIGA.has(p.clave));
-  if(premiosLiga.length) html+='<div class="cajTag">'+t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU'))+'</div>'
-    +premiosLiga.map(p=>'<div class="fila-item"><span class="desc">'+iconoDe(p.clave,C.ligaId,18)+' <b>'+t(PREMIO_TXT[p.clave][1])+'</b></span></div>').join('');
+  const premiosLiga=premios.filter(p=>DE_LA_LIGA.has(p.clave)&&p.clave!=='campeon');   // el título ya lo dice el héroe
+  if(premiosLiga.length) html+='<div class="cajTag">'+t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU'))+'</div><div class="resPremios">'
+    +premiosLiga.map(p=>'<div class="pr'+(p.clave==='campeon'||p.clave==='ascenso'?' oro':'')+'">'+iconoDe(p.clave,C.ligaId,20)+'<span>'+t(PREMIO_TXT[p.clave][1])+'</span></div>').join('')+'</div>';
   if(final===true) html+=htmlResumenSeleccion(e,fila);
   $l('resTCuerpo').innerHTML=html;
   const beta=esBeta(), fin=beta&&final===true, pend=recesoPendiente(e);

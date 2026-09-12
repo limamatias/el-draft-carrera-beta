@@ -845,8 +845,8 @@
   #lobby .zonaTabs .tab.act,#lobby .grupoTabs .tab.act{background:#232d49;border:1px solid rgba(154,164,184,.3)}
   #lobby .zonaTabs .tab,#lobby .grupoTabs .tab{border:1px solid transparent} #lobby .zonaTabs .tab:not(.act),#lobby .grupoTabs .tab:not(.act){color:var(--tinta)}   /* 2026-09-14 (su caza: "las opciones flotantes sin contenedor en blanco, no en gris; el gris no contrasta") */
   /* la bandera después del nombre en las filas de grupo de la Copa y la selección: con aire (su caza: "no hay espacio") */
-  #lobby #lobTablaFull .grupoSel .banMini,#lobby #lobFixFull .grupoSel .banMini{display:inline-flex;width:16px;height:11px;border-radius:2px;overflow:hidden;vertical-align:-1px;margin-left:7px}
-  #lobby #lobTablaFull .grupoSel .banMini>*,#lobby #lobFixFull .grupoSel .banMini>*{width:100%;height:100%}
+  #lobby .grupoSel .banMini{display:inline-flex;width:16px;height:11px;border-radius:2px;overflow:hidden;vertical-align:-1px;margin-left:7px}
+  #lobby .grupoSel .banMini>*{width:100%;height:100%}   /* 2026-09-14 (su caza: en la tablita del lobby la bandera iba pegada al nombre): la regla vale en toda fila de grupo, plena o tablita */
   #lobby .fix{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .fix .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);align-items:center;letter-spacing:.5px}
   #lobby .fix .f{width:34px}
@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='3f91208fa3';
+const BUILD='f6340b2127';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

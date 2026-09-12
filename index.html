@@ -1224,6 +1224,11 @@
   #lobby .trofeo.oro{color:#f2c14e;border-color:rgba(242,193,78,.45);background:rgba(242,193,78,.1)}
   #lobby .trofeo.apagado{opacity:.28;filter:saturate(.3)}
   #lobby .trofeo.elegido{box-shadow:0 0 0 2px currentColor}
+  /* 2026-09-13 el puntito de lo no visto del palmarés (el mismo de la barra, §2z15) */
+  #lobby .trofeo{position:relative} #lobby .pieza{position:relative}
+  #lobby .trofeo.nuevo::after,#lobby .pieza.nuevo::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;
+       background:var(--mal);box-shadow:0 0 0 2px #0d1220}
+  #lobby .pieza.nuevo::after{top:6px;right:6px}
   #lobby .trofeoDice{min-height:34px;display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:8px}
   #lobby .trofeoDice b{font-size:15px;color:var(--tinta)} #lobby .trofeoDice span{font-size:13px;color:var(--tinta2)}
   /* la lista (VER TODO): una fila por logro y liga, 15 + una línea 13; tocar abre el detalle por año */
@@ -1701,7 +1706,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1fd1099222';
+const BUILD='868876a4fb';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -23728,7 +23733,7 @@ function pintaLobby(){
      reproduce: termina la liga → FIN DE LA LIGA (resumen, premios) → el receso de la selección (ventanas, torneo) → la
      Intercontinental con el club de la Copa → el mercado. §2z229 e (su corte): el Mundial y la copa son de la MISMA temporada;
      la página la da vuelta el mercado, así que nada de esto se llama "fin de temporada". */
-  if(e.fase==='terminada') premiarLiga();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento)
+  if(e.fase==='terminada'&&premiarLiga()) pintaPalmares();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento) — y la vitrina se repinta con el puntito (2026-09-13)
   const cierrePend=e.fase==='terminada'&&C.cierreAnio!==C.anio;
   const prox=cierrePend?null:(miProximo(e)||(e.fase==='terminada'?(proximoSelVerano()||proximoSelTorneo()||proxICReceso(e)):null));   // §12.2 v2: primero las ventanas del receso · §7.1: la copa de la beta, después del Mundial
   proxLobby=prox;
@@ -26617,17 +26622,29 @@ function lineaPieza(g){
   return aniosDe(g.items)+(clubes.length===1?' · '+clubes[0]:'');
 }
 function piezaHTML(g){
-  return '<div class="pieza'+tonoPieza(g)+'">'+iconoDe(g.clave,g.ligaId,24)+'<span class="cuerpo"><b>'+nombrePieza(g)+'</b>'
+  return '<div class="pieza'+tonoPieza(g)+(palNuevo(g)?' nuevo':'')+'">'+iconoDe(g.clave,g.ligaId,24)+'<span class="cuerpo"><b>'+nombrePieza(g)+'</b>'
     +'<span class="anios">'+lineaPieza(g)+'</span>'
     +'<span class="detalle">'+g.items.map(p=>{ const c=clubDePalmares(p); return '<span>'+p.anio+(c?' · '+c.nombre:'')+'</span>'; }).join('')+'</span>'
     +'</span>'+(g.veces>1?'<span class="veces">×'+g.veces+'</span>':'')+'</div>';
 }
 const FILA_TROFEOS=5;
 let palTodo=false, palSel=null;
+/* 2026-09-13 (su pedido: "cuando ganás un premio debería quedar el puntito rojo en VOS y en cada logro, así vas y lo tocás —
+   y de paso ahí ves qué es cada parte del palmarés"): lo NO VISTO del palmarés. `C.palVistos` es el conjunto de piezas ya
+   tocadas; una partida vieja arranca con todo visto (no se le prende lo de hace tres años). Tocar el trofeo lo marca. */
+const palKey=(p)=>p.anio+'|'+p.clave+'|'+(p.ligaId||'')+'|'+(p.pais||'');
+function palVistos(){ if(!C.palVistos){ C.palVistos={}; for(const p of (C.palmares||[])) C.palVistos[palKey(p)]=1; guardar(); } return C.palVistos; }
+const palNuevo=(g)=>{ const v=palVistos(); return g.items.some(p=>!v[palKey(p)]); };
+function palMarcarVisto(g){ const v=palVistos(); let c=false; for(const p of g.items) if(!v[palKey(p)]){ v[palKey(p)]=1; c=true; } if(c) guardar(); }
+function pintaAvisoPalmares(){
+  const hay=vitrinaDe(C.palmares||[]).some(palNuevo);
+  const acc=document.querySelector('#lobby .acc[data-lir=vos]'); if(acc) acc.classList.toggle('aviso',hay);
+  const tab=document.querySelector('#lobby .tab[data-lp=vos-palmares]'); if(tab) tab.classList.toggle('aviso',hay);
+}
 const CARRERA_FILAS=3; let carreraTodo=false;   // §2z29: CARRERA resumida muestra las últimas tres cerradas + la actual
 function pintaPalmares(){
   const caja=$l('lobPal'), vit=vitrinaDe(C.palmares||[]);
-  if(!vit.length){ caja.innerHTML='<div class="fila-item vacia">—</div>'; return; }
+  if(!vit.length){ caja.innerHTML='<div class="fila-item vacia">—</div>'; pintaAvisoPalmares(); return; }
   if(!palTodo){
     const sel=vit.find(g=>g.key===palSel)||null;
     /* sus cortes (2026-09-02): la grilla partida en INDIVIDUAL / CON TUS EQUIPOS, y UNA fila por
@@ -26637,7 +26654,7 @@ function pintaPalmares(){
       if(!lista.length) return '';
       const corta=lista.length>FILA_TROFEOS, vis=corta?lista.slice(0,FILA_TROFEOS-1):lista;
       return '<div class="cajTag">'+tag+'</div><div class="trofeos">'+vis.map(g=>
-        '<button type="button" class="trofeo'+tonoPieza(g)+(sel?(sel.key===g.key?' elegido':' apagado'):'')+'" data-k="'+g.key+'">'
+        '<button type="button" class="trofeo'+tonoPieza(g)+(sel?(sel.key===g.key?' elegido':' apagado'):'')+(palNuevo(g)?' nuevo':'')+'" data-k="'+g.key+'">'
         +iconoDe(g.clave,g.ligaId,28)+(g.veces>1?'<i>×'+g.veces+'</i>':'')+'</button>').join('')
         +(corta?'<button type="button" class="trofeo mas" data-pal="todo">+'+(lista.length-vis.length)+'</button>':'')+'</div>';
     };
@@ -26648,15 +26665,16 @@ function pintaPalmares(){
          no entran en la fila; si ninguna se ganó más de una vez y todo entra, no hay nada más que ver */
       +(vit.some(g=>g.items.length>1)||vit.filter(g=>!DE_CLUB.has(g.clave)).length>FILA_TROFEOS||vit.filter(g=>DE_CLUB.has(g.clave)).length>FILA_TROFEOS
         ? '<div class="verMas" data-pal="todo">'+t(L('VER TODO','SEE ALL','VER TUDO'))+'</div>' : '');
-    caja.querySelectorAll('.trofeo').forEach(b=>{ b.onclick=()=>{ palSel=palSel===b.dataset.k?null:b.dataset.k; pintaPalmares(); }; });
+    caja.querySelectorAll('.trofeo').forEach(b=>{ b.onclick=()=>{ palSel=palSel===b.dataset.k?null:b.dataset.k; const g=vit.find(x=>x.key===b.dataset.k); if(g) palMarcarVisto(g); pintaPalmares(); }; });
   } else {
     const ind=vit.filter(g=>!DE_CLUB.has(g.clave)), eq=vit.filter(g=>DE_CLUB.has(g.clave));
     caja.innerHTML=(ind.length?'<div class="cajTag">'+t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL'))+'</div>'+ind.map(piezaHTML).join(''):'')
       +(eq.length?'<div class="cajTag"'+(ind.length?' style="margin-top:12px"':'')+'>'+t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES'))+'</div>'+eq.map(piezaHTML).join(''):'')
       +'<div class="verMas" data-pal="menos">'+t(L('VER MENOS','SEE LESS','VER MENOS'))+'</div>';
-    caja.querySelectorAll('.pieza').forEach(el=>{ el.onclick=()=>el.classList.toggle('abierta'); });
+    caja.querySelectorAll('.pieza').forEach((el,i)=>{ el.onclick=()=>{ el.classList.toggle('abierta'); const g=[...ind,...eq][i]; if(g){ palMarcarVisto(g); el.classList.remove('nuevo'); pintaAvisoPalmares(); } }; });
   }
   caja.querySelectorAll('[data-pal]').forEach(b=>{ b.onclick=()=>{ palTodo=b.dataset.pal==='todo'; pintaPalmares(); }; });
+  pintaAvisoPalmares();
 }
 /* ⚠️⚠️ §2z229 c (su corte 2026-09-12: "¿MVP y demás por qué salen al final? ¿No deberían ser al final del TORNEO que estás
    jugando? Nadie te va a dar un MVP de la LNB por cómo te va en el Mundial"). LA REGLA: cada premio pertenece a UNA

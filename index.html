@@ -1697,6 +1697,11 @@
   #sello{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));left:0;right:0;
        text-align:center;font-size:10px;letter-spacing:1.5px;color:var(--tinta2);opacity:.45}
 </style>
+<script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
+<script>
+/* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
+const BUILD='12b8142e35';
+</script>
 
 <div id="juego"><canvas id="c"></canvas></div>
 
@@ -2527,7 +2532,6 @@
   </div>
 </div>
 
-<script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* ══════════════════════════════════════════════════════════════════════════
    EL CARTEL DE ERROR — lo primero que corre, a propósito.
@@ -6368,7 +6372,7 @@ function aplicarEfectos(ef){
   if(ef.relSel) aplicarDeltas(J,{dH:ef.relSel.hinchada||0,dP:ef.relSel.plantel||0,dD:ef.relSel.dt||0}, relSelDe(J));   // §12.28: las de la selección, explícitas   // §12.28: ir o quedarse — ⚠️ clase 6: es privada del lobby, llega por dep (con `typeof` daba undefined en silencio y la decisión nunca se aplicaba, 2026-09-09)
   /* §2z40: el efecto sobre EL PARTIDO que viene — lo consume SALIR A LA CANCHA (18b) */
   if(ef.partido){ const P=$C().efectoSalida=$C().efectoSalida||{};
-    if(ef.partido.fuerzaRival) P.fuerzaRival=(P.fuerzaRival||0)+ef.partido.fuerzaRival;
+    if(ef.partido.fuerzaRival) P.fuerzaRival=ef.partido.fuerzaRival;   /* 2026-09-12: REEMPLAZA. Sumaba, y con la carta re-elegida (recargar y volver a entrar) el rival se iba sumando fuerza sin techo. */
     if(ef.partido.fuego) P.fuego=true;
     if(ef.partido.frio) P.frio=true; }   /* §2z224 A: el espejo — la rama que sale mal te deja frío */
   if(ef.plataX) plataFn(ef.plataX*pagoPartido());
@@ -6448,6 +6452,9 @@ function mostrarCarta(c,rotulo,alTerminar){
   ops.classList.remove('oculto');
   document.getElementById('cartaDesenlace').classList.add('oculto');
   document.getElementById('fin').classList.add('oculto');   // la prensa va sobre la cancha, no sobre la planilla
+  /* §2z225: queda anotada para que la recarga no se la coma. La del túnel no (`salidaClave`): ésa vuelve sola al
+     entrar de nuevo al partido, y su callback lleva a la cancha, no al lobby. */
+  if(c.id && !salidaClave){ const st=cartasEstado(); st.abierta={id:c.id, rot:rotulo}; guardar(); }
   v.classList.remove('oculto');
   verQueSeVe('carta','La carta');
 }
@@ -6465,6 +6472,8 @@ function elegirCarta(i){
      recarga y a las sesiones. */
   if(o.tipo==='apuesta'&&o.desenlaces.length>1){ s.dados=s.dados||[]; s.dados.push({id:c.id,p:o.desenlaces[0].p,ok:d===o.desenlaces[0],anio:$C().anio}); }
   s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio; s.ultimaId=c.id;
+  if(salidaClave) s.salidaHecha=salidaClave;   /* la del túnel queda resuelta para ese partido en el momento en que cobra */
+  s.abierta=null;   /* §2z225: elegiste, cobró: ya no está abierta */
   guardar();
   /* §2z39.53 EL DADO (su caza en el video: "el dado no tiene emoción; mirá cómo está en El Draft"): la
      apuesta se resuelve DONDE se tomó — la otra opción se apaga, y un cursor recorre las ramas de la
@@ -6503,6 +6512,15 @@ document.getElementById('cartaSeguir').onclick=function(){
    Sólo en partidos con motivo (ctx.salida), con `chance` por carta: la situación rara trae carta casi siempre,
    la común a veces. Determinista por partido (semilla + año + clave del partido). */
 let salidaEnSel=false;
+/* 2026-09-12 (su pregunta, que era la buena: "si hoy entro, elijo la card, recargo la página y vuelvo… ¿se me
+   acumulaban los efectos? ¿me come presupuesto de cartas? ¿hace que no se repitan?" — SÍ a las tres). La carta del
+   túnel es determinista por partido, así que el mismo partido re-entrado la vuelve a mostrar; y `elegirCarta` no
+   distingue una elección nueva de una repetida: sumaba `vistas` (quemando el cupo de las `maxVeces`), pisaba
+   `ultimo`/`ultimaId` (el anti-repetición), anotaba otro dado en el registro de §2z161 y aplicaba el efecto otra vez
+   — y como el desenlace se sortea con `s.n`, que ya había avanzado, **el segundo dado salía distinto**: se podía
+   recargar hasta que la apuesta saliera bien. Ahora la salida de un partido se resuelve UNA vez: `salidaHecha`
+   guarda para qué partido, y mientras sea ése no vuelve a aparecer. */
+let salidaClave=null;
 function salidaDe(o){
   const e=est(), mi=e.miClubId, club=clubDe(mi);
   const s={tipo:o.tipo, local:!!o.local, neutral:!!o.neutral, anfitrion:!!o.anfitrion, ciudad:o.ciudad||null, etapa:o.etapa||null, juego:o.juego||null, debutSel:false, clasico:false, clave:false, decisivo:false, barrida:false, final:false};   // §2z194: neutral · anfitrión
@@ -6526,6 +6544,7 @@ function cartaDeSalida(o,seguir){
   /* 2026-09-11 (su caza: «dos finales seguidas me salió la del utilero; la misma dos veces seguidas pierde la gracia»): la carta de
      la salida anterior no vuelve en la siguiente, ni aunque sea la única candidata (sortearCarta sólo la evita si hay otra). El mismo
      partido re-entrado sí la ve (la clave); una salida sin carta limpia la memoria. */
+  if(s.salidaHecha===clave) return false;   /* ya la jugaste para ESTE partido: no vuelve, no cobra de nuevo, no gasta otra vista */
   const ult=s.ultSalida;
   const cand=pool.filter(c=>!(ult&&ult.id===c.id&&ult.clave!==clave)&&cartaElegible(c,ctx,s)&&rng.chance(c.chance===undefined?1:(typeof c.chance==='function'?c.chance(ctx):c.chance)));   // 2026-09-12: `chance` puede mirar la situación (la carta del anfitrión: siempre en el Final Four, a veces en el grupo)
   if(!cand.length){ s.ultSalida=null; return false; }
@@ -6535,7 +6554,8 @@ function cartaDeSalida(o,seguir){
   const cc=typeof c.gancho==='function'?{...c,gancho:c.gancho(ctx)}:c;   // §2z40.1: el gancho puede leer el contexto
   const e=est(), pais=$C().jugador.nacionalidad||'ar';
   const quien=o.tipo==='seleccion'?((typeof SELECCIONES!=='undefined'&&SELECCIONES[pais]&&SELECCIONES[pais].nombre)||pais).toUpperCase():(clubDe(e.miClubId)||{nombre:''}).nombre.toUpperCase();
-  mostrarCarta(cc,quien+' · '+t(L('EN EL TÚNEL','IN THE TUNNEL','NO TÚNEL')),()=>{ salidaEnSel=false; seguir(); });
+  salidaClave=clave;
+  mostrarCarta(cc,quien+' · '+t(L('EN EL TÚNEL','IN THE TUNNEL','NO TÚNEL')),()=>{ salidaEnSel=false; salidaClave=null; seguir(); });
   return true;
 }
 /* ── §2z42.3 LA PRENSA REGISTRA EL LUJO (su ok 2026-09-05): comprás algo de la cadena de lujo y sale la carta
@@ -6729,11 +6749,27 @@ function mostrarAviso(a, alTerminar){
   v.classList.remove('oculto');
   verQueSeVe('carta','LA CARTA');
 }
+/* §2z225 LA CARTA ABIERTA SOBREVIVE A LA RECARGA (2026-09-12). Los cinco generadores del lobby consumen su cupo al
+   GENERAR y guardan ahí mismo —por eso una carta no vuelve a salir al recargar, que está bien—, pero eso deja el bug
+   INVERSO, y ése sí rompe su regla ("lo que todavía no elegiste te sigue esperando"): si recargabas con la carta en
+   pantalla y sin haber elegido, la fecha ya estaba gastada y **la carta se perdía sin jugarla**. Ahora la carta que
+   está en pantalla queda anotada y vuelve sola; se borra recién cuando elegís, que es cuando cobra. La del túnel no
+   entra acá: la suya se resuelve volviendo a entrar al partido, y ya está resuelto con `salidaHecha`. */
+const cartaPorId=(id)=>[].concat(poolGeneral(),poolEventos(),poolReceso(),
+  (typeof CARTAS_DILEMA!=='undefined'?CARTAS_DILEMA:[]),CARTAS_PRENSA).find(c=>c&&c.id===id)||null;
+function cartaAbiertaPendiente(){
+  const s=cartasEstado(); if(!s.abierta) return null;
+  const c=cartaPorId(s.abierta.id);
+  if(!c){ s.abierta=null; guardar(); return null; }   /* el catálogo cambió: se descarta en silencio, no se rompe */
+  return {c, rot:s.abierta.rot||''};
+}
 function cartasAlEntrar(){
   if(cartaAbierta) return false;
   /* §2z218 v6: los avisos de sponsor van ACÁ y no colgados de un camino — vivían en el onclick del parte de la
      selección, que en un partido de club no corre nunca, así que el sponsor se firmaba en silencio (clase 9 de
      CLAUDE.md: una pieza que no se muestra no se revisa). Éste es el embudo por el que entran todos los caminos. */
+  { const ab=cartaAbiertaPendiente();
+    if(ab){ mostrarCarta(ab.c, ab.rot, ()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }   /* §2z225: la que quedó a medio jugar, primero */
   if(dep.sponsorAviso(()=>{ pintaLobby(); cartasAlEntrar(); })) return true;
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
@@ -18170,6 +18206,7 @@ function finPosesion(anoto, resumen){
   G.intJugadas++; if(anoto) G.intBuenas++;
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null;
   $('#sit').textContent='';
+  window.guardarPartidoEnCurso();   // §2z225: acá el partido es un dato, no una escena (la función se protege sola fuera de la carrera)
   setTimeout(()=>{
     abrirFeed();
     if(resumen&&typeof resumen==='string') fila(resumen, anoto?'nos':'riv');
@@ -18231,6 +18268,7 @@ function terminar(){
     (G.sub?t(L(` · <b style="color:var(--mal)">TE SACARON</b> en ${G.sub}`,` · <b style="color:var(--mal)">BENCHED</b> in ${G.sub}`,` · <b style="color:var(--mal)">TE TIRARAM</b> em ${G.sub}`)):``)+
     (G.ptsAsist?t(L(`<br><span style="font-size:15px;opacity:.75">Entre puntos y asistencias generaste ${G.pts+G.ptsAsist}.</span>`,`<br><span style="font-size:15px;opacity:.75">Points plus assists, you created ${G.pts+G.ptsAsist}.</span>`,`<br><span style="font-size:15px;opacity:.75">Entre pontos e assistências você gerou ${G.pts+G.ptsAsist}.</span>`)):``);
   $('#cFin').textContent=t(L(`Partidos: ${rachas()} · récord de racha: ${record()}`,`Games: ${rachas()} · streak record: ${record()}`,`Jogos: ${rachas()} · recorde de sequência: ${record()}`));
+  window.olvidarPartidoEnCurso();   // §2z225: el partido terminó, ya no hay nada que retomar
   $('#fin').classList.remove('oculto');
   ajustarTituloFin();
 }
@@ -18241,13 +18279,17 @@ function ajustarTituloFin(){
   h.style.fontSize=''; let fs=parseFloat(getComputedStyle(h).fontSize)||42;
   while(h.scrollWidth>h.clientWidth+1 && fs>26){ fs-=2; h.style.fontSize=fs+'px'; }
 }
-function empezar(){
+/* §2z225: `snap` retoma un partido guardado — el estado inicial se arma igual (para que nada quede con el valor del
+   partido anterior), después se pisa con lo guardado, y el guion sigue desde su propio índice: `siguienteBeat` lee
+   `g.beats[g.i++]`, así que continuar es exactamente no tocarlo. */
+function empezar(snap){
   Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
     intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
   G.duelo=nuevoDuelo();
   G.guion=armarGuion();
+  if(snap){ Object.assign(G, snap.G||{}); if(snap.guion) G.guion=snap.guion; }
   if(typeof murmulloAjustar==='function') murmulloAjustar(0.22);   // el estadio existe sólo acá
   G.ovacion=null; G.aroLlamas=null;   // los momentos del partido anterior no arrancan éste
   $('#intro').classList.add('oculto'); $('#fin').classList.add('oculto');
@@ -18257,7 +18299,7 @@ function empezar(){
   marcador(); abrirFeed(); siguienteBeat();
 }
 $('#btnEmpezar').onclick=empezar;
-$('#btnOtra').onclick=empezar;
+$('#btnOtra').onclick=()=>empezar();   /* §2z225: sin envolver, el onclick le pasaba el MouseEvent como snapshot */
 
 /* ══════════ DIBUJO — el estadio de noche ══════════ */
 /* ══════════ LA GENTE v3 (2026-08-23 — el pase de ARTE, del research de sus videos) ══════════
@@ -24478,6 +24520,14 @@ function marcadorDeClubes(rivalId,miId){
   pinta('fNosLado','fNosTag',miId,rivalId,CASACAS.miBase,CASACAS.mio2); pinta('fRivLado','fRivTag',rivalId,miId,CASACAS.riv,CASACAS.riv2);
 }
 let salidaLista=false;   // §2z40: la carta del túnel ya pasó (o no había)
+let retomando=null;   /* §2z225: el snapshot que `empezar()` va a usar en vez de arrancar de cero */
+function retomarPartido(){
+  const r=partidoRetomable(); if(!r||!r.snap){ pintaLobby(); return; }
+  retomando=r.snap;
+  salidaLista=true;   /* la carta del túnel ya se jugó cuando entraste la primera vez: no vuelve a salir ni a cobrar */
+  abrirPre(r.prox);
+  $l('lobSalir').click();
+}
 $l('lobSalir').addEventListener('click',()=>{
   if(C.jugador.energia<ENERGIA_MINIMA){
     avisar(t(L('Estás fundido: tomate una latita.','You are spent: grab a can.','Você está esgotado: toma uma latinha.')));
@@ -24536,14 +24586,17 @@ $l('lobSalir').addEventListener('click',()=>{
   document.body.classList.toggle('visita',preAbierto.local===false&&!preAbierto.neutral);   // 2026-09-12: como en la tele, el local a la izquierda
   const btn=document.getElementById('btnOtra');
   if(btn) btn.textContent=t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
-  empezar();
-  if(efS.fuego && typeof CALENTANDO!=='undefined'){ G.fuego=CALENTANDO; G.fuegoRegalo=CALENTANDO; }   // §2z40: arrancás en ritmo (§2z40.1: prestado, no son canastas)
+  const snap=retomando; retomando=null;
+  empezar(snap?{G:snap.datos, guion:snap.guion}:null);
+  /* §2z225: retomando, el fuego/frío de la carta ya está adentro del estado guardado — volver a aplicarlo sería
+     regalártelo dos veces, que es el bug que arreglamos hoy con otro disfraz. */
+  if(!snap && efS.fuego && typeof CALENTANDO!=='undefined'){ G.fuego=CALENTANDO; G.fuegoRegalo=CALENTANDO; }   // §2z40: arrancás en ritmo (§2z40.1: prestado, no son canastas)
   /* §2z224 A: el espejo EXACTO del regalo de fuego, que es lo que se me había escapado. `efS.fuego` te deja en
      CALENTANDO (3) y el bono recién paga en 4: o sea "a UNA CANASTA de que empiece a pagar". Así que el castigo tiene
      que dejarte "a UN ERRADO de que empiece a doler" (FRIO−1), no congelado de entrada. Puesto en FRIO, la carta te
      cobraba el −7 % antes de tocar la pelota y la apuesta pasaba a no convenir nunca — el problema de siempre, dado
      vuelta (lo cazó cartas-check con el EV). */
-  if(efS.frio) G.frio=FRIO-1;
+  if(!snap && efS.frio) G.frio=FRIO-1;
   G.mision=enPartido.mision; marcador();   // el feed la muestra junto a la statline desde el primer renglón
   const mk=document.getElementById('marcador'); mk.classList.remove('cae'); void mk.offsetWidth; mk.classList.add('cae');   // §2z14: el marcador cae
 });
@@ -24942,6 +24995,52 @@ function diaSel(o){ if(!o||o.tipo!=='seleccion'||o.etapa!=='eliminatorias'||!o.v
 /* ══ §2z218 LOS SPONSORS (el catálogo, en 01x) ═════════════════════════════════════════════════════════════════
    Se ganan solos cumpliendo lo que piden y se pierden solos dejando de cumplirlo: no hay decisión, hay rendimiento.
    Se evalúan UNA vez por partido, después de que la nota ya está escrita. */
+/* ══ §2z225 RETOMAR: el partido empezado te espera donde lo dejaste ══════════════════════════════════════════════
+   El principio (co-diseñado 2026-09-12): "recargar te devuelve al mismo lugar — ni antes ni después". Antes, recargar
+   en medio de un partido lo BORRABA: la fecha quedaba sin jugar y se podía jugar de nuevo, o sea que una mala noche
+   se deshacía recargando — y eso vacía todo lo que construimos para que las malas noches pesen (el frío, las
+   relaciones que bajan, el precipicio del DT, la última defensiva).
+   EL PUNTO ES AL CERRAR CADA POSESIÓN (su corte): volvés al feed, justo antes de la jugada que estabas jugando. Se
+   repite UNA pelota, contra el partido entero de antes; y guardar adentro de la posesión haría que quedarse sin
+   batería a mitad de un tiro la contara como errada.
+   ⚠️ SE GUARDAN LOS DATOS, NO LA ESCENA: cuerpos, cámara y pelota se rearman solos al retomar. Lista blanca a
+   propósito — con una lista negra, cada campo nuevo del motor entraría al guardado sin que nadie lo decida. */
+const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','rotSale','rotEntra','pts','ast','ptsAsist',
+  'pasesTiro','defensas','tiros','aciertos','perdidas','malDesmarque','robos','tapas','triples','tiros3','ftm','fta','libres',
+  'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','rachaTiros','rachaTirosMax',
+  'pedidas','pedidasUsadas','pedidasResueltas','perdidasQ4','intJugadas','intBuenas','sub','contraHubo','defensaHubo',
+  'defEscenasVistas','defGanadas','esFinal','rivAlFinal','astAlFinal','clutch','ot','mision'];
+function guardarPartidoEnCurso(){
+  try{
+    if(!C||!enPartido||typeof G==='undefined'||G.fase==='fin'||G.esDrill||G.tut) return;
+    const g=G.guion; if(!g) return;
+    const datos={}; for(const k of CAMPOS_PARTIDO) if(G[k]!==undefined) datos[k]=G[k];
+    C.enCurso={build:(typeof BUILD!=='undefined'?BUILD:''), clave:claveSalida(enPartido), datos, guion:{beats:g.beats, i:g.i}};
+    guardar();
+  }catch(e){ window.__errGuardarPartido=String(e&&e.message||e); }   /* nunca rompe el partido que se está jugando, pero NO QUEDA MUDO: el motivo queda a la vista para el chequeador */
+}
+function olvidarPartidoEnCurso(){ if(C&&C.enCurso){ C.enCurso=null; guardar(); } }
+/* ⚠️ 18b entero vive en un cierre, así que estas dos son PRIVADAS y 15-guion (que está afuera) no las ve — la clase
+   17 de CLAUDE.md. Necesitan `C`, `enPartido`, `guardar` y `claveSalida`, que también son privados, así que no pueden
+   vivir afuera: se exponen explícitamente. En 15 se llaman como `window.X()`, que si falta revienta a la vista en vez
+   de saltearse en silencio como haría un `typeof`. */
+window.guardarPartidoEnCurso=guardarPartidoEnCurso;
+window.olvidarPartidoEnCurso=olvidarPartidoEnCurso;
+/* el snapshot sirve si es de ESTE build y de un partido que todavía es el próximo. Si el juego se actualizó mientras
+   jugaba —pasa seguido: él recarga a propósito cuando publico— se descarta sin costo y vuelve a antes del partido,
+   con la fecha sin jugar (su corte: "en todo caso te debería devolver a antes del partido"). */
+function partidoRetomable(){
+  try{
+    const x=C&&C.enCurso; if(!x||!x.datos||!x.guion) return null;
+    if(x.build!==(typeof BUILD!=='undefined'?BUILD:'')) return {viejo:true};
+    const e=est(); if(!e) return null;   /* sin temporada viva no hay próximo que comparar: se espera, no se descarta */
+    const p=miProximo(e); if(!p||claveSalida(p)!==x.clave) return {viejo:true};
+    return {snap:x, prox:p};
+  }catch(e){ window.__errRetomable=String(e&&e.message||e); return null; }
+  /* ⚠️ `abrirLobby` es el camino de ENTRADA: no puede reventar nunca. `miProximo` sí puede, si se llama en un momento
+     sin temporada viva (entre temporadas, el mercado). Ante la duda no se ofrece retomar y el snapshot queda: es
+     preferible a dejar al que juega afuera del lobby. */
+}
 /* 2026-09-12: el sello del efecto de la carta del túnel — describe EL PARTIDO, no el momento, así que volver al
    mismo partido lo conserva y cambiar de partido lo descarta. */
 function claveSalida(p){ if(!p) return null;
@@ -25235,6 +25334,17 @@ function abrirLobby(){
   if(esBeta()&&!yaVisto('beta_hola')){ abrirBetaHola(); return; }   // §7.1: el contrato de la beta, una vez
   /* §7.1 el tutorial como último paso del alta (una vez por carrera; una carrera ya jugada no lo pregunta) */
   if(!esBeta()&&!yaVisto('tut_hola')){ marcarVisto('tut_hola'); guardar(); if(est().fechaJugada===0){ abrirTutHola(); return; } }
+  { const r=partidoRetomable();   /* §2z225: antes que nada, el partido que quedó a medio jugar */
+    if(r&&r.viejo){ C.enCurso=null; guardar();
+      mostrarTitular(t(L('SE ACTUALIZÓ EL JUEGO','THE GAME UPDATED','O JOGO ATUALIZOU')),
+        t(L('ESE PARTIDO NO CUENTA','THAT GAME DOESN\'T COUNT','ESSE JOGO NÃO CONTA')),'oro',
+        t(L('Lo volvés a jugar desde el principio, con la versión nueva.','You play it again from the start, on the new build.','Você joga de novo desde o início, na versão nova.')),
+        ()=>{ pintaLobby(); CARTAS.cartasAlEntrar(); }); return; }
+    if(r&&r.snap){ const d=r.snap.datos, yo=miIdEn(r.prox), rival=clubDe(r.prox.rival)||{sigla:''};
+      mostrarTitular(t(L('PARTIDO EMPEZADO','GAME IN PROGRESS','JOGO EM ANDAMENTO')),
+        t(L('RETOMAR','RESUME','RETOMAR')),'oro',
+        (clubDe(yo)||{sigla:''}).sigla+' '+(d.nos||0)+' — '+(d.riv||0)+' '+rival.sigla+' · '+(d.cuarto||1)+'C',
+        ()=>retomarPartido()); return; } }
   if(C.selParte&&abrirParteVentana(C.selParte)) return;           // §12: cómo le fue a la ventana
   if(C.selCeremonia&&abrirCeremoniaSel(C.selCeremonia)) return;   // §12: la medalla tiene su momento
   CARTAS.cartasAlEntrar();   // §2z26: una fecha vencida trae su carta
@@ -26912,6 +27022,7 @@ window.__carrera={
   guardar, pintaLobby, abrirLobby, abrirPartidas, cargarCarrera, slotKey, nuevaCarrera,
   /* el mercado vive al final de una temporada entera: sin esto, mirarlo cuesta jugar
      un año. Lo abre con la carrera que haya cargada. */
+  partidoRetomable, retomarPartido, claveSalida, proximoDeHoy:()=>{ const e=est(); return e?miProximo(e):null; },   /* §2z225: el arnés */
   abrirMercado, abrirPre, sponsorAviso, evaluarSponsors, sponsorsPaga, noTeCita, abrirSponsors, abrirPedir, chancePedido, caidaPedido,   /* §2z218/§2z219/§2z222: el arnés */
   mostrarCarta:CARTAS.mostrarCarta, get poolGeneral(){ return CARTAS.poolGeneral(); }, CARTAS,
   comoLeFue: (lg,id,anio)=>comoLeFue(SEMILLA_MUNDO,lg,id,anio),

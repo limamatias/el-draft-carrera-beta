@@ -1040,7 +1040,10 @@
   #lobby #lv-vos .panel .cajon{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
   #lobby #lv-vos .panel .cajon::-webkit-scrollbar{display:none}
   #lobby #lobResumen{display:flex;flex-direction:column}
-  #lobby #lobResumen .ritmoSwitch{margin-top:auto}
+  #lobby #lobResumen .vosCabRes{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #lobby #lobResumen .ritmoSwitch{margin:0;flex:none}
+  #lobby #lobResumen .vosCabRes .rotuloVos{min-width:0;overflow:hidden;white-space:nowrap}
+  #lobby #lobResumen .ritmoSwitch .tab{font-size:11px;letter-spacing:1.5px;padding:3px 10px}
   #lobby .titCajon{flex:none;font-size:13px;letter-spacing:2px;font-weight:600;color:var(--tinta);padding:0 14px 7px;text-align:left}   /* el nombre de la liga arriba de la tabla plena: blanco, alineado con el texto de adentro del cajón (12 + 1 de borde) */
   /* 2026-09-12 el desglose por competencia del lado del club: nombre (11, la escala de la navegación) y tres columnas numéricas fijas */
   #lobby #lobResumen .desglose{display:grid;grid-template-columns:minmax(0,1fr) 34px 44px 44px;column-gap:6px;row-gap:6px;align-items:baseline;
@@ -1886,7 +1889,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='49bd46ee3e';
+const BUILD='7408ee351d';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -26876,10 +26879,11 @@ function pintaSecciones(){
   /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el
      encabezado y PJ en la grilla: no se repiten. */
   const rotulo=enSel
-    ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
+    ? banderaDe(J.nacionalidad||'ar',15)+' '+anioTxt()   // 2026-09-12: como el del club (escudo y año) — el switch de arriba ya dice ARG, y al lado vive NORMAL · INTENSO
     : escuditoDe(clubDe(e.miClubId))+' '+anioTxt();   // 2026-09-12: las competencias van en el desglose, no en una ristra del rótulo   // §2z124 · 2026-09-14 (su caza: «LA REFERENCIA acá no tiene sentido; rompe la línea y no se entiende»): el rol NO va en el rótulo del resumen — vive en el velo TU ROL (§2z233)
   $l('lobResumen').innerHTML=
-    '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
+    /* 2026-09-12 (su caza: «el switch NORMAL · INTENSO quedó OCULTO en un scroll abajo de la lista de torneos»): sube a la fila del rótulo, a la derecha — siempre a la vista */
+    '<div class="vosCabRes"><div class="cajTag rotuloVos">'+rotulo+'</div>'+'<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>'+'</div>'+
     '<div class="statGrande">'+
       '<div class="s"><b>'+stat(lv.pts)+'</b><span>PTS</span></div>'+
       '<div class="s"><b>'+stat(lv.ast)+'</b><span>AST</span></div>'+
@@ -26893,8 +26897,7 @@ function pintaSecciones(){
     '</div>'+
     (!enSel&&compsClub.length>1?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'
       +compsClub.map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pts/l.pj)+'</span><span class="n">'+fdec(l.ast/l.pj)+'</span>').join('')+'</div>':'')+
-    /* §2z43: el ritmo se cambia acá, entre partidos — nunca en el pre (ahí sería una perilla de dificultad) · 2026-09-14: al pie de la caja */
-    '<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>';
+    '';
   $l('lobResumen').querySelectorAll('[data-ritmo]').forEach(b=>b.addEventListener('click',()=>{ const v=b.dataset.ritmo==='intenso'; if(v!==!!C.intenso){ C.intenso=v; guardar(); pintaSecciones(); } }));
   pintaPalmares();   // §2z28: la vitrina
   const bComp=$l('lobCompartir'); if(bComp) bComp.onclick=()=>CARD.abrirCard('corta');   // §2z30

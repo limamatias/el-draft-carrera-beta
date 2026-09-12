@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='332e54f029';
+const BUILD='095210f34e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22095,6 +22095,7 @@ function cargarCarrera(n){
        de llevar `pj` (480e012) no tienen con qué irse en playoffs, donde la fecha no avanza. Sin `pj`, se van al cargar. */
     if(c.temporada) for(const k of ['avisoDbeta','avisoOxido']){ const av=c.temporada[k]; if(av&&av.pj==null) delete c.temporada[k]; }
     if(c.selTorneo) religarLlaveSel(c.selTorneo);
+    if(c.selAviso&&c.selAviso.clave==='jugado') c.selAviso=null;   // 2026-09-14: las partidas viejas traían el reminder del torneo jugado; ya no existe
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
        fecha f+1 y la 2 tres días después. Las del receso ya los traen. */

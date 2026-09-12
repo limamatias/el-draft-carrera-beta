@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='57e2a4e722';
+const BUILD='6d9158b8b1';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27264,9 +27264,12 @@ function pintaPalmares(){
   /* §2z241 (su pedido 2026-09-13: "el palmarés partido en CLUBES y SELECCIÓN"): el switch de lado de VOS, el mismo molde que el
      RESUMEN. Aparece cuando hay algo de la selección que mostrar; el puntito va del lado que tiene algo sin ver. */
   const deSel=todo.filter(g=>ES_SELECCION_CLAVE(g.clave)), deClub=todo.filter(g=>!ES_SELECCION_CLAVE(g.clave));
-  const sw=$l('lobPalSwitch'), haySw=deSel.length>0; sw.classList.toggle('oculto',!haySw);
+  /* 2026-09-14 (su corte: "el switch debería estar siempre; ya sabés que vas a poder ganar cosas con ambos"): con que tu país tenga
+     selección, haya o no algo ganado — el lado vacío muestra «—» */
+  const paisV=C.jugador.nacionalidad||'ar';
+  const sw=$l('lobPalSwitch'), haySw=!!SEL_FICHA[paisV]; sw.classList.toggle('oculto',!haySw);
   if(!haySw) ladoPal='club';
-  else { const clubV=clubDe(est().miClubId), paisV=C.jugador.nacionalidad||'ar';
+  else { const clubV=clubDe(est().miClubId);
     const tabP=(lado,html,nuevo)=>'<div class="tab'+(ladoPal===lado?' act':'')+(nuevo?' aviso':'')+'" data-ladopal="'+lado+'" tabindex="0">'+html+'</div>';
     sw.innerHTML=tabP('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>',deClub.some(palNuevo))
       +tabP('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>',deSel.some(palNuevo));

@@ -1855,7 +1855,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c1113b88ff';
+const BUILD='37736bf5b3';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -7139,6 +7139,30 @@ const CARTAS_PRENSA=[
  /* §2z27: el continental tiene su prensa. Van primero porque la de serie perdida dice "se terminó
     el año", y perder una serie continental en febrero no termina nada. `u.americas` =
     {etapa, campeon, afuera} lo arma ultimoPartido (18b). */
+ /* 2026-09-12 (su ok a la prosa): la final de la Copa Intercontinental, ganada y perdida. Reusables: la sede es la sorteada ese año y
+    nada supone de qué país sos ni de qué liga venís. `u.ic` = {etapa, campeon, sede} lo arma ultimoPartido (18b). */
+ { id:'prensa_ic_campeon', repite:true, evento:true,
+   cuando:(c)=>c.u.ic&&c.u.ic.etapa==='ic-final'&&c.u.ic.campeon,
+   gancho:(c)=>{ const s=(c&&c.u&&c.u.ic&&c.u.ic.sede)||"";
+     return L('Campeones intercontinentales'+(s?' en '+s:'')+'. En la conferencia hay cámaras de cuatro continentes, y la primera pregunta es de un periodista que no sabe pronunciar el nombre de tu club: si es el mejor equipo del mundo.',
+       'Intercontinental champions'+(s?' in '+s:'')+'. There are cameras from four continents at the press conference, and the first question comes from a reporter who cannot pronounce your club’s name: whether it is the best team in the world.',
+       'Campeões intercontinentais'+(s?' em '+s:'')+'. Na coletiva há câmeras de quatro continentes, e a primeira pergunta é de um jornalista que não sabe pronunciar o nome do seu clube: se é o melhor time do mundo.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Hoy, sí"','"Tonight, yes"','"Hoje, sim"'),desenlaces:[{p:100,remate:null,texto:L('Nadie la discute. En el vuelo de vuelta el plantel te la repite hasta dormirse.','Nobody argues. On the flight home the team repeats it to you until they fall asleep.','Ninguém discute. No voo de volta o elenco repete para você até dormir.'),ef:{rel:{dt:2,plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Del mundo. Que venga cualquiera"','"Of the world. Bring on anyone"','"Do mundo. Que venha qualquer um"'),desenlaces:[
+       {p:60,remate:L('La frase del año','Line of the year','A frase do ano'),texto:L('La frase llega a casa antes que el avión. En el aeropuerto te esperan cantándola.','The line gets home before the plane does. At the airport they are waiting for you, singing it.','A frase chega em casa antes do avião. No aeroporto estão te esperando cantando.'),ef:{rel:{hinchada:8},plataX:1}},
+       {p:40,remate:L('La escucharon en la NBA','The NBA heard it','A NBA ouviu'),texto:L('Un programa de allá la pasa con risas de fondo. En el avión, el capitán te dice que la próxima la diga él.','A show over there plays it with laughter in the background. On the plane, the captain tells you he will say the next one.','Um programa de lá passa com risadas ao fundo. No avião, o capitão diz que a próxima quem fala é ele.'),ef:{rel:{plantel:-3}}}]}]},
+ { id:'prensa_ic_final_perdida', repite:true, evento:true,
+   cuando:(c)=>c.u.ic&&c.u.ic.etapa==='ic-final'&&!c.u.ic.campeon,
+   gancho:(c)=>{ const s=(c&&c.u&&c.u.ic&&c.u.ic.sede)||"";
+     return L('Subcampeones intercontinentales, que en el aeropuerto'+(s?' de '+s:'')+' no consuela a nadie. Antes de embarcar te frena un periodista con el micrófono: si al equipo le quedó grande la final.',
+       'Intercontinental runners-up, which comforts nobody at the airport'+(s?' in '+s:'')+'. Before boarding a reporter stops you with a mic: whether the final was too big for the team.',
+       'Vice-campeões intercontinentais, o que no aeroporto'+(s?' de '+s:'')+' não consola ninguém. Antes de embarcar um jornalista te para com o microfone: se a final ficou grande demais para o time.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Nos ganó un equipo mejor"','"A better team beat us"','"Um time melhor ganhou da gente"'),desenlaces:[{p:100,remate:null,texto:L('Es la verdad y se nota. Nadie la titula, y el DT te palmea la espalda en la fila del embarque.','It is the truth and it shows. Nobody headlines it, and the coach pats you on the back in the boarding line.','É a verdade e dá para ver. Ninguém coloca no título, e o técnico te dá um tapinha nas costas na fila do embarque.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('"Grande no nos queda nada"','"Nothing is too big for us"','"Nada fica grande para a gente"'),desenlaces:[
+       {p:55,remate:L('Volvemos','We will be back','Vamos voltar'),texto:L('La hinchada la hace bandera antes de que aterrices. El plantel baja del avión con otra cara.','The fans turn it into a banner before you land. The team gets off the plane with a different face.','A torcida faz virar bandeira antes de você pousar. O elenco desce do avião com outra cara.'),ef:{rel:{hinchada:5,plantel:3}}},
+       {p:45,remate:L('Mal perdedor','Sore loser','Mau perdedor'),texto:L('La frase sale al lado de la foto del rival levantando la copa, y se lee como lo que es.','The line runs next to the photo of the other team lifting the cup, and it reads like what it is.','A frase sai ao lado da foto do rival levantando a taça, e se lê como o que é.'),ef:{rel:{dt:-2,hinchada:-3}}}]}]},
  { id:'prensa_americas_campeon', repite:true, evento:true,
    cuando:(c)=>c.u.americas&&c.u.americas.campeon,
    gancho:L('Campeones de América. La conferencia de prensa es en el vestuario, con la copa sobre una silla de plástico. El primero que pregunta es un periodista brasileño: si esto vale más que la liga.','Champions of the Americas. The press conference is in the locker room, the cup on a plastic chair. The first question is from a Brazilian reporter: whether this means more than the league.','Campeões da América. A coletiva é no vestiário, com a taça em cima de uma cadeira de plástico. O primeiro a perguntar é um jornalista brasileiro: se isso vale mais que a liga.'),
@@ -25901,7 +25925,7 @@ function ultimoPartido(cierre,e){
   return {gano:G.nos>G.riv,nota:cierre.rating,mision:cierre.mision||null,clave:!!cierre.clave,
     grande:!!cierre.grande,clutch:cierre.clutch||null,   // §2z99 · §2z100
     pts:G.pts,ast:G.ast,rob:G.robos,esc:ESC_RITMO(),serie:(enPartido&&enPartido.ic)?null:(cierre.serie||null),   // §2z43.1 · 2026-09-12 (su caza: salió campeón de la Copa y la prensa dijo PLAYOFFS con la carta de la serie): la card de la copa no es una serie
-    ic:enPartido&&enPartido.ic?{etapa:enPartido.etapa, campeon:enPartido.etapa==='ic-final'&&G.nos>G.riv}:null,
+    ic:enPartido&&enPartido.ic?{etapa:enPartido.etapa, campeon:enPartido.etapa==='ic-final'&&G.nos>G.riv, sede:(e.intercontinental&&e.intercontinental.sede&&e.intercontinental.sede.ciudad)||''}:null,
     aviso:(e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada)?e.avisoMVP.tipo:null, mvpPos:e.mvpPos||null,   // §2z46
     debut:!((C.historial||[]).length) && (e.misPartidos||[]).filter(p=>p.jugado&&!p.sel&&!p.am).length===1,   // §2z61: tu primer partido de la carrera
     clasico:!!(mi&&mi.rival&&enPartido&&mi.rival===enPartido.rival),local:!!(enPartido&&enPartido.local),

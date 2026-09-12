@@ -828,6 +828,9 @@
   /* con MUCHAS zonas (la Federal, doce) la píldora no tiene sentido (su caza 2026-09-02): caja
      de radio 12 con una grilla de cuatro columnas y cada zona como chip */
   #lobby .zonaTabs.muchas{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-radius:12px;padding:6px;align-self:stretch}
+  /* 2026-09-13 los tramos: el que no existe todavía se ve apagado; las pestañas de los grupos viven adentro del cajón */
+  #lobby .tab.off{opacity:.35;pointer-events:none}
+  #lobby .grupoTabs{margin:0 0 8px;align-self:stretch}
   #lobby .zonaTabs.muchas .tab{padding:7px 4px;font-size:12px;letter-spacing:1.5px;white-space:nowrap}
   #lobby .fix{font-size:15px;font-variant-numeric:tabular-nums}
   #lobby .fix .r{display:flex;gap:9px;padding:3px 0;color:var(--tinta2);align-items:center;letter-spacing:.5px}
@@ -1732,7 +1735,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='75856973a5';
+const BUILD='09de3eefb3';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -22164,7 +22167,19 @@ const formatoTxt=(mejorDe)=>mejorDe>1?t(L('AL MEJOR DE ','BEST OF ','MELHOR DE '
    (PASAN 2 A CUARTOS) vale para todos; la condición de §2z163 sólo en el tuyo. */
 let grupoAmSel=null;
 let grupoSelSel=null;   // 2026-09-13 (su pedido: «el fixture de la selección que siga el formato de AMÉRICAS: los grupos en switch arriba y el bracket abajo»)
-function htmlAmericas(e,g){
+/* ══ 2026-09-13 LOS TRAMOS (su diseño: "¿necesitamos otro switch arriba tipo FASE 1 y FASE 2? si ponemos una arriba de la otra va a
+   ser inentendible"): la plena de un torneo muestra UNA cosa por pantalla. Arriba, el tramo —GRUPOS · LLAVE en Américas, FASE 1 ·
+   FASE 2 · LLAVE en el Mundial—, que abre en el que estás hasta que tocás (y se olvida al cambiar de torneo); adentro de un
+   tramo de grupos, las pestañas de los grupos; en LLAVE, sólo el bracket. Los tramos que todavía no existen se ven apagados. */
+let tramoAm=null, tramoSel=null;   // {t:'g1'|'g2'|'llave', k:<torneo>}
+function htmlTramos(items,act,attr){   // items: [{t,txt,off}]
+  return items.map(x=>'<div class="tab'+(x.t===act?' act':'')+(x.off?' off':'')+'" data-'+attr+'="'+x.t+'" tabindex="0">'+x.txt+'</div>').join('');
+}
+function htmlGrupoTabs(letras,g,attr,txt){
+  return '<div class="tabs zonaTabs muchas grupoTabs">'+letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-'+attr+'="'+x+'" tabindex="0">'+txt(x)+'</div>').join('')+'</div>';
+}
+function htmlAmericas(e,g){ return htmlAmericasGrupo(e,g)+htmlAmericasLlave(e); }
+function htmlAmericasGrupo(e,g){
   const am=e.americas; if(!am) return '';
   g=g||am.miGrupo;
   const tit=(x)=>'<div class="r amTit"><span class="pos"></span><span class="club"><span class="nom">'+x+'</span></span></div>';
@@ -22178,9 +22193,14 @@ function htmlAmericas(e,g){
   { const tg=tablaGrupoAM(am,g); tg.forEach((f,i)=>{ h+=filaGrupoAM(f,i+1,e.miClubId); }); h+=notaDesempate(tg); }
   if(g===am.miGrupo){ const cond=amCondicionTxt(); if(cond) h+=tit(cond); }   // §2z163: qué necesitás en el último del grupo
   h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 ADVANCE TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
-  if(am.llave){
+  return h;
+}
+function htmlAmericasLlave(e){
+  const am=e.americas; if(!am||!am.llave) return '';
+  let h='';
+  {
     const rondas=AMERICAS_RONDAS.map(nombre=>({nombre,series:am.llave.seriesJugadas.filter(x=>x.nombre===nombre)}));
-    h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})
+    h+=htmlBracket(rondas,AMERICAS_RONDAS,e.miClubId,{banderas:true})   /* 2026-09-13: sin el título LA LLAVE — lo dice el tramo */
       +'<div class="cajNota">'+t(AM_TXT.cuartos)+' '+formatoTxt(mejorDeAM('cuartos'))+' · FINAL FOUR</div>'
       /* §2z27.3 (su corte 2026-09-12: "una línea abajo, como las que dicen «clasificás a X» en las ligas"): el contrato — el
          campeón clasifica a la Copa Intercontinental. La copa no tiene casa propia: se juega y queda el título. */
@@ -22429,7 +22449,7 @@ function htmlRankMundial(rk){
   });
   return h+'<div class="leyenda"><span><span class="ley"></span>'+t(L('DIRECTO A LOS JUEGOS','STRAIGHT TO THE GAMES','DIRETO AOS JOGOS'))+'</span></div>';
 }
-function htmlSeleccion(e,gVer){
+function htmlSeleccion(e,gVer,tramo){
   const el=e.seleccion, t2=C.selTorneo;
   const elTuvo=!!(el&&(ventanasJugadasSel(el)>0||el.idx||(el.juegos||[]).some(g=>g.jugado)));   // §12.21: alguna ventana tuya, o ya se jugó alguna jornada (2026-09-09: en la parte B las ochoprevias)
   const anV=(!t2&&(!el||el.fin||!elTuvo))?torneoAnunciado(e):null;   // 2026-09-12: el torneo que viene, también en los años sin eliminatorias
@@ -22470,7 +22490,7 @@ function htmlSeleccion(e,gVer){
     /* 2026-09-13: el grupo que se muestra lo eligen las pestañas (gVer); sin pestañas, el tuyo. La segunda fase del Mundial
        tiene tabla propia — y ahí se ve el partido arrastrado. */
     const gV=gVer||t2.miGrupo2||t2.miGrupo;
-    if(gV&&t2.grupos&&t2.grupos[gV]){
+    if(tramo!=='llave'&&gV&&t2.grupos&&t2.grupos[gV]){
       const seg=SEL_LETRAS2.includes(gV);
       if(!gVer) h+=tit((seg?t(SEL_TXT.segunda):t(SEL_TXT.grupo))+' '+gV);   // con pestañas, el título ya lo dicen ellas (su caza: «abajo no debería decir GRUPO A de nuevo, con la bandera colgada»)
       tablaSel(t2,gV).forEach((f,i)=>{ h+=filaGrupoSel(f,i+1,2,t2.pais); });
@@ -22479,18 +22499,18 @@ function htmlSeleccion(e,gVer){
          la segunda, y los torneos sin segunda fase, mandan a cuartos. */
       const fmt=SEL_FORMATOS[t2.torneo]||{};
       if(fmt.segunda&&!seg){ const i=SEL_LETRAS.indexOf(gV), par=SEL_LETRAS[i^1], dest=SEL_LETRAS2[i>>1];
-        h+='<div class="cajNota">'+t(L('PASAN 2 A LA SEGUNDA FASE','TOP 2 TO THE SECOND ROUND','2 PASSAM À SEGUNDA FASE'))
-          +(par&&dest?' · '+gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:'')+'</div>'
-          +'<div class="cajNota">'+t(L('LLEVÁS EL PARTIDO CONTRA EL OTRO QUE PASA','YOU CARRY THE GAME VS THE OTHER QUALIFIER','VOCÊ LEVA O JOGO CONTRA O OUTRO QUE PASSA'))+'</div>'
-          +'<div class="cajNota">'+t(L('DESPUÉS: CUARTOS · SEMIFINAL · FINAL','THEN: QUARTERS · SEMIS · FINAL','DEPOIS: QUARTAS · SEMIFINAL · FINAL'))+'</div>'; }
+        /* 2026-09-13 (su corte: "dejemos de poner todo como sábana"): UNA línea, como la de Américas. El arrastre se ve solo en
+           la tabla de la fase 2 (entrás con 1-0), y lo que viene después lo dice el tramo LLAVE. */
+        h+='<div class="cajNota">'+t(L('PASAN 2 A LA FASE 2','TOP 2 TO ROUND 2','2 PASSAM À FASE 2'))
+          +(par&&dest?' · '+gV+' + '+par+' → '+t(SEL_TXT.grupo)+' '+dest:'')+'</div>'; }
       else h+='<div class="cajNota">'+t(L('PASAN 2 A CUARTOS','TOP 2 TO THE QUARTERFINALS','2 PASSAM ÀS QUARTAS'))+'</div>';
     }
-    if(t2.llave){
+    if(tramo!=='g1'&&tramo!=='g2'&&t2.llave){
       /* §2z171: la llave dibujada (partido único); el bronce, que no es parte del árbol, en su renglón */
       const jug=t2.llave.jugadas||[], esp=['cuartos','semifinal','final'].filter(n=>jug.some(x=>x.nombre===n)||n==='final'||n==='semifinal');
       const rondas=esp.map(nombre=>({nombre,series:jug.filter(x=>x.nombre===nombre)}));
       const bk=htmlBracket(rondas,esp,t2.pais,{unico:true});
-      if(bk) h+='<div class="cajTag bkSig">'+t(L('LA LLAVE','THE BRACKET','O MATA-MATA'))+'</div>'+bk+'<div class="cajNota">'+formatoTxt(1)+'</div>';   // 2026-09-10: como la del continental
+      if(bk) h+=bk+'<div class="cajNota">'+formatoTxt(1)+'</div>';   // 2026-09-10: como la del continental · 2026-09-13: sin el título, lo dice el tramo
       for(const x of jug.filter(x=>x.nombre==='bronce')){
         const mio=x.alta===t2.pais||x.baja===t2.pais, marc=x.jugado?(x.ptsAlta+'–'+x.ptsBaja):'vs';
         h+='<div class="r'+(mio?' vos':'')+'"><span class="pos"></span><span class="club">'+escudito(x.alta)
@@ -23417,26 +23437,42 @@ function pintaTablaFull(){
   pintaSwitchSel('lobTablaSwitch');   // §12
   $l('lobTablaTit').textContent=ladoSel==='sel'?tituloSelConAnio():(ladoSel==='am'?t(AM_TXT.nombre):ligaDe().nombre.toUpperCase())+' · '+anioTxt();
   if(ladoSel==='sel'){
-    /* 2026-09-13: con el torneo del receso en curso, los grupos van en pestañas como en Américas (la segunda fase del Mundial
-       reemplaza a la primera cuando llega), el tuyo por defecto; abajo, la llave dibujada. Sin torneo, como antes. */
-    const t2=C.selTorneo, letras=t2&&t2.grupos?Object.keys(t2.grupos).filter(k=>t2.miGrupo2?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k)):[];
-    if(letras.length>1){
-      /* 2026-09-13 (su captura: ocho letras sueltas y abría en A): las pestañas dicen GRUPO A como en Américas (a dos filas), y
-         el elegido es el TUYO hasta que tocás — la elección se olvida al cambiar de torneo */
-      if(grupoSelSel&&grupoSelSel.t!==t2.semilla+t2.torneo) grupoSelSel=null;
-      const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(t2.miGrupo2||t2.miGrupo||letras[0]);
-      tabs.classList.remove('oculto'); tabs.classList.add('muchas');
-      tabs.innerHTML=letras.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-gsel="'+x+'" tabindex="0">'+t(SEL_TXT.grupo)+' '+x+'</div>').join('');
-      tabs.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:t2.semilla+t2.torneo}; pintaTablaFull(); }));
-      full.innerHTML=htmlSeleccion(e,g); return;
+    /* 2026-09-13 LOS TRAMOS (ver htmlTramos): FASE 1 · FASE 2 · LLAVE arriba (los que no existen, apagados), abre en el que estás;
+       adentro de una fase, las pestañas GRUPO A..H (o I..L), la tuya por defecto — la elección se olvida al cambiar de torneo. */
+    const t2=C.selTorneo, fmt=t2&&SEL_FORMATOS[t2.torneo];
+    if(t2&&t2.grupos&&fmt){
+      const key=t2.semilla+t2.torneo;
+      if(tramoSel&&tramoSel.k!==key) tramoSel=null;
+      if(grupoSelSel&&grupoSelSel.t!==key) grupoSelSel=null;
+      const hayG2=!!t2.miGrupo2, hayLl=!!t2.llave;
+      const actual=hayLl?'llave':hayG2?'g2':'g1';
+      const tramo=(tramoSel&&(tramoSel.t==='g1'||(tramoSel.t==='g2'&&hayG2)||(tramoSel.t==='llave'&&hayLl)))?tramoSel.t:actual;
+      const items=fmt.segunda
+        ? [{t:'g1',txt:t(L('FASE 1','ROUND 1','FASE 1'))},{t:'g2',txt:t(L('FASE 2','ROUND 2','FASE 2')),off:!hayG2},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}]
+        : [{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}];
+      tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
+      tabs.innerHTML=htmlTramos(items,tramo,'tramo');
+      tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoSel={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
+      if(tramo==='llave'){ full.innerHTML=htmlSeleccion(e,null,'llave'); return; }
+      const letras=Object.keys(t2.grupos).filter(k=>tramo==='g2'?SEL_LETRAS2.includes(k):!SEL_LETRAS2.includes(k));
+      const g=(grupoSelSel&&letras.includes(grupoSelSel.g))?grupoSelSel.g:(tramo==='g2'?t2.miGrupo2:t2.miGrupo)||letras[0];
+      full.innerHTML=(letras.length>1?htmlGrupoTabs(letras,g,'gsel',(x)=>t(SEL_TXT.grupo)+' '+x):'')+htmlSeleccion(e,g,tramo);
+      full.querySelectorAll('[data-gsel]').forEach(b=>b.addEventListener('click',()=>{ grupoSelSel={g:b.dataset.gsel,t:key}; pintaTablaFull(); }));
+      return;
     }
     tabs.classList.add('oculto'); full.innerHTML=htmlSeleccion(e); return; }
-  if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto
-    const am=e.americas, g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
-    tabs.classList.remove('oculto'); tabs.classList.add('muchas');
-    tabs.innerHTML=AMERICAS_GRUPOS.map(x=>'<div class="tab'+(x===g?' act':'')+'" data-grupo="'+x+'" tabindex="0">'+t(AM_TXT.grupo)+' '+x+'</div>').join('');
-    tabs.querySelectorAll('[data-grupo]').forEach(b=>b.addEventListener('click',()=>{ grupoAmSel=b.dataset.grupo; pintaTablaFull(); }));
-    full.innerHTML=htmlAmericas(e,g); return; }
+  if(ladoSel==='am'){   // §2z35: la del torneo, sola · §2z172: los cuatro grupos en pestañas, el tuyo por defecto · 2026-09-13: en dos tramos
+    const am=e.americas, key=String(am.anio||'')+am.miGrupo;
+    if(tramoAm&&tramoAm.k!==key) tramoAm=null;
+    const hayLl=!!am.llave, tramo=(tramoAm&&(tramoAm.t==='g1'||hayLl))?tramoAm.t:(hayLl?'llave':'g1');
+    tabs.classList.remove('oculto'); tabs.classList.remove('muchas');
+    tabs.innerHTML=htmlTramos([{t:'g1',txt:t(L('GRUPOS','GROUPS','GRUPOS'))},{t:'llave',txt:t(L('LLAVE','BRACKET','MATA-MATA')),off:!hayLl}],tramo,'tramo');
+    tabs.querySelectorAll('[data-tramo]').forEach(b=>b.addEventListener('click',()=>{ tramoAm={t:b.dataset.tramo,k:key}; pintaTablaFull(); }));
+    if(tramo==='llave'){ full.innerHTML=htmlAmericasLlave(e); return; }
+    const g=AMERICAS_GRUPOS.includes(grupoAmSel)?grupoAmSel:am.miGrupo;
+    full.innerHTML=htmlGrupoTabs(AMERICAS_GRUPOS,g,'grupo',(x)=>t(AM_TXT.grupo)+' '+x)+htmlAmericasGrupo(e,g);
+    full.querySelectorAll('[data-grupo]').forEach(b=>b.addEventListener('click',()=>{ grupoAmSel=b.dataset.grupo; pintaTablaFull(); }));
+    return; }
   const k=cortesTabla(e);   // §2z44
   /* §2z171/§2z174: en playoffs, la llave dibujada tiene SU PESTAÑA (su corte: "cuando no hay grupos, ¿no sería mejor una
      pestaña para el bracket y otra para la tabla?"): PLAYOFFS · TABLA, o PLAYOFFS · ESTE · OESTE con zonas — en la misma

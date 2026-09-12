@@ -1041,6 +1041,13 @@
   #lobby #lv-vos .panel .cajon::-webkit-scrollbar{display:none}
   #lobby #lobResumen{display:flex;flex-direction:column}
   #lobby #lobResumen .ritmoSwitch{margin-top:auto}
+  #lobby .titCajon{flex:none;font-size:13px;letter-spacing:2px;font-weight:600;color:var(--tinta);padding:0 14px 7px;text-align:left}   /* el nombre de la liga arriba de la tabla plena: blanco, alineado con el texto de adentro del cajón (12 + 1 de borde) */
+  /* 2026-09-12 el desglose por competencia del lado del club: nombre (11, la escala de la navegación) y tres columnas numéricas fijas */
+  #lobby #lobResumen .desglose{display:grid;grid-template-columns:minmax(0,1fr) 34px 44px 44px;column-gap:6px;row-gap:6px;align-items:baseline;
+       margin:8px 2px 12px;padding-top:9px;border-top:1px solid rgba(154,164,184,.14);font-variant-numeric:tabular-nums}
+  #lobby #lobResumen .desglose .h{font-size:10.5px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:right}
+  #lobby #lobResumen .desglose .c{font-size:11px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lobby #lobResumen .desglose .n{font-size:14px;font-weight:700;color:var(--tinta);text-align:right}
   #lobby .vosCab{position:relative;display:flex;justify-content:center;align-items:center;flex:none;min-height:36px}   /* 36: el alto del ícono, si no sobresale 2 px y el medio lo recorta (su caza) */
   #lobby .vosCab .tabs{align-self:auto}
   #lobby .verMas.ico{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;padding:0;justify-content:center;margin:0}
@@ -1516,6 +1523,7 @@
   #selVelo #selPremios .fila-item .desc{color:var(--tinta)}
   #selVelo #selPremios svg{fill:#f2c94c;vertical-align:-3px}
   #resTBeta{display:flex;flex-direction:column;gap:8px}
+  #resTBeta .anotado{color:var(--ok);font-size:13px;letter-spacing:1.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* 2026-09-13 EL CIERRE DE LA LIGA: héroe · tres fichas · lo que te dejó (escala §2z11: rótulo 11 · título 28 · fichas 22/11) */
   #resumenT h2 small{display:block;font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600;margin-bottom:2px}
   #resumenT .resHero{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 0 8px;text-align:center}
@@ -1847,7 +1855,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='298ee57280';
+const BUILD='c1113b88ff';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2164,6 +2172,7 @@ const BUILD='298ee57280';
              ya entraste a mirar; el escudo de tu equipo y la bandera de tu país -->
         <div class="tabs selSwitch oculto" id="lobTablaSwitch"></div>
         <div class="tabs zonaTabs oculto" id="lobZonaTabs"></div>
+        <div class="titCajon oculto" id="lobTablaLiga"></div>   <!-- 2026-09-12 el nombre de la liga, afuera del cajón -->
         <div class="cajon tablita" id="lobTablaFull"></div>
       </div>
 
@@ -2543,6 +2552,8 @@ const BUILD='298ee57280';
       <div class="gancho" data-l-en="Soon: the full career mode, from the Federal league to the NBA."
            data-l-pt="Em breve: o modo carreira completo, da Federal à NBA.">Pronto: el modo carrera completo, de la Federal a la NBA.</div>
       <button class="jugar ancho" id="resTLista" data-l-en="SIGN ME UP" data-l-pt="ME INSCREVER">ANOTARME</button>
+      <div class="gancho anotado oculto" id="resTAnotado"></div>
+      <button class="jugar secundario ancho" id="resTSalir" data-l-en="EXIT" data-l-pt="SAIR">SALIR</button>
     </div>
     <button class="jugar ancho" id="resTSeguir"></button>
     <button class="jugar secundario ancho" id="resTVolver" data-l-en="BACK TO THE LOCKER ROOM" data-l-pt="VOLTAR AO VESTIÁRIO">VOLVER AL VESTUARIO</button>
@@ -23510,6 +23521,31 @@ document.getElementById('selVeloOk').onclick=()=>{
 
 /** El bloque de la selección en el RESUMEN DE TEMPORADA: las eliminatorias que jugaste y el
  *  torneo del receso de este año, con la medalla si la hubo. */
+/* 2026-09-12 el fin de la BETA cierra todo: lo internacional del club con el molde de la selección — una fila por copa con cómo te fue
+   y PJ · PTS · AST, y sus MVP */
+function htmlResumenInternacional(e,fila){
+  const mp=e.misPartidos||[], mi=e.miClubId, am=e.americas, ic=e.intercontinental;
+  const linea=(ps)=>ps.length?ps.length+' PJ · '+fdec(ps.reduce((a,p)=>a+(p.pts||0),0)/ps.length)+' PTS · '+fdec(ps.reduce((a,p)=>a+(p.ast||0),0)/ps.length)+' AST':'';
+  const pAm=mp.filter(p=>p.am&&!p.ic), pIc=mp.filter(p=>p.ic);
+  if(!pAm.length&&!pIc.length) return '';
+  const tiene=(k)=>(C.palmares||[]).some(p=>p.anio===C.anio&&p.clave===k);
+  let h='<div class="cajTag">'+icono('globo',14)+' '+t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+'</div>';
+  if(pAm.length){
+    const ult=pAm[pAm.length-1];
+    const como=am&&am.campeon===mi?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):ult.etapa==='grupo'?t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'))
+      :t(L('AFUERA EN ','OUT IN ','FORA NA '))+t(AM_TXT[ult.etapa]||L(ult.etapa));
+    h+=fila(t(L('AMÉRICAS','AMERICAS','AMÉRICAS'))+' · '+como, linea(pAm));
+    if(tiene('mvp_americas')) h+=fila('',t(PREMIO_TXT.mvp_americas[1]));
+  }
+  if(pIc.length){
+    const f=ic&&ic.miFase||'grupo';
+    const como=ic&&ic.campeon===mi?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):f==='final'?t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES')):f==='tercero'?t(AM_TXT.tercero)
+      :f==='cuarto'?t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR')):t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'));
+    h+=fila(t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL'))+' · '+como, linea(pIc));
+    if(tiene('mvp_ic')) h+=fila('',t(PREMIO_TXT.mvp_ic[1]));
+  }
+  return h;
+}
 function htmlResumenSeleccion(e,fila){
   const mem=C.seleccion||{}, tor=(mem.torneos||[]).filter(x=>x.anio===C.anio);
   const elim=e.seleccion&&(e.seleccion.ventanas||[]).some(v=>v.conv)?e.misPartidos.filter(p=>p.sel):[];   // §12.21
@@ -24178,6 +24214,7 @@ const zonaTxt=(z)=>ZONA_TXT[z]?t(ZONA_TXT[z]):z.toUpperCase().replace('_',' ');
 let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tuya por defecto)
 function pintaTablaFull(){
   const e=est(), tabs=$l('lobZonaTabs'), full=$l('lobTablaFull');
+  $l('lobTablaLiga').classList.add('oculto');   // sólo del lado del club (abajo)
   pintaSwitchSel('lobTablaSwitch');   // §12
   $l('lobTablaTit').textContent=anioTxt();   // 2026-09-12 (su caza: "LIGA NACIONAL ya lo sacamos de las otras dos; si abajo no se dice, va abajo"): el título es el año; la liga, el rótulo del cajón   // 2026-09-14: del lado de la bandera, sólo el año
   if(ladoSel==='sel'){
@@ -24275,16 +24312,17 @@ function pintaTablaFull(){
   let z=opciones.includes(zonaTablaSel)?zonaTablaSel:(bkLiga&&e.fase==='playoffs'&&zonaTablaSel===null?PO:(mia||(bkLiga?'__tabla':null)));
   if(bkLiga&&!e.zonas&&z!==PO) z='__tabla';
   const pestanas=bkLiga?(e.zonas?[...e.zonas,PO]:['__tabla',PO]):(e.zonas||[]);   // 2026-09-12 (su caza): la tabla ADELANTE de PLAYOFFS; en playoffs abre igual en PLAYOFFS
-  const tagLiga='<div class="cajTag">'+ligaDe().nombre.toUpperCase()+'</div>';
-  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tagLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
+  /* 2026-09-12 (su caza: «LIGA NACIONAL debería ser blanco y estar afuera del contenedor»): un título arriba del cajón, no un rótulo adentro */
+  { const tl=$l('lobTablaLiga'); tl.textContent=ligaDe().nombre.toUpperCase(); tl.classList.remove('oculto'); }
+  if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):zonaTxt(x);
   tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',pestanas.length>3);
   tabs.innerHTML=pestanas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+nomTab(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
-  if(z===PO){ full.innerHTML=tagLiga+bkLiga; return; }
-  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tagLiga+tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
+  if(z===PO){ full.innerHTML=bkLiga; return; }
+  if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const tz=tablaZona(e,z);
-  full.innerHTML=tagLiga+tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
+  full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
 }
 /**
  * §2z44 LAS LÍNEAS DE LA TABLA (su pedido 2026-09-05: *"pensemos cómo se ven las cosas en tablas de
@@ -26046,6 +26084,7 @@ function registrarResultado(){
   anotarTitulo('campeon', !!(e.playoffs&&e.playoffs.campeon===e.miClubId));                     /* el título de la liga */
   anotarTitulo('intercontinental', !!(e.intercontinental&&e.intercontinental.campeon===e.miClubId));
   premiarAmericas(e);                                   /* §2z229 c: el MVP de las Américas, al cerrar la Copa */
+  premiarIC(e);
   if(e.fase==='terminada') premiarLiga();               /* §2z229 c: los de la liga, cuando la liga termina */
   /* 2026-09-13 (su corte: "para mí esto es mejor que el momento: una pantalla que te da el resumen del torneo"): el titular de
      oro se fue — la Copa cierra con la HOJA (abrirResumenAM, la misma que la liga) al volver al vestuario, y la prensa espera a
@@ -26694,8 +26733,15 @@ function pintaSecciones(){
   /* §2z124 (su caza 2026-09-07: "en RESUMEN, en VOS, sólo te toma partidos de liga nacional cuando jugaste el
      continental también"): el lado del club es TODO lo que jugaste con el club — liga + continental; los playoffs siguen
      en su renglón. El rótulo lo dice. */
-  const hayAm=mp.some(p=>p.am&&!p.conSeleccion);
-  const lClub=sumar(mp.filter(p=>!p.sel&&!p.po&&!p.conSeleccion));
+  /* 2026-09-12 (su caza: «LN + AMÉRICAS cuando también jugué la Intercontinental; 38 PJ no sé de dónde salen; Playoffs queda colgado
+     abajo; las de Américas y la Copa no aparecen»): arriba, TODO lo que jugaste con el club en el año (liga, playoffs, Américas, la
+     Copa); abajo, una fila por competencia con PJ · PTS · AST — así cada número dice de dónde sale. Con una sola competencia no hay
+     desglose (repetiría la grilla). */
+  const mpClub=mp.filter(p=>!p.sel&&!p.conSeleccion);
+  const lClub=sumar(mpClub);
+  const compsClub=[[ligaDe().nombre.toUpperCase(),mpClub.filter(p=>!p.po&&!p.am)],[t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')),mpClub.filter(p=>p.po)],
+    [t(L('AMÉRICAS','AMERICAS','AMÉRICAS')),mpClub.filter(p=>p.am&&!p.ic)],[t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL')),mpClub.filter(p=>p.ic)]]
+    .map(([nom,ps])=>[nom,sumar(ps)]).filter(([,l])=>l.pj>0);
   const torAnio=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.anio===C.anio&&x.linea);
   const lSel=sumar(mp.filter(p=>p.sel)); for(const x of torAnio){ const l=x.linea; lSel.pj+=l.pj||0; lSel.min+=l.min||0; lSel.pts+=l.pts||0; lSel.ast+=l.ast||0; lSel.rob+=l.rob||0; lSel.tap+=l.tap||0; }
   /* 2026-09-13: el torneo del receso EN CURSO todavía no está en mem.torneos (entra al cerrarse): sus partidos se suman de C.selTorneo.mis */
@@ -26714,7 +26760,7 @@ function pintaSecciones(){
      encabezado y PJ en la grilla: no se repiten. */
   const rotulo=enSel
     ? banderaDe(J.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+' · '+anioTxt()
-    : escuditoDe(clubDe(e.miClubId))+' '+ligaDe().nombre.toUpperCase()+(hayAm?' + '+t(L('AMÉRICAS','AMERICAS','AMÉRICAS')):'')+' · '+anioTxt();   // §2z124 · 2026-09-14 (su caza: «LA REFERENCIA acá no tiene sentido; rompe la línea y no se entiende»): el rol NO va en el rótulo del resumen — vive en el velo TU ROL (§2z233)
+    : escuditoDe(clubDe(e.miClubId))+' '+anioTxt();   // 2026-09-12: las competencias van en el desglose, no en una ristra del rótulo   // §2z124 · 2026-09-14 (su caza: «LA REFERENCIA acá no tiene sentido; rompe la línea y no se entiende»): el rol NO va en el rótulo del resumen — vive en el velo TU ROL (§2z233)
   $l('lobResumen').innerHTML=
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
@@ -26728,7 +26774,8 @@ function pintaSecciones(){
       '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
       '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
-    (!enSel&&po.pj?'<div class="fila-item" style="padding-bottom:2px"><span class="desc">Playoffs: <b>'+fdec(po.pts/po.pj)+' PTS · '+fdec(po.ast/po.pj)+' AST</b> '+t(L('en','in','em'))+' '+po.pj+' PJ</span></div>':'')+
+    (!enSel&&compsClub.length>1?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'
+      +compsClub.map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pts/l.pj)+'</span><span class="n">'+fdec(l.ast/l.pj)+'</span>').join('')+'</div>':'')+
     /* §2z43: el ritmo se cambia acá, entre partidos — nunca en el pre (ahí sería una perilla de dificultad) · 2026-09-14: al pie de la caja */
     '<div class="tabs ritmoSwitch"><div class="tab'+(!C.intenso?' act':'')+'" data-ritmo="normal" tabindex="0">'+t(RITMO_TXT.normal[0])+'</div><div class="tab'+(C.intenso?' act':'')+'" data-ritmo="intenso" tabindex="0">'+t(RITMO_TXT.intenso[0])+'</div></div>';
   $l('lobResumen').querySelectorAll('[data-ritmo]').forEach(b=>b.addEventListener('click',()=>{ const v=b.dataset.ritmo==='intenso'; if(v!==!!C.intenso){ C.intenso=v; guardar(); pintaSecciones(); } }));
@@ -27704,6 +27751,7 @@ const PREMIO_TXT={
   quinteto:['quinteto',L('QUINTETO IDEAL','ALL-LEAGUE TEAM','QUINTETO IDEAL')],
   allstar:['estrella',L('JUEGO DE LAS ESTRELLAS','ALL-STAR','JOGO DAS ESTRELAS')],   // §2z45: el corte de mitad de temporada (v0: te nombran; jugarlo está en backlog)
   mvp_americas:['estrella',L('MVP DE LAS AMÉRICAS','AMERICAS MVP','MVP DAS AMÉRICAS')],   // §2z28
+  mvp_ic:['estrella',L('MVP DE LA INTERCONTINENTAL','INTERCONTINENTAL MVP','MVP DA INTERCONTINENTAL')],   // 2026-09-12 (su pedido): el molde del de las Américas
   ascenso:['sube',L('ASCENSO','PROMOTION','ACESSO')],                                       // §2z28 (se guarda con la liga DESTINO)
   /* §12 LA SELECCIÓN. El orden de El Draft: el ORO OLÍMPICO y el MUNDIAL arriba de todo,
      incluso de los premios de la NBA — es lo único que no se compra con un pase. */
@@ -27746,7 +27794,7 @@ const DE_CLUB=new Set(['campeon','americas','intercontinental','ascenso']);
    tocar tres listas (el Eurobasket lo probó, 2026-09-04). */
 const MEDALLAS_SEL=new Set(Object.keys(PREMIO_TXT).filter(k=>/^seleccion_(oro|plata|bronce)_/.test(k)));
 for(const k of MEDALLAS_SEL) DE_CLUB.add(k);
-const SIN_LIGA=new Set(['americas','mvp_americas','intercontinental']);   // el continental no lleva liga en el nombre
+const SIN_LIGA=new Set(['americas','mvp_americas','intercontinental','mvp_ic']);   // el continental no lleva liga en el nombre
 for(const k of Object.keys(PREMIO_TXT)) if(ES_SELECCION_CLAVE(k)) SIN_LIGA.add(k);
 /* el orden de El Draft (vitrina.ts ORDEN) sobre las ligas que tenemos: la NBA manda, la cima de
    afuera (acá las Américas) entre los premios de la NBA y las ligas por división, el ascenso al final */
@@ -27757,7 +27805,7 @@ function rangoPieza(clave,ligaId){
      el título que no se compra con un pase manda sobre el que sí) */
   const arriba=['seleccion_oro_jjoo','seleccion_oro_mundial','seleccion_mvp_jjoo','seleccion_mvp_mundial',
     'seleccion_plata_jjoo','seleccion_bronce_jjoo','seleccion_plata_mundial','seleccion_bronce_mundial',
-    'intercontinental','campeon@nba','mvp@nba','mvp_finales@nba','campeon@ncaa','quinteto@nba','joven@nba','americas','mvp_americas',
+    'intercontinental','mvp_ic','campeon@nba','mvp@nba','mvp_finales@nba','campeon@ncaa','quinteto@nba','joven@nba','americas','mvp_americas',
     'seleccion_oro_continental','seleccion_mvp_continental','seleccion_plata_continental','seleccion_bronce_continental',
     'seleccion_oro_eurobasket','seleccion_mvp_eurobasket','seleccion_plata_eurobasket','seleccion_bronce_eurobasket',
     'seleccion_quinteto_jjoo','seleccion_quinteto_mundial','seleccion_goleador_jjoo','seleccion_goleador_mundial',
@@ -27900,8 +27948,17 @@ function premiarAmericas(e){
   if(!C.palmares) C.palmares=[];
   if(C.palmares.some(q=>q.anio===C.anio&&q.clave==='mvp_americas')) return;
   /* §2z28 el MVP de las Américas: campeón con nota ≥7 en al menos tres partidos de LLAVE (el molde del MVP de las finales) */
-  const llave=e.misPartidos.filter(p=>p.am&&p.etapa!=='grupo'&&p.rating!==undefined);
+  const llave=e.misPartidos.filter(p=>p.am&&!p.ic&&p.etapa!=='grupo'&&p.rating!==undefined);   // 2026-09-12: los de la Copa Intercontinental (etapa «ic-…») se colaban como llave
   if(llave.length>=3&&llave.reduce((s,p)=>s+p.rating,0)/llave.length>=7) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'mvp_americas'});
+}
+/* 2026-09-12 (su pedido: «armemos uno de la copa»): el MVP de la Intercontinental, con el molde del de las Américas — campeón, con nota
+   media ≥7 en los partidos de la Copa que jugaste vos (al menos dos: el grupo son dos y la final uno) */
+function premiarIC(e){
+  const ic=e&&e.intercontinental; if(!ic||ic.campeon!==e.miClubId) return;
+  if(!C.palmares) C.palmares=[];
+  if(C.palmares.some(q=>q.anio===C.anio&&q.clave==='mvp_ic')) return;
+  const ps=e.misPartidos.filter(p=>p.ic&&p.rating!==undefined);
+  if(ps.length>=2&&ps.reduce((s,p)=>s+p.rating,0)/ps.length>=7) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'mvp_ic'});
 }
 function asegurarPremios(){
   if(!C.palmares) C.palmares=[];
@@ -28319,6 +28376,7 @@ function abrirResumenIC(){
   const fichas=[]; if(pj){ fichas.push([pj,t(L('JUGADOS','PLAYED','JOGADOS'))],[fdec(pa.reduce((s,p)=>s+p.pts,0)/pj),'PTS']); if(conNota.length) fichas.push([fdec(conNota.reduce((s,p)=>s+p.rating,0)/conNota.length),t(L('NOTA','RATING','NOTA'))]); }
   const filas=[];
   if(!camp&&ic.campeon) filas.push('<div class="pr">'+escC(ic.campeon)+'<span>'+t(L('CAMPEÓN','CHAMPION','CAMPEÃO'))+' · '+nomC(ic.campeon)+'</span></div>');
+  if((C.palmares||[]).some(p=>p.anio===C.anio&&p.clave==='mvp_ic')) filas.push('<div class="pr">'+iconoDe('mvp_ic',C.ligaId,20)+'<span>'+t(PREMIO_TXT.mvp_ic[1])+'</span></div>');
   hojaBase(t(L('FIN DEL TORNEO','END OF THE TOURNAMENT','FIM DO TORNEIO')), t(IC_TXT.nombre)+(ic.sede&&ic.sede.ciudad?' '+String(ic.sede.ciudad).toUpperCase():'')+' '+ic.anio,   // sede y año en el título (su corte)
     escudito(mi)+' <b>'+clubDe(mi).nombre.toUpperCase()+'</b>',
     {tono:camp?'oro':'', ico:camp?icono('globo',40):escudito(mi), tit, sub},
@@ -28369,10 +28427,10 @@ function abrirResumenT(final){
   const premiosLiga=premios.filter(p=>DE_LA_LIGA.has(p.clave)&&p.clave!=='campeon');   // el título ya lo dice el héroe
   if(premiosLiga.length) html+='<div class="cajTag">'+t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU'))+'</div><div class="resPremios">'
     +premiosLiga.map(p=>'<div class="pr'+(p.clave==='campeon'||p.clave==='ascenso'?' oro':'')+'">'+iconoDe(p.clave,C.ligaId,20)+'<span>'+t(PREMIO_TXT[p.clave][1])+'</span></div>').join('')+'</div>';
-  if(final===true) html+=htmlResumenSeleccion(e,fila);
+  if(final===true) html+=htmlResumenInternacional(e,fila)+htmlResumenSeleccion(e,fila);   // 2026-09-12 (su caza: «FIN DE LA BETA habla sólo de la liga; armamos muchísimas cosas más»)
   $l('resTCuerpo').innerHTML=html;
   const beta=esBeta(), fin=beta&&final===true, pend=recesoPendiente(e);
-  $l('resTBeta').classList.toggle('oculto',!fin);
+  $l('resTBeta').classList.toggle('oculto',!fin); if(fin) pintarAnotadoFin();
   $l('resTSeguir').classList.toggle('oculto',beta&&!pend);   // en la beta no hay mercado: sólo AL RECESO, o VOLVER
   $l('resTSeguir').textContent=pend?t(L('AL RECESO ▸','TO THE OFFSEASON ▸','AO RECESSO ▸')):t(L('AL MERCADO ▸','TO THE MARKET ▸','AO MERCADO ▸'));
   $l('resumenT').classList.remove('oculto');
@@ -28388,7 +28446,18 @@ $l('resTSeguir').onclick=()=>{ $l('resumenT').classList.add('oculto');
   if(C.cierreAnio!==C.anio){ C.cierreAnio=C.anio; guardar(); }   // 2026-09-13: recién acá el cierre queda hecho
   if(recesoPendiente(est())){ pintaLobby(); irLob('hoy'); } else abrirMercado(); };   // §2z229: al receso, o al mercado
 $l('resTVolver').onclick=()=>{ $l('resumenT').classList.add('oculto'); };
-$l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); abrirBetaVelo('lista'); };
+/* 2026-09-12 (su caza: «te anotás, sale un cartelito rojo, te devuelve a la ventana anterior y te deja volver a anotarte»): desde el fin
+   de la beta, el velo vuelve al FIN (no al vestuario); anotado queda anotado en este teléfono y el botón se vuelve una línea */
+const betaAnotado=()=>{ try{ return localStorage.getItem('betaAnotadoNSS')||''; }catch(err){ return ''; } };
+let betaVeloDesde=null;
+function pintarAnotadoFin(){ const m=betaAnotado();
+  $l('resTLista').classList.toggle('oculto',!!m);
+  $l('resTAnotado').classList.toggle('oculto',!m);
+  $l('resTAnotado').textContent=m?'✓ '+t(L('ANOTADO · TE AVISAMOS A ','SIGNED UP · WE’LL WRITE TO ','INSCRITO · A GENTE AVISA EM '))+m.toUpperCase():''; }
+$l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('lista'); };
+/* 2026-09-12 (su caza: «FIN DE LA BETA no tiene salida: sólo VOLVER AL VESTUARIO o ANOTARME»): SALIR te lleva a la portada, donde está
+   JUGAR otra vez — la partida queda guardada, como con el SALIR del vestuario */
+$l('resTSalir').onclick=()=>{ $l('resumenT').classList.add('oculto'); $l('lobConfirmSi').click(); };
 /* la tira fija del lobby y el velo (lista de espera / feedback) */
 let betaModo='lista';
 /**
@@ -28419,6 +28488,8 @@ function mailDeCuenta(){
 
 function abrirBetaVelo(modo){
   betaModo=modo;
+  $l('betaEnviar').classList.remove('oculto');
+  if(modo==='lista'&&betaAnotado()){ betaHecho(); $l('betaVelo').classList.remove('oculto'); verQueSeVe('betaVelo','LA BETA'); return; }   // ya anotado: no se vuelve a pedir
   const lista=modo==='lista';
   const cuenta=mailDeCuenta();
   $l('betaTit').textContent=lista?t(L('EL JUEGO COMPLETO','THE FULL GAME','O JOGO COMPLETO')):t(L('FEEDBACK','FEEDBACK','FEEDBACK'));
@@ -28438,7 +28509,15 @@ function abrirBetaVelo(modo){
   $l('betaVelo').classList.remove('oculto');
   verQueSeVe('betaVelo','LA BETA');
 }
-$l('betaVolver').onclick=()=>$l('betaVelo').classList.add('oculto');
+/* lo hecho se dice EN el velo (título y línea), sin cartelito: la regla de §2y */
+function betaHecho(){
+  const lista=betaModo==='lista';
+  $l('betaTit').textContent=lista?t(L('¡ANOTADO!','SIGNED UP!','INSCRITO!')):t(L('¡GRACIAS!','THANKS!','VALEU!'));
+  $l('betaNota').innerHTML=lista?t(L('Te avisamos a ','We’ll write to ','A gente avisa em '))+'<b>'+betaAnotado()+'</b>':t(L('Llegó. Lo leemos.','Got it. We’ll read it.','Chegou. A gente lê.'));
+  $l('betaMail').classList.add('oculto'); $l('betaTexto').classList.add('oculto'); $l('betaEnviar').classList.add('oculto');
+}
+$l('betaVolver').onclick=()=>{ $l('betaVelo').classList.add('oculto');
+  if(betaVeloDesde==='fin'){ betaVeloDesde=null; pintarAnotadoFin(); $l('resumenT').classList.remove('oculto'); } };
 $l('betaEnviar').onclick=()=>{
   /* el mail de la cuenta manda sobre lo escrito: si estás logueado, ése es tu mail */
   const mail=(mailDeCuenta()||$l('betaMail').value||'').trim(), texto=($l('betaTexto').value||'').trim();
@@ -28448,8 +28527,8 @@ $l('betaEnviar').onclick=()=>{
   betaCola({tipo:betaModo,mail,texto}); betaEnviarPronto();
   const url=BETA_URLS[betaModo];
   if(url){ try{ window.open(url,'_blank'); }catch(err){} }
-  $l('betaVelo').classList.add('oculto');
-  avisar(betaModo==='lista'?t(L('Anotado. Te avisamos.','Signed up. We’ll let you know.','Anotado. A gente avisa.')):t(L('Gracias. Llegó.','Thanks. Got it.','Valeu. Chegou.')));
+  if(betaModo==='lista'){ try{ localStorage.setItem('betaAnotadoNSS',mail); }catch(err){} }
+  betaHecho();
 };
 /* la cola local (⚠️ tanda B la vacía contra Supabase): lo escrito y los eventos, capados */
 function betaCola(item){

@@ -1774,7 +1774,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='97ab235743';
+const BUILD='01a4f93736';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -11157,18 +11157,20 @@ function jugarJuegoIntercontinental(e, miJuego, vRef) {
      no queda nada tuyo y el resto lo resuelve `jugarFecha` antes de la fecha 1 */
   while (ic.idx < IC_VENTANAS && ic.fase !== 'terminado' && !miJuegoIC(ic, ic.idx, e.miClubId) && quedaIC(ic, e.miClubId)) { jugarVentanaIC(e, ic.idx, null); ic.idx++; }
 }
+/* ⚠️ `local` es DE QUÉ LADO DEL MARCADOR estás (el juego guarda ptsLocal/ptsVisita por su propio local/visita); la cancha es
+   neutral SIEMPRE (`neutral`), y el texto lo lee de ahí (2026-09-14, su caza: ganamos 85-78 y el lobby lo mostraba 78-85 en rojo) */
 /** Tus partidos de la copa, jugados y por jugar, para el fixture: [{etapa, n, f:0, dia, rival, local, neutral, res|null, ic:true}]. */
 function misJuegosIC(e) {
   const ic = e.intercontinental, mi = e.miClubId, out = [];
   if (!ic) return out;
   for (const j of ic.juegos) {
     if (j.local !== mi && j.visita !== mi) continue;
-    out.push({ ic: true, etapa: j.etapa, grupo: j.grupo, n: j.n, f: ic.post ? 999 : 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+    out.push({ ic: true, etapa: j.etapa, grupo: j.grupo, n: j.n, f: ic.post ? 999 : 0, dia: ic.dias.grupo[j.n - 1], rival: j.local === mi ? j.visita : j.local, local: j.local === mi, neutral: true,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   for (const j of (ic.definicion || [])) {
     if (j.local !== mi && j.visita !== mi) continue;
-    out.push({ ic: true, etapa: j.etapa, n: 1, f: ic.post ? 999 : 0, dia: ic.dias.definicion, rival: j.local === mi ? j.visita : j.local, local: false, neutral: true,
+    out.push({ ic: true, etapa: j.etapa, n: 1, f: ic.post ? 999 : 0, dia: ic.dias.definicion, rival: j.local === mi ? j.visita : j.local, local: j.local === mi, neutral: true,
       res: j.jugado ? { ptsLocal: j.ptsLocal, ptsVisita: j.ptsVisita } : null });
   }
   return out;
@@ -25525,7 +25527,7 @@ function ultimoPartido(cierre,e){
     fecha:enPartido?enPartido.fecha:0, playoffs:!!(enPartido&&enPartido.tipo==='serie'),
     /* §2z27: lo que la prensa del continental lee — se arma DESPUÉS de resolver la ventana, así
        `campeon` y `afuera` (eliminado en este partido, en el grupo o en la llave) ya están */
-    americas:enPartido&&enPartido.tipo==='americas'&&e.americas?{etapa:enPartido.etapa,
+    americas:enPartido&&enPartido.tipo==='americas'&&!enPartido.ic&&e.americas?{etapa:enPartido.etapa,   // 2026-09-14 (su caza: terminó el primer partido de la Copa Intercontinental y saltó «Campeones de América»): la copa habla por el mismo canal, pero no es Américas
       campeon:e.americas.campeon===e.miClubId,
       afuera:e.americas.eliminado&&(enPartido.etapa==='grupo'?e.americas.fase!=='grupo':!!(cierre.serie&&cierre.serie.tono==='mal'))}:null,
     /* §12: lo que la prensa de la SELECCIÓN lee. Se arma después de resolver el partido, así

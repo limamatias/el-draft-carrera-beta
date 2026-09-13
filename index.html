@@ -1939,7 +1939,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='47729060f7';
+const BUILD='eb0049b675';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27292,9 +27292,10 @@ const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24
    cuánto te suma/resta"). `html` lleva el rayo dibujado; sin él, el caracter (el momento de la compra es texto). */
 function fraseItem(k,it,J,html){
   const ry=html?' '+RAYO:' ⚡', b=(x)=>html?'<b>'+x+'</b>':x;
-  if(it.sesion) return b(it.sesion+ry)+t(L(' menos por sesión',' less per session',' a menos por sessão'));
-  if(it.partido) return b(it.partido+ry)+t(L(' menos por partido',' less per game',' a menos por jogo'));
-  if(it.regen) return b('+'+it.regen+ry)+t(L(' por día',' per day',' por dia'));
+  /* 2026-09-13 (su caza con su novia: «3 menos por sesión se puede interpretar como que te sacan más»): el verbo dice lo que GANÁS */
+  if(it.sesion) return t(L('Ahorrás ','Save ','Economiza '))+b(it.sesion+ry)+t(L(' al entrenar',' when training',' ao treinar'));
+  if(it.partido) return t(L('Ahorrás ','Save ','Economiza '))+b(it.partido+ry)+t(L(' por partido',' per game',' por jogo'));
+  if(it.regen) return t(L('Recuperás ','Recover ','Recupera '))+b(it.regen+ry)+t(L(' más por día',' more per day',' a mais por dia'));
   if(it.efecto==='pedida') return b('+1')+t(L(' pedida por partido',' call per game',' pedida por jogo'));
   if(it.efecto==='frio') return b('+1')+t(L(' tiro antes del frío',' shot before cold',' arremesso antes do frio'));
   return '';

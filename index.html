@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='a15437cdd6';
+const BUILD='ea47ac0f43';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -14037,6 +14037,12 @@ const metaAvance = ()=>aro().y + R3()*1.18;
 /* LA LÍNEA DE TRES DE VERDAD (su hallazgo: "ni siquiera tenemos triple de esquina — la
    cancha no parece cancha"): arco + RECTAS de esquina a 0,92·R3, como el básquet — y por
    eso el triple del córner es más corto y más viable, igual que en la NBA */
+/* su pregunta 2026-09-13 («la distancia que dice cuando tirás, ¿está alineada con la real? ¿no debería ser distinta entre FIBA y NBA?»):
+   el cartel del tiro tomaba el arco como 6,75 m siempre. Ahora la NBA lo lee a 7,24 (sólo sus partidos de liga y playoffs; con la
+   selección o en una copa FIBA, 6,75). Es SÓLO el cartel: la cancha y el juego no cambian (su corte: "no es necesario TANTO realismo"). */
+const metrosArco=()=>{ try{ const k=window.__carrera, c=k&&k.C, ep=k&&k.enPartido;
+  return c&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].formato==='nba'&&ep&&(ep.tipo==='fecha'||ep.tipo==='serie') ? 7.24 : 6.75; }catch(e){ return 6.75; } };
+const metrosDe=(d)=>d/(R3()/metrosArco());
 function esTriple(p){ const a=aro();
   if(p.y-a.y <= R3()*0.392) return Math.abs(p.x-a.x) >= R3()*0.92;
   return dist(p,a) >= R3(); }
@@ -16847,7 +16853,7 @@ function soltarMedidor(){
   G.medidor=null; G.fase='vuelo'; G.tiro=null;
   if(t.libre){ soltarLibre(p,md,t); return; }   // §2z201: el libre cuenta en la línea, no en los tiros de cancha
   const desde={...G.vos}, hasta={...t.blanco.p};
-  const d=dist(desde,hasta), justa=potPara(d), m=d/(R3()/6.75);
+  const d=dist(desde,hasta), justa=potPara(d), m=metrosDe(d);
   const es3=esTriple(desde);
   chip(L(`${es3?'Triple':'Doble'} · ${m.toFixed(1).replace('.',',')} m`,
          `${es3?'Three':'Two'} · ${m.toFixed(1)} m`,
@@ -16993,7 +16999,7 @@ function lanzar(zona){
   const esTiro=t.blanco.tipo==='tiro';
   const desde={...G.vos}, hasta={...t.blanco.p};
   const d=dist(desde,hasta);
-  const m=d/(R3()/6.75);
+  const m=metrosDe(d);
   const justa=potPara(d);          // la fuerza justa, en el espacio del gesto (escala única)
   const marcaCerca=defensorDelTiro().d;   // §2z112: el más cercano, el de atrás a la mitad
 

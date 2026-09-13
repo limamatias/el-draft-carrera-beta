@@ -1078,7 +1078,10 @@
   #lobby #lv-vos .paneles{height:290px;flex:0 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
   #lobby #lv-vos .panel{min-height:0}
   #lobby #lv-vos .panel > *:first-child{margin-top:0}
-  #lobby #lv-vos .panel .cajon{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  /* 2026-09-13 (su caza: «TEMPORADA es puro aire» · «PALMARÉS es un contenedor gigante para un —» · «como pasa con CONTRATO»): la caja
+     ya no llena la celda — se achica a su contenido y se apoya ABAJO (margin-top:auto), como en VIDA. La celda sigue con su alto propio
+     (las pestañas no se mueven), el switch queda arriba, y si el contenido no entra la caja scrollea por adentro. */
+  #lobby #lv-vos .panel .cajon{flex:0 1 auto;margin-top:auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
   #lobby #lv-vos .panel .cajon::-webkit-scrollbar{display:none}
   #lobby #lobResumen{display:flex;flex-direction:column}
   #lobby .titCajon{flex:none;font-size:13px;letter-spacing:2px;font-weight:600;color:var(--tinta);padding:0 14px 7px;text-align:left}   /* el nombre de la liga arriba de la tabla plena: blanco, alineado con el texto de adentro del cajón (12 + 1 de borde) */
@@ -1936,7 +1939,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='4d3b9aa431';
+const BUILD='47729060f7';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

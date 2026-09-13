@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='3a0ae02125';
+const BUILD='6f25a0f684';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -7349,7 +7349,7 @@ const CARTAS_PRENSA=[
 
  { id:'prensa_sel_debut', repite:true, evento:true,
    cuando:(c)=>c.u.seleccion&&c.u.seleccion.debut&&!c.u.seleccion.medalla,
-   gancho:L('Tu primer partido con la mayor. Afuera del vestuario hay dos micrófonos y un tipo con una libreta que anota todo lo que decís, incluso el "hola".','Your first game with the senior team. Outside the locker room there are two mics and a man with a notebook writing down everything you say, including "hi".','Seu primeiro jogo com a principal. Fora do vestiário há dois microfones e um cara com um caderno anotando tudo o que você diz, até o "oi".'),
+   gancho:L('Tu primer partido con la selección. Afuera del vestuario hay dos micrófonos y un tipo con una libreta que anota todo lo que decís, incluso el "hola".','Your first game with the senior team. Outside the locker room there are two mics and a man with a notebook writing down everything you say, including "hi".','Seu primeiro jogo com a principal. Fora do vestiário há dois microfones e um cara com um caderno anotando tudo o que você diz, até o "oi".'),
    opciones:[
      {tipo:'segura',label:L('"Hola"','"Hi"','"Oi"'),desenlaces:[{p:100,remate:null,texto:L('Es todo lo que decís. El de la libreta lo anota, lo subraya y se va conforme.','That is all you say. The man with the notebook writes it down, underlines it and leaves satisfied.','É tudo o que você diz. O cara do caderno anota, sublinha e vai embora satisfeito.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Vine a jugar, no a mirar"','"I came to play, not to watch"','"Vim para jogar, não para olhar"'),desenlaces:[
@@ -11310,7 +11310,7 @@ function misJuegosAM(e) {
 const CARTAS_SELECCION = [
  { id:'sel_primera_llamada', de:'seleccion', peso:150, maxVeces:1, edadMin:17, fondo:'despacho',
    cuando:(c)=>c.seleccion&&c.selLlamadoCerca&&c.selJugados===0,   // 2026-09-09: la PRIMERA de verdad (antes: sin torneos, y salía al que llevaba cuatro ventanas)
-   gancho:L('Suena un número que no tenés agendado. Es el ayudante del entrenador de la mayor: te quieren en la próxima ventana. Cortás y te quedás mirando el teléfono como si fuera a sonar de nuevo para desdecirse.','A number you do not have saved rings. It is the assistant of the senior national team coach: they want you for the next window. You hang up and stare at the phone as if it were going to ring again to take it back.','Toca um número que você não tem na agenda. É o auxiliar do técnico da seleção principal: querem você na próxima janela. Você desliga e fica olhando o telefone como se fosse tocar de novo para se desdizer.'),
+   gancho:L('Suena un número que no tenés agendado. Es el ayudante del entrenador de la selección nacional: te quieren en la próxima ventana. Cortás y te quedás mirando el teléfono como si fuera a sonar de nuevo para desdecirse.','A number you do not have saved rings. It is the assistant of the senior national team coach: they want you for the next window. You hang up and stare at the phone as if it were going to ring again to take it back.','Toca um número que você não tem na agenda. É o auxiliar do técnico da seleção principal: querem você na próxima janela. Você desliga e fica olhando o telefone como se fosse tocar de novo para se desdizer.'),
    opciones:[
      {tipo:'segura',label:L('Avisarle al DT del club','Tell your club coach','Avisar o técnico do clube'),desenlaces:[{p:100,remate:null,texto:L('Se lo decís antes de que se entere por otro lado. Te da la mano y te dice que no vuelvas roto.','You tell him before he hears it somewhere else. He shakes your hand and tells you not to come back broken.','Você conta antes que ele saiba por outro lado. Ele te dá a mão e diz para não voltar quebrado.'),ef:{rel:{dt:2}}}]},
      {tipo:'apuesta',label:L('No decirle a nadie hasta la lista oficial','Tell nobody until the official list','Não contar a ninguém até a lista oficial'),desenlaces:[
@@ -13219,7 +13219,7 @@ const CARTAS_SALIDA=[
        {p:50,remate:L('Contaron hasta cinco','They counted to five','Contaram até cinco'),texto:L('En la entrada en calor pasan al lado tuyo contando en voz alta: uno, dos, tres, cuatro, cinco.','In warm-ups they jog past you counting out loud: one, two, three, four, five.','No aquecimento passam do seu lado contando em voz alta: um, dois, três, quatro, cinco.'),ef:{partido:{fuerzaRival:3}}}]}]},
  { id:'sal_debut_sel', de:'salida', peso:400, maxVeces:1, chance:1, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.debutSel,
-   gancho:L('El túnel. Un cronista te agarra del brazo: "Debut con la mayor. ¿Nervios?"','The tunnel. A reporter grabs your arm: "Debut with the senior team. Nervous?"','O túnel. Um repórter te segura pelo braço: "Estreia na principal. Nervoso?"'),
+   gancho:L('El túnel. Un cronista te agarra del brazo: "Debut con la selección. ¿Nervios?"','The tunnel. A reporter grabs your arm: "Debut with the senior team. Nervous?"','O túnel. Um repórter te segura pelo braço: "Estreia na principal. Nervoso?"'),
    opciones:[
      {tipo:'segura',label:L('"Nervios no: hambre"','"Not nerves: hunger"','"Nervoso não: fome"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís sin creerlo y funciona igual. Salís a la cancha con las piernas tuyas.','You say it without believing it and it works anyway. You walk out on your own legs.','Você diz sem acreditar e funciona mesmo assim. Entra em quadra com as suas próprias pernas.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Vine a quedarme"','"I came to stay"','"Vim para ficar"'),desenlaces:[
@@ -14621,7 +14621,9 @@ const SIN_PELOTA_EN_PARTIDO=true;   // 2026-09-11: la jugó en el banco y la apr
    dribbles?», con su corte «la bajaría un poco en ambos»): correr SIN pelota pasa de 210 a 170 px/s —conduciendo avanzás a ~120,
    así que sigue siendo más rápido, pero no el doble— en la jugada nueva Y en el desmarque de siempre. */
 const VEL_DESMARQUE=170;
-const SINP={ventana:2500, lectura:1500, leeMs:250, libre:55, postura:34, cuerpo:26, enPartido:0.50};
+/* §2z258 (su caza 2026-09-13: «se toma muy poco tiempo para que te empieces a desmarcar — como mucho 1/3 del reloj y ya tira si no te
+   moviste»): la espera hasta tu primer toque 1,5 → 3 s y la paciencia desde el toque 2,5 → 3,5 s (tope 6,5 s, ~40 % de un reloj de 15) */
+const SINP={ventana:3500, lectura:3000, leeMs:250, libre:55, postura:34, cuerpo:26, enPartido:0.50};
 function armarPosesion(){
   G._hintContado=false;   // el hint de arrastre cuenta por posesión (18-frame)
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora

@@ -1919,7 +1919,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='7873794021';
+const BUILD='28d34afc8d';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27230,17 +27230,17 @@ function pintaTiendaPlena(){
   const k=tiendaAbierta, J=C.jugador, box=$l('lobTiendaFull'); if(!k||!box) return;
   $l('lobTiendaTit').textContent=t(TIENDAS[k].nom);
   /* estado: 'comprar' | 'tuyo' | 'enuso' | 'reemp' (lo que el escalón de arriba reemplazó) | 'bloq' (lo que viene después) */
-  const fila=(cad,ico,nom,ef,precio,estado,attr)=>
+  const fila=(cad,ico,nom,ef,precio,estado,attr,pun)=>
     '<div class="fila-tienda cad-'+cad+(estado==='reemp'?' reemp':estado==='bloq'?' bloq':estado==='enuso'?' enUso':'')+'">'
       +'<span class="ico">'+ico+'</span>'
       +'<span class="txt"><span class="nom">'+nom+'</span>'+(ef?'<span class="ef">'+ef+'</span>':'')+'</span>'
-      +'<span class="precio">'+(estado==='comprar'||estado==='bloq'?fplata(precio):'')+'</span>'
+      +'<span class="precio">'+(estado==='comprar'||estado==='bloq'?fplata(precio):(pun||''))+'</span>'   /* su caza 2026-09-13: los puntitos de lo que está en uso, en el lugar del precio (fijos, no detrás de la descripción) */
       +'<button class="btn"'+(estado==='comprar'?' '+attr:' disabled')+'>'
         +(estado==='tuyo'?t(L('TUYO','YOURS','SEU')):estado==='enuso'?t(L('EN USO','IN USE','EM USO')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
   let h=TIENDAS[k].regla?notas(t(TIENDAS[k].regla)):'';
   if(k==='partido'){
     const u=J.enUso||{}, p=precioPartidos();
-    h+=TIENDA_PARTIDOS.map(it=>fila('partido',iconoPartido(it.id),t(it.nom),fraseItem(k,it,J,true)+puntosEnUso(u[it.id]||0),p,u[it.id]?'enuso':'comprar','data-partido="'+it.id+'"')).join('');
+    h+=TIENDA_PARTIDOS.map(it=>fila('partido',iconoPartido(it.id),t(it.nom),fraseItem(k,it,J,true),p,u[it.id]?'enuso':'comprar','data-partido="'+it.id+'"',u[it.id]?puntosEnUso(u[it.id]):'')).join('');
   } else {
     const mejor=mejorDe(J,k), sig=siguienteDe(J,k), reemplaza=(k==='vehiculo'||k==='casa');
     h+=ESCALERA[k].map(it=>{

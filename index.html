@@ -1945,7 +1945,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='3b0a02d82f';
+const BUILD='a95f6875a0';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -4999,6 +4999,10 @@ function miSerie(estado) {
  *   null → no queda nada que jugar (temporada terminada, o eliminado en playoffs).
  */
 function miProximo(estado) {
+  /* 2026-09-13 (el bug del próximo que cambiaba al recargar, su última clase): la ventana FIBA que ya llegó (fecha f−1 jugada) a veces
+     seguía sin decidir en memoria —la fecha se había jugado por un camino que no la decide— y se ofrecía una fecha que la ventana se
+     lleva; al recargar, la migración la decidía y el rival cambiaba. Se decide acá, antes de leer nada (idempotente y determinista). */
+  if (estado.seleccion && !estado.seleccion.fin) decidirVentanasQueLlegan(estado, estado.fechaJugada || 0);
   if (estado.fase === 'regular') {
     /* §12: LA SELECCIÓN VA PRIMERO DE TODO. Es la única cita del calendario que no se
        negocia: la ventana FIBA se lleva tus dos fechas y, si adentro cae un continental,
@@ -10934,7 +10938,11 @@ function reanclarAmericas(am, F, semilla, ritmo, fechaJugada, ocupadas) {
      enero cuando él ya había jugado el 1 y el 2 de febrero): el piso era la última ventana JUGADA, así que una ventana
      pendiente podía re-anclarse a una fecha que la liga ya había pasado — se ofrecía con fecha vieja, el descanso se
      contaba hasta la fecha siguiente (12 días) y el orden del calendario quedaba roto. El piso es también la fecha jugada. */
-  const hechas = am.ventanas.slice(0, am.idx), ult = Math.max(hechas.length ? hechas[hechas.length - 1].f : 0, fechaJugada || 0);
+  /* 2026-09-13 (bug de su novia, reproducido: recargó en el vestuario y el partido del continental pasó a ser una fecha de liga, con la
+     carta «está por arrancar el continental»): una ventana que YA LLEGÓ (f ≤ fecha jugada) es la que miProximo ofrece, así que no se
+     mueve — se congela con las jugadas y sólo se re-anclan las de después. */
+  let kLlego = am.idx; while (kLlego < am.ventanas.length && am.ventanas[kLlego].f <= (fechaJugada || 0)) kLlego++;
+  const hechas = am.ventanas.slice(0, kLlego), ult = Math.max(hechas.length ? hechas[hechas.length - 1].f : 0, fechaJugada || 0);
   let nuevas; try { nuevas = ventanasAmericas(F, semilla, ritmo, { hechas, ult }, lista, ocupadas); } catch (err) { return false; }   // si ya no entran, se quedan como están
   const cambio = nuevas.some((v, i) => !am.ventanas[i] || am.ventanas[i].f !== v.f || am.ventanas[i].dia !== v.dia);
   if (cambio) am.ventanas = nuevas;
@@ -22784,6 +22792,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
       fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(temporada,ligaId||'federal',ANIO_INICIO,null);   // §2z27
   instalarSeleccion(temporada,jugador,ligaId||'federal',ANIO_INICIO,semilla,null);   // §12
+  anclarAmericas(temporada);   // 2026-09-13
   return {v:1,semilla,anio:ANIO_INICIO,ligaId:ligaId||'federal',jugador,
     contrato:ofertaDe(jugador,ligaId||'federal',liga.clubes.find(c=>c.id===club)||liga.clubes[0],null),   // §2z15
     padron:padronInicial(),   // §2z7: la escalera de clubes vive en la carrera
@@ -22966,9 +22975,10 @@ function cargarCarrera(n){
       for(const k of ['nombre','corto','nombres','sigla','ciudad','apodo','color','color2']) if(m[k]!==undefined) cl[k]=m[k]; }   // 2026-09-12: `nombres` (las formas cortas) también, o las partidas que ya venían nunca las ven
     if(c.beta&&c.jugador.dbeta===undefined) c.jugador.dbeta=dbetaInicial(c.ligaId);   // §7.1
     if(c.temporada&&LIGAS[c.ligaId]&&LIGAS[c.ligaId].calendario&&c.temporada.ritmo!==c.ligaId) c.temporada.ritmo=c.ligaId;   // §2z83: el calendario real, también para las partidas que ya venían
-    if(c.temporada&&c.temporada.americas){ const selV=c.temporada.seleccion&&c.temporada.seleccion.ventanas||[];
-      const ocup=new Set(selV.filter(v=>v.receso!=='verano'&&!v.receso).flatMap(v=>[v.f,v.f+1]));   // 2026-09-12: las fechas de la ventana FIBA
-      reanclarAmericas(c.temporada.americas,c.temporada.fechasTotales,c.temporada.semilla,c.temporada.ritmo,c.temporada.fechaJugada,ocup); }   // 2026-09-11: nunca a una fecha ya jugada   // 2026-09-10: las ventanas por jugar, con aire
+    /* 2026-09-13 (el bug de su novia, reproducido en 90 carreras: al RECARGAR cambiaba el próximo partido): el re-anclaje corría en
+       CADA carga, con un piso distinto del de memoria, y movía la ventana que ya había llegado. Es una migración: corre UNA vez por
+       temporada (`anclaV`), y las temporadas nuevas ya nacen ancladas (anclarAmericas, al instalar la selección). */
+    if(c.temporada&&c.temporada.americas){ if(c.temporada.americas.anclaV!==ANCLA_AM_V) anclarAmericas(c.temporada); else religarLlaveAM(c.temporada.americas); }
     /* 2026-09-12: la llave del club y la de la selección vuelven a ser una (clase 20), y los juegos de playoffs de antes de
        §2z204 recuperan su paso (el día en el fixture) */
     if(c.temporada&&c.temporada.playoffs){ religarLlavePO(c.temporada); fecharPasosPO(c.temporada); }
@@ -22988,8 +22998,11 @@ function cargarCarrera(n){
        de "te caíste" se borra. */
     if(c.beta&&c.temporada&&c.temporada.seleccion){ const el=c.temporada.seleccion;
       const elige=(v)=>!!(c.temporada.selElige&&v.receso!=='verano');   // 2026-09-09: en la NBA la carta decide (no se pisa)
-      if(!el.beta||el.ventanas.some((v,k)=>k>=el.idx&&v.conv!==true&&!v.eleccion&&!elige(v))){ el.beta=true; el.motivo=null; el.avisoVentana=null;
-        el.ventanas.forEach((v,k)=>{ if(k>=el.idx&&!v.eleccion&&!elige(v)){ v.conv=true; v.motivo=null; } });
+      /* 2026-09-13 (la segunda causa del mismo bug): pasaba a convocado TODAS las ventanas por venir, y en memoria cada una se decide al
+         LLEGAR (decidirVentanasQueLlegan) — las fechas salteadas cambiaban al recargar y miProximo ofrecía otro rival. Sólo se corrige lo
+         que ya quedó decidido en contra (`conv===false`); lo que no llegó lo decide el motor, que con `el.beta` convoca. */
+      if(!el.beta||el.ventanas.some((v,k)=>k>=el.idx&&v.conv===false&&!v.eleccion&&!elige(v))){ el.beta=true; el.motivo=null; el.avisoVentana=null;
+        el.ventanas.forEach((v,k)=>{ if(k>=el.idx&&v.conv===false&&!v.eleccion&&!elige(v)){ v.conv=true; v.motivo=null; } });
         el.convocado=!!(el.ventanas[el.idx]&&el.ventanas[el.idx].conv); } }
     if(!c.jugador.entreno){ c.jugador.entreno=entrenoNuevo(); c.jugador.rol='titular'; }  // pre-fase 4
     if(c.jugador.minutos===undefined) c.jugador.minutos=semillaMinutos(c.ligaId,c.jugador.rol||'titular');   // pre-§2z12
@@ -23016,7 +23029,11 @@ function cargarCarrera(n){
        lee por ventana (EQUIPO, CON LA SELECCIÓN, SIN VOS) la veía como nunca convocado. La decisión vieja valía para
        todas las ventanas de ese año: se copia a las que ya llegaron; las que faltan las decide el motor al llegar. */
     const selV=c.temporada&&c.temporada.seleccion;
-    if(selV&&selV.ventanas) selV.ventanas.forEach((v,k)=>{ if(v.conv===undefined&&!v.eleccion&&(selV.beta||k<=(selV.idx||0))&&!(selV.beta&&c.temporada.selElige&&v.receso!=='verano')) v.conv=!!(selV.beta||selV.convocado); });
+    /* 2026-09-13 (tercera causa del bug del próximo que cambiaba al recargar): en la beta copiaba a TODAS las que faltaban; ahora sólo a
+       las que ya llegaron (las anteriores al índice, o la del frente con su fecha f−1 jugada — la regla de decidirVentanasQueLlegan) */
+    const fjV=(c.temporada&&c.temporada.fechaJugada)||0;
+    if(selV&&selV.ventanas) selV.ventanas.forEach((v,k)=>{ const llego=k<(selV.idx||0)||(k===(selV.idx||0)&&!v.receso&&v.f-1<=fjV);
+      if(v.conv===undefined&&!v.eleccion&&llego&&!(selV.beta&&c.temporada.selElige&&v.receso!=='verano')) v.conv=!!(selV.beta||selV.convocado); });
     if(!c.jugador.entreno.marca) c.jugador.entreno.marca={};
     if(!c.jugador.mejoras) c.jugador.mejoras={moto:false,depto:false};
     /* §2z256: el staff de antes (compras sueltas en `mejoras`, el entrenador también en `entreno.trainer`) queda en nivel 1 */
@@ -23140,6 +23157,16 @@ function ordenAnioPasado(ligaId,anio,tablaFinal){
   if(tablaFinal&&tablaFinal.ligaId===ligaId&&tablaFinal.anio===anio-1&&tablaFinal.orden) return tablaFinal.orden;
   const h=tablaDelAnioPasado(SEMILLA_MUNDO,ligaId,anio);
   return Object.keys(h).sort((a,b)=>h[a].puesto-h[b].puesto);
+}
+/* 2026-09-13: las ventanas del continental se anclan contra las de la selección UNA vez, cuando las dos están instaladas; la marca
+   `anclaV` hace que cargar la partida no las vuelva a mover (el bug del próximo que cambiaba al recargar) */
+const ANCLA_AM_V=1;
+function anclarAmericas(t){
+  if(!t||!t.americas) return;
+  const selV=t.seleccion&&t.seleccion.ventanas||[];
+  const ocup=new Set(selV.filter(v=>v.receso!=='verano'&&!v.receso).flatMap(v=>[v.f,v.f+1]));   // 2026-09-12: las fechas de la ventana FIBA
+  reanclarAmericas(t.americas,t.fechasTotales,t.semilla,t.ritmo,t.fechaJugada,ocup);   // 2026-09-11: nunca a una fecha ya jugada · 2026-09-13: ni mover la que llegó
+  t.americas.anclaV=ANCLA_AM_V;
 }
 function instalarAmericas(e,ligaId,anio,tablaFinal){
   e.americas=null;
@@ -27150,6 +27177,7 @@ function otraTemporada(destino){
   instalarIntercontinental(C.temporada,null,C.anio); C.icPendiente=null;   // §2z27.3 → §2z229 e: la copa ya se jugó en el receso, con el club de la Copa; acá nunca hay nada que instalar
   C.selAviso=null; C.selTorneo=null; C.selTorneoFin=null;   // §12: el receso quedó atrás · §2z242
   instalarSeleccion(C.temporada,C.jugador,C.ligaId,C.anio,C.semilla,C.seleccion);   // §12
+  anclarAmericas(C.temporada);   // 2026-09-13
   C.jugador.edad++;
   const declive=aplicarDeclive(C.jugador);   // §2z196: los años cobran al dar vuelta la página
   /* §2z15: UNA temporada siempre — al firmar (club nuevo) o al quedarte, el contrato es la
@@ -29126,6 +29154,7 @@ function armarBeta(c){
      año ≥ ANIO_INICIO con parteElim === 'B' */
   while(parteElim(c.anio)!=='B') c.anio++;
   instalarSeleccion(c.temporada,J,c.ligaId,c.anio,c.semilla,null,true);
+  anclarAmericas(c.temporada);   // 2026-09-13: la beta reinstala la selección — el continental se ancla contra ésta
 }
 /* EL RESUMEN DE TEMPORADA (su corte: "es una pieza del juego, no de la beta"): al tocar el
    botón del cierre, siempre. De ahí al mercado; en la beta, al gancho del juego completo. */

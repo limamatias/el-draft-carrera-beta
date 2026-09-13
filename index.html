@@ -635,6 +635,9 @@
   #opciones .opcVersion{text-align:center;font-size:10px;letter-spacing:1.5px;color:#5c6478;margin-top:8px;font-weight:600}
   #opciones .opcInfo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,7,13,.6)}
   #opciones .opcInfo.oculto{display:none}
+  #opciones .opcInfo .opcConf{padding:16px;text-align:center;align-items:stretch}
+  #opciones .opcConfBtns{display:flex;gap:8px;margin-top:6px}
+  #opciones .opcConfBtns .jugar{flex:1;min-height:44px;font-size:16px}
   #opciones .opcInfo .caja{max-width:300px;padding:16px 36px 16px 16px;display:flex;flex-direction:column;gap:6px;text-align:left}
   #opciones .opcInfo b{font-size:13px;letter-spacing:2px;color:var(--naranja)} #opciones .opcInfo p{margin:0;font-size:16px;line-height:1.35;color:var(--tinta)}
   /* ⚠️ PANTALLA PLENA: adentro de un menú de verdad (la grilla de niveles) no van ni el HUD,
@@ -1910,7 +1913,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='9cab662bd1';
+const BUILD='2057ec1115';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2633,6 +2636,15 @@ const BUILD='9cab662bd1';
     <div class="opcVersion" id="opcVersion"></div>
   </div>
   <!-- el (i): una ventanita que se cierra con ✕ o tocando afuera -->
+  <!-- 2026-09-12 (su caza: "SALIR debería generar un botón que viva dentro de opciones; con NO, SIGO salís al home, no a opciones"): la confirmación de salir, adentro -->
+  <div class="opcInfo oculto" id="opcSalirConf"><div class="caja opcConf">
+    <b data-l-en="EXIT TO THE TITLE SCREEN?" data-l-pt="SAIR PARA O MENU?">¿SALIR A LA PORTADA?</b>
+    <p data-l-en="Your career stays saved." data-l-pt="A carreira fica salva.">La carrera queda guardada.</p>
+    <div class="opcConfBtns">
+      <button class="jugar secundario" id="opcSalirSi" data-l-en="YES, EXIT" data-l-pt="SIM, SAIR">SÍ, SALIR</button>
+      <button class="jugar principal" id="opcSalirNo" data-l-en="NO, STAY" data-l-pt="NÃO, FICO">NO, SIGO</button>
+    </div>
+  </div></div>
   <div class="opcInfo oculto" id="opcInfo"><div class="caja"><div class="veloX" id="opcInfoX" tabindex="0" aria-label="cerrar">✕</div><b id="opcInfoTit"></b><p id="opcInfoTxt"></p></div></div>
 </div>
 <!-- §7.1 la lista de espera y el feedback de la beta -->
@@ -24127,7 +24139,7 @@ const OPC_INFO={
   relato:[L('VELOCIDAD DEL RELATO','NARRATION SPEED','VELOCIDADE DO RELATO'),L('RÁPIDO: lo que pasa entre tus jugadas se narra más ligero. El partido no cambia.','FAST: what happens between your plays is narrated quicker. The game does not change.','RÁPIDO: o que acontece entre as suas jogadas é narrado mais rápido. O jogo não muda.')],
   pantalla:[L('PANTALLA ENCENDIDA','SCREEN ALWAYS ON','TELA SEMPRE LIGADA'),L('Durante el partido el teléfono no apaga la pantalla. Gasta un poco más de batería.','During a game the phone does not turn the screen off. It uses a little more battery.','Durante o jogo o celular não apaga a tela. Gasta um pouco mais de bateria.')],
 };
-function abrirOpciones(modo){ opcModo=modo||'lobby'; pintaOpciones(); $l('opcInfo').classList.add('oculto'); $l('opciones').classList.remove('oculto'); verQueSeVe('opciones','Opciones'); }
+function abrirOpciones(modo){ opcModo=modo||'lobby'; pintaOpciones(); $l('opcInfo').classList.add('oculto'); $l('opcSalirConf').classList.add('oculto'); $l('opciones').classList.remove('oculto'); verQueSeVe('opciones','Opciones'); }
 window.abrirOpcionesNSS=abrirOpciones;   // el ⚙ del partido (03) vive afuera del cierre del lobby
 function pintaOpciones(){
   const enLobby=opcModo==='lobby', cuentaReal=!!(window.MODO_BETA&&window.MODO_BETA.cuentas);
@@ -24146,8 +24158,13 @@ function pintaOpciones(){
   const box=$l('opcFilas'); box.innerHTML=h;
   $l('opcSalir').classList.toggle('oculto',!enLobby);
   $l('opcVersion').textContent='BUILD '+String(typeof BUILD!=='undefined'?BUILD:'').toUpperCase();
-  box.querySelectorAll('[data-opc]').forEach(b=>{ const go=()=>elegirOpcion(b.dataset.opc,b.dataset.v); b.onclick=go;
-    b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
+  /* 2026-09-12 (su caza: "si tocás en cualquier lugar debería pasar a la otra opción, aunque toques la activa — sólo en opciones"): un
+     switch de DOS opciones se toca entero y alterna; el de tres (idioma) elige la que tocaste */
+  box.querySelectorAll('.tabs').forEach(tb=>{ const ops=[...tb.querySelectorAll('[data-opc]')];
+    if(ops.length===2){ const go=()=>{ const otra=ops.find(x=>!x.classList.contains('act'))||ops[0]; elegirOpcion(otra.dataset.opc,otra.dataset.v); };
+      tb.style.cursor='pointer'; tb.onclick=go; ops.forEach(b=>{ b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; }); }
+    else ops.forEach(b=>{ const go=()=>elegirOpcion(b.dataset.opc,b.dataset.v); b.onclick=go;
+      b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; }); });
   box.querySelectorAll('[data-info]').forEach(b=>{ const go=(ev)=>{ if(ev) ev.stopPropagation(); const i=OPC_INFO[b.dataset.info];
       $l('opcInfoTit').textContent=t(i[0]); $l('opcInfoTxt').textContent=t(i[1]); $l('opcInfo').classList.remove('oculto'); };
     b.onclick=go; b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
@@ -24161,14 +24178,19 @@ function elegirOpcion(k,v){
   else if(k==='relato') ponerPref('relato',v);
   else if(k==='pantalla'){ ponerPref('pantalla',v==='si'); if(opcModo==='partido') pantallaEncendida(v==='si'); }
   else if(k==='ritmo'){ const nv=v==='intenso'; if(C&&nv!==!!C.intenso){ C.intenso=nv; guardar(); pintaSecciones(); } }
-  else if(k==='idioma'){ if(v!==idioma()){ try{ localStorage.setItem('idiomaNSS',v); }catch(e){} location.reload(); return; } }
+  /* el idioma se resuelve una vez por carga (01b): cambiarlo recarga. 2026-09-12 (su caza: "tocar el idioma te saca afuera de la
+     partida"): antes de recargar se anota la ranura, y al volver se entra solo a la partida con OPCIONES abierto (el final del lobby) */
+  else if(k==='idioma'){ if(v!==idioma()){ try{ localStorage.setItem('idiomaNSS',v); sessionStorage.setItem('volverOpcionesNSS',String(ranura)); }catch(e){} location.reload(); return; } }
   pintaOpciones();
 }
 $l('opcX').onclick=()=>$l('opciones').classList.add('oculto');
 $l('opciones').addEventListener('click',(e)=>{ if(e.target===$l('opciones')) $l('opciones').classList.add('oculto'); });   // tocar afuera cierra
 $l('opcInfoX').onclick=()=>$l('opcInfo').classList.add('oculto');
 $l('opcInfo').addEventListener('click',(e)=>{ if(e.target===$l('opcInfo')) $l('opcInfo').classList.add('oculto'); });
-$l('opcSalir').onclick=()=>{ $l('opciones').classList.add('oculto'); $l('lobConfirm').classList.remove('oculto'); };
+$l('opcSalir').onclick=()=>$l('opcSalirConf').classList.remove('oculto');
+$l('opcSalirNo').onclick=()=>$l('opcSalirConf').classList.add('oculto');   // NO, SIGO: te quedás en OPCIONES
+$l('opcSalirConf').addEventListener('click',(e)=>{ if(e.target===$l('opcSalirConf')) $l('opcSalirConf').classList.add('oculto'); });
+$l('opcSalirSi').onclick=()=>{ $l('opcSalirConf').classList.add('oculto'); $l('opciones').classList.add('oculto'); $l('lobConfirmSi').click(); };
 /* el pausa y el ⚙ flotantes del PARTIDO no pintan nada en el vestuario */
 function botonesDelJuego(ver){
   ['btnPausa','btnAjustes'].forEach(id=>{document.getElementById(id).style.display=ver?'':'none';});
@@ -28916,6 +28938,11 @@ window.__carrera={
   pantallaActual,   // en qué pantalla estás (arnés y bancos)
   irLob, botonesDelJuego, verQueSeVe, abrirTutHola,   // §7.1 los tutoriales (18c) viven afuera del cierre
 };
+/* §2z248: la vuelta después de cambiar el idioma — a la misma partida, al vestuario, con OPCIONES abierto */
+try{ const vr=sessionStorage.getItem('volverOpcionesNSS');
+  if(vr){ sessionStorage.removeItem('volverOpcionesNSS'); const n=+vr;
+    if(cargarCarrera(n)){ document.getElementById('intro').classList.add('oculto'); seguirPartida(n); if(C&&!C.retirado) abrirOpciones('lobby'); } }
+}catch(e){ mostrarErrorNSS('✖ '+(e.stack||e.message)); }
 })();
 /* ══ 18c — LOS TUTORIALES POR MECÁNICA (§7.1, co-diseñado 2026-09-03 al cerrar; codeado en la
    sesión siguiente). Su corte: *"cómo es tirar, cómo es pasarla, cómo es dribblear, cómo

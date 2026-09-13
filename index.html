@@ -1342,6 +1342,10 @@
      IR de entrenar y del VOLVER del drill). Contenedor nuevo con botones = prefijo nuevo. */
   #lobby .fila-item .btn,#lobby .fila-skill .btn,#lobby .fila-tienda .btn,#lobby .volverDrill{font-family:inherit;font-size:12px;font-weight:700;letter-spacing:1px;
        color:#10151f;background:var(--naranja);border:0;border-radius:12px;height:28px;padding:0 12px;cursor:pointer}
+  /* su caza 2026-09-13 («CONTRATAR no está centrado»): la regla de arriba le pisaba el padding (0 12px) al botón de ancho fijo de la tienda —
+     50 px de texto en 74 y el sobrante se iba a la derecha—. El ancho fijo no lleva padding lateral. */
+  #lobby .fila-tienda .btn{padding:0}
+  #lobby .fila-tienda .btn.conf{background:var(--ok)}   /* la compra pide un segundo toque: CONFIRMAR */
   #lobby .fila-item .btn.ancho{flex:1;text-align:center;letter-spacing:2px}   /* §2z149: el renglón de una sola acción ES el botón */
   #lobby .btn:disabled{background:none;color:var(--tinta2);border:1px solid rgba(154,164,184,.35);cursor:default}
   #lobby .statGrande{display:flex;justify-content:space-between;text-align:center;padding:4px 2px}
@@ -1920,7 +1924,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='93e23c156d';
+const BUILD='c9ac916438';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27274,9 +27278,23 @@ function pintaTiendaPlena(){
       return fila(k,iconoTienda(k),t(it.nom),fraseItem(k,it,J,true),it.precio,estado,'data-compra="'+it.id+'"'); }).join('');
   }
   box.innerHTML=h;
-  box.querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
-  box.querySelectorAll('[data-partido]').forEach(b=>{ b.onclick=()=>comprarPartido(b.dataset.partido); });
-  box.querySelectorAll('[data-staff]').forEach(b=>{ b.onclick=()=>comprarStaff(b.dataset.staff); });
+  box.querySelectorAll('[data-compra]').forEach(b=>{ const it=ESCALERA[k]&&ESCALERA[k].find(x=>x.id===b.dataset.compra);
+    b.onclick=()=>conConfirmacion(b,it?it.precio:0,()=>comprarItem(b.dataset.compra)); });
+  box.querySelectorAll('[data-partido]').forEach(b=>{ b.onclick=()=>conConfirmacion(b,precioPartidos(),()=>comprarPartido(b.dataset.partido)); });
+  box.querySelectorAll('[data-staff]').forEach(b=>{ const p=STAFF.find(x=>x.id===b.dataset.staff), niv=p&&p.niveles[nivelStaff(J,p.id)];
+    b.onclick=()=>conConfirmacion(b,niv?niv.precio:0,()=>comprarStaff(b.dataset.staff)); });
+}
+/* su pedido 2026-09-13 («¿tenemos alguna confirmación cuando podés comprar? debería estar»): el primer toque pone el botón en
+   CONFIRMAR (verde) por 3 s y el segundo compra. Si la plata no alcanza no hay nada que confirmar: pasa directo y avisa. Un solo
+   botón armado a la vez. */
+let confBtn=null, confTimer=null;
+function desarmarConfirmacion(){ clearTimeout(confTimer); if(confBtn){ confBtn.classList.remove('conf'); confBtn.textContent=confBtn.dataset.txt; } confBtn=null; }
+function conConfirmacion(b,precio,fn){
+  if(C.jugador.plata<precio){ desarmarConfirmacion(); fn(); return; }
+  if(confBtn===b){ desarmarConfirmacion(); fn(); return; }
+  desarmarConfirmacion();
+  confBtn=b; b.dataset.txt=b.textContent; b.textContent=t(L('CONFIRMAR','CONFIRM','CONFIRMAR')); b.classList.add('conf');
+  confTimer=setTimeout(desarmarConfirmacion,3000);
 }
 function pintaTienda(){
   const J=C.jugador;
@@ -27288,7 +27306,7 @@ function pintaTienda(){
       +'<span class="precio">'+fplata(precioLata())+'</span><button class="btn" data-compra="lata">'+t(L('COMPRAR','BUY','COMPRAR'))+'</button></div>';
   $l('lobPuertas').innerHTML=puerta('partido',iconoPartido('video'),true)+puerta('staff',iconoTienda('staff'))+puerta('vehiculo',iconoTienda('vehiculo'))
     +puerta('casa',iconoTienda('casa'))+puerta('lifestyle',iconoTienda('lifestyle'));
-  $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
+  $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>conConfirmacion(b,precioLata(),()=>comprarItem(b.dataset.compra)); });
   $l('lobPuertas').querySelectorAll('[data-tienda]').forEach(b=>{ const go=()=>abrirTienda(b.dataset.tienda); b.onclick=go;
     b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
   if(tiendaAbierta) pintaTiendaPlena();

@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='ea47ac0f43';
+const BUILD='3a0ae02125';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -21241,7 +21241,11 @@ function frame(now){
         else { /* la subida LLEGA en ~2,2s (el patrón del corte de la sacada): piso de
                   trote 112, techo 180 — nunca "a 200 por hora" */
           if(!P.v) P.v=clamp(dist(P.j,P.spot)/2.2, 112, 180);
-          if(mv3(P.j, P.spot, P.v)<7){ P.lista=true; P.tLista=now; } }
+          /* su caza 2026-09-13 (su novia: "se tildó en LA CORTINA, no podía moverse ni pasar ni tirar y se la sacaron"): la cortina
+             sólo se plantaba a < 7 px de un spot que se recalcula cada frame detrás de tu marca viva — y mv3 no deja bajar de
+             aro+18·ESC, así que con el spot más cerca del fondo (arrancando en la esquina) no llegaba NUNCA, y sin plante el bote,
+             el pase y el tiro quedan cerrados (10). La red de la sacada (§2z199): a los 2,6 s de trote se planta donde llegó. */
+          if(mv3(P.j, P.spot, P.v)<7 || now>P.t0+900+2600){ P.lista=true; P.tLista=now; } }
       }
       if(!P.leyo){
         /* su defensor sube CON él, colgado del lado del aro — al mismo trote */

@@ -922,6 +922,8 @@
   #lobby .tablita .leyenda{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;margin-top:10px;font-size:11px;letter-spacing:1px;color:var(--tinta2)}   /* 2026-09-13 (su captura: los ítems envolvían con huecos desparejos y PLAY-OUT solo abajo): dos columnas alineadas */
   #lobby .tablita .leyenda>span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
+  #lobby #lobMvp .r.mvpAS{margin-top:6px} #lobby #lobMvp .mvpEst{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:600}   /* §2z250 */
+  #lobby #lobMvp .r.mvpSalto{padding:0}
   #lobby .tablita .ley.copa{width:5px;height:5px;border:0;border-radius:50%;background:var(--ok)}
   #lobby .tablita .ley.cl{border-top-style:dashed}
   #lobby .tablita .ley.po{border-top-color:rgba(255,80,80,.55)}
@@ -1077,6 +1079,7 @@
   #lobby #lobResumen .desglose .n{font-size:14px;font-weight:700;color:var(--tinta);text-align:right}
   #lobby .vosCab{position:relative;display:flex;justify-content:center;align-items:center;flex:none;min-height:36px}   /* 36: el alto del ícono, si no sobresale 2 px y el medio lo recorta (su caza) */
   #lobby .vosCab .tabs{align-self:auto}
+  #lobby .vosCab .tab{padding:5px 12px}   /* §2z250: con MVP son tres — medido a 360 con Barlow: TEMPORADA·MVP·PALMARÉS 268,5 con 16 de relleno pisaba 8 px el ícono de compartir; con 12, 244,5 y ~4 px de aire (EN 216,8 · PT 233,4) */
   #lobby .verMas.ico{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;padding:0;justify-content:center;margin:0}
   #lobby .verMas.ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   #lobby .verMas{align-self:center;font-size:13px;font-weight:600;letter-spacing:1.5px;height:36px;display:flex;align-items:center;
@@ -1913,7 +1916,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='4b8554ef53';
+const BUILD='fea99f5ee8';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2356,6 +2359,7 @@ const BUILD='4b8554ef53';
         <div class="vosCab">
           <div class="tabs">
             <div class="tab act" data-lp="vos-resumen" tabindex="0" data-l-en="SEASON" data-l-pt="TEMPORADA">TEMPORADA</div>
+            <div class="tab" data-lp="vos-mvp" tabindex="0" data-l-en="MVP" data-l-pt="MVP">MVP</div>   <!-- §2z250: la carrera al MVP, a la vista -->
             <div class="tab" data-lp="vos-palmares" tabindex="0" data-l-en="TROPHIES" data-l-pt="TÍTULOS">PALMARÉS</div>
           </div>
           <div class="verMas ico" id="lobCompartir" tabindex="0" aria-label="Compartir"><svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6h14v-6"/></svg></div>
@@ -2367,6 +2371,11 @@ const BUILD='4b8554ef53';
           <div class="tabs selSwitch oculto" id="lobVosSwitch"></div>
           <div class="cajon" id="lobResumen"></div>
           <div class="verMas" id="lobVerCarrera" data-lir="carrera-full" tabindex="0" data-l-en="SEE CAREER ▸" data-l-pt="VER CARREIRA ▸">VER CARRERA ▸</div>
+        </div>
+        <!-- §2z250 LA CARRERA AL MVP (su caza: "que esté oculto en VER CARRERA es malo, no vas a entrar ahí nunca"): top 5 con el
+             corte del quinteto, tu renglón si estás más abajo y el Juego de las Estrellas; la pinta pintaMvp() -->
+        <div class="panel" id="lp-vos-mvp">
+          <div class="cajon tablita" id="lobMvp"></div>
         </div>
         <!-- §2z28 la vitrina: la grilla de trofeos (tocar nombra) y VER TODO para la lista; la pinta pintaPalmares() -->
         <!-- §2z241: el switch de lado (club ⇄ selección), el mismo molde que el del RESUMEN; lo pinta pintaPalmares() -->
@@ -6600,6 +6609,7 @@ function cartaElegible(c,ctx,s){
   if(c.edadMin&&ctx.edad<c.edadMin) return false;
   if(c.edadMax&&ctx.edad>c.edadMax) return false;
   if(!c.repite&&(s.vistas[c.id]||0)>=(c.maxVeces||1)){ const u=s.ultimo[c.id]; if(u===undefined||($C().anio-u)<REPITE_ANIOS) return false; }   // agotada: vuelve a los 3 años
+  if(c.unaPorAnio&&(s.porAnio||{})[c.unaPorAnio]===$C().anio) return false;   // §2z250: una por temporada (las del mismo grupo cuentan juntas)
   if(c.cuando){ try{ if(!c.cuando(ctx)) return false; }catch(err){ return false; } }
   /* §2s, cableado en §2z39.47: la carta que SUBE un skill sin cupo (99 − arranque − escalera) no aparece */
   if(typeof cupoCartas==='function'){ const J=$C().jugador;
@@ -6762,6 +6772,7 @@ function elegirCarta(i){
      recarga y a las sesiones. */
   if(o.tipo==='apuesta'&&o.desenlaces.length>1){ s.dados=s.dados||[]; s.dados.push({id:c.id,p:o.desenlaces[0].p,ok:d===o.desenlaces[0],anio:$C().anio}); }
   s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio; s.ultimaId=c.id;
+  if(c.unaPorAnio){ s.porAnio=s.porAnio||{}; s.porAnio[c.unaPorAnio]=$C().anio; }   // §2z250
   if(salidaClave) s.salidaHecha=salidaClave;   /* la del túnel queda resuelta para ese partido en el momento en que cobra */
   s.abierta=null;   /* §2z225: elegiste, cobró: ya no está abierta */
   guardar();
@@ -7313,6 +7324,36 @@ const CARTAS_PRENSA=[
      {tipo:'apuesta',label:L('"Tercero es poco"','"Third is not enough"','"Terceiro é pouco"'),desenlaces:[
        {p:55,remate:L('Ambición','Ambition','Ambição'),texto:L('La hinchada se lo toma como una promesa. El próximo partido hay más gente.','The fans take it as a promise. More people show up for the next game.','A torcida entende como promessa. No próximo jogo tem mais gente.'),ef:{rel:{hinchada:6,dt:1}}},
        {p:45,remate:L('Yo, yo, yo','Me, me, me','Eu, eu, eu'),texto:L('En el grupo del plantel alguien manda la nota sin comentario. El silencio dura dos días.','Somebody drops the article in the team chat with no comment. The silence lasts two days.','No grupo do elenco alguém manda a matéria sem comentário. O silêncio dura dois dias.'),ef:{rel:{plantel:-3}}}]}]},
+ /* §2z250 LAS INTERMEDIAS DE LA CARRERA AL MVP (su pedido: "2 o 3 como mucho, donde te pregunten al respecto"; la prosa, con su ok):
+    la del arranque (30-50 %, top 5) y la del tramo final (≥75 %: primero, o del 2° al 5° con el que va adelante). Con la del top 3,
+    tres como mucho por temporada. Evento: salen una vez, no cuentan contra el tope de opinión. */
+ { id:'prensa_mvp_arranque', repite:true, evento:true, unaPorAnio:'mvp_arranque',
+   cuando:(c)=>c.fase==='regular'&&c.mvpPos&&c.mvpPos<=CARRERA_MVP.quinteto&&c.avance>=CARRERA_MVP.desde&&c.avance<CARRERA_MVP.allstar,
+   gancho:L('Ya hablan de vos para el MVP. Te preguntan si un premio individual te cambia algo en un equipo que pelea arriba.','They are already talking about you for MVP. They ask whether an individual award changes anything on a team fighting at the top.','Já falam de você para MVP. Perguntam se um prêmio individual muda alguma coisa num time que briga lá em cima.'),
+   opciones:[
+     {tipo:'segura',label:L('"Lo único que importa es el equipo"','"The only thing that matters is the team"','"A única coisa que importa é o time"'),desenlaces:[{p:100,remate:null,texto:L('Frase de manual. El capitán asiente desde el fondo de la sala.','Textbook line. The captain nods from the back of the room.','Frase de manual. O capitão concorda lá do fundo da sala.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Me encantaría ganarlo"','"I would love to win it"','"Eu adoraria ganhar"'),desenlaces:[
+       {p:60,remate:L('Honesto','Honest','Sincero'),texto:L('Al público le gusta que alguien lo diga sin vueltas.','People like it when someone just says it.','O público gosta quando alguém fala sem rodeio.'),ef:{rel:{hinchada:5}}},
+       {p:40,remate:L('Juega para él','Playing for himself','Joga pra ele'),texto:L('En el entrenamiento del lunes, las primeras tres pelotas no te llegan.','At Monday\'s practice, the first three passes never come your way.','No treino de segunda, as três primeiras bolas não chegam em você.'),ef:{rel:{plantel:-4}}}]}]},
+ { id:'prensa_mvp_favorito', repite:true, evento:true, unaPorAnio:'mvp_tramo',
+   cuando:(c)=>c.fase==='regular'&&c.mvpPos===1&&c.avance>=0.75&&c.avance<1,
+   gancho:L('Quedan pocas fechas y vas primero en la carrera al MVP. Te preguntan si ya lo sentís tuyo.','A few rounds left and you lead the MVP race. They ask if it already feels like yours.','Faltam poucas rodadas e você lidera a corrida ao MVP. Perguntam se já sente que é seu.'),
+   opciones:[
+     {tipo:'segura',label:L('"No se gana hasta la última fecha"','"It is not won until the last game"','"Não se ganha até a última rodada"'),desenlaces:[{p:100,remate:null,texto:L('Te sale de memoria. Nadie la titula.','It comes out on autopilot. Nobody headlines it.','Sai de cor. Ninguém coloca no título.'),ef:{}}]},
+     {tipo:'apuesta',label:L('"Si seguimos ganando, es mío"','"If we keep winning, it is mine"','"Se continuarmos ganhando, é meu"'),desenlaces:[
+       {p:50,remate:L('Seguridad','Confidence','Confiança'),texto:L('Al día siguiente el título es tu frase entre comillas. Tu apellido se canta más fuerte.','The next day the headline is your line in quotes. They chant your name louder.','No dia seguinte a manchete é sua frase entre aspas. Seu nome é cantado mais alto.'),ef:{rel:{hinchada:6,dt:1}}},
+       {p:50,remate:L('Te pusiste el blanco','You painted a target on yourself','Virou alvo'),texto:L('Los rivales pegan la nota en su vestuario. El DT te la muestra: «ahora bancatela».','Rivals pin the article up in their locker room. The coach shows it to you: "now back it up."','Os rivais colam a matéria no vestiário deles. O técnico te mostra: "agora aguenta".'),ef:{rel:{dt:-3}}}]}]},
+ { id:'prensa_mvp_persigue', repite:true, evento:true, unaPorAnio:'mvp_tramo',
+   cuando:(c)=>c.fase==='regular'&&c.mvpPos>=2&&c.mvpPos<=CARRERA_MVP.quinteto&&c.avance>=0.75&&c.avance<1&&!!(c.u&&c.u.mvpLider),
+   gancho:(c)=>{ const n=(c&&c.mvpPos)||2, l=(c&&c.u&&c.u.mvpLider)||{nombre:'',club:''}, o=n===2?'nd':n===3?'rd':'th';
+     return L('Quedan pocas fechas y vas '+n+'° en la carrera al MVP, detrás de '+l.nombre+' ('+l.club+'). Te preguntan si merece ir primero.',
+       'A few rounds left and you are '+n+o+' in the MVP race, behind '+l.nombre+' ('+l.club+'). They ask if he deserves to be first.',
+       'Faltam poucas rodadas e você está em '+n+'º na corrida ao MVP, atrás de '+l.nombre+' ('+l.club+'). Perguntam se ele merece estar em primeiro.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Es un jugadorazo"','"He is a hell of a player"','"É um baita jogador"'),desenlaces:[{p:100,remate:null,texto:L('La nota sale con los dos en la foto. Quedás como un caballero.','The piece runs with both of you in the photo. You come off as a gentleman.','A matéria sai com os dois na foto. Você fica como um cavalheiro.'),ef:{rel:{hinchada:1}}}]},
+     {tipo:'apuesta',label:L('"Que lo diga la cancha"','"Let the court decide"','"Que a quadra diga"'),desenlaces:[
+       {p:55,remate:L('Picante','Spicy','Apimentado'),texto:L('La frase llega a su vestuario antes que a tu casa. La próxima vez que se crucen, la cancha se llena.','The line reaches his locker room before you get home. Next time you meet, the arena is packed.','A frase chega ao vestiário dele antes de você chegar em casa. Na próxima vez que se enfrentarem, o ginásio lota.'),ef:{rel:{hinchada:6}}},
+       {p:45,remate:L('Te respondió','He answered','Ele respondeu'),texto:L('Al otro día hace 30 puntos y dice «la cancha habló». Todos los diarios lo ponen al lado de tu frase.','The next day he scores 30 and says "the court has spoken." Every paper runs it next to your line.','No dia seguinte ele faz 30 pontos e diz "a quadra falou". Todos os jornais colocam ao lado da sua frase.'),ef:{rel:{hinchada:-4}}}]}]},
  { id:'prensa_serie_ganada', repite:true, evento:true,
    cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   /* 2026-09-12 (su caza: «ganamos la LNB y una rama dice PROMETER EL TÍTULO… acá no aplica»): con el título YA ganado no hay título que prometer. El campeón tiene la suya. */
    gancho:L('El festejo del vestuario sale en vivo. Te acercan el micrófono.','The locker-room party is live on air. They hand you the mic.','A festa do vestiário está ao vivo. Te passam o microfone.'),
@@ -24669,6 +24710,27 @@ function cerrarSinVos(){
    candidatos se llaman como la liga (los pools de §12.27), sembrados: el mismo apellido toda la temporada. */
 function nombreCandidato(e,clubId,segundo){ const pool=APELLIDOS_POR_PAIS[PAIS_DE_LIGA[C.ligaId]||'ar']; return rngFor(e.semilla,'premiosNombre',clubId,segundo?2:1).pick(pool); }
 function carreraDe(e){ return carreraPremios(e,ligaDe().esc,miValorPremios(e,C.jugador)); }
+/* §2z250 LA PESTAÑA MVP: el molde de la tablita (escudo, nombre, corte sólido + leyenda). Sin notas (§2z45). Antes del 30 % dice
+   en qué fecha arranca: saber que hay una carrera le cambia a alguien lo que cree que puede ganar. Es del club: sin switch. */
+function pintaMvp(e){
+  const caja=$l('lobMvp'); if(!caja) return;
+  const liga=ligaDe(), tot=e.fechasTotales||0;
+  const tag='<div class="cajTag">'+liga.nombre.toUpperCase()+' '+anioTxt()+'</div>';   // el nivel es la liga (§2z240.1): sin el escudo del club
+  if(!e.clubes||!tot){ caja.innerHTML=tag+'<div class="fila-item vacia">—</div>'; return; }
+  const fArranca=Math.ceil(tot*CARRERA_MVP.desde), fAS=Math.ceil(tot*CARRERA_MVP.allstar);
+  const filaAS=()=>{ if(!liga.allstar) return '';
+    const est2=e.allstar?(e.allstar.elegido?t(L('ELEGIDO','SELECTED','ESCOLHIDO')):t(L('AFUERA','LEFT OUT','DE FORA'))):t(L('FECHA','ROUND','RODADA'))+' '+fAS;
+    return '<div class="r mvpAS'+(e.allstar&&e.allstar.elegido?' vos':'')+'"><span class="pos">'+icono('estrella',14)+'</span><span class="club"><span class="nom">'+t(PREMIO_TXT.allstar[1])+'</span></span><span class="mvpEst">'+est2+'</span></div>'; };
+  if(!carreraActiva(e)){
+    caja.innerHTML=tag+notas(t(L('LA CARRERA AL MVP ARRANCA EN LA FECHA '+fArranca,'THE MVP RACE STARTS IN ROUND '+fArranca,'A CORRIDA AO MVP COMEÇA NA RODADA '+fArranca)))+filaAS();
+    return; }
+  const car=carreraDe(e), N=CARRERA_MVP.quinteto;
+  const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+pos+'</span><span class="club">'+escudito(x.clubId)+
+    '<span class="nom">'+(x.vos?t(L('VOS','YOU','VOCÊ')):nombreCandidato(e,x.clubId,x.segundo)+' · '+clubDe(x.clubId).nombre)+'</span></span></div>';
+  let h=car.lista.slice(0,N).map((x,i)=>fila(x,i+1)).join('');
+  if(car.miPos&&car.miPos>N) h+='<div class="r mvpSalto"><span class="pos"></span><span class="club"><span class="nom">…</span></span></div>'+fila(car.lista[car.miPos-1],car.miPos);
+  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda"><span><span class="ley dir"></span>'+t(L('QUINTETO IDEAL','ALL-LEAGUE TEAM','SELEÇÃO DO CAMPEONATO'))+'</span></div>';
+}
 function revisarCarrera(e){
   if(!e||!e.clubes||!carreraActiva(e)) return null;
   const car=carreraDe(e);
@@ -24680,8 +24742,13 @@ function revisarCarrera(e){
     guardar();
   }
   const antes=e.mvpPos, ahora=car.miPos;
-  if(antes!==undefined&&antes!==ahora&&ahora){
-    if((antes===null||antes>3)&&ahora<=3) e.avisoMVP={fecha:e.fechaJugada,tipo:'top3',txt:t(L('Entrás al top 3 de la carrera al MVP.','You are in the MVP race top 3.','Você entrou no top 3 da corrida ao MVP.'))};
+  /* §2z250: el día que arranca, una vez (con tu puesto si corrés); y al pasar al 1° */
+  if(antes===undefined) e.avisoMVP={fecha:e.fechaJugada,tipo:'arranca',txt:ahora
+    ? t(L('Arranca la carrera al MVP: vas '+ahora+'°.','The MVP race is on: you are '+ahora+ordEn(ahora)+'.','Começou a corrida ao MVP: você está em '+ahora+'º.'))
+    : t(L('Arranca la carrera al MVP.','The MVP race is on.','Começou a corrida ao MVP.'))};
+  else if(antes!==ahora&&ahora){
+    if(ahora===1) e.avisoMVP={fecha:e.fechaJugada,tipo:'primero',txt:t(L('Pasás al primer puesto de la carrera al MVP.','You take the lead in the MVP race.','Você assumiu a liderança da corrida ao MVP.'))};
+    else if((antes===null||antes>3)&&ahora<=3) e.avisoMVP={fecha:e.fechaJugada,tipo:'top3',txt:t(L('Entrás al top 3 de la carrera al MVP.','You are in the MVP race top 3.','Você entrou no top 3 da corrida ao MVP.'))};
     else if(antes!==null&&antes<=3&&ahora>3) e.avisoMVP={fecha:e.fechaJugada,tipo:'fuera',txt:t(L('Saliste del top 3 de la carrera al MVP.','You dropped out of the MVP race top 3.','Você saiu do top 3 da corrida ao MVP.'))};
   }
   if(antes!==ahora){ e.mvpPos=ahora; guardar(); }
@@ -26043,6 +26110,8 @@ function ultimoPartido(cierre,e){
     pts:G.pts,ast:G.ast,rob:G.robos,esc:ESC_RITMO(),serie:(enPartido&&enPartido.ic)?null:(cierre.serie||null),   // §2z43.1 · 2026-09-12 (su caza: salió campeón de la Copa y la prensa dijo PLAYOFFS con la carta de la serie): la card de la copa no es una serie
     ic:enPartido&&enPartido.ic?{etapa:enPartido.etapa, campeon:enPartido.etapa==='ic-final'&&G.nos>G.riv, sede:(e.intercontinental&&e.intercontinental.sede&&e.intercontinental.sede.ciudad)||''}:null,
     aviso:(e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada)?e.avisoMVP.tipo:null, mvpPos:e.mvpPos||null,   // §2z46
+    mvpLider:(()=>{ try{ const car=e.clubes&&carreraActiva(e)?carreraDe(e):null, x=car&&car.lista.find(y=>!y.vos);
+      return x?{nombre:nombreCandidato(e,x.clubId,x.segundo),club:clubDe(x.clubId).nombre}:null; }catch(err){ return null; } })(),   // §2z250: la carta del que te persigue
     debut:!((C.historial||[]).length) && (e.misPartidos||[]).filter(p=>p.jugado&&!p.sel&&!p.am).length===1,   // §2z61: tu primer partido de la carrera
     clasico:!!(mi&&mi.rival&&enPartido&&mi.rival===enPartido.rival),local:!!(enPartido&&enPartido.local),
     /* ⚠️ EL PARTIDO DE PLAYOFFS NO TIENE FECHA (miProximo devuelve {tipo:'serie'} sin `fecha`), y
@@ -26965,6 +27034,7 @@ function pintaSecciones(){
     '';
   /* §2z248: el ritmo se elige en OPCIONES */
   pintaPalmares();   // §2z28: la vitrina
+  pintaMvp(e);   // §2z250: la carrera al MVP
   const bComp=$l('lobCompartir'); if(bComp) bComp.onclick=()=>CARD.abrirCard('corta');   // §2z30
   /* §2z12: la nota promedio de la temporada, al lado de los puntos */
   const conNota=e.misPartidos.filter(p=>p.rating!==undefined);
@@ -26983,18 +27053,8 @@ function pintaSecciones(){
   /* su corte (2026-09-02): más chico ("no es necesario que se vea todo tan grande siempre") y con el
      VER TODO del palmarés — resumido muestra las últimas CARRERA_FILAS temporadas cerradas */
   const desde=carreraTodo?0:Math.max(0,hist.length-CARRERA_FILAS);
-  /* §2z45: la proyección — tu puesto en la carrera al MVP y el que va primero (o el que te sigue). Sin notas (su corte) */
-  let carH='';
-  const car=e.clubes&&carreraActiva(e)?carreraDe(e):null;
-  if(car&&car.miPos){
-    const yo=car.lista[car.miPos-1], otro=car.miPos===1?car.lista[1]:car.lista[0];
-    const filaC=(x,pos,vos)=>'<div class="r'+(vos?' vos':'')+'"><span class="pos">'+pos+'°</span><span class="club">'+escudito(x.clubId)+
-      '<span class="nom">'+(vos?t(L('CARRERA AL MVP','MVP RACE','CORRIDA AO MVP')):nombreCandidato(e,x.clubId,x.segundo)+' · '+clubDe(x.clubId).nombre)+'</span></span>'+
-      '</div>';   // su corte: SIN la nota — "estoy tercero, tengo que jugar mejor" es intuitivo; "tengo que subir 0,2" es rarísimo, y muestra la cocina
-    carH=filaC(yo,car.miPos,true)+(otro?filaC(otro,car.miPos===1?2:1,false):'');
-    if(e.allstar&&e.allstar.elegido) carH+='<div class="r"><span class="pos">'+icono('estrella',14)+'</span><span class="club"><span class="nom">'+t(PREMIO_TXT.allstar[1])+'</span></span></div>';
-  }
-  $l('lobCarrera').innerHTML=carH+
+  /* §2z45: la proyección vivía acá; desde §2z250 es la pestaña MVP de VOS (pintaMvp) */
+  $l('lobCarrera').innerHTML=
     hist.slice(desde).map((h,i)=>filaT(desde+i+1,h.club,h.ligaId,h.nota,h.liga,false)).join('')+
     filaT(hist.length+1,e.miClubId,C.ligaId,notaProm?+notaProm.replace(',','.'):null,ml,true)+
     (hist.length?'<div class="r total"><span class="pos"></span><span class="club"><span class="nom">'+t(L('CARRERA','CAREER','CARREIRA'))+' · '+total.pj+' PJ</span></span>'+

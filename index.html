@@ -1939,7 +1939,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='365128cbd7';
+const BUILD='8f19488037';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -28697,7 +28697,9 @@ function pintaPalmares(){
     sw.querySelectorAll('[data-ladopal]').forEach(b=>b.addEventListener('click',()=>{ if(ladoPal!==b.dataset.ladopal){ ladoPal=b.dataset.ladopal; palSel=null; palTodo=false; pintaPalmares(); animaCambio('lobPal'); } })); }
   const enSel=ladoPal==='sel'&&haySw, vit=enSel?deSel:deClub;
   const TAG_IND=t(L('INDIVIDUAL','INDIVIDUAL','INDIVIDUAL')), TAG_EQ=enSel?t(L('MEDALLAS','MEDALS','MEDALHAS')):t(L('CON TUS EQUIPOS','WITH YOUR TEAMS','COM SEUS TIMES'));
-  if(!vit.length){ caja.innerHTML='<div class="fila-item vacia">—</div>'; pintaAvisoPalmares(); return; }
+  /* 2026-09-13 (su pedido: «donde está el — debería decir algo tipo "acá van a ir tus trofeos"»): la vitrina vacía dice qué va a tener */
+  if(!vit.length){ caja.innerHTML='<div class="fila-item vacia">'+(enSel?t(L('Acá van a ir tus medallas','Your medals will go here','Aqui vão ficar suas medalhas'))
+    :t(L('Acá van a ir tus trofeos','Your trophies will go here','Aqui vão ficar seus troféus')))+'</div>'; pintaAvisoPalmares(); return; }
   if(!palTodo){
     const sel=vit.find(g=>g.key===palSel)||null;
     /* sus cortes (2026-09-02): la grilla partida en INDIVIDUAL / CON TUS EQUIPOS, y UNA fila por

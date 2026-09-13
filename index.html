@@ -1917,7 +1917,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='a362917ec6';
+const BUILD='4986e9d231';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6646,6 +6646,11 @@ function ctxCarta(u){
     amFaltan:(e.americas&&e.americas.ventanas&&e.americas.ventanas[0])?e.americas.ventanas[0].f-(e.fechaJugada||0):null,   // §2z39.51: fechas hasta el primer partido continental (≤0: ya empezó)
     /* §12: lo que una carta de selección puede leer */
     seleccion:!!(e.seleccion&&e.seleccion.convocado),        // te convocaron a las eliminatorias
+    /* 2026-09-13 (su caza: "ni bien arranqué la partida, antes de llevarme al lobby, me tiró la card de que te llaman de la selección"):
+       en la beta estás convocado desde el día cero, y «te quieren en la próxima ventana» salía antes del primer partido del club. El
+       llamado suena cuando la ventana está a una fecha — la misma semana en que el motor la decide (01r, decidirVentanasQueLlegan) */
+    selLlamadoCerca:(()=>{ const el=e.seleccion, v=el&&!el.fin&&el.ventanas&&el.ventanas[el.idx];
+      return !!(v&&v.conv&&(v.receso==='verano'?e.fase==='terminada':v.f-1<=(e.fechaJugada||0))); })(),
     selVentana:!!(e.seleccion&&(e.seleccion.ventanas||[]).some(v=>v.conv)&&e.seleccion.idx>0&&!e.seleccion.fin),   // ya jugaste alguna (§12.21: por ventana)
     /* 2026-09-09: la ÚLTIMA ventana que pasó, no la actual (mezclaba "se jugó sin vos" con el motivo de la que viene) */
     selAfuera:!!(e.seleccion&&e.seleccion.idx>0&&e.seleccion.ventanas[e.seleccion.idx-1]&&e.seleccion.ventanas[e.seleccion.idx-1].conv===false),   // la última se jugó sin vos
@@ -11279,7 +11284,7 @@ function misJuegosAM(e) {
    ⚠️ Van con el nombre del país adentro sacado de SELECCIONES: una carta no escribe "Argentina". */
 const CARTAS_SELECCION = [
  { id:'sel_primera_llamada', de:'seleccion', peso:150, maxVeces:1, edadMin:17, fondo:'despacho',
-   cuando:(c)=>c.seleccion&&c.selJugados===0,   // 2026-09-09: la PRIMERA de verdad (antes: sin torneos, y salía al que llevaba cuatro ventanas)
+   cuando:(c)=>c.seleccion&&c.selLlamadoCerca&&c.selJugados===0,   // 2026-09-09: la PRIMERA de verdad (antes: sin torneos, y salía al que llevaba cuatro ventanas)
    gancho:L('Suena un número que no tenés agendado. Es el ayudante del entrenador de la mayor: te quieren en la próxima ventana. Cortás y te quedás mirando el teléfono como si fuera a sonar de nuevo para desdecirse.','A number you do not have saved rings. It is the assistant of the senior national team coach: they want you for the next window. You hang up and stare at the phone as if it were going to ring again to take it back.','Toca um número que você não tem na agenda. É o auxiliar do técnico da seleção principal: querem você na próxima janela. Você desliga e fica olhando o telefone como se fosse tocar de novo para se desdizer.'),
    opciones:[
      {tipo:'segura',label:L('Avisarle al DT del club','Tell your club coach','Avisar o técnico do clube'),desenlaces:[{p:100,remate:null,texto:L('Se lo decís antes de que se entere por otro lado. Te da la mano y te dice que no vuelvas roto.','You tell him before he hears it somewhere else. He shakes your hand and tells you not to come back broken.','Você conta antes que ele saiba por outro lado. Ele te dá a mão e diz para não voltar quebrado.'),ef:{rel:{dt:2}}}]},
@@ -21561,7 +21566,11 @@ function frame(now){
       ctx.fillStyle='rgba(233,236,243,.5)'; ctx.font='600 14px Barlow Condensed';
       /* 'desde tu jugador' enseñaba el hábito que en la lateral ahoga al triple — la
          gomera es libre de posición y el hint ahora lo dice (su ok 2026-08-27) */
-      ctx.textAlign='center'; ctx.fillText(t(L('arrastrá desde donde quieras','drag from anywhere','arrasta de onde quiser')), sv.x, sv.y+54);
+      /* 2026-09-13 (su captura): en la lateral, con vos sobre la línea, abajo del jugador está la tribuna del lado cercano (16,
+         `bordeCerca`) y el cartel caía encima de la gente — si no entra abajo, va arriba de la cabeza */
+      const cL=camActiva(), bordeL=cL?(cL.lado>0?W+cL.ty:cL.ty)+MARG()*0.05:H;
+      const yHint=sv.y+54>bordeL-8?sv.y-34*ESC():sv.y+54;
+      ctx.textAlign='center'; ctx.fillText(t(L('arrastrá desde donde quieras','drag from anywhere','arrasta de onde quiser')), sv.x, yHint);
     }
     // la línea del AVANCE: se ve desde que la situación arranca, no sólo conduciendo
     if(G.tipo==='avance' && (G.fase==='espera'||G.fase==='apunto'||G.fase==='conduzco')){

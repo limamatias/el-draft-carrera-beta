@@ -1181,6 +1181,16 @@
   /* 2026-09-12 (su caza: "no quería que baje el botón de volver"): VOLVER se queda ARRIBA, donde estaba antes de bajar el título
      — centrado en los 33 px de la cabecera vieja, igual que en TABLA y FIXTURE. Sólo baja el título. */
   #lobby #lv-pre .preTop .volver{top:16.5px}
+  /* 2026-09-13 (su captura a 360×612, las eliminatorias con misión, scouting de tres renglones y latita: «no hay scroll pero el
+     botón queda por fuera de todo»): el pre sumaba ~656 px y `.medio` recorta. Lo que cede por altura (la ley de §2z11 de .medio):
+     PRIMERO el aire de la cabecera (la alineación con la luz del túnel es un lujo, no un contrato), DESPUÉS el bloque del rival,
+     que scrollea adentro. La barra, la latita y SALIR A LA CANCHA no se achican nunca. */
+  #lobby #lv-pre .preTop{height:calc(18dvh - 12px);min-height:auto;flex:0 1 auto}
+  #lobby #lv-pre .fecha-pre{min-height:33px}
+  #lobby #lv-pre .preRival{flex:0 .01 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  #lobby #lv-pre .preRival::-webkit-scrollbar{display:none}
+  #lobby #lv-pre .preRival>*,#lobby #lv-pre>.cajon,#lobby #lv-pre>.jugar{flex:none}
+  #lobby #lv-pre #lobPreSalteo:empty{display:none}   /* clase (5): el renglón vacío con alto — 22 px de nada */
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
        display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
@@ -1945,7 +1955,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='a95f6875a0';
+const BUILD='729dd0b14e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -14340,10 +14350,11 @@ function prendeFuego(){
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
 }
-function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0;   // §2z114: la próxima racha se vuelve a anunciar
+function apagaFuego(soloFuego,ajena){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0;   // §2z114: la próxima racha se vuelve a anunciar
   /* §2z224: TODO apagaFuego es un fallo tuyo o una pérdida (`soloFuego`), y los dos suman al frío — por eso entra
-     acá y no en los doce lugares que lo llaman. */
-  enfriar(); }
+     acá y no en los doce lugares que lo llaman. 2026-09-13 (su caza: «no desmarcarte bien y que la pierdas no debería
+     contar: sólo errados y pérdidas tuyas»): la pérdida `ajena` —el pase del compañero que cortan— apaga el fuego y no enfría. */
+  if(!ajena) enfriar(); }
 function enfriar(){ G.frio=(G.frio||0)+1;
   if(G.frio===frioUmbral()) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Se te enfrió la mano.','Your hand went cold.','Sua mão esfriou.')),true); }, 750); }
 
@@ -18884,7 +18895,7 @@ function perderPelota(txt,titulo,sinV,ajena){
   if(titulo) veredicto(titulo,'mal');
   if(!ajena){ G.perdidas=(G.perdidas||0)+1; if((G.cuarto||1)>=4) G.perdidasQ4=(G.perdidasQ4||0)+1; }   // la planilla no perdona (su caza 2026-08-28) · 2026-09-10: la misión del último cuarto
   G.suelo=null; G.corre=null; G.pelotaEn=null; G.paseVivo=null;
-  apagaFuego(true); aprende('robo');   // la pérdida apaga el fuego, no las SEGUIDAS de la misión
+  apagaFuego(true,ajena); aprende('robo');   // la pérdida apaga el fuego, no las SEGUIDAS de la misión
   relato(txt,false); finPosesion(false,ajena?t(L('Se perdió en la devolución.','Lost on the return pass.','Perdeu-se na devolução.'))
                                             :t(L('La perdiste.','You lost it.','Você perdeu ela.')));
 }

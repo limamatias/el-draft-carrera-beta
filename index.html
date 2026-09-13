@@ -225,12 +225,19 @@
   #titular{z-index:30;background:rgba(8,11,19,.9)}
   /* 2026-09-12 el momento de la compra: entra con el ícono creciendo, se queda un respiro y se va sola */
   #compra{z-index:31;background:rgba(8,11,19,.86);gap:10px;cursor:pointer}
-  #compra .compraIco{width:96px;height:96px;display:flex;align-items:center;justify-content:center;border-radius:50%;
+  #compra .compraIco,#confCompra .compraIco{width:96px;height:96px;display:flex;align-items:center;justify-content:center;border-radius:50%;
        background:rgba(20,27,44,.95);border:2px solid currentColor;margin-bottom:6px}
-  #compra .compraIco svg{width:56px;height:56px;fill:currentColor}
-  #compra .compraIco.cad-vehiculo{color:#7fb3e6} #compra .compraIco.cad-casa{color:#e0a96b}
-  #compra .compraIco.cad-staff{color:#7dd087} #compra .compraIco.cad-lifestyle{color:#f2c94c} #compra .compraIco.cad-partido{color:var(--naranja)}
+  #compra .compraIco svg,#confCompra .compraIco svg{width:56px;height:56px;fill:currentColor}
+  #compra .compraIco.cad-vehiculo,#confCompra .compraIco.cad-vehiculo{color:#7fb3e6} #compra .compraIco.cad-casa,#confCompra .compraIco.cad-casa{color:#e0a96b}
+  #compra .compraIco.cad-staff,#confCompra .compraIco.cad-staff{color:#7dd087} #compra .compraIco.cad-lifestyle,#confCompra .compraIco.cad-lifestyle{color:#f2c94c} #compra .compraIco.cad-partido,#confCompra .compraIco.cad-partido{color:var(--naranja)}
   #compra .rotulo{font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600}
+  /* la ventanita de confirmar (hermana del momento de la compra): debajo del momento (31), que entra apenas confirmás */
+  #confCompra{z-index:30;background:rgba(8,11,19,.9);gap:10px}
+  #confCompra h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch}
+  #confCompra .confPrecio{font-size:28px;font-weight:700;color:var(--naranja);font-variant-numeric:tabular-nums;line-height:1}
+  #confCompra .linea{max-width:30ch;line-height:1.3}
+  #confCompra button{font-size:20px;letter-spacing:1.5px;min-height:48px;min-width:220px;padding:0 34px;border-radius:12px;margin-top:6px}
+  #confCompra button.secundario{background:transparent;color:var(--tinta);border:1.5px solid rgba(255,150,51,.6);margin-top:0}
   #compra h1{font-size:34px;letter-spacing:2px;line-height:1.05;max-width:20ch;color:#f2c94c}
   #compra .linea{max-width:30ch;line-height:1.3}
   #compra.entra{animation:compraEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
@@ -1345,7 +1352,6 @@
   /* su caza 2026-09-13 («CONTRATAR no está centrado»): la regla de arriba le pisaba el padding (0 12px) al botón de ancho fijo de la tienda —
      50 px de texto en 74 y el sobrante se iba a la derecha—. El ancho fijo no lleva padding lateral. */
   #lobby .fila-tienda .btn{padding:0}
-  #lobby .fila-tienda .btn.conf{background:var(--ok)}   /* la compra pide un segundo toque: CONFIRMAR */
   #lobby .fila-item .btn.ancho{flex:1;text-align:center;letter-spacing:2px}   /* §2z149: el renglón de una sola acción ES el botón */
   #lobby .btn:disabled{background:none;color:var(--tinta2);border:1px solid rgba(154,164,184,.35);cursor:default}
   #lobby .statGrande{display:flex;justify-content:space-between;text-align:center;padding:4px 2px}
@@ -1924,7 +1930,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c9ac916438';
+const BUILD='f9f974c6ac';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2056,6 +2062,16 @@ const BUILD='c9ac916438';
   <div class="rotulo" data-l-en="IT'S YOURS" data-l-pt="É SEU">ES TUYO</div>
   <h1 id="compraTxt"></h1>
   <div class="linea" id="compraSub"></div>
+</div>
+<!-- su pedido 2026-09-13 («una ventanita tipo COMPRAR X por $X, abajo lo que te da, y los botones de confirmar o salir»): la hermana
+     del momento de la compra — el mismo ícono con su color, la pregunta, el precio, lo que te da. La latita no pasa por acá. -->
+<div class="velo oculto" id="confCompra">
+  <div class="compraIco" id="confIco"></div>
+  <h1 id="confTxt"></h1>
+  <div class="confPrecio" id="confPrecio"></div>
+  <div class="linea" id="confSub"></div>
+  <button id="confSi" data-l-en="CONFIRM" data-l-pt="CONFIRMAR">CONFIRMAR</button>
+  <button class="secundario" id="confNo" data-l-en="BACK" data-l-pt="SAIR">SALIR</button>
 </div>
 <!-- 2026-09-12 EL MOMENTO DEL NIVEL NUEVO (su caza con captura: "se comprimió todo, demasiadas cosas juntas… propongo que el
      NUEVO NIVEL sea siempre un momento, algo transitorio"): la estrella y la frase sobre el cierre del partido, en el idioma del
@@ -27278,23 +27294,29 @@ function pintaTiendaPlena(){
       return fila(k,iconoTienda(k),t(it.nom),fraseItem(k,it,J,true),it.precio,estado,'data-compra="'+it.id+'"'); }).join('');
   }
   box.innerHTML=h;
-  box.querySelectorAll('[data-compra]').forEach(b=>{ const it=ESCALERA[k]&&ESCALERA[k].find(x=>x.id===b.dataset.compra);
-    b.onclick=()=>conConfirmacion(b,it?it.precio:0,()=>comprarItem(b.dataset.compra)); });
-  box.querySelectorAll('[data-partido]').forEach(b=>{ b.onclick=()=>conConfirmacion(b,precioPartidos(),()=>comprarPartido(b.dataset.partido)); });
-  box.querySelectorAll('[data-staff]').forEach(b=>{ const p=STAFF.find(x=>x.id===b.dataset.staff), niv=p&&p.niveles[nivelStaff(J,p.id)];
-    b.onclick=()=>conConfirmacion(b,niv?niv.precio:0,()=>comprarStaff(b.dataset.staff)); });
+  const COMPRAR=L('COMPRAR','BUY','COMPRAR');
+  box.querySelectorAll('[data-compra]').forEach(b=>{ const it=ESCALERA[k]&&ESCALERA[k].find(x=>x.id===b.dataset.compra); if(!it) return;
+    b.onclick=()=>confirmarCompra(k,iconoTienda(k),COMPRAR,t(it.nom),it.precio,fraseItem(k,it,J),()=>comprarItem(it.id)); });
+  box.querySelectorAll('[data-partido]').forEach(b=>{ const it=TIENDA_PARTIDOS.find(x=>x.id===b.dataset.partido); if(!it) return;
+    b.onclick=()=>confirmarCompra('partido',iconoPartido(it.id),COMPRAR,t(it.nom),precioPartidos(),fraseItem('partido',it,J),()=>comprarPartido(it.id)); });
+  box.querySelectorAll('[data-staff]').forEach(b=>{ const p=STAFF.find(x=>x.id===b.dataset.staff), n=p?nivelStaff(J,p.id):0, niv=p&&p.niveles[n]; if(!niv) return;
+    b.onclick=()=>confirmarCompra('staff',iconoTienda('staff'),n?L('MEJORAR','UPGRADE','MELHORAR'):L('CONTRATAR','HIRE','CONTRATAR'),t(p.nom),niv.precio,
+      t(L('NIVEL ','LEVEL ','NÍVEL '))+(n+1)+' · '+fraseItem('staff',niv,J),()=>comprarStaff(p.id)); });
 }
-/* su pedido 2026-09-13 («¿tenemos alguna confirmación cuando podés comprar? debería estar»): el primer toque pone el botón en
-   CONFIRMAR (verde) por 3 s y el segundo compra. Si la plata no alcanza no hay nada que confirmar: pasa directo y avisa. Un solo
-   botón armado a la vez. */
-let confBtn=null, confTimer=null;
-function desarmarConfirmacion(){ clearTimeout(confTimer); if(confBtn){ confBtn.classList.remove('conf'); confBtn.textContent=confBtn.dataset.txt; } confBtn=null; }
-function conConfirmacion(b,precio,fn){
-  if(C.jugador.plata<precio){ desarmarConfirmacion(); fn(); return; }
-  if(confBtn===b){ desarmarConfirmacion(); fn(); return; }
-  desarmarConfirmacion();
-  confBtn=b; b.dataset.txt=b.textContent; b.textContent=t(L('CONFIRMAR','CONFIRM','CONFIRMAR')); b.classList.add('conf');
-  confTimer=setTimeout(desarmarConfirmacion,3000);
+/* su pedido 2026-09-13 («una ventanita tipo COMPRAR X por $X? —abajo lo que te da— y los botones de confirmar o salir; volver a tocar
+   el mismo botón te confunde más»): toda compra de la tienda menos la latita pasa por acá. Si la plata no alcanza no hay nada que
+   confirmar: la compra avisa directo. */
+function confirmarCompra(cad,ico,verbo,nom,precio,frase,fn){
+  if(C.jugador.plata<precio){ fn(); return; }
+  const v=$l('confCompra'); if(!v) return fn();
+  const ic=$l('confIco'); ic.innerHTML=ico; ic.className='compraIco cad-'+cad;
+  $l('confTxt').textContent=t(L('¿','',''))+t(verbo)+' '+nom+'?';
+  $l('confPrecio').textContent=fplata(precio);
+  $l('confSub').textContent=frase||'';
+  const cerrar=()=>v.classList.add('oculto');
+  $l('confNo').onclick=cerrar;
+  $l('confSi').onclick=()=>{ cerrar(); fn(); };
+  v.classList.remove('oculto');
 }
 function pintaTienda(){
   const J=C.jugador;
@@ -27306,7 +27328,7 @@ function pintaTienda(){
       +'<span class="precio">'+fplata(precioLata())+'</span><button class="btn" data-compra="lata">'+t(L('COMPRAR','BUY','COMPRAR'))+'</button></div>';
   $l('lobPuertas').innerHTML=puerta('partido',iconoPartido('video'),true)+puerta('staff',iconoTienda('staff'))+puerta('vehiculo',iconoTienda('vehiculo'))
     +puerta('casa',iconoTienda('casa'))+puerta('lifestyle',iconoTienda('lifestyle'));
-  $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>conConfirmacion(b,precioLata(),()=>comprarItem(b.dataset.compra)); });
+  $l('lobTienda').querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });   // la latita no pide confirmación (su corte)
   $l('lobPuertas').querySelectorAll('[data-tienda]').forEach(b=>{ const go=()=>abrirTienda(b.dataset.tienda); b.onclick=go;
     b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
   if(tiendaAbierta) pintaTiendaPlena();

@@ -1320,6 +1320,7 @@
   #lobby .fila-tienda .ef{color:var(--tinta2);font-size:11px;white-space:nowrap;
        overflow:hidden;text-overflow:ellipsis}
   #lobby .fila-tienda .ef .rayo{width:9px;height:9px}
+  #lobby .fila-tienda .ef .frase{min-width:0;overflow:hidden;text-overflow:ellipsis}   /* §2z256: el ellipsis vive en el span (el flex no recorta a su hijo) */
   #lobby .fila-skill .btn .rayo{fill:currentColor;width:7px;height:12px;vertical-align:-2px}   /* §2z183: naranja sobre naranja no se veía */
   #lobby .fila-tienda .precio{flex:none;font-weight:700;font-variant-numeric:tabular-nums;
        font-size:13px;white-space:nowrap}
@@ -1919,7 +1920,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='28d34afc8d';
+const BUILD='93e23c156d';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -5393,7 +5394,7 @@ const SESIONES_POR_SEMANA = 2;      // el tope duro (NSS: 2/semana, sin excepci�
    poco más, si no las latitas dejan de tener casi función"): el número de NSS. A calibrar
    por él; el trainer sigue descontando ~30%. */
 const ENERGIA_SESION = 25;          // NSS cobra ~25; nuestro partido cuesta 22
-const ENERGIA_SESION_TRAINER = 18;  // con entrenador comprado (§2q: reduce el costo)
+/* §2z256: el entrenador ya no es un número fijo — descuenta según su nivel (STAFF en 18b, costoSesion) */
 const ENERGIA_MIN_ENTRENAR = 25;    // fundido no entrenás (como no salís a la cancha)
 /* §2z90 EL ÓXIDO SE MIDE EN SEMANAS, NO EN FECHAS (su corte 2026-09-06): *"esto te penaliza cuantos más
  * partidos hay en la liga que jugás, lo que encima ya te está cobrando porque gastás más energía jugando…
@@ -22591,10 +22592,6 @@ const ESCALERA={
     {id:'deptoGrande', precio:7000,   regen:2, nom:L('EL DEPARTAMENTO','THE APARTMENT','O APARTAMENTO')},
     {id:'casa',        precio:40000,  regen:3, nom:L('LA CASA','THE HOUSE','A CASA')},
     {id:'mansion',     precio:200000, regen:4, nom:L('LA MANSIÓN','THE MANSION','A MANSÃO')}],
-  staff:[
-    {id:'trainer',       precio:600,   sesion:true, nom:L('ENTRENADOR','TRAINER','TREINADOR')},
-    {id:'preparador',    precio:4000,  partido:4,   nom:L('PREPARADOR FÍSICO','STRENGTH COACH','PREPARADOR FÍSICO')},
-    {id:'nutricionista', precio:25000, regen:2,     nom:L('NUTRICIONISTA','NUTRITIONIST','NUTRICIONISTA')}],
   lifestyle:[
     {id:'cadena',    precio:2000,    nom:L('LA CADENA DE ORO','THE GOLD CHAIN','O CORDÃO DE OURO')},
     {id:'reloj',     precio:8000,    nom:L('EL RELOJ','THE WATCH','O RELÓGIO')},
@@ -22605,7 +22602,23 @@ const ESCALERA={
     {id:'isla',      precio:800000,  nom:L('LA ISLA','THE ISLAND','A ILHA')},
     {id:'avion',     precio:2000000, nom:L('EL AVIÓN','THE JET','O JATINHO')}],
 };
-const tieneItem=(J,id)=>!!(J.mejoras&&J.mejoras[id])||(id==='trainer'&&!!(J.entreno&&J.entreno.trainer));
+const tieneItem=(J,id)=>!!(J.mejoras&&J.mejoras[id]);
+/* ══ §2z256 EL STAFF SE MEJORA (su idea 2026-09-13, al ver que el entrenador de $600 daba 14 ⚡ por semana —lo del auto de
+   $5.000—: «tenés uno que te da X y podés mejorarlo pagando más»). Tres personas LIBRES (ninguna pide a la otra, su corte) con
+   tres niveles cada una; el nivel nuevo reemplaza al anterior. Los precios siguen la curva de los vehículos ($ por ⚡ semanal);
+   el nivel 1 cuesta lo que costaba cada uno antes, y lo ya comprado queda en nivel 1 (su corte: «pagaste ese precio»).
+   J.staff = {trainer, preparador, nutricionista} con el nivel (0 o ausente = sin contratar). ══ */
+const STAFF=[
+  {id:'trainer', nom:L('ENTRENADOR','TRAINER','TREINADOR'),
+   niveles:[{precio:600, sesion:3},{precio:4000, sesion:5},{precio:20000, sesion:7}]},
+  {id:'preparador', nom:L('PREPARADOR FÍSICO','STRENGTH COACH','PREPARADOR FÍSICO'),
+   niveles:[{precio:4000, partido:2},{precio:15000, partido:3},{precio:50000, partido:4}]},
+  {id:'nutricionista', nom:L('NUTRICIONISTA','NUTRITIONIST','NUTRICIONISTA'),
+   niveles:[{precio:25000, regen:1},{precio:80000, regen:2},{precio:200000, regen:3}]},
+];
+const nivelStaff=(J,id)=>(J.staff&&J.staff[id])||0;
+const staffEf=(J,id)=>{ const p=STAFF.find(x=>x.id===id), n=nivelStaff(J,id); return n?p.niveles[n-1]:null; };
+const costoSesion=(J)=>{ const e=staffEf(J,'trainer'); return ENERGIA_SESION-(e?e.sesion:0); };
 /* el mejor escalón que tenés de una cadena (las compras son en orden, así que es el último tuyo) */
 const mejorDe=(J,cadena)=>{ let m=null; for(const it of ESCALERA[cadena]) if(tieneItem(J,it.id)) m=it; return m; };
 const siguienteDe=(J,cadena)=>ESCALERA[cadena].find(it=>!tieneItem(J,it.id))||null;
@@ -22615,10 +22628,11 @@ const siguienteDe=(J,cadena)=>ESCALERA[cadena].find(it=>!tieneItem(J,it.id))||nu
    que sigue sin vos) los paga dos veces. */
 function diasSinCobrar(n){ const J=C.jugador, ya=J.nrgDias||0, usa=Math.max(0,n-ya); J.nrgDias=Math.max(0,ya-n); return usa; }
 const regenDe=()=>{ const J=C.jugador; let r=regenClub();
-  for(const k of ['vehiculo','casa','staff']){ const m=mejorDe(J,k); if(m&&m.regen) r+=m.regen; }
+  for(const k of ['vehiculo','casa']){ const m=mejorDe(J,k); if(m&&m.regen) r+=m.regen; }
+  const nu=staffEf(J,'nutricionista'); if(nu) r+=nu.regen;   // §2z256
   return r; };
 /* el preparador físico le saca al partido (piso 2); §2z182: lo que dice el ítem (−4: en la NBA son 14 por semana) */
-const descuentoPartido=()=>{ const it=ESCALERA.staff.find(i=>i.partido&&tieneItem(C.jugador,i.id)); return it?it.partido:0; };
+const descuentoPartido=()=>{ const e=staffEf(C.jugador,'preparador'); return e?e.partido:0; };   // §2z256: el nivel del preparador
 /* los minutos ya no son fijos: los decide el rol (01h, §2q — dos ventanas por temporada) */
 /* §2z12: los minutos son un CONTINUO guardado en la carrera; el rol se lee de ellos */
 const minutosDe=()=>C.jugador.minutos!==undefined?C.jugador.minutos:semillaMinutos(C.ligaId,C.jugador.rol||'titular');
@@ -22908,6 +22922,9 @@ function cargarCarrera(n){
     if(selV&&selV.ventanas) selV.ventanas.forEach((v,k)=>{ if(v.conv===undefined&&!v.eleccion&&(selV.beta||k<=(selV.idx||0))&&!(selV.beta&&c.temporada.selElige&&v.receso!=='verano')) v.conv=!!(selV.beta||selV.convocado); });
     if(!c.jugador.entreno.marca) c.jugador.entreno.marca={};
     if(!c.jugador.mejoras) c.jugador.mejoras={moto:false,depto:false};
+    /* §2z256: el staff de antes (compras sueltas en `mejoras`, el entrenador también en `entreno.trainer`) queda en nivel 1 */
+    if(!c.jugador.staff){ const m=c.jugador.mejoras;
+      c.jugador.staff={trainer:(m.trainer||c.jugador.entreno.trainer)?1:0, preparador:m.preparador?1:0, nutricionista:m.nutricionista?1:0}; }
     if(c.jugador.dorsal===undefined) c.jugador.dorsal=7;   // el 0 es dorsal legal
     /* carreras de antes del apellido: quedan con EL PIBE, que es como se llamaban. No se
        les pone el apellido guardado del jugador — sería renombrar a otro tipo. */
@@ -25764,7 +25781,7 @@ function proximaFecha(){
 function pintaEntrenar(){
   const J=C.jugador, en=J.entreno, e=est();
   const libres=sesionesRestantes(J,e.semilla,proximaFecha(),est().ritmo);
-  const costo=en.trainer?ENERGIA_SESION_TRAINER:ENERGIA_SESION;
+  const costo=costoSesion(J);   // §2z256
   /* §2z39.44 (su caza 2026-09-04: "hoy no hay nada que te haga saber que podés volver a entrenar"): el
      puntito de §2z15 en la barra, mientras queden sesiones y la energía alcance para usarlas */
   const accEnt=document.querySelector('#lobby .acc[data-lir=entrenar]');
@@ -25933,7 +25950,7 @@ function entrenar(k,nivelPedido){
   if(J.energia<ENERGIA_MIN_ENTRENAR){
     avisar(t(L('Estás fundido para entrenar: tomate una latita.','Too spent to train: grab a can.','Esgotado para treinar: toma uma latinha.'))); return; }
   en.usadas++;
-  J.energia=Math.max(0,J.energia-(en.trainer?ENERGIA_SESION_TRAINER:ENERGIA_SESION));
+  J.energia=Math.max(0,J.energia-costoSesion(J));   // §2z256
   /* §2s: rendís EL NIVEL elegido en la grilla (no "tu skill"): el circuito habla la
      escala del nivel; tu avatar se mueve con lo que sos (el 3er parámetro). */
   const nivel=Math.max(1,Math.min(nivelPedido||nivelSugerido(en,k),nivelesAbiertos(en,k)));
@@ -27186,7 +27203,7 @@ const iconoTienda=(k)=>k==='lata'?LATA_SVG:'<svg class="icoT" viewBox="0 0 24 24
    cuánto te suma/resta"). `html` lleva el rayo dibujado; sin él, el caracter (el momento de la compra es texto). */
 function fraseItem(k,it,J,html){
   const ry=html?' '+RAYO:' ⚡', b=(x)=>html?'<b>'+x+'</b>':x;
-  if(it.sesion) return b((ENERGIA_SESION-ENERGIA_SESION_TRAINER)+ry)+t(L(' menos por sesión',' less per session',' a menos por sessão'));
+  if(it.sesion) return b(it.sesion+ry)+t(L(' menos por sesión',' less per session',' a menos por sessão'));
   if(it.partido) return b(it.partido+ry)+t(L(' menos por partido',' less per game',' a menos por jogo'));
   if(it.regen) return b('+'+it.regen+ry)+t(L(' por día',' per day',' por dia'));
   if(it.efecto==='pedida') return b('+1')+t(L(' pedida por partido',' call per game',' pedida por jogo'));
@@ -27230,17 +27247,25 @@ function pintaTiendaPlena(){
   const k=tiendaAbierta, J=C.jugador, box=$l('lobTiendaFull'); if(!k||!box) return;
   $l('lobTiendaTit').textContent=t(TIENDAS[k].nom);
   /* estado: 'comprar' | 'tuyo' | 'enuso' | 'reemp' (lo que el escalón de arriba reemplazó) | 'bloq' (lo que viene después) */
-  const fila=(cad,ico,nom,ef,precio,estado,attr,pun)=>
+  const fila=(cad,ico,nom,ef,precio,estado,attr,pun,btn)=>
     '<div class="fila-tienda cad-'+cad+(estado==='reemp'?' reemp':estado==='bloq'?' bloq':estado==='enuso'?' enUso':'')+'">'
       +'<span class="ico">'+ico+'</span>'
       +'<span class="txt"><span class="nom">'+nom+'</span>'+(ef?'<span class="ef">'+ef+'</span>':'')+'</span>'
       +'<span class="precio">'+(estado==='comprar'||estado==='bloq'?fplata(precio):(pun||''))+'</span>'   /* su caza 2026-09-13: los puntitos de lo que está en uso, en el lugar del precio (fijos, no detrás de la descripción) */
       +'<button class="btn"'+(estado==='comprar'?' '+attr:' disabled')+'>'
-        +(estado==='tuyo'?t(L('TUYO','YOURS','SEU')):estado==='enuso'?t(L('EN USO','IN USE','EM USO')):t(L('COMPRAR','BUY','COMPRAR')))+'</button></div>';
+        +(estado==='tuyo'?t(L('TUYO','YOURS','SEU')):estado==='enuso'?t(L('EN USO','IN USE','EM USO')):(btn||t(L('COMPRAR','BUY','COMPRAR'))))+'</button></div>';
   let h=TIENDAS[k].regla?notas(t(TIENDAS[k].regla)):'';
   if(k==='partido'){
     const u=J.enUso||{}, p=precioPartidos();
     h+=TIENDA_PARTIDOS.map(it=>fila('partido',iconoPartido(it.id),t(it.nom),fraseItem(k,it,J,true),p,u[it.id]?'enuso':'comprar','data-partido="'+it.id+'"',u[it.id]?puntosEnUso(u[it.id]):'')).join('');
+  } else if(k==='staff'){
+    /* §2z256: un renglón por persona. Los tres puntitos (el nivel que tenés) abren la línea de la frase —siempre en el mismo lugar—,
+       y la frase y el precio son los del nivel que comprás; en el tope, la frase de lo que tenés y TUYO. */
+    h+=STAFF.map(p=>{
+      const n=nivelStaff(J,p.id), tope=n>=p.niveles.length, niv=p.niveles[tope?n-1:n];
+      const pun='<span class="puntos">'+p.niveles.map((_,i)=>'<i'+(i<n?' class="q"':'')+'></i>').join('')+'</span>';
+      return fila('staff',iconoTienda('staff'),t(p.nom),pun+'<span class="frase">'+fraseItem('staff',niv,J,true)+'</span>',niv.precio,tope?'tuyo':'comprar','data-staff="'+p.id+'"','',
+        n?t(L('MEJORAR','UPGRADE','MELHORAR')):t(L('CONTRATAR','HIRE','CONTRATAR'))); }).join('');
   } else {
     const mejor=mejorDe(J,k), sig=siguienteDe(J,k), reemplaza=(k==='vehiculo'||k==='casa');
     h+=ESCALERA[k].map(it=>{
@@ -27251,6 +27276,7 @@ function pintaTiendaPlena(){
   box.innerHTML=h;
   box.querySelectorAll('[data-compra]').forEach(b=>{ b.onclick=()=>comprarItem(b.dataset.compra); });
   box.querySelectorAll('[data-partido]').forEach(b=>{ b.onclick=()=>comprarPartido(b.dataset.partido); });
+  box.querySelectorAll('[data-staff]').forEach(b=>{ b.onclick=()=>comprarStaff(b.dataset.staff); });
 }
 function pintaTienda(){
   const J=C.jugador;
@@ -27522,6 +27548,15 @@ function momentoNivel(nv,perdio){
   v.onclick=cerrar;
   clearTimeout(nivelMomCierre); nivelMomCierre=setTimeout(cerrar,2200);
 }
+/* §2z256: contratar o mejorar a una persona del staff — el nivel siguiente, y el momento de la compra con su frase */
+function comprarStaff(id){
+  const J=C.jugador, p=STAFF.find(x=>x.id===id); if(!p) return;
+  const n=nivelStaff(J,id), niv=p.niveles[n]; if(!niv) return;
+  if(J.plata<niv.precio){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
+  plata(-niv.precio); J.staff=J.staff||{}; J.staff[id]=n+1;
+  guardar(); pintaRecursos(); pintaSecciones();
+  momentoCompra('staff',{...niv, nom:p.nom});
+}
 function comprarItem(id){
   if(id==='lata') return comprarLata();
   const J=C.jugador;
@@ -27529,7 +27564,6 @@ function comprarItem(id){
   if(!it||tieneItem(J,id)) return;
   if(J.plata<it.precio){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-it.precio); J.mejoras=J.mejoras||{}; J.mejoras[id]=true;
-  if(id==='trainer') J.entreno.trainer=true;   // el flag viejo sigue mandando en el costo de la sesión
   guardar(); pintaRecursos(); pintaSecciones();
   momentoCompra(cad,it);
   /* §2z42.3 (su ok: "la prensa registra el lujo"): comprás algo de LUJO y el diario lo titula — una carta con tu

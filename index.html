@@ -924,6 +924,8 @@
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
   #lobby #lobMvp .r.mvpAS{margin-top:6px} #lobby #lobMvp .mvpEst{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:600}   /* §2z250 */
   #lobby #lobMvp .r.mvpSalto{padding:0}
+  #lobby #lobMvp .r.mvpVacia .nom{color:var(--tinta2)}   /* 2026-09-13: la tablita antes de que arranque la carrera */
+  #lobby #lobMvp .cajNotas{margin:8px 0 2px}   /* con los 5 vacíos + estrellas + leyenda, a 360×612 la caja mide ~246: la nota cede 12 px */
   #lobby .tablita .ley.copa{width:5px;height:5px;border:0;border-radius:50%;background:var(--ok)}
   #lobby .tablita .ley.cl{border-top-style:dashed}
   #lobby .tablita .ley.po{border-top-color:rgba(255,80,80,.55)}
@@ -1917,7 +1919,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='b84cf7582a';
+const BUILD='7873794021';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -25108,19 +25110,23 @@ function pintaMvp(e){
   const filaAS=()=>{ if(!liga.allstar) return '';
     const est2=e.allstar?(e.allstar.elegido?t(L('ELEGIDO','SELECTED','ESCOLHIDO')):t(L('AFUERA','LEFT OUT','DE FORA'))):fechaTxt(fAS);
     return '<div class="r mvpAS'+(e.allstar&&e.allstar.elegido?' vos':'')+'"><span class="pos">'+icono('estrella',14)+'</span><span class="club"><span class="nom">'+t(PREMIO_TXT.allstar[1])+'</span></span><span class="mvpEst">'+est2+'</span></div>'; };
+  /* su pedido 2026-09-13 («la pestaña MVP quedó con falta de diseño»): antes de que arranque, la MISMA tablita con los cinco
+     puestos vacíos, el corte y la leyenda — la pantalla no cambia cuando la carrera empieza, sólo aparecen los nombres */
+  const N=CARRERA_MVP.quinteto, leyendaQ='<div class="leyenda"><span><span class="ley dir"></span>'+t(L('QUINTETO IDEAL','ALL-LEAGUE TEAM','SELEÇÃO DO CAMPEONATO'))+'</span></div>';
   if(!carreraActiva(e)){
+    let vacias=''; for(let i=1;i<=N;i++) vacias+='<div class="r mvpVacia'+(i===N?' corteDir':'')+'"><span class="pos">'+i+'</span><span class="club"><span class="nom">—</span></span></div>';
     caja.innerHTML=tag+notas(esNBA()
       ? t(L('LA CARRERA AL MVP ARRANCA EN EL PARTIDO '+numFecha(fArranca),'THE MVP RACE STARTS IN GAME '+numFecha(fArranca),'A CORRIDA AO MVP COMEÇA NO JOGO '+numFecha(fArranca)))
-      : t(L('LA CARRERA AL MVP ARRANCA EN LA FECHA '+fArranca,'THE MVP RACE STARTS IN ROUND '+fArranca,'A CORRIDA AO MVP COMEÇA NA RODADA '+fArranca)))+filaAS();
+      : t(L('LA CARRERA AL MVP ARRANCA EN LA FECHA '+fArranca,'THE MVP RACE STARTS IN ROUND '+fArranca,'A CORRIDA AO MVP COMEÇA NA RODADA '+fArranca)))+vacias+filaAS()+leyendaQ;
     return; }
-  const car=carreraDe(e), N=CARRERA_MVP.quinteto;
+  const car=carreraDe(e);
   /* 2026-09-12 (el barrido): con la regular cerrada la carrera tiene veredicto — el 1° lleva la corona y la leyenda lo nombra */
   const cerrada=e.fase!=='regular';
   const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+(cerrada&&pos===1?icono('corona',14):pos)+'</span><span class="club">'+escudito(x.clubId)+
     '<span class="nom">'+(x.vos?t(L('VOS','YOU','VOCÊ')):nombreCandidato(e,x.clubId,x.segundo)+' · '+clubDe(x.clubId).nombre)+'</span></span></div>';
   let h=car.lista.slice(0,N).map((x,i)=>fila(x,i+1)).join('');
   if(car.miPos&&car.miPos>N) h+='<div class="r mvpSalto"><span class="pos"></span><span class="club"><span class="nom">…</span></span></div>'+fila(car.lista[car.miPos-1],car.miPos);
-  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda">'+(cerrada?'<span>'+icono('corona',12)+t(PREMIO_TXT.mvp[1])+'</span>':'')+'<span><span class="ley dir"></span>'+t(L('QUINTETO IDEAL','ALL-LEAGUE TEAM','SELEÇÃO DO CAMPEONATO'))+'</span></div>';
+  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda">'+(cerrada?'<span>'+icono('corona',12)+t(PREMIO_TXT.mvp[1])+'</span>':'')+leyendaQ.slice('<div class="leyenda">'.length);
 }
 function avisoMvpTxt(a){
   const n=a.pos;

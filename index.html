@@ -1182,15 +1182,13 @@
   /* 2026-09-12 (su caza: "no quería que baje el botón de volver"): VOLVER se queda ARRIBA, donde estaba antes de bajar el título
      — centrado en los 33 px de la cabecera vieja, igual que en TABLA y FIXTURE. Sólo baja el título. */
   #lobby #lv-pre .preTop .volver{top:16.5px}
-  /* 2026-09-13 (su captura a 360×612, las eliminatorias con misión, scouting de tres renglones y latita: «no hay scroll pero el
-     botón queda por fuera de todo»): el pre sumaba ~656 px y `.medio` recorta. Lo que cede por altura (la ley de §2z11 de .medio):
-     PRIMERO el aire de la cabecera (la alineación con la luz del túnel es un lujo, no un contrato), DESPUÉS el bloque del rival,
-     que scrollea adentro. La barra, la latita y SALIR A LA CANCHA no se achican nunca. */
+  /* 2026-09-13 (su captura a 360×612, las eliminatorias con misión, scouting de tres renglones y latita: «el botón queda por fuera
+     de todo»; y su corte: «no hay que scrollear nada en la previa»): el pre sumaba ~656 px y `.medio` recorta. El scouting se fue
+     (−57) y lo único que cede por altura es el aire de la cabecera (la alineación con la luz del túnel es un lujo, hasta −65).
+     Peor caso: misión + píldora + salteadas + los dos en uso ≈ 647 − 65 = 582, entra en 360×600 (18 de aire). Nada scrollea. */
   #lobby #lv-pre .preTop{height:calc(18dvh - 12px);min-height:auto;flex:0 1 auto}
   #lobby #lv-pre .fecha-pre{min-height:33px}
-  #lobby #lv-pre .preRival{flex:0 .01 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
-  #lobby #lv-pre .preRival::-webkit-scrollbar{display:none}
-  #lobby #lv-pre .preRival>*,#lobby #lv-pre>.cajon,#lobby #lv-pre>.jugar{flex:none}
+  #lobby #lv-pre .preRival,#lobby #lv-pre .preRival>*,#lobby #lv-pre>.cajon,#lobby #lv-pre>.jugar{flex:none}
   #lobby #lv-pre #lobPreSalteo:empty{display:none}   /* clase (5): el renglón vacío con alto — 22 px de nada */
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
@@ -1956,7 +1954,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='dbd5b7945c';
+const BUILD='ba459e8a91';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2324,7 +2322,6 @@ const BUILD='dbd5b7945c';
           <div class="porque" id="lobPrePorque"></div>
           <div class="salteo" id="lobPreSalteo"></div>
           <div id="lobPreMision"></div>
-          <div class="salteo" id="lobPreScout"></div>
         </div>
         <div class="cajon">
           <div style="font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600;display:flex;justify-content:space-between"><span data-l-en="HOW YOU ARRIVE" data-l-pt="COMO VOCÊ CHEGA">CÓMO LLEGÁS</span> <b id="lobNrgNum2" style="color:var(--tinta)"></b></div>
@@ -26241,18 +26238,8 @@ function cerrarDrill(){
 }
 
 /* ── el pre-partido ── */
-/* la línea de scouting (§2p): el EQUIPO te telegrafía las perillas del rival en idioma
-   de cancha — la dificultad es información, no sorpresa. Las claves vienen tipadas de
-   scoutingDe (01g); los strings viven acá, traducibles (§2o.12). */
-const SCOUT_TXT={
-  estilo_carril:L('Cierran el carril: preparate para tirar de afuera.','They pack the paint: get ready to shoot from outside.','Fecham o garrafão: prepare-se para arremessar de fora.'),
-  estilo_arriba:L('Te presionan arriba: el aro queda cerca, pero recibir cuesta.','They pressure up high: the rim is close, but getting the ball is work.','Pressionam em cima: o aro fica perto, mas receber custa.'),
-  estilo_mixto:L('Defensa pareja: va a haber de todo.','Balanced defense: you will see a bit of everything.','Defesa equilibrada: vai ter de tudo.'),
-  rival_duro:L('De los pesados de la liga: cierran rápido.','One of the league heavyweights: they close out fast.','Dos pesados da liga: fecham rápido.'),
-  rival_blando:L('Se les puede jugar: cierran lento.','You can play them: they close out slow.','Dá para jogar com eles: fecham devagar.'),
-  visitante:L('De visitante todo aprieta un poco más.','On the road everything squeezes a bit harder.','Fora de casa tudo aperta um pouco mais.'),
-  cierre_solo:L('A esta altura no te esperan: el cierre corre solo.','At this level they do not wait: the closeout comes on its own.','Nessa altura não te esperam: o fechamento vem sozinho.'),
-};
+/* 2026-09-13 (su corte: «jugando no se me ocurre cambiar nada en cómo juego»): la línea de scouting (§2p) se fue de la previa —
+   no cambiaba ninguna decisión y era lo que empujaba SALIR A LA CANCHA fuera de la pantalla. `scoutingDe` (01g) queda para grifo-demo. */
 /* los minutos que vas a jugar el próximo: un paso de la pendiente hacia el objetivo */
 const proximosMinutos=(rc)=>pasoMinutos(minutosDe(),minutosObjetivo(C.jugador,C.ligaId,clubDe(est().miClubId)));
 /* §12.23 (su caza 2026-09-05: "entré a jugar con la selección y al parecer juega Boca contra Panamá"): TU EQUIPO en
@@ -26364,8 +26351,6 @@ function abrirPre(objetivo){
     :'po'+objetivo.serie.nombre+objetivo.juego,minPre,CADA_MIN(!!C.intenso),objetivo.tipo!=='fecha');   // §2z43: la misión escala con las jugadas · §2z141: en la fecha común no siempre hay
   $l('lobPreMision').innerHTML='<span class="dt">DT</span><span class="txt"><small>'+t(L('EL DT TE DA ','THE COACH GIVES YOU ','O TÉCNICO TE DÁ '))+minPre
     +(objetivo.mision?t(L(' MIN Y TE PIDE',' MIN AND WANTS',' MIN E PEDE'))+'</small><b>'+misionMeta(objetivo.mision)+'</b>':' MIN</small>')+'</span>';   // §2z141: sin misión, sólo los minutos
-  $l('lobPreScout').innerHTML=scoutingDe(C.jugador,C.ligaId,rc,miClubEn(objetivo),objetivo.neutral?'neutral':objetivo.local)
-    .map(s=>SCOUT_TXT[s.clave]?'▸ '+t(SCOUT_TXT[s.clave]):'').join('<br>');
   pintaRecursos();
   irLob('pre');
 }

@@ -1092,9 +1092,9 @@
   #lobby #lv-tabla-full,#lobby #lv-fixture-full{flex:1;min-height:0}
   /* §2z247 LA TIENDA EN CINCO PUERTAS: la de partidos a lo ancho, las cuatro escaleras en 2×2 — el idioma de la botonera (ícono y nombre) */
   #lobby .puertas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-  #lobby .puerta{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:64px;cursor:pointer;
+  #lobby .puerta{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:56px;cursor:pointer;
        border:1px solid rgba(154,164,184,.3);border-radius:12px;background:rgba(20,27,44,.92);user-select:none}
-  #lobby .puerta.ancha{grid-column:1/-1;flex-direction:row;height:50px;gap:10px}
+  #lobby .puerta.ancha{grid-column:1/-1;flex-direction:row;height:44px;gap:10px}   /* su caza 2026-09-13: a 360×612 (el Chrome del A32) LUJO quedaba cortado; −22 px */
   #lobby .puerta:active{transform:scale(.98)} #lobby .puerta:focus-visible{outline:2px solid var(--tinta)}
   #lobby .puerta .icoT{width:22px;height:22px}
   #lobby .puerta span{font-size:12px;letter-spacing:1.5px;font-weight:600;color:var(--tinta);white-space:nowrap}
@@ -1917,7 +1917,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c455c147f2';
+const BUILD='b84cf7582a';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

@@ -1601,6 +1601,7 @@
   #resumenT .resHero .resIco .escudito{width:44px;height:44px;margin:0}
   #resumenT .resHero .resSub{font-size:13px;letter-spacing:1px;color:var(--naranja);font-weight:600}
   #resumenT .resStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+  #resumenT .resStats.dos{grid-template-columns:repeat(2,1fr)}   /* 2026-09-12: TU TEMPORADA son cuatro fichas: 2×2 */
   #resumenT .resStats .st{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:10px;padding:7px 0 5px;text-align:center}
   #resumenT .resStats .st b{display:block;font-size:22px;line-height:1.05;font-variant-numeric:tabular-nums}
   #resumenT .resStats .st span{font-size:11px;letter-spacing:1.6px;color:var(--tinta2);font-weight:600;white-space:nowrap}
@@ -1916,7 +1917,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='fe4d48463b';
+const BUILD='43d6144946';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2627,6 +2628,9 @@ const BUILD='fe4d48463b';
     <div id="resTBeta" class="oculto">
       <div class="gancho" data-l-en="Soon: the full career mode, from the Federal league to the NBA."
            data-l-pt="Em breve: o modo carreira completo, da Federal à NBA.">Pronto: el modo carrera completo, de la Federal a la NBA.</div>
+      <!-- 2026-09-12 (el barrido, con su ok): lo que te llevás — la card y la opinión, justo cuando más ganas hay de darla -->
+      <button class="jugar ancho" id="resTCard" data-l-en="SHARE YOUR SEASON" data-l-pt="COMPARTILHAR SUA TEMPORADA">COMPARTIR TU TEMPORADA</button>
+      <button class="jugar secundario ancho" id="resTOpinion" data-l-en="TELL US WHAT YOU THOUGHT" data-l-pt="CONTA PRA GENTE O QUE ACHOU">CONTANOS QUÉ TE PARECIÓ</button>
       <button class="jugar ancho" id="resTLista" data-l-en="SIGN ME UP" data-l-pt="ME INSCREVER">ANOTARME</button>
       <div class="gancho anotado oculto" id="resTAnotado"></div>
       <button class="jugar secundario ancho" id="resTSalir" data-l-en="EXIT" data-l-pt="SAIR">SALIR</button>
@@ -4316,7 +4320,7 @@ function caminarForma(estado, ...label) {
  * y tu línea real reemplaza a la simulada. Los DEMÁS partidos de la fecha no se mueven:
  * salen del mismo rng con el mismo label, jugués o no.
  */
-function jugarFecha(estado, miJuego) {
+function jugarFecha(estado, miJuego, noCitado) {   /* noCitado: el DT te dejó afuera de la lista (§2z219) */
   const fecha = estado.fixture[estado.fechaJugada];
   if (!fecha || estado.fase !== 'regular') return [];
   /* §2z27: las ventanas del continental que dejaste pasar las juega el relato ANTES de la
@@ -4341,6 +4345,10 @@ function jugarFecha(estado, miJuego) {
       rating: l.rating, // el rating del grifo (§2p) — sólo los partidos que jugaste vos
     });
     sumarLinea(estado.miLinea, l, l.min);
+  } else if (noCitado && mio) {
+    /* 2026-09-12 (el barrido): la fecha que miraste desde la tribuna no es un partido tuyo — sin línea, sin nota, sin minutos */
+    estado.misPartidos.push({ fecha: fecha.nro, rival: mio.local === estado.miClubId ? mio.visita : mio.local,
+      noCitado: true, minutos: 0, pts: 0, ast: 0, rob: 0, jugado: false });
   } else {
     anotarMiLinea(estado, fecha);
   }
@@ -5085,7 +5093,7 @@ function campoPremios(estado, esc) {
 }
 /** Tu entrada en la carrera: la nota promedio de la regular, si jugaste lo suficiente. `null` si no corrés. */
 function miValorPremios(estado, jugador) {
-  const j = (estado.misPartidos || []).filter((p) => !p.po && !p.sel && !p.am && !p.conSeleccion && p.rating !== undefined);   // 2026-09-10 (su corte): los salteados también cuentan
+  const j = (estado.misPartidos || []).filter((p) => !p.po && !p.sel && !p.am && !p.conSeleccion && !p.noCitado && p.rating !== undefined);   // 2026-09-10 (su corte): los salteados también cuentan
   if (j.length < CARRERA_MVP.minPJ) return null;
   const min = j.reduce((s, p) => s + (p.minutos || 0), 0) / j.length;
   if (min < CARRERA_MVP.minMin) return null;
@@ -5284,12 +5292,14 @@ const RATING_AST = 0.35, RATING_TAPA = 0.5;
  * durante la temporada"*): la línea trae `esc` —el factor de jugadas del ritmo en que se jugó ESE partido
  * (2 en INTENSO, 1 en NORMAL, y las líneas viejas sin el campo valen 1)— y la nota se calcula sobre la
  * línea dividida por él. Las estadísticas crudas quedan como son: los puntos los metiste. */
+const RATING_DEF_EXTRA = 0.4;   // por carga o tiro molestado: debajo del robo (0,5), que además te da la pelota
 function ratingDe(linea, gano, contexto) {
   const k = linea.esc || 1;
   const tiros = (linea.tiros || 0) / k, ac = (linea.ac || 0) / k, per = (linea.per || 0) / k;
   let r = 4 + (linea.pts / k) * 0.14 + 0.5 * (ac - RATING_PISO_TIRO * tiros)
         + (linea.ast / k) * RATING_AST + ((linea.pt || 0) / k) * 0.22 - per * 0.4 + ((linea.rob || 0) / k) * 0.5 + ((linea.tap || 0) / k) * RATING_TAPA + (gano ? 0.7 : 0)
-        - ((linea.md || 0) / k) * 0.15;   // §2z51: el desmarque flojo (devolución robada / tiro forzado del pasador) resta poco
+        - ((linea.md || 0) / k) * 0.15   // §2z51: el desmarque flojo (devolución robada / tiro forzado del pasador) resta poco
+        + ((linea.dx || 0) / k) * RATING_DEF_EXTRA;   /* 2026-09-12 (el barrido): la carga y el tiro que sacaste de cómodo cumplían la misión y no existían en la nota */
   /* §2z39.41 (su caza 2026-09-04): `pt` es el pase que terminó en tiro del compañero y NO entró (1; 1,5 si estaba
      solo) — 0,22 / 0,33 por cada uno, contra 0,6 de la asistencia: pasarla bien no es neutro */
   if (contexto !== undefined) r += Math.max(-1, Math.min(1, (contexto - 8) * 0.08));
@@ -6501,7 +6511,7 @@ const $C=()=>dep.C;
 const {est,clubDe,guardar,pintaLobby,verQueSeVe}=dep;
 const plataFn=dep.plata||((d)=>{ const J=$C().jugador; J.plata=Math.max(0,J.plata+d); });   // §2z42.2: por la contabilidad
 const tieneItemFn=dep.tieneItem||(()=>false);
-const fplataFn=dep.fplata||((x)=>'$ '+x);
+const fplataFn=dep.fplata||((x)=>'$'+x);
 const priorizarCopa=dep.priorizarCopa||(()=>{});   // §2z27: la carta de las dos copas mueve al CLUB, no a vos
 const SKILL_TXT={tiro:L('TIRO','SHOT','ARREMESSO'),manejo:L('MANEJO','HANDLE','CONTROLE'),vision:L('VISIÓN','VISION','VISÃO'),
   defensa:L('DEFENSA','DEFENSE','DEFESA'),fisico:L('FÍSICO','ATHLETICISM','FÍSICO')};
@@ -6547,6 +6557,63 @@ function fechasDeCartas(){
   return s;
 }
 
+/* 2026-09-12 (su pedido: "que «argentina» cambie por el de tu país"): el gentilicio de tu nacionalidad para la prosa, con el token
+   {gentilicio} en el texto. En castellano y portugués va en femenino (la colectividad, a comunidade). */
+const GENTILICIO={us:["estadounidense", "American", "estadunidense"],ca:["canadiense", "Canadian", "canadense"],ar:["argentina", "Argentine", "argentina"],br:["brasileña", "Brazilian", "brasileira"],pr:["puertorriqueña", "Puerto Rican", "porto-riquenha"],do:["dominicana", "Dominican", "dominicana"],ve:["venezolana", "Venezuelan", "venezuelana"],mx:["mexicana", "Mexican", "mexicana"],uy:["uruguaya", "Uruguayan", "uruguaia"],pa:["panameña", "Panamanian", "panamenha"],co:["colombiana", "Colombian", "colombiana"],cl:["chilena", "Chilean", "chilena"],ni:["nicaragüense", "Nicaraguan", "nicaraguense"],bs:["bahameña", "Bahamian", "bahamense"],cu:["cubana", "Cuban", "cubana"],jm:["jamaiquina", "Jamaican", "jamaicana"],es:["española", "Spanish", "espanhola"],rs:["serbia", "Serbian", "sérvia"],fr:["francesa", "French", "francesa"],de:["alemana", "German", "alemã"],gr:["griega", "Greek", "grega"],it:["italiana", "Italian", "italiana"],lt:["lituana", "Lithuanian", "lituana"],si:["eslovena", "Slovenian", "eslovena"],tr:["turca", "Turkish", "turca"],lv:["letona", "Latvian", "letã"],ua:["ucraniana", "Ukrainian", "ucraniana"],hr:["croata", "Croatian", "croata"],il:["israelí", "Israeli", "israelense"],ba:["bosnia", "Bosnian", "bósnia"],be:["belga", "Belgian", "belga"],ee:["estonia", "Estonian", "estoniana"],pt:["portuguesa", "Portuguese", "portuguesa"],nl:["neerlandesa", "Dutch", "neerlandesa"],is:["islandesa", "Icelandic", "islandesa"],gb:["británica", "British", "britânica"],hu:["húngara", "Hungarian", "húngara"],se:["sueca", "Swedish", "sueca"],bg:["búlgara", "Bulgarian", "búlgara"],dk:["danesa", "Danish", "dinamarquesa"],mk:["macedonia", "Macedonian", "macedônia"],sk:["eslovaca", "Slovak", "eslovaca"],at:["austríaca", "Austrian", "austríaca"],fi:["finlandesa", "Finnish", "finlandesa"],ge:["georgiana", "Georgian", "georgiana"],pl:["polaca", "Polish", "polonesa"],me:["montenegrina", "Montenegrin", "montenegrina"],cz:["checa", "Czech", "tcheca"]};
+const conGentilicio=(txt)=>{ if(!txt||txt.indexOf('{gentilicio}')<0) return txt; const n=($C()&&$C().jugador&&$C().jugador.nacionalidad)||'ar', g=GENTILICIO[n]||GENTILICIO.ar;
+  return txt.replace('{gentilicio}', g[idioma()==='en'?1:idioma()==='pt'?2:0]); };
+/* 2026-09-12 (el barrido, la prosa con su ok): EL FIN DE LA FASE REGULAR — la siembra que peleaste todo el año tiene su momento.
+   Sale al volver al vestuario con la regular cerrada, una vez por temporada. */
+const CARTAS_FIN_REGULAR=[
+ { id:'fin_regular_adentro', repite:true, unaPorAnio:'fin_regular',
+   cuando:(c)=>c.regularCerrada&&!!c.poSiembra,
+   gancho:(c)=>{ const n=(c&&c.poSiembra)||1, o=n===1?'st':n===2?'nd':n===3?'rd':'th';
+     return L('Terminó la fase regular y el equipo entra '+n+'° a los playoffs. Te preguntan si están para el título.','The regular season is over and the team goes into the playoffs as the '+n+o+' seed. They ask if you can win the title.','Terminou a fase regular e o time entra em '+n+'º nos playoffs. Perguntam se vocês têm time para o título.'); },
+   opciones:[
+     {tipo:'segura',label:L('"En la pretemporada nos daban últimos"','"In preseason they had us finishing last"','"Na pré-temporada davam a gente em último"'),desenlaces:[{p:100,remate:null,texto:L('Un periodista encuentra la nota de aquella encuesta y la vuelve a publicar con tu frase arriba.','A reporter digs up that preseason poll and runs it again with your quote on top.','Um jornalista acha a matéria daquela enquete e publica de novo com a sua frase em cima.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Que nos toque el primero"','"Give us the top seed"','"Que venha o primeiro"'),desenlaces:[
+       {p:55,remate:L('Aceptaron el desafío','Challenge accepted','Desafio aceito'),texto:L('Del otro lado contestan que encantados. Las entradas de la serie se agotan en una hora.','The other side says they would love that. Tickets for the series sell out in an hour.','Do outro lado respondem que adorariam. Os ingressos da série esgotam em uma hora.'),ef:{rel:{hinchada:5}}},
+       {p:45,remate:L('Motivación gratis','Free motivation','Motivação de graça'),texto:L('El entrenador rival escribe tu frase en su pizarrón. El tuyo te pregunta para qué le regalás motivos.','The rival coach writes your line on his whiteboard. Yours asks why you are handing them motivation.','O técnico rival escreve sua frase no quadro dele. O seu pergunta por que você dá motivo de graça.'),ef:{rel:{dt:-3}}}]}]},
+ { id:'fin_regular_afuera', repite:true, unaPorAnio:'fin_regular',
+   cuando:(c)=>c.regularCerrada&&!c.poSiembra,
+   gancho:L('Terminó la fase regular y el equipo no entró a los playoffs. Te preguntan qué faltó.','The regular season is over and the team missed the playoffs. They ask what was missing.','Terminou a fase regular e o time ficou fora dos playoffs. Perguntam o que faltou.'),
+   opciones:[
+     {tipo:'segura',label:L('"Perdimos los partidos que no se pierden"','"We lost the games you do not lose"','"Perdemos os jogos que não se perdem"'),desenlaces:[{p:100,remate:null,texto:L('Todos saben cuáles fueron. Nadie los nombra, y en el vestuario se agradece.','Everyone knows which ones. Nobody names them, and the locker room is grateful.','Todo mundo sabe quais foram. Ninguém cita, e o vestiário agradece.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Faltó que algunos corrieran"','"Some guys did not run"','"Faltou alguns correrem"'),desenlaces:[
+       {p:55,remate:L('Se dieron por aludidos','The message landed','Vestiram a carapuça'),texto:L('Al otro día dos compañeros llegan una hora antes a entrenar. Nadie dice por qué.','The next day two teammates show up an hour early to practice. Nobody says why.','No dia seguinte dois companheiros chegam uma hora antes para treinar. Ninguém diz por quê.'),ef:{rel:{hinchada:3,dt:2}}},
+       {p:45,remate:L('La reunión a solas','The closed-door meeting','A reunião a sós'),texto:L('El capitán pide hablar con el DT sin vos. Salís del gimnasio sin saber qué se dijo.','The captain asks to see the coach without you. You leave the gym not knowing what was said.','O capitão pede para falar com o técnico sem você. Você sai do ginásio sem saber o que foi dito.'),ef:{rel:{plantel:-3}}}]}]},
+];
+/* 2026-09-12 (su corte: el MVP en plena llave, y "si seguís en playoff te puede caer una de «ahora que ganaste el MVP te vienen a buscar
+   más fuerte»"; el quinteto con "¿te quedás con gusto a poco?", sólo si no ganaste el MVP). Y su segundo corte: los remates no repiten los del
+   catálogo (tribuna que canta, bandera, utilero, titulares): cada frase se juega algo. */
+const CARTAS_PREMIO_DIA=[
+ { id:'premio_mvp_dia', repite:true, unaPorAnio:'premio_dia',
+   cuando:(c)=>!!(c.premioAviso&&c.premioAviso.claves.includes('mvp')&&c.premioAviso.enPO),
+   gancho:L('Te dieron el MVP de la liga en plena serie. En la conferencia te avisan que desde ahora te van a venir a buscar más fuerte.','You were named league MVP in the middle of a series. At the press conference they warn you that from now on they will come after you harder.','Você foi eleito MVP da liga no meio da série. Na coletiva avisam que a partir de agora vão te marcar mais forte.'),
+   opciones:[
+     {tipo:'segura',label:L('"El trofeo lo miro cuando termine todo"','"I will look at the trophy when this is over"','"Olho o troféu quando tudo acabar"'),desenlaces:[{p:100,remate:null,texto:L('Lo dejás en el bolso sin sacarle el plástico. Dos compañeros lo ven y no dicen nada, que es justo lo que querías.','You leave it in your bag with the plastic still on. Two teammates see it and say nothing, which is exactly what you wanted.','Você deixa na mochila sem tirar o plástico. Dois companheiros veem e não dizem nada, que era justamente o que você queria.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Que me pongan dos encima: queda uno libre"','"Put two on me: someone is left open"','"Que coloquem dois em mim: sobra um livre"'),desenlaces:[
+       {p:55,remate:L('Leíste el partido','You read the game','Você leu o jogo'),texto:L('El DT arma la primera jugada del próximo partido sobre tu frase: dos van a buscarte y el tiro es del que queda solo.','The coach draws up the first play of the next game around your line: two come at you and the shot goes to whoever is left alone.','O técnico monta a primeira jogada do próximo jogo em cima da sua frase: dois vêm em você e o arremesso é de quem sobra.'),ef:{rel:{dt:3,plantel:2}}},
+       {p:45,remate:L('Le hiciste el scouting al rival','You scouted for the other team','Você fez o scouting para o rival'),texto:L('El DT te pide que la próxima vez no le expliques la defensa al otro equipo por televisión.','The coach asks you not to explain the defense to the other team on television next time.','O técnico pede que da próxima vez você não explique a defesa para o outro time na televisão.'),ef:{rel:{dt:-3}}}]}]},
+ { id:'premio_mvp_dia_afuera', repite:true, unaPorAnio:'premio_dia',
+   cuando:(c)=>!!(c.premioAviso&&c.premioAviso.claves.includes('mvp')&&!c.premioAviso.enPO),
+   gancho:L('Sos el MVP de la liga y tu equipo ya no juega. Te preguntan si lo cambiarías por estar en la serie.','You are the league MVP and your team is done. They ask if you would trade it to be in the series.','Você é o MVP da liga e seu time já não joga. Perguntam se você trocaria isso por estar na série.'),
+   opciones:[
+     {tipo:'segura',label:L('"Sí, sin pensarlo"','"Yes, without thinking twice"','"Sim, sem pensar"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís mirando el trofeo, y se nota que es verdad.','You say it looking at the trophy, and it is obviously true.','Você diz olhando o troféu, e dá para ver que é verdade.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"No. Esto no me lo saca nadie"','"No. Nobody takes this from me"','"Não. Isso ninguém me tira"'),desenlaces:[
+       {p:55,remate:L('Sin fingir','No pretending','Sem fingir'),texto:L('Hay gente que lo agradece: por fin alguien que no finge que un premio le da lo mismo.','Some people appreciate it: finally someone who does not pretend an award means nothing.','Tem gente que agradece: finalmente alguém que não finge que um prêmio tanto faz.'),ef:{rel:{hinchada:5}}},
+       {p:45,remate:L('Mal momento','Bad timing','Hora errada'),texto:L('Tus compañeros empezaron las vacaciones antes de tiempo. La frase les llega a la playa.','Your teammates started their vacation early. The quote reaches them at the beach.','Seus companheiros começaram as férias antes da hora. A frase chega neles na praia.'),ef:{rel:{plantel:-3}}}]}]},
+ { id:'premio_quinteto_dia', repite:true, unaPorAnio:'premio_dia',
+   cuando:(c)=>!!(c.premioAviso&&!c.premioAviso.claves.includes('mvp')&&(c.premioAviso.claves.includes('quinteto')||c.premioAviso.claves.includes('joven'))),
+   gancho:(c)=>(c.premioAviso&&c.premioAviso.claves.includes('quinteto'))
+     ? L('Estás en el quinteto ideal de la temporada. ¿Te quedás con gusto a poco?','You made the All-League team this season. Does it leave you wanting more?','Você está na seleção do campeonato desta temporada. Fica com gostinho de quero mais?')
+     : L('Sos el mejor joven de la temporada. ¿Te quedás con gusto a poco?','You are the best young player of the season. Does it leave you wanting more?','Você é o melhor jovem da temporada. Fica com gostinho de quero mais?'),
+   opciones:[
+     {tipo:'segura',label:L('"Un premio no te devuelve un partido perdido"','"An award does not give you back a lost game"','"Um prêmio não devolve um jogo perdido"'),desenlaces:[{p:100,remate:null,texto:L('Lo decís pensando en uno en particular, y el que pregunta sabe cuál.','You say it thinking of one game in particular, and the reporter knows which.','Você diz pensando em um jogo específico, e quem pergunta sabe qual.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Sí: al MVP le tocó un equipo mejor"','"Yes: the MVP got a better team"','"Sim: o MVP pegou um time melhor"'),desenlaces:[
+       {p:55,remate:L('Pediste refuerzos','You asked for reinforcements','Você pediu reforços'),texto:L('En tu club lo toman como un pedido de refuerzos, y esa misma semana la dirigencia sale a buscar uno.','Your club reads it as a call for reinforcements, and that same week the front office goes out looking for one.','No seu clube entendem como pedido de reforços, e na mesma semana a diretoria sai atrás de um.'),ef:{rel:{hinchada:5}}},
+       {p:45,remate:L('El MVP contestó','The MVP answered','O MVP respondeu'),texto:L('El MVP sube una foto con su trofeo y nada más. Tu DT te pide que las peleas las dejes para la cancha.','The MVP posts a photo with his trophy and nothing else. Your coach asks you to save your fights for the court.','O MVP posta uma foto com o troféu e mais nada. Seu técnico pede que você deixe as brigas para a quadra.'),ef:{rel:{dt:-3}}}]}]},
+];
 /* ── lo que una carta puede leer ── */
 function ctxCarta(u){
   const e=est(), J=$C().jugador, club=clubDe(e.miClubId);
@@ -6572,6 +6639,8 @@ function ctxCarta(u){
     avance:e.fechasTotales?Math.min(1,(e.fechaJugada||0)/e.fechasTotales):0,   // 0-1 de la regular (§2z26 cableado: "es febrero", "sos el novato")
     proximoId:prox?prox.rival:null,
     mvpPos:e.mvpPos||null, allstar:e.allstar||null,   // §2z45: tu puesto en la carrera al MVP y el corte del Juego de las Estrellas
+    regularCerrada:!!(e.fechasTotales&&(e.fechaJugada||0)>=e.fechasTotales), poSiembra:(e.playoffs&&e.playoffs.siembra&&e.playoffs.siembra[e.miClubId])||null,   // 2026-09-12: el fin de la regular
+    premioAviso:($C().premioAviso&&$C().premioAviso.anio===$C().anio)?$C().premioAviso:null,   // 2026-09-12: el premio del día
     premiosNuevos:premiosDelAnioPasado(),         // §2z28: lo que ganaste la temporada pasada, si la prensa todavía no lo tocó
     continental:!!e.americas,                     // §2z27: este año tu club juega la Liga de las Américas
     amFaltan:(e.americas&&e.americas.ventanas&&e.americas.ventanas[0])?e.americas.ventanas[0].f-(e.fechaJugada||0):null,   // §2z39.51: fechas hasta el primer partido continental (≤0: ya empezó)
@@ -6784,7 +6853,7 @@ function elegirCarta(i){
   const revelar=()=>{
   document.getElementById('cartaOpciones').classList.add('oculto');
   document.getElementById('cartaRemate').textContent=d.remate?t(d.remate):t(o.label);
-  document.getElementById('cartaTexto').textContent=t(d.texto);
+  document.getElementById('cartaTexto').textContent=conGentilicio(t(d.texto));
   const ps=pildorasDe(d.ef);
   document.getElementById('cartaPildoras').innerHTML=ps.length
     ? ps.map(p=>'<span class="pil '+(p.ok?'ok':'mal')+(p.skill?' skill':'')+'">'+p.txt+'</span>').join('')
@@ -6903,7 +6972,18 @@ function cartaLujoPendiente(){
 /* al entrar al lobby y al pasar la semana: una fecha vencida sirve UNA carta; las demás vencidas
    se descartan (saltar al clave no te apila cuatro). Si acaba de salir prensa, espera. */
 function cartaPendiente(){
-  const e=est(); if(!e||!$C()||e.fase!=='regular') return null;
+  const e=est(); if(!e||!$C()) return null;
+  /* 2026-09-12 (el barrido): en playoffs no salía ninguna carta de vida — en la NBA son más de veinte partidos sólo con prensa, y la carta
+     de playoffs del catálogo (`c.fase==='playoffs'`) no podía salir nunca. Una cada tres partidos tuyos de la serie, hasta tres. */
+  if(e.fase==='playoffs'){
+    const s=cartasEstado(), mis=(e.misPartidos||[]).filter(p=>p.po).length;
+    if(!s.poCartas||s.poCartas.anio!==$C().anio) s.poCartas={anio:$C().anio,n:0,ult:0};
+    if(mis<3||s.poCartas.n>=3||mis-s.poCartas.ult<3) return null;
+    const c=sortearCarta(poolGeneral(),ctxCarta(),rngFor($C().semilla,'cartaPO',$C().anio,mis));
+    if(c){ s.poCartas.n++; s.poCartas.ult=mis; guardar(); }
+    return c;
+  }
+  if(e.fase!=='regular') return null;
   const s=fechasDeCartas();
   if(s.saltarProxima){ s.saltarProxima=false; guardar(); return null; }
   const due=s.fechas.filter(f=>f<=e.fechaJugada);
@@ -6970,7 +7050,7 @@ function rotuloCarta(e){
            reclasificacion:L('RECLASIFICACIÓN','PLAY-IN','REPESCAGEM'),playin:L('PLAY-IN','PLAY-IN','PLAY-IN'),primera:L('PRIMERA RONDA','FIRST ROUND','PRIMEIRA RODADA'),octavos:L('OCTAVOS','ROUND OF 16','OITAVAS')};
   const ronda=(n)=>t(R[n]||L(String(n||'').toUpperCase()));
   let que='';
-  if(o.tipo==='fecha') que=t(L('FECHA','ROUND','RODADA'))+' '+o.fecha;
+  if(o.tipo==='fecha') que=window.fechaTxtNSS?window.fechaTxtNSS(o.fecha):t(L('FECHA','ROUND','RODADA'))+' '+o.fecha;   // 2026-09-12: en la NBA, tu partido
   else if(o.tipo==='serie'&&o.serie) que=ronda(o.serie.nombre)+(o.serie.mejorDe>1&&o.juego?' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego:'');
   else if(o.tipo==='americas') que=(o.ic?t(L('COPA INTERCONTINENTAL','INTERCONTINENTAL CUP','COPA INTERCONTINENTAL')):t(L('LIGA DE LAS AMÉRICAS','AMERICAS LEAGUE','LIGA DAS AMÉRICAS')))+(o.etapa?' · '+ronda(String(o.etapa).replace(/^ic-/,'')):'');
   else if(o.tipo==='seleccion') que=t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO'));
@@ -7083,7 +7163,7 @@ function mostrarAviso(a, alTerminar){
    está en pantalla queda anotada y vuelve sola; se borra recién cuando elegís, que es cuando cobra. La del túnel no
    entra acá: la suya se resuelve volviendo a entrar al partido, y ya está resuelto con `salidaHecha`. */
 const cartaPorId=(id)=>[].concat(poolGeneral(),poolEventos(),poolReceso(),
-  (typeof CARTAS_DILEMA!=='undefined'?CARTAS_DILEMA:[]),CARTAS_PRENSA).find(c=>c&&c.id===id)||null;
+  (typeof CARTAS_DILEMA!=='undefined'?CARTAS_DILEMA:[]),CARTAS_PRENSA,CARTAS_FIN_REGULAR,CARTAS_PREMIO_DIA).find(c=>c&&c.id===id)||null;
 function cartaAbiertaPendiente(){
   const s=cartasEstado(); if(!s.abierta) return null;
   const c=cartaPorId(s.abierta.id);
@@ -7098,6 +7178,12 @@ function cartasAlEntrar(){
   { const ab=cartaAbiertaPendiente();
     if(ab){ mostrarCarta(ab.c, ab.rot, ()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }   /* §2z225: la que quedó a medio jugar, primero */
   if(dep.sponsorAviso(()=>{ pintaLobby(); cartasAlEntrar(); })) return true;
+  /* 2026-09-12: el premio del día y el fin de la regular — pasan una vez y no esperan a que juegues */
+  { const s=cartasEstado(), ctx=ctxCarta();
+    const pr=CARTAS_PREMIO_DIA.find(c=>cartaElegible(c,ctx,s));
+    if(pr){ mostrarCarta(pr,t(L('LA PRENSA','THE PRESS','A IMPRENSA')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
+    const fr=CARTAS_FIN_REGULAR.find(c=>cartaElegible(c,ctx,s));
+    if(fr){ mostrarCarta(fr,t(L('FIN DE LA FASE REGULAR','END OF THE REGULAR SEASON','FIM DA FASE REGULAR')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   { const cv=cartaDeVentana(); if(cv){ mostrarCarta(cv,t(L('LA SELECCIÓN','THE NATIONAL TEAM','A SELEÇÃO')),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; } }
   const ev=cartaDeEvento();
   if(ev){ const e=est(); mostrarCarta(ev,rotuloCarta(e),()=>{ pintaLobby(); cartasAlEntrar(); }); return true; }
@@ -7125,10 +7211,13 @@ function cartaDePrensa(u,volver,forzar){
   const s=cartasEstado();
   s.partidosDesdePrensa=(s.partidosDesdePrensa||0)+1;
   /* §12: una medalla no espera al contador — el diario la titula el día que pasa */
-  if(!forzar&&s.partidosDesdePrensa<PRENSA_CADA) return false;
+  /* 2026-09-12 (el barrido): "nunca dos seguidos" se comía los MOMENTOS — eliminado o campeón de una serie, el pase al Mundial, la final de
+     la Copa, el Juego de las Estrellas — si hubo prensa el partido anterior. Lo que pasa UNA vez (evento sin ventana) no espera la
+     cadencia; la opinión y las de ventana (`unaPorAnio`, que tienen fechas para salir) sí. */
+  const espera=!forzar&&s.partidosDesdePrensa<PRENSA_CADA;
   const ctx=ctxCarta(u);
   const e=est(), tope=PRENSA_TOPE((e&&e.fechasTotales)||20);
-  const c=CARTAS_PRENSA.find(c=>(c.evento||(s.prensaN||0)<tope)&&cartaElegible(c,ctx,s));   // en orden de prioridad, no por peso; las de opinión, hasta el tope
+  const c=CARTAS_PRENSA.find(c=>(espera?(c.evento&&!c.unaPorAnio):(c.evento||(s.prensaN||0)<tope))&&cartaElegible(c,ctx,s));   // en orden de prioridad, no por peso; las de opinión, hasta el tope
   if(!c) return false;
   s.partidosDesdePrensa=0; if(!c.evento) s.prensaN=(s.prensaN||0)+1;   // §2z46: la prensa ya no saltea la random
   if(c.premio) s.prensaPremios=$C().anio;   // §2z28: la de los premios sale una vez por año
@@ -7146,7 +7235,7 @@ function cartaDePrensa(u,volver,forzar){
     : u.ic?t(L('COPA INTERCONTINENTAL','INTERCONTINENTAL CUP','COPA INTERCONTINENTAL'))
     : u.americas?t(L('LIGA DE LAS AMÉRICAS','AMERICAS LEAGUE','LIGA DAS AMÉRICAS'))
     : (u.serie||u.playoffs)?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS'))
-    : u.fecha?t(L('FECHA','ROUND','RODADA'))+' '+u.fecha
+    : u.fecha?(window.fechaTxtNSS?window.fechaTxtNSS(u.fecha):t(L('FECHA','ROUND','RODADA'))+' '+u.fecha)
     : null;
   /* §2z136 (su captura 2026-09-07: la carta de la misión en el clave salió SIN prosa, sólo las opciones): §2z100 hizo
      función al gancho de las dos cartas de misión (lee `u.grande`) y este camino no la resolvía — sólo el del túnel
@@ -7213,7 +7302,7 @@ const CARTAS_PRENSA=[
  { id:'prensa_sel_pase', repite:true, evento:true,
    cuando:(c)=>c.u.seleccion&&c.u.seleccion.cierraElim&&c.u.seleccion.pase,
    /* 2026-09-12 (su caza): en la beta las cinco ventanas caen en UNA temporada (§7.1) */
-   gancho:(c)=>(typeof $C==='function'&&$C()&&$C().jugador&&$C().jugador.dbeta!==undefined)?L('Clasificados. Diez partidos en una temporada, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games in one season, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em uma temporada, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'):L('Clasificados. Diez partidos en dos temporadas, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Ten games over two seasons, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Dez jogos em duas temporadas, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
+   gancho:(c)=>(typeof $C==='function'&&$C()&&$C().jugador&&$C().jugador.dbeta!==undefined)?L('Clasificados. Doce partidos en una temporada, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Twelve games in one season, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Doze jogos em uma temporada, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'):L('Clasificados. Doce partidos en dos temporadas, la mitad con el equipo que se pudo, y adentro. En la conferencia el entrenador te pasa el micrófono sin avisarte.','Qualified. Twelve games over two seasons, half of them with whoever was available, and through. At the press conference the coach hands you the mic without warning.','Classificados. Doze jogos em duas temporadas, metade com o time que deu, e dentro. Na coletiva o técnico te passa o microfone sem avisar.'),
    opciones:[
      {tipo:'segura',label:L('Agradecer y devolverlo','Say thanks and hand it back','Agradecer e devolver'),desenlaces:[{p:100,remate:null,texto:L('Veinte segundos y se lo devolvés. El entrenador te lo agradece con la mano en el hombro.','Twenty seconds and you hand it back. The coach thanks you with a hand on your shoulder.','Vinte segundos e você devolve. O técnico agradece com a mão no seu ombro.'),ef:{rel:{dt:4}}}]},
      {tipo:'apuesta',label:L('Hablar de los que jugaron las ventanas','Talk about the ones who played the windows','Falar dos que jogaram as janelas'),desenlaces:[
@@ -7251,9 +7340,9 @@ const CARTAS_PRENSA=[
        'In the hotel lobby in '+s+' a kid is waiting for you with a '+cl+' jersey that came in the mail. You have no idea how he got it.',
        'No saguão do hotel em '+s+' um garoto te espera com uma camisa do '+cl+' que chegou pelo correio. Você não sabe como ele conseguiu.'); },
    opciones:[
-     {tipo:'segura',label:L('Foto y firma','Photo and autograph','Foto e autógrafo'),desenlaces:[{p:100,remate:null,texto:L('Te saca la foto temblando. Esa noche la sube, y en tu club la comparten todos.','He takes the photo, shaking. That night he posts it, and everyone at your club shares it.','Ele tira a foto tremendo. À noite posta, e no seu clube todo mundo compartilha.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'segura',label:L('Foto y firma','Photo and autograph','Foto e autógrafo'),desenlaces:[{p:100,remate:null,texto:L('Te saca la foto temblando y te pregunta, en un idioma que es casi el tuyo, si algún día va a jugar como vos.','He takes the photo, shaking, and asks you in a language that is almost yours whether he will ever play like you.','Ele tira a foto tremendo e pergunta, numa língua que é quase a sua, se um dia vai jogar como você.'),ef:{rel:{hinchada:2}}}]},
      {tipo:'apuesta',label:L('Regalarle la del próximo partido','Give him your jersey for the next game','Dar a camisa do próximo jogo'),desenlaces:[
-       {p:60,remate:L('Lo subió el club','The club posted it','O clube postou'),texto:L('El club la publica con la foto del chico. En casa se hace viral antes de que te despiertes.','The club posts it with the kid\'s photo. Back home it goes viral before you wake up.','O clube publica com a foto do garoto. Em casa viraliza antes de você acordar.'),ef:{rel:{hinchada:5}}},
+       {p:60,remate:L('Un hincha más','One more fan','Mais um torcedor'),texto:L('Al partido siguiente el chico está en la primera fila con tu camiseta, tres talles más grande.','At the next game the kid is in the front row wearing your jersey, three sizes too big.','No jogo seguinte o garoto está na primeira fila com a sua camisa, três números maior.'),ef:{rel:{hinchada:5}}},
        {p:40,remate:L('Era la única','It was the only one','Era a única'),texto:L('El utilero no tiene otra con tu número. Salís con una sin nombre y el DT no se ríe.','The equipment manager has no other with your number. You go out in a blank one and the coach is not laughing.','O roupeiro não tem outra com seu número. Você sai com uma sem nome e o técnico não ri.'),ef:{rel:{dt:-3}}}]}]},
  { id:'prensa_ic_campeon', repite:true, evento:true,
    cuando:(c)=>c.u.ic&&c.u.ic.etapa==='ic-final'&&c.u.ic.campeon,
@@ -7356,7 +7445,7 @@ const CARTAS_PRENSA=[
    opciones:[
      {tipo:'segura',label:L('"No se gana hasta la última fecha"','"It is not won until the last game"','"Não se ganha até a última rodada"'),desenlaces:[{p:100,remate:null,texto:L('Te sale de memoria. Nadie la titula.','It comes out on autopilot. Nobody headlines it.','Sai de cor. Ninguém coloca no título.'),ef:{}}]},
      {tipo:'apuesta',label:L('"Si seguimos ganando, es mío"','"If we keep winning, it is mine"','"Se continuarmos ganhando, é meu"'),desenlaces:[
-       {p:50,remate:L('Seguridad','Confidence','Confiança'),texto:L('Al día siguiente el título es tu frase entre comillas. Tu apellido se canta más fuerte.','The next day the headline is your line in quotes. They chant your name louder.','No dia seguinte a manchete é sua frase entre aspas. Seu nome é cantado mais alto.'),ef:{rel:{hinchada:6,dt:1}}},
+       {p:50,remate:L('Seguridad','Confidence','Confiança'),texto:L('Antes del partido siguiente, en la puerta de tu cancha ya venden remeras con la frase.','Before the next game, they are already selling shirts with the line outside your arena.','Antes do jogo seguinte, na porta do ginásio já vendem camisetas com a frase.'),ef:{rel:{hinchada:6,dt:1}}},
        {p:50,remate:L('Te pusiste el blanco','You painted a target on yourself','Virou alvo'),texto:L('Los rivales pegan la nota en su vestuario. El DT te la muestra: «ahora bancatela».','Rivals pin the article up in their locker room. The coach shows it to you: "now back it up."','Os rivais colam a matéria no vestiário deles. O técnico te mostra: "agora aguenta".'),ef:{rel:{dt:-3}}}]}]},
  { id:'prensa_mvp_persigue', repite:true, evento:true, unaPorAnio:'mvp_tramo',
    cuando:(c)=>c.fase==='regular'&&c.mvpPos>=2&&c.mvpPos<=CARRERA_MVP.quinteto&&c.avance>=0.75&&c.avance<1&&!!(c.u&&c.u.mvpLider),
@@ -7367,7 +7456,7 @@ const CARTAS_PRENSA=[
    opciones:[
      {tipo:'segura',label:L('"Es un jugadorazo"','"He is a hell of a player"','"É um baita jogador"'),desenlaces:[{p:100,remate:null,texto:L('La nota sale con los dos en la foto. Quedás como un caballero.','The piece runs with both of you in the photo. You come off as a gentleman.','A matéria sai com os dois na foto. Você fica como um cavalheiro.'),ef:{rel:{hinchada:1}}}]},
      {tipo:'apuesta',label:L('"Que lo diga la cancha"','"Let the court decide"','"Que a quadra diga"'),desenlaces:[
-       {p:55,remate:L('Picante','Spicy','Apimentado'),texto:L('La frase llega a su vestuario antes que a tu casa. La próxima vez que se crucen, la cancha se llena.','The line reaches his locker room before you get home. Next time you meet, the arena is packed.','A frase chega ao vestiário dele antes de você chegar em casa. Na próxima vez que se enfrentarem, o ginásio lota.'),ef:{rel:{hinchada:6}}},
+       {p:55,remate:L('Picante','Spicy','Apimentado'),texto:L('La frase llega a su vestuario antes que a tu casa. El próximo cruce entre los dos equipos pasa al horario central de la tele.','The line reaches his locker room before you get home. The next game between the two teams moves to prime time.','A frase chega ao vestiário dele antes de você chegar em casa. O próximo jogo entre os dois times vai para o horário nobre da TV.'),ef:{rel:{hinchada:6}}},
        {p:45,remate:L('Te respondió','He answered','Ele respondeu'),texto:L('Al otro día hace 30 puntos y dice «la cancha habló». Todos los diarios lo ponen al lado de tu frase.','The next day he scores 30 and says "the court has spoken." Every paper runs it next to your line.','No dia seguinte ele faz 30 pontos e diz "a quadra falou". Todos os jornais colocam ao lado da sua frase.'),ef:{rel:{hinchada:-4}}}]}]},
  { id:'prensa_serie_ganada', repite:true, evento:true,
    cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   /* 2026-09-12 (su caza: «ganamos la LNB y una rama dice PROMETER EL TÍTULO… acá no aplica»): con el título YA ganado no hay título que prometer. El campeón tiene la suya. */
@@ -8374,6 +8463,7 @@ const CARTAS_ARGENTINA=[
  { id:'el_mundial', de:'argentina',
    peso:50, edadMin:16,
    ligas:['federal','argentina','nacional'],
+   cuando:(c)=>c.nacion==='ar',   /* 2026-09-12 (el barrido): la Selección de fútbol y «al lado de tu viejo» son de un argentino */
    fondo:'playground',
    gancho:L('Juega la Selección de fútbol a las cuatro de la tarde. La práctica es a las cuatro de la tarde.', 'The national soccer team plays at four in the afternoon. Practice is at four in the afternoon.', 'A seleção argentina de futebol joga às quatro da tarde. O treino é às quatro da tarde.'),
    opciones:[
@@ -10039,7 +10129,7 @@ const CARTAS_NBA_A=[
  { id:'nba_el_agente', de:'nba', peso:100, maxVeces:1, edadMin:19, ligas:['nba'], fondo:'despacho',
    gancho:L('Una agencia de Los Ángeles te invita a almorzar. Tu agente de siempre, el que te llevaba en su auto a los torneos, se entera por Twitter.','A Los Angeles agency invites you to lunch. Your agent from day one, the guy who drove you to tournaments in his own car, finds out on Twitter.','Uma agência de Los Angeles te convida para almoçar. Seu agente de sempre, o que te levava aos torneios no carro dele, fica sabendo pelo Twitter.'),
    opciones:[
-     {tipo:'segura',label:L('Quedarte con el tuyo','Stay with yours','Ficar com o seu'),desenlaces:[{p:100,remate:null,texto:L('Le contás del almuerzo antes de que te pregunte. Te sube el sponsor de la yerba sin que se lo pidas.','You tell him about the lunch before he asks. He bumps up the yerba sponsor without you asking.','Você conta do almoço antes que ele pergunte. Ele aumenta o patrocínio da erva sem você pedir.'),ef:{plataX:1}}]},
+     {tipo:'segura',label:L('Quedarte con el tuyo','Stay with yours','Ficar com o seu'),desenlaces:[{p:100,remate:null,texto:L('Le contás del almuerzo antes de que te pregunte. Te consigue un sponsor mejor sin que se lo pidas.','You tell him about the lunch before he asks. He lands you a better sponsor without you asking.','Você conta do almoço antes que ele pergunte. Ele consegue um patrocínio melhor sem você pedir.'),ef:{plataX:1}}]},
      {tipo:'apuesta',label:L('Cambiar de agencia','Switch agencies','Trocar de agência'),desenlaces:[
        {p:60,remate:L('Piso veinte','Twentieth floor','Vigésimo andar'),texto:L('Oficina con vista, tres personas que trabajan solo para vos y un contrato de publicidad a la semana.','An office with a view, three people working only for you and an ad deal within a week.','Escritório com vista, três pessoas trabalhando só para você e um contrato de publicidade em uma semana.'),ef:{plataX:3,rel:{hinchada:2}}},
        {p:40,remate:L('Uno más en la lista','One more on the list','Mais um na lista'),texto:L('Tienen cuarenta jugadores. Vos sos el treinta y ocho. Al viejo agente no lo podés volver a llamar.','They have forty players. You are number thirty-eight. And you cannot call the old agent back.','Eles têm quarenta jogadores. Você é o trigésimo oitavo. E o agente antigo você não pode ligar de volta.'),ef:{plataX:-1,energia:-10}}]}]},
@@ -10077,7 +10167,7 @@ const CARTAS_NBA_A=[
    cuando:(c)=>c.rol!=='suplente',
    gancho:L('Un ex jugador con dos millones de oyentes te invita a su podcast. Dos horas, sin guion, con un micrófono que graba todo.','A former player with two million listeners invites you on his podcast. Two hours, no script, a mic that records everything.','Um ex-jogador com dois milhões de ouvintes te convida para o podcast dele. Duas horas, sem roteiro, com um microfone que grava tudo.'),
    opciones:[
-     {tipo:'segura',label:L('Ir y decir poco','Go and say little','Ir e falar pouco'),desenlaces:[{p:100,remate:null,texto:L('Hablás de tu ciudad y del asado. El clip que se corta es el del asado.','You talk about your hometown and asado. The clip that gets cut is the asado one.','Você fala da sua cidade e do churrasco. O clipe que cortam é o do churrasco.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'segura',label:L('Ir y decir poco','Go and say little','Ir e falar pouco'),desenlaces:[{p:100,remate:null,texto:L('Hablás de tu ciudad y de la comida de tu vieja. El clip que se corta es el de la comida.','You talk about your hometown and your mom\'s cooking. The clip that gets cut is the cooking one.','Você fala da sua cidade e da comida da sua mãe. O clipe que cortam é o da comida.'),ef:{rel:{hinchada:2}}}]},
      {tipo:'apuesta',label:L('Hablar en serio','Talk for real','Falar sério'),desenlaces:[
        {p:60,remate:L('Dos horas que se escuchan','Two hours people listen to','Duas horas que se escutam'),texto:L('Contás cómo se lee una defensa desde el banco. Lo suben entero y a la semana te lo cita un entrenador rival.','You explain how to read a defense from the bench. They post it whole and a week later a rival coach quotes it.','Você conta como se lê uma defesa do banco. Sobem inteiro e uma semana depois um técnico rival cita.'),ef:{rel:{hinchada:5},skills:{vision:1}}},
        {p:40,remate:L('Minuto cuarenta y tres','Minute forty-three','Minuto quarenta e três'),texto:L('Dijiste quién no entrena fuerte. Sin nombre. El vestuario lo pone igual.','You said who does not practice hard. No names. The locker room fills them in anyway.','Você disse quem não treina forte. Sem nome. O vestiário coloca mesmo assim.'),ef:{rel:{plantel:-4,dt:-2}}}]}]},
@@ -10086,7 +10176,7 @@ const CARTAS_NBA_A=[
    opciones:[
      {tipo:'segura',label:L('Manejarlas vos','Run them yourself','Cuidar você mesmo'),desenlaces:[{p:100,remate:null,texto:L('Una foto por semana, mal encuadrada. Tu vieja le da like a todas.','One photo a week, badly framed. Your mom likes every one.','Uma foto por semana, mal enquadrada. Sua mãe curte todas.'),ef:{}}]},
      {tipo:'apuesta',label:L('Darle las claves','Give him the passwords','Passar as senhas'),desenlaces:[
-       {p:60,remate:L('Verificado','Verified','Verificado'),texto:L('Sube tres videos por día que no sabías que existían. La marca de la yerba te renueva por los números.','He posts three videos a day you did not know existed. The yerba brand renews you for the numbers.','Ele sobe três vídeos por dia que você nem sabia que existiam. A marca da erva te renova pelos números.'),ef:{rel:{hinchada:4},plataX:1}},
+       {p:60,remate:L('Verificado','Verified','Verificado'),texto:L('Sube tres videos por día que no sabías que existían. Una marca te llama por los números.','He posts three videos a day you did not know existed. A brand calls you because of the numbers.','Ele sobe três vídeos por dia que você nem sabia que existiam. Uma marca te liga pelos números.'),ef:{rel:{hinchada:4},plataX:1}},
        {p:40,remate:L('El posteo','The post','O post'),texto:L('Sube una historia desde el vestuario. Con el pizarrón atrás. Tu nombre firma, el capitán lo lee.','He posts a story from the locker room. Whiteboard in the background. It goes out under your name, the captain reads it.','Ele sobe um story do vestiário. Com a prancheta atrás. Assinado com o seu nome, o capitão lê.'),ef:{rel:{hinchada:-3,plantel:-2}}}]}]},
  { id:'nba_el_fin_de_semana_del_all_star', de:'nba', peso:100, maxVeces:1, edadMin:19, ligas:['nba'], fondo:'vestuario',
    cuando:(c)=>c.avance>=0.45&&c.avance<=0.6&&!(c.allstar&&c.allstar.elegido),   // §2z46: ahora la lista existe
@@ -10128,7 +10218,7 @@ const CARTAS_NBA_A=[
        {p:60,remate:L('La casa del equipo','The team\'s house','A casa do time'),texto:L('La cancha techada se llena de compañeros a las once de la noche. Los asados los hacés vos, y te dejan dormir hasta la hora que quieras.','The indoor court fills with teammates at eleven at night. You host the barbecues, and they let you sleep as late as you want.','A quadra coberta enche de companheiros às onze da noite. Os churrascos são seus, e te deixam dormir até a hora que quiser.'),ef:{rel:{plantel:5},energia:15}},
        {p:40,remate:L('La pileta pierde','The pool leaks','A piscina vaza'),texto:L('Jardinero, pileta, calefacción de siete cuartos. Cada mes llega una factura con más ceros que la anterior.','Gardener, pool, heating for seven bedrooms. Every month a bill arrives with more zeros than the last.','Jardineiro, piscina, aquecimento de sete quartos. Todo mês chega uma conta com mais zeros que a anterior.'),ef:{plataX:-2,energia:-10}}]}]},
  { id:'nba_el_chef', de:'nba', peso:90, maxVeces:1, edadMin:19, ligas:['nba'], fondo:'vestuario',
-   gancho:L('El pívot te pasa el número de su chef: cocina en tu casa, cinco comidas por día, y cobra lo que vos cobrabas por mes en la Liga.','The center gives you his chef\'s number: cooks at your place, five meals a day, and charges what you used to make in a month back home.','O pivô te passa o número do chef dele: cozinha na sua casa, cinco refeições por dia, e cobra o que você ganhava por mês na Liga.'),
+   gancho:L('El pívot te pasa el número de su chef: cocina en tu casa, cinco comidas por día, y cobra por mes lo que cobrabas en tu primer contrato.','The center gives you his chef\'s number: cooks at your place, five meals a day, and charges a month what your first contract paid.','O pivô te passa o número do chef dele: cozinha na sua casa, cinco refeições por dia, e cobra por mês o que você ganhava no seu primeiro contrato.'),
    opciones:[
      {tipo:'segura',label:L('El nutricionista del club','The club nutritionist','O nutricionista do clube'),desenlaces:[{p:100,remate:null,texto:L('Bandejas con etiqueta en la heladera del estadio. Comés bien y no cocinás.','Labeled trays in the arena fridge. You eat well and never cook.','Bandejas com etiqueta na geladeira do ginásio. Você come bem e não cozinha.'),ef:{energia:10}}]},
      {tipo:'apuesta',label:L('Contratarlo','Hire him','Contratar'),desenlaces:[
@@ -10193,7 +10283,7 @@ const CARTAS_NBA_A=[
    opciones:[
      {tipo:'segura',label:L('Decirle que no','Tell him no','Dizer que não'),desenlaces:[{p:100,remate:null,texto:L('Le pagás el pasaje de vuelta. En Navidad todavía no te habla.','You pay for his ticket home. By Christmas he is still not speaking to you.','Você paga a passagem de volta. No Natal ele ainda não fala com você.'),ef:{}}]},
      {tipo:'apuesta',label:L('Darle los eventos','Give him the events','Deixar os eventos com ele'),desenlaces:[
-       {p:55,remate:L('Nació para esto','Born for this','Nasceu para isso'),texto:L('Te consigue una cena con la colectividad argentina de la ciudad y dos apariciones pagas. Nadie negocia como un primo.','He lands you a dinner with the city\'s Argentine community and two paid appearances. Nobody negotiates like a cousin.','Ele consegue um jantar com a comunidade argentina da cidade e duas aparições pagas. Ninguém negocia como um primo.'),ef:{rel:{hinchada:4},plataX:1}},
+       {p:55,remate:L('Nació para esto','Born for this','Nasceu para isso'),texto:L('Te consigue una cena con la colectividad {gentilicio} de la ciudad y dos apariciones pagas. Nadie negocia como un primo.','He lands you a dinner with the city\'s {gentilicio} community and two paid appearances. Nobody negotiates like a cousin.','Ele consegue um jantar com a comunidade {gentilicio} da cidade e duas aparições pagas. Ninguém negocia como um primo.'),ef:{rel:{hinchada:4},plataX:1}},
        {p:45,remate:L('El casino','The casino','O cassino'),texto:L('Uno de los eventos era una inauguración de casino. La foto sale en todos lados. La multa la pagás vos.','One of the events was a casino opening. The photo runs everywhere. You pay the fine.','Um dos eventos era a inauguração de um cassino. A foto sai em todo lugar. A multa quem paga é você.'),ef:{plataX:-2,energia:-10}}]}]},
 ];
 
@@ -10545,7 +10635,7 @@ const CARTAS_AMERICAS=[
        {p:40,remate:L('Fundido','Spent','Esgotado'),texto:L('Llegás al hotel a las dos de la mañana y el bus sale a las nueve. En el calentamiento ya te pesan las piernas.','You reach the hotel at two a.m. and the bus leaves at nine. Your legs are already heavy in warm-ups.','Chega no hotel às duas da manhã e o ônibus sai às nove. No aquecimento as pernas já pesam.'),ef:{energia:-20,rel:{dt:-2}}}]}]},
  /* el rival brasileño: te habla en la cancha y no entendés nada */
  { id:'americas_portugues', de:'liga', peso:300, maxVeces:2, edadMin:17, ligas:['nacional','lub'], fondo:'vestuario',
-   cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='nbb',
+   cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='nbb'&&!['br','pt'].includes(c.nacion),   /* 2026-09-12: al que habla portugués no le cuentan el portuñol */
    gancho:L('Mañana juegan contra los brasileños. El que te va a marcar habla todo el partido, te lo avisa el ayudante: te dice cosas al oído en cada pelota parada, y nadie sabe qué.','Tomorrow you play the Brazilians. The guy who will guard you talks the whole game, the assistant warns you: he whispers things in your ear at every dead ball, and nobody knows what.','Amanhã jogam contra os brasileiros. O cara que vai te marcar fala o jogo inteiro, o auxiliar te avisa: diz coisas no seu ouvido em cada bola parada, e ninguém sabe o quê.'),
    opciones:[
      {tipo:'segura',label:L('Hacerte el sordo','Play deaf','Fingir que não ouve'),desenlaces:[{p:100,remate:L('Ni una palabra','Not a word','Nem uma palavra'),texto:L('Te ponés los auriculares desde el calentamiento: que hable solo.','You put your headphones on from warm-ups: let him talk to himself.','Você põe os fones desde o aquecimento: que ele fale sozinho.'),ef:{}}]},
@@ -11589,6 +11679,83 @@ const SELECCIONES = {
   tn: { nombre: 'Túnez', fuerza: 58, barra: 0, cont: 'af' },
   cm: { nombre: 'Camerún', fuerza: 57, barra: 0, cont: 'af' },
 };
+/* 2026-09-12 (el barrido): los nombres de las selecciones en inglés y portugués. `nombre` era un string en castellano y en EN/PT salía
+   «Alemania calls you up». El idioma se resuelve una vez por carga (01b), así que se aplica acá, al cargar: [en, pt, [formas cortas en, pt], [corto en, pt]]. */
+const SEL_NOMBRE_I18N = {
+  us:["United States", "Estados Unidos", [["USA"], ["EUA"]]],
+  ca:["Canada", "Canadá"],
+  ar:["Argentina", "Argentina"],
+  br:["Brazil", "Brasil"],
+  pr:["Puerto Rico", "Porto Rico"],
+  do:["Dominican Republic", "República Dominicana", null, ["Dominican Rep.", "Rep. Dominicana"]],
+  ve:["Venezuela", "Venezuela"],
+  mx:["Mexico", "México"],
+  uy:["Uruguay", "Uruguai"],
+  pa:["Panama", "Panamá"],
+  co:["Colombia", "Colômbia"],
+  cl:["Chile", "Chile"],
+  ni:["Nicaragua", "Nicarágua"],
+  bs:["Bahamas", "Bahamas"],
+  cu:["Cuba", "Cuba"],
+  jm:["Jamaica", "Jamaica"],
+  es:["Spain", "Espanha"],
+  rs:["Serbia", "Sérvia"],
+  fr:["France", "França"],
+  de:["Germany", "Alemanha"],
+  gr:["Greece", "Grécia"],
+  it:["Italy", "Itália"],
+  lt:["Lithuania", "Lituânia"],
+  si:["Slovenia", "Eslovênia"],
+  tr:["Türkiye", "Turquia"],
+  lv:["Latvia", "Letônia"],
+  au:["Australia", "Austrália"],
+  ss:["South Sudan", "Sudão do Sul"],
+  ng:["Nigeria", "Nigéria"],
+  cn:["China", "China"],
+  jp:["Japan", "Japão"],
+  nz:["New Zealand", "Nova Zelândia", [["N. Zealand"], ["N. Zelândia"]]],
+  ph:["Philippines", "Filipinas"],
+  ao:["Angola", "Angola"],
+  eg:["Egypt", "Egito"],
+  ir:["Iran", "Irã"],
+  ua:["Ukraine", "Ucrânia"],
+  hr:["Croatia", "Croácia"],
+  il:["Israel", "Israel"],
+  ba:["Bosnia", "Bósnia"],
+  be:["Belgium", "Bélgica"],
+  ee:["Estonia", "Estônia"],
+  pt:["Portugal", "Portugal"],
+  nl:["Netherlands", "Países Baixos", [["Neth."], ["P. Baixos"]]],
+  is:["Iceland", "Islândia"],
+  gb:["Great Britain", "Grã-Bretanha", [["G. Britain"], ["Grã-Bret."]]],
+  hu:["Hungary", "Hungria"],
+  se:["Sweden", "Suécia"],
+  bg:["Bulgaria", "Bulgária"],
+  dk:["Denmark", "Dinamarca"],
+  mk:["North Macedonia", "Macedônia do Norte", null, ["N. Macedonia", "Macedônia N."]],
+  sk:["Slovakia", "Eslováquia"],
+  at:["Austria", "Áustria"],
+  fi:["Finland", "Finlândia"],
+  ge:["Georgia", "Geórgia"],
+  pl:["Poland", "Polônia"],
+  me:["Montenegro", "Montenegro"],
+  cz:["Czechia", "Tchéquia"],
+  ci:["Côte d'Ivoire", "Costa do Marfim", [["C. d'Ivoire"], ["C. do Marfim"]]],
+  cv:["Cape Verde", "Cabo Verde"],
+  kr:["South Korea", "Coreia do Sul"],
+  qa:["Qatar", "Catar"],
+  lb:["Lebanon", "Líbano"],
+  jo:["Jordan", "Jordânia"],
+  sn:["Senegal", "Senegal"],
+  tn:["Tunisia", "Tunísia"],
+  cm:["Cameroon", "Camarões"]
+};
+(function(){ const k = idioma() === 'en' ? 0 : idioma() === 'pt' ? 1 : -1; if (k < 0) return;
+  for (const id in SEL_NOMBRE_I18N) { const x = SEL_NOMBRE_I18N[id], sel = SELECCIONES[id]; if (!sel) continue;
+    sel.nombre = x[k];
+    if (sel.nombres) sel.nombres = (x[2] && x[2][k]) || [x[k]];
+    if (sel.corto) sel.corto = (x[3] && x[3][k]) || x[k]; } })();
+
 
 /* §2z245 (2026-09-14, su pedido: "países jugables de Europa/América" — la NACIONALIDAD del alta, no las ligas: "podés ser español
    jugando en Argentina"): la barra de Europa sale de la fuerza con la misma escala que América (Canadá 78 → +2 · 66 → −2 · 58 → −5 ·
@@ -14490,6 +14657,7 @@ function armarPosesion(){
   const beatElenco = G.beat && G.beat.elenco;
   G.esFinal = !!(G.beat && G.beat.final);   // la última posesión del partido, jugada
   if(G.esFinal) G.astAlFinal=G.ast;   // §2z138: para saber si la última la METISTE o la PASASTE
+  G.pasesTiroAlArmar=G.pasesTiro||0;   /* 2026-09-12: la cuenta del DT (15, finPosesion) mira si en ESTA posesión tu pase terminó en tiro */
   /* LA HEREDADA NO ES OTRA ESCENA (su corte 2026-08-25: "¿por qué tenemos que
      transicionar a otra escena?"): la posesión que hereda el elenco entra en perfil
      bajo — la píldora y el relato se actualizan, pero el veredicto grande no vuelve a
@@ -16135,6 +16303,8 @@ function clampMundoJugable(x,y){
    tiempo real, pasado el segundo pase cada ida y vuelta PIERDE reloj neto. Escalera
    opinable. */
 function pisoDevolucion(){ return [4500,3000,2600][Math.min(G.pasesPos||0,2)]; }
+/* 2026-09-12 (el barrido): en LA ÚLTIMA ningún re-armado del reloj de posesión (devolución, sacada que entra) regala tiempo: manda el del partido */
+function capRelojFinal(){ if(G.esFinal&&!dif.clkOff) G.posClock=Math.min(G.posClock, Math.max(0,G.reloj*1000)); }
 /* 2026-09-11 (su caza: «si estás dribbleando y te agarran DE ATRÁS, la prosa dice "te chocaste con la defensa"»): el choque se
    nombra según de dónde vino el que te la sacó — el defensor más cercano contra para dónde ibas (el rumbo del bote, o la pelota) */
 function textoChoque(){
@@ -16325,7 +16495,7 @@ function juntar(){
       /* §2z48 (su video 2026-09-05, b: frenó con dos segundos de ventana y un segundo después salió "sin tiempo, la
          tira"): frenar CIERRA la ventana del pase largo y abre una posesión con reloj entero — lo que §2f ya decía
          ("la ventana se cierra sola en posesión normal") y el reloj corto no cumplía. */
-      G.posClock=G.posMax=dif.clk*1000;
+      G.posClock=G.posMax=dif.clk*1000; capRelojFinal();
       /* EL DOBLE DRIBLE (su reporte 2026-08-25: frenó y el arrastre siguiente lo volvió a
          poner a botear — en el contra todo arrastre era bote): levantaste el dribble, no
          botás más — el arrastre que sigue es LA GOMERA, como el freno promete. */
@@ -17259,6 +17429,10 @@ function reboteTrasBailar(esc, txtEllos){
      escena del rebote se comía el intento y la lección no volvía a arrancar.
      Es la misma familia que §2z63 y §2z67 b: **una pieza de práctica no hereda las ramas del partido.** */
   if(G.esDrill || G.tut) return false;
+  /* 2026-09-12 (bug: LA ÚLTIMA seguía viva después de la bocina): en la última el tiro soltado antes de la chicharra vale,
+     pero el rebote de un tiro que cae con el reloj del partido en cero no existe — la posesión termina errada, con el
+     relato de siempre del tiro errado. Con el reloj apagado (dif.clkOff) no hay bocina, igual que en 18-frame. */
+  if(finalMio() && !dif.clkOff && G.reloj<=0) return false;
   const a=aro();
   /* §2z159 (su caza 2026-09-08: "si el rebote SE PASA DE LARGO no debería haber rebote, ¡geometría!"): el punto de
      caída es el REAL. Antes se clampeaba a abajo del aro (para no caer adentro del aro dibujado), y una pelota que
@@ -17334,6 +17508,11 @@ function reboteTrasBailar(esc, txtEllos){
 function resolverRebote(gana){
   const a=aro(), caeR=G.scr.t, miBig=G.scr.mi, suBig=G.scr.su;
   G.scrTxt=G.scr.txtEllos||null; G.scr=null; G.suelo=null;
+  /* 2026-09-12 (el mismo bug, del otro extremo): la pelea o la corrida del grandote empezó con reloj y terminó con la
+     bocina ya sonada — ni palmeo ni segunda chance: la chicharra cierra la última (los textos del corte por reloj de 18-frame). */
+  if(finalMio() && !dif.clkOff && G.reloj<=0){ G.scrTxt=null;
+    veredicto(t(L('¡CHICHARRA!','BUZZER!','BUZINA!')),'neu',1100);
+    finPosesion(false,t(L('Sonó la chicharra.','The buzzer sounded.','Soou a buzina.'))); return; }
   if(!gana){
     /* el cierre no se apaga de golpe (su reporte 2026-08-23: "se apaga todo rápido y te
        tira el mensaje"): el grandote de ellos LA ASEGURA a la vista, un respiro, y recién
@@ -17349,6 +17528,9 @@ function resolverRebote(gana){
      toco viejo y la rampa arrancaba madura — el aire de 2,2s se re-arma como en cualquier
      arranque */
   G.posClock=G.posMax=6000; G.toco=null;
+  /* 2026-09-12: en LA ÚLTIMA la segunda chance tiene lo que le queda al reloj del PARTIDO, no 6 s nuevos; y la suelta
+     vieja ya no la protege — si no volvés a tirar, la chicharra te agarra (18-frame). */
+  if(finalMio()){ G.posClock=G.posMax=Math.max(1,Math.min(6000, G.reloj*1000)); G.sueltaFinal=false; }
   if(miBig===G.vos){
     /* LA GANASTE VOS: la tenés en la mano, abajo del aro — definí (§2z17) */
     G.vos.x=caeR.x; G.vos.y=caeR.y; G.pelotaEn=null; G.paseVivo=null;
@@ -17372,6 +17554,7 @@ function resolverRebote(gana){
      grandote de ellos no le quedó encima del punto de caída — determinista y a la vista. */
   if(dist(caeR,a)<pintura().w*0.5 && dist(suBig,caeR)>30*ESC()){
     posar(miBig,'volcada',a,900);   // el palmeo es una volcada del grandote
+    if(finalMio()) G.sueltaFinal=true;   /* el palmeo también es un tiro suelto: la chicharra no lo mata en el aire */
     vuelo(caeR,{...a},0.5,0.3,()=>{ canastaFx(); hierroFx(2.2); G.impactoFx={t0:performance.now()};
       G.nos+=2; marcador(); veredicto(t(L('¡PALMEO!','TIP-IN!','TAPINHA!')),'ok');
       relato(t(L('¡Tu grandote la palmeó adentro!','Your big man tipped it in!','Seu pivô deu o tapinha pra dentro!')),true);
@@ -17592,9 +17775,13 @@ function tiraRival(j){
     const vosMolestas = dist(G.vos,j)<45*ESC(), compiMolesta = molestado && !vosMolestas;
     const p=clamp(0.35+calidadRival(j)*0.55+(D.pBonus||0), 0.30, 0.92);   // el espejo de pMeteNPC (§2z87: +nivel en las escenas nuevas)
     const esc=D.escena;
+    /* §2z228 (2026-09-12): el tanto sale de DÓNDE SOLTÓ, con la misma línea que tus tiros (esTriple). El cierre nace a
+       1,06·R3 y termina en triple; el 1v1 (1,1·R3) y el pull-up de la cortina (1,0·R3) también, si tiran desde afuera.
+       Antes era G.riv+=2 fijo y en la defensiva no existía el triple. Se mide al soltar, igual que el mérito. */
+    const vale=esTriple(j)?3:2;
     vuelo({x:j.x,y:j.y},{...a},0.5,Math.max(0.3,dist(j,a)/520),()=>{
     D.resuelto=true;
-    if(Math.random()<p){ G.redFx={t0:performance.now()}; sfx('red',0.7); G.riv+=2; marcador(); veredicto(t(L('LA METIERON','THEY SCORED','ELES MARCARAM')),'mal');
+    if(Math.random()<p){ G.redFx={t0:performance.now()}; sfx('red',0.7); G.riv+=vale; marcador(); veredicto(t(L('LA METIERON','THEY SCORED','ELES MARCARAM')),'mal');
       /* sólo el splash de red (visual Y sonoro — la red es del mundo): la ovación y los
          flashes son de NUESTRAS canastas */
       relato(D.mordido?t(L('Te la mordió y la terminó adentro.','You bit the fake and he finished it.','Você caiu na finta e ele terminou dentro.')):compiMolesta?t(L('Tu compañero llegó, pero la clavó igual.','Your teammate got there, but he drilled it anyway.','Seu companheiro chegou, mas ele cravou mesmo assim.')):molestado?t(L('Hiciste todo bien: se la clavó igual.','You did everything right: he drilled it anyway.','Você fez tudo certo: ele cravou mesmo assim.')):t(L('La tiró cómodo y la metió.','He got a clean look and hit it.','Ele arremessou tranquilo e acertou.')), molestado);
@@ -17603,7 +17790,7 @@ function tiraRival(j){
       if(compiMolesta){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
         relato(t(L('Tu compañero lo molestó: afuera.','Your teammate bothered him: off the mark.','Seu companheiro incomodou: pra fora.')),false);
         finPosesion(true,t(L('Se la pasó al libre y tu compañero lo hizo errar.','He found the open man and your teammate forced the miss.','Ele passou pro livre e seu companheiro forçou o erro.'))); }
-      else if(molestado){ D.merito=true; veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'ok');   // §2z86: el mérito del drill es TUYO (tapa · robo · lo sacaste del tiro cómodo)
+      else if(molestado){ D.merito=true; if(!G.esDrill&&!G.tut) G.defExtra=(G.defExtra||0)+1;   /* 2026-09-12: el tiro que sacaste de cómodo entra a la nota */ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'ok');   // §2z86: el mérito del drill es TUYO (tapa · robo · lo sacaste del tiro cómodo)
         relato(t(L('Lo sacaste del tiro cómodo: afuera.','You took away the clean look: off the mark.','Você tirou o arremesso fácil: pra fora.')),true);
         finPosesion(true,esc?t(L('Lo sacaste del tiro cómodo: afuera.','You took away the clean look: off the mark.','Você tirou o arremesso fácil: pra fora.')):t(L('Los paraste: erraron la contra.','You stopped them: the break came up empty.','Você segurou: erraram o contra-ataque.'))); }
       else if(D.mordido){ veredicto(t(L('¡LA ERRARON!','THEY MISSED!','ERRARAM!')),'neu');
@@ -18413,7 +18600,7 @@ function recibe(compi,forma,txt,va){
      traslada a la posesión — la erró porque tenía poco tiempo"): los 5s son del PASE, no
      de la posesión. La devolución ya tenía reloj nuevo (2073); el camino donde el receptor
      se la queda entraba acá con el reloj sobrante del saque y caía en la chicharra. */
-  if(G.tipo==='sacada'){ G.posClock=G.posMax=dif.clk*1000; G.pasesPos=0; }
+  if(G.tipo==='sacada'){ G.posClock=G.posMax=dif.clk*1000; G.pasesPos=0; capRelojFinal(); }
   /* §2z47 REGLA 2b (medido: el pase adelante del que corría la contra lo recibía a mitad de cancha y te la DEVOLVÍA,
      porque la regla de tirar mira el aro y él está lejos): el que recibe CORRIENDO la contra no frena — sigue de
      largo y define. Lo cobra el custodio si llegó al aro (bandeja contestada), y nada más: al perseguidor ya se lo
@@ -18634,6 +18821,12 @@ const TE_BUSCA=[t(L('¡La pelota te busca!','The ball finds you!','A bola te pro
    otra cosa, y tiene su renglón */
 const TE_SACA=[t(L('Pelota afuera: sacás vos.','Ball out of bounds: you inbound.','Bola fora: você repõe.')),
                t(L('Saque de costado: la ponés en juego vos.','Sideline inbound: you put it in play.','Reposição lateral: você põe em jogo.'))];
+/* 2026-09-12 (la misma clase que §2z126): el contragolpe y el avance también se sortean aparte y caían en TE_BUSCA —
+   «Piden tiempo» o «en el codo» y la cancha cortaba a una contra o a subirla desde el fondo. Cada uno tiene su renglón. */
+const TE_CONTRA=[t(L('Recuperan atrás y sale la contra: es tuya.','They win it back and the break is on: it\'s yours.','Recuperam atrás e sai o contra-ataque: é sua.')),
+                 t(L('Robo de un compañero: salís de contra.','A teammate steals it: you lead the break.','Roubo de um companheiro: você puxa o contra-ataque.'))];
+const TE_AVANCE=[t(L('Te la dan en el fondo: subila vos.','They give it to you deep: bring it up.','Te dão a bola lá no fundo: sobe com ela.')),
+                 t(L('Cancha abierta: la subís vos.','Open floor: you bring it up.','Quadra aberta: você sobe com a bola.'))];
 const TE_TOCA_DEF=[t(L('La bajan ellos: te toca frenarlo.','They push it back: you have to stop him.','Eles sobem a bola: você trava.')),
                    t(L('Vienen por tu lado.','They come at you.','Vêm pelo seu lado.')),
                    t(L('Te lo dejan a vos: defendé.','He is yours: defend.','Ele é seu: defende.'))];
@@ -18902,6 +19095,7 @@ function siguienteBeat(){
     if(b.n===3 && !G.enCancha && !G.sub) setTimeout(()=>fila(t(L('Arrancás el último cuarto en el banco.','You start the fourth on the bench.','Você começa o último quarto no banco.')),'hito'),700);   // §2z113 v2 (su caza: "volvés para el cierre" repetía al de la entrada)
     G.pedidaEnCuarto=false;   // PEDILA: una por cuarto (el último es libre)
     pintarBtnPedila();   // el repintado del beat corrió ANTES de resetear el reloj (quedaba en 0)
+    if(b.n===0 && window.partidoTitNSS) fila(window.partidoTitNSS,'hito');   /* 2026-09-12: lo que se juega, antes del salto inicial (18b) */
     fila([t(L('ARRANCA EL PARTIDO','THE GAME TIPS OFF','COMEÇA O JOGO')),
           t(L('2do CUARTO','2nd QUARTER','2º QUARTO')),
           t(L('3er CUARTO','3rd QUARTER','3º QUARTO')),
@@ -18931,8 +19125,10 @@ function siguienteBeat(){
       /* §2z223 LA ÚLTIMA TAMBIÉN SE DEFIENDE (su idea 2026-09-12: "ganamos 91-90 y me dio ganas de que haya una
          jugada donde tenga que defender o perder"): el espejo del tiro final. Ganando por 1 o 2, la última pelota
          es de ellos y la defendés vos — la escena se sortea entre las cuatro de siempre (su corte: "puede ser
-         cualquiera"). Por 3 NO entra: cuando la meten el motor hace G.riv+=2, así que en la defensiva no existe el
-         triple y defenderías una pelota que no te puede empatar (las cuatro líneas, en DISEÑO §2z223). */
+         cualquiera"). Desde §2z228 el tanto del rival sale de dónde soltó (13, tiraRival: esTriple → 3, si no 2): el
+         cierre termina en triple, y el 1v1 y el pull-up de la cortina también cuando tiran desde afuera. Por eso +3
+         entra, pero forzado al cierre (abajo). Un empate al sonar la bocina lo resuelve el suplementario de
+         siguienteBeat (los beats se acaban con G.nos===G.riv → 5 minutos más). */
       if(!G.sub && m<0 && m>=-3){
         cerrarRelojAnim(); G.reloj=6; G.relojAnim=null; marcador();
         G.rivAlFinal=G.riv;   // §2z223: para saber al cerrar si la aguantaste o te la metieron (el espejo de astAlFinal)
@@ -19026,7 +19222,8 @@ function siguienteBeat(){
     fila(b.final && (b.tipo==='defensa'||b.tipo==='defCierre')
            ? ((G.nos-G.riv)===1 ? t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, PERDISTE.','LAST SHOT IS THEIRS — IF IT DROPS, YOU LOSE.','A ÚLTIMA É DELES — SE ENTRAR, VOCÊ PERDE.'))
             : (G.nos-G.riv)===3 ? t(L('LA ÚLTIMA ES DE ELLOS — EL TRIPLE LOS EMPATA.','LAST SHOT IS THEIRS — A THREE TIES IT.','A ÚLTIMA É DELES — O TRIPLO EMPATA.'))
-                                : t(L('LA ÚLTIMA ES DE ELLOS — SI ENTRA, ES SUPLEMENTARIO.','LAST SHOT IS THEIRS — IF IT DROPS, OVERTIME.','A ÚLTIMA É DELES — SE ENTRAR, É PRORROGAÇÃO.')))
+                                /* §2z228: con +2 ya no es «si entra, suplementario» — el triple del rival te gana (13, tiraRival) */
+                                : t(L('LA ÚLTIMA ES DE ELLOS — EL DOBLE EMPATA, EL TRIPLE LO GANA.','LAST SHOT IS THEIRS — A TWO TIES IT, A THREE WINS IT.','A ÚLTIMA É DELES — O DOIS EMPATA, O TRIPLO VENCE.')))
          : b.final ? ((G.riv-G.nos)===3 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE EMPATA.','LAST SHOT IS YOURS — THE THREE TIES IT.','A ÚLTIMA É SUA — O TRIPLO EMPATA.'))
                     : (G.riv-G.nos)===2 ? t(L('LA ÚLTIMA ES TUYA — EL TRIPLE LO GANA.','LAST SHOT IS YOURS — THE THREE WINS IT.','A ÚLTIMA É SUA — O TRIPLO VENCE.'))
                     : t(L('LA ÚLTIMA ES TUYA — PARA GANARLO.','LAST SHOT IS YOURS — TO WIN IT.','A ÚLTIMA É SUA — PRA VENCER.')))
@@ -19042,7 +19239,8 @@ function siguienteBeat(){
             la última es pareja te vuelven a buscar: es mentira"): el flag `ultima` sigue (arma el cierre),
             pero el renglón no lo anuncia — es una bola más que te buscan */
          : b.pedida ? t(L('La que pediste: es tuya.','The one you called for: it\'s yours.','A que você pediu: é sua.'))
-         : b.tipo==='defensa' ? uno(TE_TOCA_DEF) : b.tipo==='sacada' ? uno(TE_SACA) : uno(TE_BUSCA), 'vos', b.final?6:b.hasta);   // §2z126
+         : b.tipo==='defensa' ? uno(TE_TOCA_DEF) : b.tipo==='sacada' ? uno(TE_SACA)
+         : b.tipo==='contra' ? uno(TE_CONTRA) : b.tipo==='avance' ? uno(TE_AVANCE) : uno(TE_BUSCA), 'vos', b.final?6:b.hasta);   // §2z126
     G.beat=b;
     if(!G.sinCadena) setTimeout(()=>{ cerrarFeed(); armarPosesion(); }, 1200);
     };
@@ -19079,7 +19277,11 @@ function finPosesion(anoto, resumen){
      —donde anoto es false por construcción— te bajaba la nota y te sacaba la carta de "erraste la última". */
   if(G.esFinal && G.tipo==='defensa'){ const aguanto=G.riv===(G.rivAlFinal!=null?G.rivAlFinal:G.riv);
     G.clutch={def:true, aguanto, ok:aguanto, gano:G.nos>G.riv, empataba:G.nos===G.riv, anoto:false, asistio:false}; }
-  else if(G.esFinal) G.clutch={anoto:!!anoto, ok:!!anoto, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
+  /* 2026-09-12 (bug: un libre de dos en la última daba ✓): la última ofensiva nace empatada o abajo por 1-3, así que lo
+     que pide es empatar o ganar. `ok` = anotaste Y el marcador llegó (G.nos>=G.riv) — el mismo criterio para el tiro,
+     la asistencia y la tanda de libres: 1 de 2 abajo por 2 ya no es ✓, y un doble abajo por 3 tampoco. `anoto` queda
+     como hecho crudo (lo leen las cartas de prensa). */
+  else if(G.esFinal) G.clutch={anoto:!!anoto, ok:!!anoto && G.nos>=G.riv, gano:G.nos>G.riv, empataba:G.nos===G.riv, asistio};
   if(finalMio() && anoto && G.nos>G.riv && !asistio) vineta('volcada',2300);   // el buzzer-beater ganado (§2z223 b: la volcada es de TU última, no de la que defendés)
   /* el lamento de la tribuna es de TU tiro errado (los resúmenes arrancan igual EN CADA
      IDIOMA — i18n: si un resumen de tiro errado nuevo no arranca así en los tres, el uhh
@@ -19088,7 +19290,10 @@ function finPosesion(anoto, resumen){
      (resumen.startsWith('Tu tiro')||resumen.startsWith('Your shot')||resumen.startsWith('Seu arremesso'))) sfx('uhh',0.6);
   /* la cuenta del DT: cuántas intervenciones jugaste y cuántas terminaron en algo (puntos,
      asistencia o al menos un libre adentro). La lee la sustitución al arrancar cada cuarto. */
-  G.intJugadas++; if(anoto) G.intBuenas++;
+  /* 2026-09-12 (bug: el DT te sacaba con pases buenos que tu compañero erraba): el pase que terminó en tiro —la misma
+     señal que la nota premia, G.pasesTiro (14)— también es una buena para el DT, entre o no. */
+  const paseBueno=(G.pasesTiro||0)>(G.pasesTiroAlArmar||0);
+  G.intJugadas++; if(anoto || paseBueno) G.intBuenas++;
   G.fase='entre'; G.tiro=null; G.drag=null; G.pend=null; G.pelota=null;
   $('#sit').textContent='';
   window.guardarPartidoEnCurso();   // §2z225: acá el partido es un dato, no una escena (la función se protege sola fuera de la carrera)
@@ -19175,7 +19380,7 @@ function ajustarTituloFin(){
    `g.beats[g.i++]`, así que continuar es exactamente no tocarlo. */
 function empezar(snap){
   pantallaEncendida(true);   // §2z248: la pantalla no se apaga mientras corre el partido
-  Object.assign(G,{nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
+  Object.assign(G,{defExtra:0,nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
     intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,frioRegalo:0,frioExtra:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
@@ -20170,7 +20375,7 @@ function frame(now){
                metió cerca del aro, la vuelta es CARRIL (su jugada: cortó al aro y sólo
                pudo "tirar"): llevala y definí. */
             G.vos.x=clamp(G.vos.x,MARG()+16,W-MARG()-16);
-            G.posClock=G.posMax=dif.clk*1000; G.pasesPos=0;   // adentro arranca posesión de verdad: la cuenta de pases también
+            G.posClock=G.posMax=dif.clk*1000; G.pasesPos=0; capRelojFinal();   // adentro arranca posesión de verdad: la cuenta de pases también
             const sit=$('#sit');
             if(dist(G.vos,aro())<R3()*0.55){
               G.tipo='carril'; sit.textContent=t(L('VÍA LIBRE','OPEN LANE','CAMINHO LIVRE')); sit.className='carril';
@@ -20199,6 +20404,7 @@ function frame(now){
              movimiento tiene que dar tiempo de JUGAR, pero sin ping-pong): 4,5s la
              primera devolución, 3s la segunda, 2,6s después — ver pisoDevolucion(). */
           if(!sinLeer) G.posClock=Math.max(G.posClock, pisoDevolucion());   /* §2z207: el que te tira igual no te da reloj nuevo */
+          capRelojFinal();   /* 2026-09-12 (el barrido): en LA ÚLTIMA la devolución no regala tiempo */
           G.pasesPos=(G.pasesPos||0)+1;
           if(G.tipo==='sinPelota') G.tipo='decision';   /* §2z207: recibida, es una posesión de las de siempre (bote nuevo, JUGÁ) */
           G.devuelta=true; G.levanto=false; pildoraDevuelta();   // recibir es bote nuevo · §2z198.3: la píldora lo dice
@@ -20235,6 +20441,7 @@ function frame(now){
              2 veces'): el precio es el tiempo real del viaje, que ahora corre — y al
              recibir vale el mismo piso decreciente que la devolución del desmarque */
           G.posClock=Math.max(G.posClock, pisoDevolucion());
+          capRelojFinal();   /* 2026-09-12: ídem, la devolución del pase */
           G.pasesPos=(G.pasesPos||0)+1;
           G.devuelta=true; G.levanto=false; pildoraDevuelta();   // recibir es bote nuevo · §2z198.3: la píldora lo dice
           G.paseVivo=null;
@@ -20523,13 +20730,13 @@ function frame(now){
           const hacia=((metaP.x-D.portador.x)*(G.vos.x-D.portador.x)
                       +(metaP.y-D.portador.y)*(G.vos.y-D.portador.y))/(dm2*dCh);
           if(plantado && !D.mordido && adelanteDe(D.portador) && hacia>0.8){   // §2z87 g (su caza: "TE VENDIÓ 1 ms y después CARGA"): el que mordió no saca la carga
-            D.decidio=true; D.resuelto=true; D.merito=true; flash(D.portador);   // §2z87: la carga es tuya, paga el drill
+            D.decidio=true; D.resuelto=true; D.merito=true; flash(D.portador); G.defExtra=(G.defExtra||0)+1;   // §2z87: la carga es tuya, paga el drill · 2026-09-12: y entra a la nota
             veredicto(t(L('¡CARGA!','CHARGE!','FALTA DE ATAQUE!')),'ok');
             /* LA CARGA TAMBIÉN PAGA (su caza 2026-09-02: "salió «posesión nuestra»… pero no me
                sumó posesión del otro lado"): la tapa y el robo ya agendaban el contra como
                premio; la carga prometía la pelota y no la daba. Es pelota muerta, no contra:
                el premio entra como SACADA, con su renglón en el feed. */
-            G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'sacada', premio:'carga'});
+            if(hayTiempoContra()) G.guion.beats.splice(G.guion.i,0,{t:'jugada', tipo:'sacada', premio:'carga'});   /* 2026-09-12: la misma guarda que la tapa y el robo — con la última o sin reloj, la carga no agenda sacada */
             finPosesion(true,t(L('Le sacaste la carga: posesión nuestra.','You drew the charge: our ball.','Você pegou a falta de ataque: posse nossa.')));
           } else {
             const an=Math.atan2(D.portador.y-G.vos.y,D.portador.x-G.vos.x)||0;
@@ -23714,8 +23921,12 @@ function htmlResumenInternacional(e,fila){
   let h='<div class="cajTag">'+icono('globo',14)+' '+t(L('INTERNACIONAL','INTERNATIONAL','INTERNACIONAL'))+'</div>';
   if(pAm.length){
     const ult=pAm[pAm.length-1];
-    const como=am&&am.campeon===mi?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):ult.etapa==='grupo'?t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'))
-      :t(L('AFUERA EN ','OUT IN ','FORA NA '))+t(AM_TXT[ult.etapa]||L(ult.etapa));
+    /* 2026-09-12 (el barrido): con la fase que llegaste, como la Intercontinental de abajo — decía «AFUERA EN LA FINAL» y «AFUERA EN TERCER PUESTO» */
+    const fA=(am&&am.miFase)||ult.etapa;
+    const como=am&&am.campeon===mi?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):fA==='final'?t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES'))
+      :fA==='tercero'?t(AM_TXT.tercero):fA==='cuarto'?t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR'))
+      :fA==='grupo'?t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'))
+      :t(L('AFUERA EN ','OUT IN THE ','FORA NAS '))+t(AM_TXT[fA]||L(fA)).replace(/^(LA|THE|A) /,'');
     h+=fila(t(L('AMÉRICAS','AMERICAS','AMÉRICAS'))+' · '+como, linea(pAm));
     if(tiene('mvp_americas')) h+=fila('',t(PREMIO_TXT.mvp_americas[1]));
   }
@@ -23967,14 +24178,14 @@ function ponerEscudo(id, html, clase){
 /* el rayo de la latita, suelto: la energía se dibuja igual en todos los teléfonos */
 const RAYO='<svg class="rayo" viewBox="11 16 12 23" aria-label="energía"><path d="M18.5 17 L12.5 28 L16.5 28 L14.5 38 L22 25.5 L17.5 25.5 L20.5 17 Z"/></svg>';
 function fdec(x){ const s=x.toFixed(1); return idioma()==='en'?s:s.replace('.',','); }
-function fplata(x){ return '$ '+x.toLocaleString(idioma()==='en'?'en-US':'es-AR'); }
+function fplata(x){ return '$'+x.toLocaleString(idioma()==='en'?'en-US':'es-AR'); }
 /* §2z42.6 (su pregunta: "¿qué hacemos con los números de abajo si son muy grandes? ¿va a K y M?"): sí — la historia
    económica de una carrera NBA pasa el millón y tres cifras así no entran en tres columnas. Hasta 9.999 entero;
    hasta 999.999 en K con un decimal; de ahí en M. El decimal va con la coma del idioma. */
 function fplataCorta(x){ const loc=idioma()==='en'?'en-US':'es-AR';
-  if(x<10000) return '$ '+x.toLocaleString(loc);
-  if(x<1000000) return '$ '+(x/1000).toLocaleString(loc,{maximumFractionDigits:1})+' K';
-  return '$ '+(x/1000000).toLocaleString(loc,{maximumFractionDigits:2})+' M'; }
+  if(x<10000) return '$'+x.toLocaleString(loc);   // 2026-09-12 (su corte): nunca espacio entre $ y el número
+  if(x<1000000) return '$'+(x/1000).toLocaleString(loc,{maximumFractionDigits:1})+' K';
+  return '$'+(x/1000000).toLocaleString(loc,{maximumFractionDigits:2})+' M'; }
 function recordDe(id){
   const f=tabla(est().resultados,est().clubes).find(r=>r.id===id);
   return f?('('+f.pg+'–'+f.pp+')'):'';
@@ -23985,6 +24196,15 @@ const esNBA=()=>!!(C&&LIGAS[C.ligaId]&&LIGAS[C.ligaId].formato==='nba');
 /* tu partido n (1..82) para una fecha (un día) de la NBA — la lista de tus fechas, numerada */
 let _numFecha=null;
 const numFecha=(fecha)=>{ if(!esNBA()) return fecha; const e=est(); if(!_numFecha||_numFecha.e!==e){ const m={}; let n=0; for(const f of e.fixture){ if(f.partidos.some(p=>p.local===e.miClubId||p.visita===e.miClubId)) m[f.nro]=++n; } _numFecha={e,m,total:n}; } return _numFecha.m[fecha]||fecha; };
+/* 2026-09-12 (el barrido): en la NBA la fecha es un DÍA (165); lo que el jugador cuenta es su partido (1..82). El chip ya lo hacía; la previa,
+   la pestaña MVP, la prensa, el próximo y el cierre decían «FECHA 3 DE 165». Una sola función para decirlo. */
+function fechaTxt(fecha,conTotal){
+  if(esNBA()){ const n=numFecha(fecha); return t(L('PARTIDO','GAME','JOGO'))+' '+n+(conTotal?t(L(' DE ',' OF ',' DE '))+(_numFecha?_numFecha.total:82):''); }
+  return t(L('FECHA','ROUND','RODADA'))+' '+fecha+(conTotal?t(L(' DE ',' OF ',' DE '))+est().fechasTotales:'');
+}
+/* la primera fecha tuya desde un día (la carrera arranca un día que puede no tener partido tuyo) */
+function fechaTuyaDesde(f){ if(!esNBA()) return f; const e=est(); numFecha(f); for(let d=f; d<=e.fechasTotales; d++) if(_numFecha.m[d]) return d; return f; }
+window.fechaTxtNSS=fechaTxt;   // 01k (la prensa y el rótulo del túnel) vive afuera del cierre
 const RONDA_TXT={  // los nombres que ya viajaron por El Draft (season.ts)
   reclasificacion:L('RECLASIFICACIÓN','PLAY-IN','REPESCAGEM'),
   playin:L('PLAY-IN','PLAY-IN','PLAY-IN'), playin2:L('PLAY-IN · POR EL 8°','PLAY-IN · FOR 8TH','PLAY-IN · PELO 8º'),
@@ -24000,7 +24220,18 @@ const RONDA_CORTA={reclasificacion:L('RECLAS.','PLAY-IN','REPESC.'),playin:L('PL
   conferencia:L('CONFER.','CONF.','CONFER.'),octavos:L('OCTAVOS','R16','OITAVAS'),cuartos:L('CUARTOS','QF','QUARTAS'),semifinal:L('SEMIS','SF','SEMIS'),
   final:L('FINAL','FINAL','FINAL'),final_llave:L('ASCENSO','PROMO','ACESSO'),playout:L('PERMAN.','RELEG.','PERMAN.')};
 const rondaCorta=(r)=>t(RONDA_CORTA[r]||RONDA_TXT[r]||L(r||''));
-function ordEn(n){ return n===1?'st':n===2?'nd':n===3?'rd':'th'; }
+/* 2026-09-12 (el barrido): cómo terminó TU serie perdida — «ELIMINADOS EN LA FINAL» era subcampeón, «ELIMINADOS EN POR LA PERMANENCIA» no se leía
+   y en portugués salía «NA A FINAL». La ronda sin artículo y la preposición portuguesa por ronda. */
+const RONDA_PT_PREP={octavos:'NAS',cuartos:'NAS',semifinal:'NA',reclasificacion:'NA',playin:'NO',playin2:'NO',conferencia:'NO',final_llave:'NA DISPUTA',primera:'NA'};
+function eliminadoTxt(nombre){
+  if(nombre==='final') return t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES'));
+  if(nombre==='playout') return t(L('PERDIMOS EL PLAY-OUT','LOST THE PLAY-OUT','PERDEMOS O PLAY-OUT'));
+  const r=t(RONDA_TXT[nombre]||L(String(nombre||'').toUpperCase()));
+  const rEs=r.replace(/^(LA|THE|A) /,'');
+  return idioma()==='pt'?'ELIMINADOS '+(RONDA_PT_PREP[nombre]||'NA')+' '+rEs:t(L('ELIMINADOS EN ','OUT IN THE ',''))+rEs;
+}
+function ordEn(n){ const d=n%100; if(d>=11&&d<=13) return 'th'; const u=n%10; return u===1?'st':u===2?'nd':u===3?'rd':'th'; }   // 2026-09-12: 21st, 22nd, 11th (decía 21th)
+const ordTxt=(n)=>idioma()==='en'?n+ordEn(n):n+'º';
 function porqueTxt(c){
   if(!c||!c.clave) return '';
   if(c.clave==='debut') return t(L('Tu debut','Your debut','Sua estreia'));
@@ -24156,7 +24387,11 @@ document.querySelectorAll('#lobby .tabs').forEach(grupo=>{
   });
 });
 /* el ⚙ vive en la portada, como NSS (su regla): las opciones son del juego en sí */
-document.getElementById('introAjustes').addEventListener('click',()=>document.getElementById('ajustes').classList.toggle('oculto'));
+/* 2026-09-12 (el barrido): el ⚙ de la portada abría el PANEL DE PRUEBA (altura del aro, conducción, formas del tiro) y lo tocado quedaba
+   en los partidos. Ahora abre OPCIONES de la portada (sonido · idioma · relato · pantalla); el panel, sólo con ?prueba en la URL. */
+document.getElementById('introAjustes').addEventListener('click',()=>{
+  if(/[?&]prueba\b/.test(location.search)) document.getElementById('ajustes').classList.toggle('oculto');
+  else abrirOpciones('portada'); });
 cuentaInstalarPortada();   // §2z246.1: sólo hace algo en /carrera
 /* SALIR vive al fondo de VOS y confirma con un popup sí-no (su regla 2026-08-28):
    la carrera queda guardada siempre — el popup lo dice, y NO te deja donde estabas */
@@ -24191,7 +24426,7 @@ function pintaOpciones(){
   let h='';
   if(enLobby&&!cuentaReal) h+=fila(nom(t(L('CUENTA','ACCOUNT','CONTA'))),'<span class="opcPronto">'+t(L('PRONTO','SOON','EM BREVE'))+'</span>','apagada');
   h+=fila(nom(t(L('SONIDO','SOUND','SOM'))),pild('sonido',[['si',SI],['no',NO]],pref('sonido',true)?'si':'no'));
-  if(enLobby) h+=fila(nom(t(L('IDIOMA','LANGUAGE','IDIOMA'))),pild('idioma',[['es','ESPAÑOL'],['en','ENGLISH'],['pt','PORTUGUÊS']],idioma()));
+  if(enLobby||opcModo==='portada') h+=fila(nom(t(L('IDIOMA','LANGUAGE','IDIOMA'))),pild('idioma',[['es','ESPAÑOL'],['en','ENGLISH'],['pt','PORTUGUÊS']],idioma()));
   if(enLobby&&C) h+=fila(nom(t(OPC_INFO.ritmo[0]),'ritmo'),pild('ritmo',[['normal',t(RITMO_TXT.normal[0])],['intenso',t(RITMO_TXT.intenso[0])]],C.intenso?'intenso':'normal'));
   h+=fila(nom(t(OPC_INFO.relato[0]),'relato'),pild('relato',[['normal',t(L('NORMAL','NORMAL','NORMAL'))],['rapido',t(L('RÁPIDO','FAST','RÁPIDO'))]],pref('relato','normal')));
   h+=fila(nom(t(OPC_INFO.pantalla[0]),'pantalla'),pild('pantalla',[['si',SI],['no',NO]],pref('pantalla',true)?'si':'no'));
@@ -24211,8 +24446,13 @@ function pintaOpciones(){
     b.onclick=go; b.onkeydown=(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
   const bt=$l('opcTut'); if(bt) bt.onclick=()=>{
     /* lo visto vive en la carrera (C.vistos) o, sin carrera, en localStorage — como el BORRAR VISTOS del banco */
-    if(C){ C.vistos={}; guardar(); } try{ localStorage.removeItem('nss_vistos'); }catch(e){} window.__vistosSuelto=null;
-    bt.textContent='✓ '+t(L('LISTO','DONE','PRONTO')); bt.disabled=true; };
+    /* 2026-09-12 (el barrido): borraba TODO lo visto — también la bienvenida de la beta y los coaches, que volvían a mitad de temporada —
+       y no mostraba nada. Ahora borra lo que se aprende jugando (tutoriales y avisos de las jugadas) y abre la lista de CÓMO SE JUEGA. */
+    const queda=(k)=>k==='beta_hola'||k==='tut_hola'||/^coach_/.test(k);
+    if(C){ const v=C.vistos||{}; C.vistos={}; for(const k in v) if(queda(k)) C.vistos[k]=v[k]; guardar(); }
+    try{ localStorage.removeItem('nss_vistos'); }catch(e){} window.__vistosSuelto=null;
+    $l('opciones').classList.add('oculto');
+    if(window.__tutoriales) window.__tutoriales.abrir('opciones'); };
 }
 function elegirOpcion(k,v){
   if(k==='sonido'){ ponerPref('sonido',v==='si'); aplicarSonido(); }
@@ -24221,7 +24461,7 @@ function elegirOpcion(k,v){
   else if(k==='ritmo'){ const nv=v==='intenso'; if(C&&nv!==!!C.intenso){ C.intenso=nv; guardar(); pintaSecciones(); } }
   /* el idioma se resuelve una vez por carga (01b): cambiarlo recarga. 2026-09-12 (su caza: "tocar el idioma te saca afuera de la
      partida"): antes de recargar se anota la ranura, y al volver se entra solo a la partida con OPCIONES abierto (el final del lobby) */
-  else if(k==='idioma'){ if(v!==idioma()){ try{ localStorage.setItem('idiomaNSS',v); sessionStorage.setItem('volverOpcionesNSS',String(ranura)); }catch(e){} location.reload(); return; } }
+  else if(k==='idioma'){ if(v!==idioma()){ try{ localStorage.setItem('idiomaNSS',v); sessionStorage.setItem('volverOpcionesNSS',opcModo==='portada'?'portada':String(ranura)); }catch(e){} location.reload(); return; } }
   pintaOpciones();
 }
 $l('opcX').onclick=()=>$l('opciones').classList.add('oculto');
@@ -24668,8 +24908,9 @@ function pasarHasta(sig,alFinal){
   /* 2026-09-10 (su caza: "si paso la semana me dice +55; esos partidos se juegan con tu statline y no te sacan energía"): los
      partidos que el relato juega por vos CUESTAN lo mismo que jugarlos, con sus minutos. Primero el descanso, tope 100,
      después el costo, como en el cierre. */
-  const costoSalteo=jugados.filter(p=>!p.conSeleccion&&!p.sel).reduce((a,p)=>a+costoJugar(p.minutos||0,C.ligaId,false),0);
+  const costoSalteo=jugados.filter(p=>!p.conSeleccion&&!p.noCitado&&!p.sel).reduce((a,p)=>a+costoJugar(p.minutos||0,C.ligaId,false),0);
   C.jugador.energia=Math.max(0,Math.min(100,C.jugador.energia+regenDe()*diasSinCobrar(dias))-costoSalteo);   /* §2z211 */
+  /* ⚠️ NO PAGA (su corte 2026-09-12): "acá se paga por jugar el partido… si te pagamos por no jugar, saltás temporadas enteras" */
   guardar(); pintaLobby(); irLob('hoy');
   /* §12: pasar la semana también puede cerrar una ventana FIBA, y acá no se pasa por
      abrirLobby — sin esto el parte quedaba armado y no lo veías hasta el próximo partido */
@@ -24725,7 +24966,8 @@ function abrirPasoParte(jugados,despues){
       ? t(L('Vos: ','You: ','Você: '))+'<b>'+fdec(mias.reduce((a,x)=>a+x.pts,0)/mias.length)+' PTS · '
         +fdec(mias.reduce((a,x)=>a+x.ast,0)/mias.length)+' AST</b>'
       : '')
-    +(sinVos?(mias.length?' · ':'')+t(L('ESTABAS CON LA SELECCIÓN','YOU WERE ON NT DUTY','VOCÊ ESTAVA COM A SELEÇÃO')):'');   // 2026-09-12 (su caza: en minúscula se veía rarísima)
+    +(sinVos?(mias.length?' · ':'')+t(L('ESTABAS CON LA SELECCIÓN','YOU WERE ON NT DUTY','VOCÊ ESTAVA COM A SELEÇÃO')):'')   // 2026-09-12 (su caza: en minúscula se veía rarísima)
+;
   const ok=$l('pasoOk');
   ok.style.animationDelay=(n*paso)+'ms';
   ok.onclick=()=>{ $l('pasoParte').classList.add('oculto'); if(despues) despues(); };
@@ -24789,19 +25031,32 @@ function pintaMvp(e){
   const liga=ligaDe(), tot=e.fechasTotales||0;
   const tag='<div class="cajTag">'+liga.nombre.toUpperCase()+' '+anioTxt()+'</div>';   // el nivel es la liga (§2z240.1): sin el escudo del club
   if(!e.clubes||!tot){ caja.innerHTML=tag+'<div class="fila-item vacia">—</div>'; return; }
-  const fArranca=Math.ceil(tot*CARRERA_MVP.desde), fAS=Math.ceil(tot*CARRERA_MVP.allstar);
+  const fArranca=fechaTuyaDesde(Math.ceil(tot*CARRERA_MVP.desde)), fAS=fechaTuyaDesde(Math.ceil(tot*CARRERA_MVP.allstar));
   const filaAS=()=>{ if(!liga.allstar) return '';
-    const est2=e.allstar?(e.allstar.elegido?t(L('ELEGIDO','SELECTED','ESCOLHIDO')):t(L('AFUERA','LEFT OUT','DE FORA'))):t(L('FECHA','ROUND','RODADA'))+' '+fAS;
+    const est2=e.allstar?(e.allstar.elegido?t(L('ELEGIDO','SELECTED','ESCOLHIDO')):t(L('AFUERA','LEFT OUT','DE FORA'))):fechaTxt(fAS);
     return '<div class="r mvpAS'+(e.allstar&&e.allstar.elegido?' vos':'')+'"><span class="pos">'+icono('estrella',14)+'</span><span class="club"><span class="nom">'+t(PREMIO_TXT.allstar[1])+'</span></span><span class="mvpEst">'+est2+'</span></div>'; };
   if(!carreraActiva(e)){
-    caja.innerHTML=tag+notas(t(L('LA CARRERA AL MVP ARRANCA EN LA FECHA '+fArranca,'THE MVP RACE STARTS IN ROUND '+fArranca,'A CORRIDA AO MVP COMEÇA NA RODADA '+fArranca)))+filaAS();
+    caja.innerHTML=tag+notas(esNBA()
+      ? t(L('LA CARRERA AL MVP ARRANCA EN EL PARTIDO '+numFecha(fArranca),'THE MVP RACE STARTS IN GAME '+numFecha(fArranca),'A CORRIDA AO MVP COMEÇA NO JOGO '+numFecha(fArranca)))
+      : t(L('LA CARRERA AL MVP ARRANCA EN LA FECHA '+fArranca,'THE MVP RACE STARTS IN ROUND '+fArranca,'A CORRIDA AO MVP COMEÇA NA RODADA '+fArranca)))+filaAS();
     return; }
   const car=carreraDe(e), N=CARRERA_MVP.quinteto;
-  const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+pos+'</span><span class="club">'+escudito(x.clubId)+
+  /* 2026-09-12 (el barrido): con la regular cerrada la carrera tiene veredicto — el 1° lleva la corona y la leyenda lo nombra */
+  const cerrada=e.fase!=='regular';
+  const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+(cerrada&&pos===1?icono('corona',14):pos)+'</span><span class="club">'+escudito(x.clubId)+
     '<span class="nom">'+(x.vos?t(L('VOS','YOU','VOCÊ')):nombreCandidato(e,x.clubId,x.segundo)+' · '+clubDe(x.clubId).nombre)+'</span></span></div>';
   let h=car.lista.slice(0,N).map((x,i)=>fila(x,i+1)).join('');
   if(car.miPos&&car.miPos>N) h+='<div class="r mvpSalto"><span class="pos"></span><span class="club"><span class="nom">…</span></span></div>'+fila(car.lista[car.miPos-1],car.miPos);
-  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda"><span><span class="ley dir"></span>'+t(L('QUINTETO IDEAL','ALL-LEAGUE TEAM','SELEÇÃO DO CAMPEONATO'))+'</span></div>';
+  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda">'+(cerrada?'<span>'+icono('corona',12)+t(PREMIO_TXT.mvp[1])+'</span>':'')+'<span><span class="ley dir"></span>'+t(L('QUINTETO IDEAL','ALL-LEAGUE TEAM','SELEÇÃO DO CAMPEONATO'))+'</span></div>';
+}
+function avisoMvpTxt(a){
+  const n=a.pos;
+  return a.tipo==='allstar'?t(L('Te eligieron para el Juego de las Estrellas.','You made the All-Star Game.','Você foi escolhido para o Jogo das Estrelas.'))
+    :a.tipo==='arranca'?(n?t(L('Arranca la carrera al MVP: vas '+n+'°.','The MVP race is on: you are '+n+ordEn(n)+'.','Começou a corrida ao MVP: você está em '+n+'º.')):t(L('Arranca la carrera al MVP.','The MVP race is on.','Começou a corrida ao MVP.')))
+    :a.tipo==='primero'?t(L('Pasás al primer puesto de la carrera al MVP.','You take the lead in the MVP race.','Você assumiu a liderança da corrida ao MVP.'))
+    :a.tipo==='top3'?t(L('Entrás al top 3 de la carrera al MVP.','You are in the MVP race top 3.','Você entrou no top 3 da corrida ao MVP.'))
+    :a.tipo==='fuera'?t(L('Saliste del top 3 de la carrera al MVP.','You dropped out of the MVP race top 3.','Você saiu do top 3 da corrida ao MVP.'))
+    :(a.txt||'');
 }
 function revisarCarrera(e){
   if(!e||!e.clubes||!carreraActiva(e)) return null;
@@ -24815,7 +25070,7 @@ function revisarCarrera(e){
   }
   const antes=e.mvpPos, ahora=car.miPos;
   /* §2z250: el día que arranca, una vez (con tu puesto si corrés); y al pasar al 1° */
-  if(antes===undefined) e.avisoMVP={fecha:e.fechaJugada,tipo:'arranca',txt:ahora
+  if(antes===undefined) e.avisoMVP={fecha:e.fechaJugada,tipo:'arranca',pos:ahora||null,txt:ahora
     ? t(L('Arranca la carrera al MVP: vas '+ahora+'°.','The MVP race is on: you are '+ahora+ordEn(ahora)+'.','Começou a corrida ao MVP: você está em '+ahora+'º.'))
     : t(L('Arranca la carrera al MVP.','The MVP race is on.','Começou a corrida ao MVP.'))};
   else if(antes!==ahora&&ahora){
@@ -24835,7 +25090,7 @@ function revisarCarrera(e){
 const COACHES=[
   { clave:'coach_energia', sel:'#lobby .rec.nrg', cuando:()=>true,
     tit:()=>t(L('ENERGÍA','ENERGY','ENERGIA')),
-    txt:()=>t(L('Cada partido la gasta. Con una lata la llenás: tocá la latita.','Every game drains it. A can refills it: tap the little can.','Cada jogo gasta. Uma latinha enche: toque na latinha.')) },
+    txt:()=>t(L('Jugar y entrenar la gastan. Con menos de 70 el DT te da menos minutos. La latita la llena.','Playing and training drain it. Under 70, the coach gives you fewer minutes. The can refills it.','Jogar e treinar gastam. Com menos de 70 o técnico te dá menos minutos. A latinha enche.')) },   // 2026-09-12 (el barrido, con su ok): para qué sirve
   /* §7.1 el contrato de la beta se fue del velo de bienvenida —ahí nombraba un botón que todavía no estaba a la
      vista (su caza 2026-09-05)— y vive acá: el foco recorta el chip BETA de verdad, con el primer partido jugado */
   { clave:'coach_beta', sel:'#lobBetaChip', cuando:()=>esBeta()&&(est().fechaJugada||0)>0,
@@ -24898,6 +25153,7 @@ function pintaLobby(){
      reproduce: termina la liga → FIN DE LA LIGA (resumen, premios) → el receso de la selección (ventanas, torneo) → la
      Intercontinental con el club de la Copa → el mercado. §2z229 e (su corte): el Mundial y la copa son de la MISMA temporada;
      la página la da vuelta el mercado, así que nada de esto se llama "fin de temporada". */
+  if(e.fase==='playoffs'&&premiarIndividuales()) pintaPalmares();   // 2026-09-12: los individuales, en plena llave
   if(e.fase==='terminada'&&premiarLiga()) pintaPalmares();   // §2z229 c: los premios de la liga, cuando la liga termina (hecho, no momento) — y la vitrina se repinta con el puntito (2026-09-13)
   const cierrePend=e.fase==='terminada'&&C.cierreAnio!==C.anio;
   let fotoHoy=null;   // 2026-09-12: 'liga' | 'ic' — con la foto del cierre en el HOY, el goteo no repite lo que ella dice
@@ -25020,6 +25276,7 @@ function pintaLobby(){
        club queda —es su partido y te interesa—; lo que cambia es por qué no hay línea. */
     const cola=(ultimo.conSeleccion
       ? t(L('estabas con la selección','you were on NT duty','você estava com a seleção'))
+      : ultimo.noCitado ? t(L('no te citó el DT','the coach left you out','o técnico não te relacionou'))   /* 2026-09-12 */
       : (m?t(L('Tuyos:','Yours:','Seus:'))+' ':'')+'<b>'+ultimo.pts+' PTS · '+ultimo.ast+' AST</b>');
     goteo1(cuando+m+cola, m?cuando+mSin+cola:'');
   } else {
@@ -25055,7 +25312,7 @@ function pintaLobby(){
      `anotarMiLinea` corta antes de sumar—. El que faltaba era ÉSTE, que es encima el número que más se mira:
      el PROMEDIÁS del HOY dividía por un partido de más con 0 pts, 0 ast y 0 min. */
   const enSelHoy=!!(prox&&prox.tipo==='seleccion');
-  const mp=(e.misPartidos||[]).filter(p=>!!p.sel===enSelHoy&&!p.conSeleccion);
+  const mp=(e.misPartidos||[]).filter(p=>!!p.sel===enSelHoy&&!p.conSeleccion&&!p.noCitado);
   const ml=mp.reduce((a,p)=>({pj:a.pj+1,pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),min:a.min+(p.minutos||0)}),{pj:0,pts:0,ast:0,min:0});
   /* §12.26: de quién es el promedio. 2026-09-10 (su caza: "el escudo al lado de PROMEDIÁS sobrecarga con los dos de arriba"): el
      del club se va — el renglón de arriba ya lo lleva dos veces; la bandera queda sólo con la selección, donde sí distingue */
@@ -25065,7 +25322,7 @@ function pintaLobby(){
     : '';
 
   /* §2z45: el aviso de la carrera al MVP / el Juego de las Estrellas, sólo cuando pasó algo y hasta la próxima fecha */
-  const av=e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada&&carreraActiva(e)?e.avisoMVP.txt:'';
+  const av=e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada&&carreraActiva(e)?avisoMvpTxt(e.avisoMVP):'';   // 2026-09-12: se arma al pintar (cambiar el idioma no lo deja en el viejo)
   $l('lobGoteo3').innerHTML=av; $l('lobGoteo3').classList.toggle('oculto',!av);
   /* 2026-09-12 (su caza: "el cartel de «tres partidazos» quedó clavado en el lobby; ¿algo se congela en postemporada?"): los
      avisos del goteo duraban "hasta la próxima fecha", y en los playoffs la fecha no avanza — quedaban para siempre. Ahora se
@@ -25184,7 +25441,7 @@ function pintaLobby(){
         const miG=u.alta===e.miClubId?u.ganAlta:u.ganBaja, riG=u.alta===e.miClubId?u.ganBaja:u.ganAlta;
         const marca=' ('+miG+'–'+riG+' vs '+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase()+')';
         if(u.playout&&u.ganador===e.miClubId) lineaMia='<br>✓ '+t(L('NOS QUEDAMOS EN LA LIGA NACIONAL','WE STAY UP','FICAMOS NA LIGA NACIONAL'))+marca;
-        else if(!u.playout&&u.ganador!==e.miClubId) lineaMia='<br>'+t(L('Eliminados en ','Out in ','Eliminados na '))+t(RONDA_TXT[u.nombre]||L(u.nombre))+marca;
+        else if(u.ganador!==e.miClubId) lineaMia='<br>'+eliminadoTxt(u.nombre)+marca;   // 2026-09-12: también el play-out perdido (antes no decía nada)
       }
       /* §2z229 f: si el bloque de arriba ya dice CAMPEONES, acá no se repite (y sin dejar un <br> huérfano, clase 5) */
       const lineaCamp=(cierrePend&&camp)?'':(e.playoffs.campeon===e.miClubId
@@ -25264,7 +25521,7 @@ function pintaLobby(){
   }
   const proxEsClave=(prox&&prox.tipo==='fecha'&&!!calPorFecha[prox.fecha])||esClaveAmericas(e,prox);   // §2z82: el mejor del grupo también
   const sub=(o)=>o.tipo==='fecha'
-    ? t(L('FECHA','ROUND','RODADA'))+' '+o.fecha+' · '+vsTxt(o.local)+clubDe(o.rival).nombre.toUpperCase()
+    ? fechaTxt(o.fecha)+' · '+vsTxt(o.local)+clubDe(o.rival).nombre.toUpperCase()
     : t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+' · '+vsTxt(o.local)+clubDe(o.rival).nombre.toUpperCase();
   if(!prox){
     if(e.fase==='terminada'){
@@ -25779,7 +26036,7 @@ function noTeCita(o){
   const J=C.jugador, R=J.relaciones||{};
   if((R.dt===undefined?50:R.dt)>=PISO_NO_TE_CITA) return false;
   const e=est(); if(!e||e.fase!=='regular') return false;
-  jugarFecha(e);                                   // la juega el club, sin vos
+  jugarFecha(e,null,true);                         // la juega el club, sin vos (y sin línea tuya: 2026-09-12)
   R.dt=acotarRel(R.dt+1);                          // se le va bajando la bronca
   guardar();
   mostrarTitular(t(L('EL DT','THE COACH','O TÉCNICO')),t(L('NO TE CITÓ','LEFT OUT','FORA DA LISTA')),'mal',
@@ -25802,7 +26059,7 @@ function abrirPre(objetivo){
   const ciudadPre=(ciudadSel||objetivo.ciudad||((objetivo.local?miClubEn(objetivo):objetivo.sede?clubDe(objetivo.sede):rc)||{}).ciudad||'').replace(/,\s*[A-Z]{2}$/,'').toUpperCase();   // 2026-09-10: el Final Four se juega en la sede · §2z194: el torneo de selección, en la suya
   $l('lobPreCiudad').textContent=ciudadPre?(objetivo.local?t(L('EN CASA','HOME','EM CASA'))+' · ':'')+ciudadPre:'';
   if(objetivo.tipo==='fecha'){
-    $l('lobPreFecha').textContent=t(L('FECHA','ROUND','RODADA'))+' '+objetivo.fecha+t(L(' DE ',' OF ',' DE '))+e.fechasTotales;   // §2z39.64: los minutos van con el DT
+    $l('lobPreFecha').textContent=fechaTxt(objetivo.fecha,true);   // §2z39.64: los minutos van con el DT
     const cal=objetivo.porqueCal||elegirCalientes(e).find(c=>c.fecha===objetivo.fecha);
     $l('lobPrePorque').textContent=cal?porqueTxt(cal):'';
     const prox=miProximo(e);
@@ -25920,6 +26177,13 @@ $l('lobSalir').addEventListener('click',()=>{
   const efS=(C.efectoSalida && C.efSalidaClave===claveSalida(preAbierto)) ? C.efectoSalida : {};   // lo que la carta le hizo a ESTE partido
   C.efectoSalida=null; C.efSalidaClave=null;
   enPartido=preAbierto;
+  /* 2026-09-12 (el barrido): una final se veía igual que la fecha 12 adentro del partido — el relato abre nombrando lo que se juega
+     (15 lo lee de acá); en una fecha común no dice nada de más */
+  { const o=preAbierto;
+    window.partidoTitNSS = o.tipo==='serie' ? t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+(o.serie.mejorDe===1?'':' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego)
+      : o.tipo==='americas' ? compAM(o)
+      : (o.tipo==='seleccion'&&o.etapa!=='eliminatorias') ? selTorneoTxt(o.torneo)+' · '+t(SEL_TXT[o.etapa]||L(o.etapa||''))
+      : null; }
   /* EL GRIFO (§2p): las perillas de este partido salen del SCORE del partido — nivel +
      liga + rival vs tu club + localía. El ⚙ sigue pudiendo pisarlas en vivo (testeo). */
   /* §12.20: con la selección el grifo lee TUS relaciones con la selección (el plantel compra posesiones) */
@@ -25988,7 +26252,7 @@ terminar=function(){
   const caja=document.getElementById('finNota');
   if(!enPartido||!C){ caja.classList.add('oculto'); document.getElementById('finVeredicto').classList.add('oculto'); const fd=document.getElementById('finDonde'); if(fd) fd.classList.add('oculto'); document.getElementById('finLinea').classList.remove('oculto'); document.getElementById('cFin').classList.remove('oculto'); return; }
   const J=C.jugador, gano=G.nos>G.riv;
-  const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tap:G.tapas||0,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,esc:ESC_RITMO()};   // 2026-09-10: las tapas entran a la nota   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
+  const linea={min:minutosJugados(),pts:G.pts,ast:G.ast,rob:G.robos,tap:G.tapas||0,tiros:G.tiros||0,ac:G.aciertos||0,per:G.perdidas||0,pt:G.pasesTiro||0,md:G.malDesmarque||0,dx:G.defExtra||0,esc:ESC_RITMO()};   // 2026-09-10: las tapas entran a la nota · 2026-09-12: las cargas y los tiros molestados (dx)   // §2z36: la nota lee la eficiencia · §2z43.1: sobre la línea normalizada por el ritmo
   let rating=ratingDe(linea,gano,enPartido.contexto);
   /* §2z99: la última es tuya y pesa — medio punto en cada sentido (la metiste / no entró) */
   if(G.clutch) rating=Math.max(0,Math.min(10,Math.round((rating+(clutchOk(G.clutch)?0.5:-0.5))*10)/10));   /* §2z223: aguantar la última vale lo mismo que meterla */
@@ -26061,7 +26325,7 @@ terminar=function(){
         h=escuditoDe(clubDeSeleccion(pais))+nomAjustable('',comp+' · '+vsTxt(o.local,o.neutral),nombresSelDe(o.rival).map(n=>n.toUpperCase()))+escuditoDe(clubDeSeleccion(o.rival));   // §2z97: la bandera ya dice de quién es · 2026-09-10: la del rival también · 2026-09-13 (su caza: «en ESLOVENIA» en Doha): en neutral, vs
       } else {
         const club=clubDe(est().miClubId);   // ⚠️ acá `e` no existe todavía (lo cazó el mono: "terminar(): e is not defined")
-        const comp=o.tipo==='fecha'?t(L('FECHA','ROUND','RODADA'))+' '+o.fecha
+        const comp=o.tipo==='fecha'?fechaTxt(o.fecha)
           :o.tipo==='serie'?t(RONDA_TXT[o.serie.nombre]||L(o.serie.nombre))+(o.serie.mejorDe===1?'':' · '+t(L('JUEGO','GAME','JOGO'))+' '+o.juego)
           :o.tipo==='americas'?compAM(o):'';
         /* §2z97 (su caza: "salió cortado lo de abajo del score"): sin el nombre de tu club — el escudo ya dice de quién
@@ -26366,6 +26630,7 @@ function registrarResultado(){
   anotarTitulo('intercontinental', !!(e.intercontinental&&e.intercontinental.campeon===e.miClubId));
   premiarAmericas(e);                                   /* §2z229 c: el MVP de las Américas, al cerrar la Copa */
   premiarIC(e);
+  if(e.fase==='playoffs') premiarIndividuales();        /* 2026-09-12: MVP, quinteto y joven en plena llave */
   if(e.fase==='terminada') premiarLiga();               /* §2z229 c: los de la liga, cuando la liga termina */
   /* 2026-09-13 (su corte: "para mí esto es mejor que el momento: una pantalla que te da el resumen del torneo"): el titular de
      oro se fue — la Copa cierra con la HOJA (abrirResumenAM, la misma que la liga) al volver al vestuario, y la prensa espera a
@@ -26375,7 +26640,7 @@ function registrarResultado(){
      volver al vestuario, y el vestuario es el que abre la ceremonia — o sea que el diario te
      contaba la medalla antes de que la vieras. Acá se guarda y la dispara el SEGUIR del velo. */
   if(C.selCeremonia&&ult.seleccion){ C.selPrensa=ult; }
-  enPartido=null; window.NRG_PARTIDO=null;
+  enPartido=null; window.NRG_PARTIDO=null; window.partidoTitNSS=null;
   guardar();
   const volverAlLobby=()=>{ abrirLobby();
   /* §2z145: subir y perder la estrella se anuncian en el cierre (§2z140), no acá */
@@ -26425,7 +26690,7 @@ const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','
   'pasesTiro','defensas','tiros','aciertos','perdidas','malDesmarque','robos','tapas','triples','tiros3','ftm','fta','libres',
   'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','frioRegalo','frioExtra','rachaTiros','rachaTirosMax',
   'pedidas','pedidasUsadas','pedidasResueltas','perdidasQ4','intJugadas','intBuenas','sub','contraHubo','defensaHubo',
-  'defEscenasVistas','defGanadas','esFinal','rivAlFinal','astAlFinal','clutch','ot','mision'];
+  'defEscenasVistas','defGanadas','defExtra','esFinal','rivAlFinal','astAlFinal','clutch','ot','mision'];
 function guardarPartidoEnCurso(){
   try{
     if(!C||!enPartido||typeof G==='undefined'||G.fase==='fin'||G.esDrill||G.tut) return;
@@ -26955,7 +27220,7 @@ function pintaRelaciones(){
   }
   const R=ladoRel==='sel'&&haySel?J.relSel:J.relaciones;
   $l('lobRelaciones').innerHTML=
-    filaBarra(t(L('DT','COACH','TÉCNICO')),R.dt)+
+    filaBarra(t(L('DT','COACH','TÉCNICO')),R.dt)+   /* 2026-09-12: el piso del DT NO se marca (su corte: "mejor dejarlo más misterioso") */
     filaBarra(t(L('PLANTEL','SQUAD','ELENCO')),R.plantel)+
     filaBarra(t(L('HINCHADA','FANS','TORCIDA')),R.hinchada);
 }
@@ -27014,7 +27279,7 @@ function pintaSecciones(){
   let html='<div class="cajTag">'+t(L('CONTRATO','CONTRACT','CONTRATO'))+' · '+anioTxt()+'</div>'+tresNums(ct)
     +(decidiendo?'':'<div class="eco"><span><b>'+fplataCorta(eco.cobT)+'</b><small>'+t(L('COBRASTE','EARNED','GANHOU'))+'</small></span>'
     +'<span><b>'+fplataCorta(eco.gasT)+'</b><small>'+t(L('GASTASTE','SPENT','GASTOU'))+'</small></span>'
-    +'<span><b>'+fplataCorta(eco.cob)+'</b><small>'+t(L('CARRERA','CAREER','CARREIRA'))+'</small></span></div>');
+    +(esBeta()?'':'<span><b>'+fplataCorta(eco.cob)+'</b><small>'+t(L('CARRERA','CAREER','CARREIRA'))+'</small></span>')+'</div>');   // 2026-09-12: en la beta hay una temporada — CARRERA repetía COBRASTE
   if(C.renegocia&&!amateur){
     /* §2z222: la congelada; las carreras viejas (sin `oferta` guardada) la calculan una vez y se la quedan */
     if(!C.renegocia.oferta){ C.renegocia.oferta=ofertaDe(J,C.ligaId,clubDe(e.miClubId),notaPromedio(e.misPartidos)); guardar(); }
@@ -27048,8 +27313,10 @@ function pintaSecciones(){
   if(bFirmar) bFirmar.onclick=()=>{ C.contrato={...C.renegocia.oferta}; C.renegocia=null; guardar(); pintaLobby(); };   /* §2z222: se firma LA QUE VISTE */
   { const bp=$l('lobPedir'); if(bp) bp.onclick=abrirPedir; }
   /* el puntito: en la barra (VIDA) y en la pestaña CONTRATO */
-  document.querySelector('#lobby .acc[data-lir=vida]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
-  document.querySelector('#lobby .tab[data-lp=vida-contrato]').classList.toggle('aviso',!!(C.renegocia&&!amateur));
+  /* 2026-09-12 (el barrido): un sponsor EN RIESGO también prende el puntito — la primera noticia era SPONSOR PERDIDO */
+  const spRiesgo=!!(C.sponsors&&(C.sponsors.tengo||[]).some(x=>x.fallas));
+  document.querySelector('#lobby .acc[data-lir=vida]').classList.toggle('aviso',!!(C.renegocia&&!amateur)||spRiesgo);
+  document.querySelector('#lobby .tab[data-lp=vida-contrato]').classList.toggle('aviso',!!(C.renegocia&&!amateur)||spRiesgo);
   const ml=e.miLinea, po=e.miLineaPO;
   /* §2z71: LA LÍNEA DE UN LADO. `miLinea` suma club + selección + continental (es el total, y así lo usan la card y el
      historial); el resumen muestra UN lado, calculado de la lista de partidos: el club sin `sel`·`am`·`po`·`conSeleccion`
@@ -27063,7 +27330,7 @@ function pintaSecciones(){
      abajo; las de Américas y la Copa no aparecen»): arriba, TODO lo que jugaste con el club en el año (liga, playoffs, Américas, la
      Copa); abajo, una fila por competencia con PJ · PTS · AST — así cada número dice de dónde sale. Con una sola competencia no hay
      desglose (repetiría la grilla). */
-  const mpClub=mp.filter(p=>!p.sel&&!p.conSeleccion);
+  const mpClub=mp.filter(p=>!p.sel&&!p.conSeleccion&&!p.noCitado);
   const lClub=sumar(mpClub);
   const compsClub=[[ligaDe().nombre.toUpperCase(),mpClub.filter(p=>!p.po&&!p.am)],[t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')),mpClub.filter(p=>p.po)],
     [t(L('AMÉRICAS','AMERICAS','AMÉRICAS')),mpClub.filter(p=>p.am&&!p.ic)],[t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL')),mpClub.filter(p=>p.ic)]]
@@ -27475,7 +27742,10 @@ function pintaPartidas(){
           const donde=c.retirado?t(L('RETIRADO','RETIRED','APOSENTADO'))+' · '+(c.historial||[]).length+' '+t(L('TEMPORADAS','SEASONS','TEMPORADAS'))   // §2z196
             :e.fase==='playoffs'?dondePlayoffs(e)
             :e.fase==='terminada'?dondeReceso(c)   // §2z229 e · 2026-09-13 (decía RECESO con el Mundial en curso) · 2026-09-14: con la fase, y la Intercontinental
-            :t(L('FECHA','ROUND','RODADA'))+' '+Math.min((e.fechaJugada||0)+1,e.fechasTotales)+'/'+e.fechasTotales;
+            :(function(){ const fs=Math.min((e.fechaJugada||0)+1,e.fechasTotales);
+                if(liga.formato==='nba'&&e.fixture){ let n=0,tot=0; for(const f of e.fixture){ if(f.partidos.some(p=>p.local===e.miClubId||p.visita===e.miClubId)){ tot++; if(f.nro<fs) n++; } }
+                  return t(L('PARTIDO','GAME','JOGO'))+' '+Math.min(n+1,tot)+'/'+tot; }   // 2026-09-12: en la NBA, tu partido (no el día)
+                return t(L('FECHA','ROUND','RODADA'))+' '+fs+'/'+e.fechasTotales; })();
           return anioL+' · '+donde; })()+'</div>'+
       '</div>'+
       '<button class="borrar" data-borrar="'+n+'" aria-label="'+t(L('Borrar','Delete','Apagar'))+'">✕</button>'+
@@ -27753,7 +28023,7 @@ const RITMO_TXT={
 };
 /* su segundo corte: "¡es demasiada aclaración! Sólo que en intenso tenés el doble de jugadas, y que jugar menos no
    afecta al desarrollo del juego" */
-const RITMO_NOTA=L('Jugar menos no afecta tu carrera. Lo cambiás desde VOS.','Playing less does not affect your career. Switch it from YOU.','Jogar menos não afeta sua carreira. Mude em VOCÊ.');
+const RITMO_NOTA=L('Jugar menos no afecta tu carrera. Lo cambiás desde OPCIONES.','Playing less does not affect your career. Switch it in OPTIONS.','Jogar menos não afeta sua carreira. Mude em OPÇÕES.');   // 2026-09-12: el ritmo se mudó a OPCIONES (§2z248)
 function pintaRitmos(){
   const cont=$l('creaRitmos'); if(!cont) return;
   cont.innerHTML=['normal','intenso'].map(k=>'<button type="button" class="ritmoBtn" data-ritmo="'+k+'" aria-pressed="'+((k==='intenso')===!!creaSel.intenso)+'"><b>'+t(RITMO_TXT[k][0])+'</b>'+(RITMO_TXT[k][1]?'<span>'+t(RITMO_TXT[k][1])+'</span>':'')+'</button>').join('')
@@ -28238,12 +28508,30 @@ function pintaPalmares(){
    · el MVP de las Américas → premiarAmericas(), al ganar la Copa (los títulos ya entraban al ganarlos, §2z229 b);
    · el ascenso → con la escalera aplicada, en el cierre/mercado (su propia guarda).
    asegurarPremios() queda como la red idempotente del cierre y del mercado, y devuelve lo del año para la lista. */
+/* 2026-09-12 (su corte: "el MVP lo deberían dar mientras están los playoffs, como en la NBA; si te lo dan después de la final cae todo
+   junto"): MVP, quinteto y mejor joven se entregan cuando arranca la SEGUNDA ronda de la llave (o, sin llave, al cerrar la liga); el título y
+   el MVP de las finales siguen al final. Deja `C.premioAviso` para la carta del día (01k, cartasAlEntrar). */
+const PREMIOS_INDIVIDUALES=['mvp','quinteto','joven'];
+function premiarIndividuales(){
+  const e=est(); if(!e||!C||C.premiadoIndAnio===C.anio) return false;
+  const toca=(e.fase==='playoffs'&&e.playoffs&&(e.playoffs.ronda||0)>=2)||e.fase==='terminada';
+  if(!toca) return false;
+  C.premiadoIndAnio=C.anio;
+  if(!C.palmares) C.palmares=[];
+  const mt=miTabla(e);
+  const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc).filter(p=>PREMIOS_INDIVIDUALES.includes(p.clave));
+  for(const p of nuevos) if(!C.palmares.some(q=>q.anio===C.anio&&q.clave===p.clave)) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});
+  if(nuevos.length) C.premioAviso={anio:C.anio,claves:nuevos.map(p=>p.clave),enPO:e.fase==='playoffs'&&!!(e.playoffs.series||[]).some(s=>(s.alta===e.miClubId||s.baja===e.miClubId)&&!s.ganador)};
+  guardar();
+  return true;
+}
 function premiarLiga(){
   if(!C.palmares) C.palmares=[];
   const e=est(); if(!e||e.fase!=='terminada'||C.premiadoAnio===C.anio) return false;
   C.premiadoAnio=C.anio;
   const mt=miTabla(e);
-  const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc);   // §2z45: contra el campo de la liga
+  premiarIndividuales();   // 2026-09-12: si todavía no se entregaron (una liga sin llave, un save de antes)
+  const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc).filter(p=>!PREMIOS_INDIVIDUALES.includes(p.clave));   // §2z45: contra el campo de la liga
   for(const p of nuevos) if(!C.palmares.some(q=>q.anio===C.anio&&q.clave===p.clave)) C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:p.clave});
   guardar();
   return true;
@@ -28286,8 +28574,9 @@ function recesoPendiente(e){
   if(!e||e.fase!=='terminada') return false;
   const el=e.seleccion;
   if(el&&!el.fin){ const v=el.ventanas[el.idx]; if(v&&v.receso==='verano'&&v.conv!==false) return true; }
-  if(C.selTorneo) return !!proximoTorneoSel(C.selTorneo);
-  if(C.selTorneoHecho!==C.anio){ const pais=C.jugador.nacionalidad||'ar'; if(SELECCIONES[pais]&&torneoDelReceso(C.anio,pais)) return true; }
+  /* 2026-09-12 (el barrido): miraba que el ciclo TUVIERA torneo, no que tu país lo jugara — sin pase, AL RECESO ▸ te llevaba a un vestuario
+     vacío. Se resuelve con el mismo camino que el lobby (proximoSelTorneo: simula el torneo sin vos y lo marca hecho). */
+  if(proximoSelTorneo()) return true;
   if(!e.intercontinental&&e.americas&&e.americas.fase==='terminado'&&e.americas.campeon===e.miClubId) return true;   // §2z229 e: la copa cierra el receso
   if(e.intercontinental&&e.intercontinental.post&&proximoIntercontinental(e)) return true;
   return false;
@@ -28713,13 +29002,31 @@ function abrirResumenT(final){
     const marca=u?(u.alta===e.miClubId?u.ganAlta+'–'+u.ganBaja:u.ganBaja+'–'+u.ganAlta)+' vs '+escudito(u.alta===e.miClubId?u.baja:u.alta)+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase():'';   /* 2026-09-13 (su caza): el rival con su escudo */
     const sub=camp&&u?t(RONDA_TXT[u.nombre]||L(u.nombre))+' '+marca
       :u&&u.playout&&u.ganador===e.miClubId?t(L('NOS QUEDAMOS','WE STAY UP','FICAMOS'))+' · '+marca
-      :u&&u.ganador!==e.miClubId?t(L('ELIMINADOS EN ','OUT IN ','ELIMINADOS NA '))+t(RONDA_TXT[u.nombre]||L(u.nombre))+' · '+marca
+      :u&&u.ganador!==e.miClubId?eliminadoTxt(u.nombre)+' · '+marca
       :e.playoffs?t(L('SIN PLAYOFFS','NO PLAYOFFS','SEM PLAYOFFS')):'';
-    html+='<div class="resHero'+(camp?' oro':'')+'"><div class="resIco">'+(camp?icono(C.ligaId==='nba'?'anillo':'copa',40):escudito(e.miClubId))+'</div>'
-      +'<div class="resTit">'+(camp?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')):(mt.puesto?mt.puesto+'º':''))+'</div>'
+    /* 2026-09-12 (el barrido, con su ok): FIN DE LA BETA abre por lo MÁS GRANDE que te pasó — campeón del mundo › intercontinental › de la
+       liga › MVP — y la liga, si no es lo más grande, baja a una fila. Abajo, TU TEMPORADA: de dónde arrancaste y dónde terminaste. */
+    const finBeta=esBeta()&&final===true, anioP=(C.palmares||[]).filter(p=>p.anio===C.anio).map(p=>p.clave);
+    const mundialOro=((C.seleccion&&C.seleccion.torneos)||[]).some(x=>x.anio===C.anio&&x.torneo==='mundial'&&x.medalla==='oro');
+    const grande=!finBeta?null
+      : mundialOro?{ico:icono('copa',40),tit:t(L('¡CAMPEÓN DEL MUNDO!','WORLD CHAMPION!','CAMPEÃO DO MUNDO!')),sub:banderaDe(J.nacionalidad||'ar',16)+' '+nombreSel(J.nacionalidad||'ar').toUpperCase()}
+      : anioP.includes('intercontinental')?{ico:icono('globo',40),tit:t(L('¡CAMPEÓN INTERCONTINENTAL!','INTERCONTINENTAL CHAMPION!','CAMPEÃO INTERCONTINENTAL!')),sub:escudito(e.miClubId)+' '+club.nombre.toUpperCase()}
+      : camp?null
+      : anioP.includes('mvp')?{ico:icono('corona',40),tit:t(PREMIO_TXT.mvp[1]),sub:ligaDe().nombre.toUpperCase()}
+      : null;
+    if(grande) html+='<div class="resHero oro"><div class="resIco">'+grande.ico+'</div><div class="resTit">'+grande.tit+'</div><div class="resSub">'+grande.sub+'</div></div>'
+      +fila(ligaDe().nombre.toUpperCase(),(camp?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):(mt.puesto?ordTxt(mt.puesto):''))+(sub&&!camp?' · '+sub:''));
+    else html+='<div class="resHero'+(camp?' oro':'')+'"><div class="resIco">'+(camp?icono(C.ligaId==='nba'?'anillo':'copa',40):escudito(e.miClubId))+'</div>'
+      +'<div class="resTit">'+(camp?t(L('¡CAMPEONES!','CHAMPIONS!','CAMPEÕES!')):(mt.puesto?ordTxt(mt.puesto):''))+'</div>'
       +(sub?'<div class="resSub">'+sub+'</div>':'')+'</div>';
     const st=(v,k)=>'<div class="st"><b>'+v+'</b><span>'+k+'</span></div>';
-    html+='<div class="resStats">'
+    if(finBeta){ const SK5=['tiro','manejo','vision','fisico','defensa'], media=(sk)=>Math.round(SK5.reduce((a,k)=>a+(sk[k]||0),0)/5);
+      html+='<div class="cajTag">'+t(L('TU TEMPORADA','YOUR SEASON','SUA TEMPORADA'))+'</div><div class="resStats dos">'
+        +st('★'+BETA_NIVEL+' → ★'+(J.nivel||BETA_NIVEL),t(L('NIVEL','LEVEL','NÍVEL')))
+        +(J.arranque?st(media(J.arranque)+' → '+media(J.skills),t(L('MEDIA','RATING','MÉDIA'))):'')
+        +(pj?st(pj,'PJ'):'')+(pj?st(fdec((ml.pts+po.pts)/pj),'PTS'):'')
+        +'</div>'; }
+    else html+='<div class="resStats">'
       +(mt.fila?st(mt.fila.pg+'–'+mt.fila.pp,t(L('RÉCORD','RECORD','CAMPANHA'))+(camp&&mt.puesto?' · '+mt.puesto+'º':'')):'')   /* sin campeonato el puesto ya es el héroe */
       +(pj?st(fdec((ml.pts+po.pts)/pj),'PTS'):'')
       +(nota!==null?st(fdec(nota),t(L('NOTA','RATING','NOTA'))):'')
@@ -28760,6 +29067,8 @@ function pintarAnotadoFin(){ const m=betaAnotado();
   $l('resTAnotado').classList.toggle('oculto',!m);
   $l('resTAnotado').textContent=m?'✓ '+t(L('ANOTADO · TE AVISAMOS A ','SIGNED UP · WE’LL WRITE TO ','INSCRITO · A GENTE AVISA EM '))+m.toUpperCase():''; }
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('lista'); };
+$l('resTCard').onclick=()=>CARD.abrirCard('corta');   // la card va encima (z 42) y al cerrarla quedás en el fin
+$l('resTOpinion').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('feedback'); };
 /* 2026-09-12 (su caza: «FIN DE LA BETA no tiene salida: sólo VOLVER AL VESTUARIO o ANOTARME»): SALIR te lleva a la portada, donde está
    JUGAR otra vez — la partida queda guardada, como con el SALIR del vestuario */
 $l('resTSalir').onclick=()=>{ $l('resumenT').classList.add('oculto'); $l('lobConfirmSi').click(); };
@@ -28987,7 +29296,8 @@ window.__carrera={
 };
 /* §2z248: la vuelta después de cambiar el idioma — a la misma partida, al vestuario, con OPCIONES abierto */
 try{ const vr=sessionStorage.getItem('volverOpcionesNSS');
-  if(vr){ sessionStorage.removeItem('volverOpcionesNSS'); const n=+vr;
+  if(vr==='portada'){ sessionStorage.removeItem('volverOpcionesNSS'); abrirOpciones('portada'); }   // 2026-09-12: el idioma desde la portada vuelve a la portada
+  else if(vr){ sessionStorage.removeItem('volverOpcionesNSS'); const n=+vr;
     if(cargarCarrera(n)){ document.getElementById('intro').classList.add('oculto'); seguirPartida(n); if(C&&!C.retirado) abrirOpciones('lobby'); } }
 }catch(e){ mostrarErrorNSS('✖ '+(e.stack||e.message)); }
 })();

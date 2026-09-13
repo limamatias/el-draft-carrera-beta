@@ -668,7 +668,7 @@
   #lobby .arq{align-self:center;font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--tinta2);   /* 2026-09-10: centrada contra el nombre (en la línea de base colgaba) */
        background:var(--chip);border:1.5px solid var(--tinta2);padding:3px 8px;border-radius:99px;
        white-space:nowrap}
-  #lobby .arq.viva{color:var(--naranja);border-color:var(--naranja)}   /* §2z184 (su caza: "todoterreno en gris se siente apagado"): EN FORMACIÓN gris; con identidad, naranja */
+  #lobby .arq.viva{color:var(--naranja);border-color:var(--naranja)}   /* §2z184 (su caza: "todoterreno en gris se siente apagado") · §2z249: la píldora es el ROL — SUPLENTE gris; TITULAR y LA REFERENCIA, naranja */
   #lobby .linea2{display:flex;align-items:center;gap:7px;font-size:13px;color:#c3cbdb;
        letter-spacing:1px;text-shadow:0 1px 6px rgba(0,0,0,.9)}
   #lobby .linea2 b{color:var(--tinta);font-weight:600}
@@ -1913,7 +1913,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='2057ec1115';
+const BUILD='4b8554ef53';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2156,7 +2156,7 @@ const BUILD='2057ec1115';
       <div class="fila1">
         <div class="idyt">
           <div class="nombre" id="lobNombre">EL PIBE <span class="dorsal">#7</span></div>
-          <div class="arq" data-l-en="IN THE MAKING" data-l-pt="EM FORMAÇÃO">EN FORMACIÓN</div>
+          <div class="arq viva" data-l-en="STARTER" data-l-pt="TITULAR">TITULAR</div>
         </div>
         <div class="mediaBox"><div class="col">
           <div class="num" id="lobMedia">40</div>
@@ -11411,76 +11411,6 @@ function misJuegosIC(e) {
 }
 /** El fixture y el HOY leen los dos torneos juntos (etapa+n es la clave: las de la copa llevan `ic-`). */
 function misJuegosAMyIC(e) { return [...misJuegosIC(e), ...(e.americas ? misJuegosAM(e) : [])]; }
-/* ══ §2z29 LA IDENTIDAD EMERGENTE — el arquetipo que el juego te pone leyendo tus skills Y cómo
-   jugás (§2m.2: "arrancás En formación y el juego te va encasillando"). Pieza PURA (sin DOM ni
-   i18n): la lee el lobby y la prueba `tools-carrera/identidad-check.mjs`.
-   Dos señales: la FORMA de los skills (un pico le saca PICO al promedio; dos picos, PICO2) y el
-   JUEGO de los últimos IDENTIDAD_VENTANA partidos jugados con los dedos (la parte de tus puntos que
-   viene de triples, asistencias cada 10 puntos, robos y puntos por partido). Un pico sin el juego
-   que lo confirme no te encasilla; y al revés tampoco. Los nombres: los cortó él ("que no sea
-   PENETRADOR porque no suena bien en Argentina" → ENCARADOR). ══ */
-const IDENTIDAD_MIN_PJ = 10;    // partidos jugados en la carrera antes de salir de EN FORMACIÓN
-const IDENTIDAD_RACHA = 5;      // la misma lectura N partidos seguidos para cambiar
-const IDENTIDAD_VENTANA = 15;   // cuántos partidos jugados se miran
-const IDENTIDAD_PICO = 8, IDENTIDAD_PICO2 = 6;
-const IDENTIDAD_SKILLS = ['tiro', 'manejo', 'vision', 'fisico', 'defensa'];
-
-/** Lo que el juego dice de vos en esos partidos (todos con tri/pts/ast/rob). */
-function juegoDe(partidos) {
-  const n = partidos.length;
-  const s = partidos.reduce((a, p) => ({ pts: a.pts + (p.pts || 0), ast: a.ast + (p.ast || 0), rob: a.rob + (p.rob || 0), tri: a.tri + (p.tri || 0) }), { pts: 0, ast: 0, rob: 0, tri: 0 });
-  return {
-    pj: n,
-    ppg: n ? s.pts / n : 0,
-    apg: n ? s.ast / n : 0,
-    rpg: n ? s.rob / n : 0,
-    triples: s.pts ? (3 * s.tri) / s.pts : 0,   // la parte de tus puntos que viene de triples
-    ast10: s.pts ? (10 * s.ast) / s.pts : 0,   // asistencias cada 10 puntos
-  };
-}
-
-/** La forma: qué skills sobresalen sobre el promedio de LOS OTROS CUATRO (contra el promedio de
-    los cinco, dos picos se tapan entre sí: 38+38 sobre 30 daban 4,8 y no eran pico). */
-function picosDe(skills) {
-  const d = {};
-  IDENTIDAD_SKILLS.forEach((k) => {
-    const otros = IDENTIDAD_SKILLS.filter((o) => o !== k).reduce((a, o) => a + (skills[o] || 0), 0) / (IDENTIDAD_SKILLS.length - 1);
-    d[k] = (skills[k] || 0) - otros;
-  });
-  return { pico: IDENTIDAD_SKILLS.filter((k) => d[k] >= IDENTIDAD_PICO), pico2: IDENTIDAD_SKILLS.filter((k) => d[k] >= IDENTIDAD_PICO2) };
-}
-
-/**
- * La lectura de hoy: una identidad, 'todoterreno' si nada sobresale, o null si hay un pico que el
- * juego no confirma (no se cambia lo que había). `pjCarrera` son los jugados en toda la carrera.
- */
-function leerIdentidad(skills, partidos, pjCarrera) {
-  if ((pjCarrera || 0) < IDENTIDAD_MIN_PJ || !partidos.length) return null;
-  const { pico, pico2 } = picosDe(skills), j = juegoDe(partidos);
-  const es = (k) => pico.includes(k), es2 = (k) => pico2.includes(k);
-  if (pico2.length >= 2 && j.ppg >= 14 && j.apg >= 3) return 'estrella';
-  if (es('tiro') && j.triples >= 0.45) return 'francotirador';
-  if (es2('tiro') && es2('defensa') && j.triples >= 0.35 && j.rpg >= 1) return 'tresyd';
-  if (es('vision') && j.ast10 >= 5) return 'armador';
-  if (es2('manejo') && es2('fisico') && j.triples <= 0.2 && j.ppg >= 10) return 'encarador';
-  if ((es('tiro') || es('manejo')) && j.ppg >= 14 && j.ast10 < 3) return 'anotador';
-  if ((es('defensa') || es('fisico')) && j.rpg >= 1.5 && j.ppg < 10) return 'candado';
-  if (!pico.length) return 'todoterreno';
-  return null;
-}
-
-/**
- * El estado que viaja en el save: {id, cand, racha}. Se llama al terminar CADA partido jugado con
- * los dedos, con la línea de ese partido. Cambia sólo con IDENTIDAD_RACHA lecturas iguales seguidas.
- */
-function actualizarIdentidad(estado, skills, ultimos, pjCarrera) {
-  const st = estado || { id: 'formacion', cand: null, racha: 0 };
-  const cand = leerIdentidad(skills, ultimos, pjCarrera);
-  if (!cand || cand === st.id) { st.cand = null; st.racha = 0; return st; }
-  if (cand === st.cand) st.racha++; else { st.cand = cand; st.racha = 1; }
-  if (st.racha >= IDENTIDAD_RACHA) { st.id = cand; st.cand = null; st.racha = 0; }
-  return st;
-}
 /* ══ 01r — LA SELECCIÓN (§12, 2026-09-03 noche) ═══════════════════════════════════════════
    Su pedido, con el diseño casi entero adentro: *"que los equipos de LATAM jueguen AmeriCup,
    Mundial y JJOO con sus cronogramas habituales… cuando hay eliminatorias en el medio de la
@@ -21834,7 +21764,7 @@ function instalarCard(dep) {
       : dep.amEtapaTxt(am.miFase || 'grupo', am.miGrupo)) : null;
     return { C, J, e, temporadas, tot, kpis, tramos, clubActual, liga, vitrina: dep.vitrina(),
       seleccion, selPJ, americas, elimEnCurso: !!(e.seleccion && !e.seleccion.fin && selPJ),
-      pais: J.nacionalidad || 'ar', identidad: (C.identidad && C.identidad.id) || 'formacion' };
+      pais: J.nacionalidad || 'ar', rol: dep.rolTxt() };   // §2z249: el rol reemplaza a la identidad emergente
   }
   const clubTxt = (id, ligaId) => { const c = dep.clubEn(id, ligaId); return c ? c.nombre : id; };
   const ligaTxt = (ligaId) => { const l = dep.LIGAS[ligaId]; return l ? l.nombre.replace(/^Liga /, '') : ''; };
@@ -21929,7 +21859,7 @@ function instalarCard(dep) {
   /* los logros como renglones (palmares() de allá): ícono · título con ×N · los años a la derecha */
   function tituloLogro(g) { return (g.veces > 1 ? g.veces + '× ' : '') + g.nombre; }
   /* la cabecera: escudo del club actual · bandera + APELLIDO + dorsal · (en la corta) el club en
-     una línea · identidad · TEMPORADA N · AÑO. Sin columna derecha (su corte: "queda MUY colapsado…
+     una línea · rol (§2z249) · TEMPORADA N · AÑO. Sin columna derecha (su corte: "queda MUY colapsado…
      no dupliquemos datos": en la tira el club actual ya está abajo, con AHORA en dorado) */
   async function cabecera(ctx, d, tamApe, conClub) {
     let y = MARCO + 48;
@@ -21941,9 +21871,8 @@ function instalarCard(dep) {
     texto(ctx, dorsal, xN + 70 + r.w + 16, y + tamApe * .62, { size: Math.round(tamApe * .5), peso: 700, color: NARANJA });
     let yy = y + tamApe * .62;
     if (conClub) { yy += 42; texto(ctx, d.clubActual.nombre.toUpperCase() + '  ·  ' + d.liga.nombre.toUpperCase(), xN, yy, { size: 30, peso: 700, color: TEXTO, max: X1 - xN, spacing: 1 }); }
-    const ident = d.identidad !== 'formacion' ? dep.t(dep.IDENTIDAD_TXT[d.identidad]) : T('EN FORMACIÓN', 'IN THE MAKING', 'EM FORMAÇÃO');
     yy += 38;
-    texto(ctx, ident + '  ·  ' + T('TEMPORADA', 'SEASON', 'TEMPORADA') + ' ' + d.temporadas.length + '  ·  ' + d.C.anio, xN, yy, { size: 26, peso: 700, color: MUTED, spacing: 3 });
+    texto(ctx, d.rol + '  ·  ' + T('TEMPORADA', 'SEASON', 'TEMPORADA') + ' ' + d.temporadas.length + '  ·  ' + d.C.anio, xN, yy, { size: 26, peso: 700, color: MUTED, spacing: 3 });
     return Math.max(y + 130, yy + 30);
   }
   /* la línea de estadísticas de allá: rótulo dorado (qué son) · POR PARTIDO a la derecha · tres columnas con regla */
@@ -22135,8 +22064,7 @@ function instalarCard(dep) {
     document.querySelectorAll('#cardVelo [data-card]').forEach((b) => b.classList.toggle('act', b.dataset.card === tipo));
   }
   function textoCompartir(d) {
-    const ident = d.identidad !== 'formacion' ? ' · ' + dep.t(dep.IDENTIDAD_TXT[d.identidad]) : '';
-    return (d.J.apellido || '') + ident + ' · ' + d.clubActual.nombre + ' · ' + dec(d.kpis[0].v) + ' pts ' + T('por partido', 'per game', 'por jogo') + '. ' + T('Jugá El Draft: Carrera →', 'Play El Draft: Carrera →', 'Jogue El Draft: Carrera →') + ' ' + linkJuego();
+    return (d.J.apellido || '') + ' · ' + d.rol + ' · ' + d.clubActual.nombre + ' · ' + dec(d.kpis[0].v) + ' pts ' + T('por partido', 'per game', 'por jogo') + '. ' + T('Jugá El Draft: Carrera →', 'Play El Draft: Carrera →', 'Jogue El Draft: Carrera →') + ' ' + linkJuego();
   }
   async function compartir() {
     if (!ultimo) return;
@@ -24851,8 +24779,8 @@ function pintaLobby(){
   eNom.style.fontSize = ape.length>8 ? '20px' : '';   // §2z11: 28 de base, 20 si no entra
   /* la bandera hace VISIBLE la nacionalidad: sin esto es un campo que se elige y no se ve
      en ningún lado, o sea una pregunta sin respuesta en pantalla */
-  { const idn=(C.identidad&&C.identidad.id)||'formacion', arq=document.querySelector('#lobby .arq');
-    arq.textContent=t(IDENTIDAD_TXT[idn]); arq.classList.toggle('viva',idn!=='formacion'); }   // §2z29 · §2z184: con identidad, la píldora se prende
+  { const arq=document.querySelector('#lobby .arq');
+    arq.textContent=rolTxt(); arq.classList.toggle('viva',(C.jugador.rol||'titular')!=='suplente'); }   // §2z249: la píldora es TU ROL (la identidad emergente se fue) · §2z184: prendida salvo en el banco
   eNom.innerHTML='<span class="ban">'+banderaDe(J.nacionalidad,18)+'</span>'+esc(ape)+
     ' <span class="dorsal">#'+(J.dorsal===undefined?7:J.dorsal)+'</span>';
   numeroQueSube($l('lobMedia'),(sk.tiro+sk.manejo+sk.vision+sk.fisico+sk.defensa)/5,$l('lobMedia').closest('.mediaBox'));   // la media SUBE a la vista (El Draft)
@@ -26255,11 +26183,10 @@ function registrarResultado(){
      es una etiqueta de los minutos, que se mueven partido a partido. */
   const caidos=faseAntes==='regular'?aplicarDecaimiento(J,e.fechaJugada,e.semilla,e.ritmo):[];   // §2z90: el óxido cuenta semanas, y las semanas las sabe el calendario
   if(caidos.length) e.avisoOxido={fecha:e.fechaJugada,pj:(C.pjCarrera||0)+1,txt:textoOxido(caidos)};   // pj: el partido de hoy (se cuenta dos líneas abajo)   // 2026-09-10: queda en el goteo hasta la próxima fecha
-  /* §2z29: la ventana de los últimos jugados con los dedos y la identidad emergente */
+  /* §2z29: la ventana de los últimos jugados con los dedos (la comen la Dbeta y los sponsors; la identidad emergente se fue en §2z249) */
   C.pjCarrera=(C.pjCarrera||0)+1;
   gastarEnUso(J);   // §2z247: un puntito por partido jugado por vos
-  C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-IDENTIDAD_VENTANA);
-  C.identidad=actualizarIdentidad(C.identidad,J.skills,C.ultimosJugados,C.pjCarrera);
+  C.ultimosJugados=[...(C.ultimosJugados||[]),{...miJuego.linea}].slice(-15);
   /* §7.1 la dificultad dinámica de la beta: un escalón por partido, sobre las últimas 3 notas */
   if(esBeta()){
     const dAntes=J.dbeta;
@@ -26561,7 +26488,7 @@ function abrirCuerpo(despues){
   verQueSeVe('cuerpoParte','EL CUERPO Y EL BOLSILLO');
   return true;
 }
-const rolTxt=()=>({suplente:t(L('SUPLENTE','BENCH','RESERVA')),titular:t(L('TITULAR','STARTER','TITULAR')),referencia:t(L('LA REFERENCIA','THE GUY','A REFERÊNCIA'))})[C.jugador.rol||'titular'];
+function rolTxt(){ return ({suplente:t(L('SUPLENTE','BENCH','RESERVA')),titular:t(L('TITULAR','STARTER','TITULAR')),referencia:t(L('LA REFERENCIA','THE GUY','A REFERÊNCIA'))})[C.jugador.rol||'titular']; }   // §2z249: function y no const — la píldora del HUD la llama al pintar el lobby
 function otraTemporada(destino){
   const notaPromAnterior=notaPromedio(est().misPartidos);   // §2z15
   /* §2z29 EL HISTORIAL: la temporada que cierra queda guardada entera (liga, club, la línea regular
@@ -27141,18 +27068,6 @@ function comprarItem(id){
 /* LOS SEIS, con los nombres de El Draft (los del básquet de acá) y una frase que dice QUÉ
    CLASE DE JUGADOR SOS. ⚠️ La frase no es una aclaración: no explica un número ni repite el
    título — es lo único que separa a un CANDADO de un TANQUE cuando no se muestran skills. */
-/* §2z29 los nombres de la identidad emergente (el motor vive en 01q, sin i18n) */
-const IDENTIDAD_TXT={
-  formacion:    L('EN FORMACIÓN','IN THE MAKING','EM FORMAÇÃO'),
-  francotirador:L('FRANCOTIRADOR','SHARPSHOOTER','FRANCO-ATIRADOR'),
-  anotador:     L('ANOTADOR','SCORER','PONTUADOR'),
-  encarador:    L('ENCARADOR','SLASHER','INFILTRADOR'),
-  armador:      L('ARMADOR','PLAYMAKER','ARMADOR'),
-  tresyd:       L('3&D','3&D','3&D'),
-  candado:      L('CANDADO','LOCKDOWN','CADEADO'),
-  estrella:     L('ESTRELLA','STAR','ESTRELA'),
-  todoterreno:  L('TODOTERRENO','ALL-AROUND','FAZ-TUDO'),
-};
 const ARQ_TXT={
   tirador:    L('TIRADOR','SHOOTER','ARREMESSADOR'),
   dribbler:   L('DRIBBLER','DRIBBLER','DRIBLADOR'),
@@ -28901,7 +28816,7 @@ $l('betaMenuFeed').onclick=()=>{ cerrarBetaMenu(); abrirBetaVelo('feedback'); };
 /* §2z30 la card compartible (18a) — la pieza vive afuera y recibe lo que necesita */
 const CARD=instalarCard({
   get C(){ return C; }, est, clubDe, ligaDe, LIGAS, escudoSVG, t, L, fdec, avisar, verQueSeVe, notaPromedio, miTabla,
-  ICONO_PATH, IDENTIDAD_TXT,
+  ICONO_PATH, rolTxt,   // §2z249: la card dice tu rol
   clubEn:(id,ligaId)=>{ const liga=LIGAS[ligaId]; return (liga?clubPorId(liga.clubes,id):null)||maestroClub(id)||null; },
   /* §12: los textos de la selección, para la banda de la card de carrera */
   torneoSelTxt:(k)=>selTorneoTxt(k),

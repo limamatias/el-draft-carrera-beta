@@ -475,6 +475,7 @@
   #carta .pildoras{display:flex;flex-wrap:wrap;gap:6px}
   #carta .pil{padding:5px 11px;border-radius:999px;background:var(--chip);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--tinta2)}
   #carta .pil.ok{color:var(--ok)} #carta .pil.mal{color:var(--mal)}
+  #carta .pil.skill.mal{border-color:rgba(224,108,90,.5);color:var(--mal)}   /* 2026-09-13 (su caza: «Tierra de nadie» −2 TIRO en verde): el skill pintaba verde encima del rojo de la rama */
   #carta .pil.skill{border:1px solid rgba(125,208,135,.5);color:var(--ok)} /* 2026-09-10: el skill se veía más que la relación (15 px) · 2026-09-12 (su caza, dos veces: «+2 FÍSICO» y «+6 ⚡» con dos tamaños; y en el HOSPITAL DE NIÑOS "la palabra de la rama positiva se ve más grande que la de la roja" — la regla de 15 px seguía viva aunque el comentario decía lo contrario): mismo cuerpo que las demás, se distingue por el borde y el color */
   #carta .seguir{font-family:inherit;font-weight:700;letter-spacing:1.5px;border:0;border-radius:12px;min-height:48px;width:100%;
                  font-size:20px;color:#10151f;background:var(--naranja);margin-top:8px;padding:0 16px}
@@ -1955,7 +1956,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='729dd0b14e';
+const BUILD='dbd5b7945c';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -17048,10 +17049,15 @@ function todasTapadas(){
   const t=G.tiro; if(!t||!t.blanco||t.blanco.tipo==='tiro') return false;
   return !!formaTapada('arriba') && !!formaTapada('medio') && !!formaTapada('abajo');
 }
+/* §2z261 (su caza 2026-09-13: «en algunos saques del costado un rival cerca TE TAPA TODO… cuando hay varios jugadores cerca»): la salida
+   del globo era el primer CUARTO de la línea — en un pase de 10 m, dos metros y medio adelante tuyo, así que el que marcaba a otro a dos
+   pasos tapaba el globo a todos. La mano que tapa la salida es la que tenés DELANTE (§2z39.5): un cuerpo (40·ESC), o el cuarto si el
+   pase es más corto. El tenso y el picado no cambian. */
+const salidaGlobo=(desde,cae)=>[[0,Math.min(0.25,40*ESC()/Math.max(1,dist(desde,cae)))]];
 function formaTapada(forma){
   const t=G.tiro; if(!t||!t.blanco||t.blanco.tipo==='tiro') return null;
   const desde=G.vos, cae=caeDelTiro();
-  const zonasR = forma==='abajo' ? [[0,0.25]] : forma==='medio' ? [[0,1]] : [[0.4,0.8]];
+  const zonasR = forma==='abajo' ? salidaGlobo(desde,cae) : forma==='medio' ? [[0,1]] : [[0.4,0.8]];   /* §2z261 */
   for(const df of [G.defs[1],G.defs[2]]){
     if(!df || dist(df,desde)<40) continue;
     if(forma==='abajo' && G.corrida && df===G.corrida.ch && !G.corrida.llego) continue;
@@ -17261,7 +17267,7 @@ function lanzar(zona){
        cierre del volado de abajo (¿llega el defensor a tiempo?), que mira el tiempo y no un radio fijo;
        queda sólo la salida (0-25 %, la mano levantada delante tuyo). (2) El que persigue al que corta
        corre de espaldas a la pelota: no roba en el vuelo, en ninguna forma. */
-    const zonasR = forma==='abajo' ? [[0,0.25]] : forma==='medio' ? [[0,1]] : picadoLargo ? [[0.25,0.9]] : [[0.4,0.8]];   // §2z210: el picado largo se roba en casi todo el pique
+    const zonasR = forma==='abajo' ? salidaGlobo(desde,cae) /* §2z261 */ : forma==='medio' ? [[0,1]] : picadoLargo ? [[0.25,0.9]] : [[0.4,0.8]];   // §2z210: el picado largo se roba en casi todo el pique
     for(const df of [G.defs[1],G.defs[2]]){
       if(!df || dist(df,desde)<40) continue;
       if(forma==='abajo' && G.corrida && df===G.corrida.ch && !G.corrida.llego) continue;   // de espaldas, corriendo al otro: el GLOBO le pasa por arriba (su precisión: un tenso a la altura del cuerpo lo para igual)

@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='6f25a0f684';
+const BUILD='725a43e05b';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -13693,6 +13693,14 @@ function sponsorPedido(s){
 }
 const sponsorCumple=(s,c)=>(!s.pide.nota||c.nota>=s.pide.nota)&&(!s.pide.hinchada||c.hinchada>=s.pide.hinchada)
   &&(!s.pide.nivel||c.nivel>=s.pide.nivel);
+/* §2z259 DOS VARAS: UNA PARA FIRMAR Y OTRA, MUCHO MÁS BAJA, PARA MANTENERLO (su corte 2026-09-13, cuando a su novia le quedó un
+   sponsor EN RIESGO con un partido de 7 y pico: "lo que pide es un montón; los límites para perderlo deberían ser mucho más bajos
+   que los de obtenerlo — que te vaya realmente mal"). Para mantener: la nota media 1,5 abajo, una estrella menos, y la hinchada en
+   40 — el número con el que arrancás en un club nuevo (RELACIONES_NEW_BOSS), así cambiar de equipo no te lo saca (su segunda caza). */
+const SPONSOR_MANTIENE = { nota: -1.5, nivel: -1, hinchada: 40 };
+const sponsorMantiene=(s,c)=>(!s.pide.nota||c.nota>=s.pide.nota+SPONSOR_MANTIENE.nota)
+  &&(!s.pide.hinchada||c.hinchada>=SPONSOR_MANTIENE.hinchada)
+  &&(!s.pide.nivel||c.nivel>=s.pide.nivel+SPONSOR_MANTIENE.nivel);
 /* ══ §2z246.1 LA CUENTA DE EL DRAFT EN /carrera (2026-09-14, su pedido: "es clave que la partida esté conectada a la cuenta de
    Google… incluso en la portada de /carrera tiene que estar el botón para loguearte, como está en El Draft" — y su corte: "crear
    una partida NO pide cuenta… es recomendado, pero no pide").
@@ -26881,8 +26889,9 @@ function evaluarSponsors(){
   const s=sponsorsEstado(), c=sponsorCtx();
   /* los que tenés: SPONSOR_GRACIA partidos seguidos sin cumplir y se van */
   for(const x of [...s.tengo]){ const sp=SPONSORS.find(y=>y.id===x.id); if(!sp) continue;
-    if(sponsorCumple(sp,c)) x.fallas=0;
-    else if((x.fallas=(x.fallas||0)+1)>=SPONSOR_GRACIA){ s.tengo=s.tengo.filter(y=>y!==x); s.avisos.push({id:sp.id,tipo:'baja'}); } }
+    if(sponsorMantiene(sp,c)) x.fallas=0;   // §2z259: la vara de mantener, no la de firmar
+    else if(!x.fallas++){ x.riesgoVisto=false; }   // 2026-09-13: entró en riesgo — el puntito se prende hasta que abras la grilla
+    if(x.fallas>=SPONSOR_GRACIA){ s.tengo=s.tengo.filter(y=>y!==x); s.avisos.push({id:sp.id,tipo:'baja'}); } }
   /* y uno nuevo por partido: el más grande que hoy cumplas. 2026-09-12 (su corte: "está MAL que puedas tener hasta 3 a la vez;
      la idea es que puedas ir acumulando todos"): sin tope — los ocho se pueden tener juntos */
   {
@@ -26969,6 +26978,7 @@ function abrirPedir(){
    estado que dice una cosa sola —cuánto paga, o EN RIESGO—, nunca las dos. */
 function abrirSponsors(){
   const sp=sponsorsEstado(), mios=new Map(sp.tengo.map(x=>[x.id,x]));
+  for(const x of sp.tengo) if(x.fallas) x.riesgoVisto=true;   /* 2026-09-13 (su caza: "el puntito no tiene forma de sacarse"): abrir la grilla lo apaga */
   /* 2026-09-12 (su caza: "¿qué es ese 3?"): sin tope no hay cuenta — cuáles tenés de los ocho ya lo dice la grilla */
   $l('sponsorsRot').textContent=t(L('SPONSORS','SPONSORS','PATROCÍNIOS'));
   $l('sponsorsTotal').classList.toggle('vacio',!sp.tengo.length);
@@ -26979,7 +26989,7 @@ function abrirSponsors(){
     return '<div class="spCaja'+(x?(x.fallas?' enRiesgo':''):' vacia')+'"><span class="n">'+t(y.nom)+'</span>'+val+'</div>'; }).join('');
   $l('sponsorsTotal').innerHTML='<span>'+t(L('POR PARTIDO','PER GAME','POR JOGO'))+'</span><b>+'+fplata(sponsorsPaga())+'</b>';
   const v=$l('sponsors'); v.classList.remove('oculto'); verQueSeVe('sponsors','Los sponsors');
-  $l('sponsorsOk').onclick=()=>v.classList.add('oculto');
+  $l('sponsorsOk').onclick=()=>{ v.classList.add('oculto'); guardar(); pintaLobby(); };
 }
 function abrirCuerpo(despues){
   const p=C.cuerpo; if(!p) return false; C.cuerpo=null;
@@ -27485,7 +27495,7 @@ function pintaSecciones(){
   { const bp=$l('lobPedir'); if(bp) bp.onclick=abrirPedir; }
   /* el puntito: en la barra (VIDA) y en la pestaña CONTRATO */
   /* 2026-09-12 (el barrido): un sponsor EN RIESGO también prende el puntito — la primera noticia era SPONSOR PERDIDO */
-  const spRiesgo=!!(C.sponsors&&(C.sponsors.tengo||[]).some(x=>x.fallas));
+  const spRiesgo=!!(C.sponsors&&(C.sponsors.tengo||[]).some(x=>x.fallas&&!x.riesgoVisto));   // 2026-09-13: un aviso, no un estado
   document.querySelector('#lobby .acc[data-lir=vida]').classList.toggle('aviso',!!(C.renegocia&&!amateur)||spRiesgo);
   document.querySelector('#lobby .tab[data-lp=vida-contrato]').classList.toggle('aviso',!!(C.renegocia&&!amateur)||spRiesgo);
   const ml=e.miLinea, po=e.miLineaPO;

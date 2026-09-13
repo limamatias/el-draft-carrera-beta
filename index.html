@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='d5c7b51c92';
+const BUILD='30be16c949';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -14596,6 +14596,13 @@ function sortearTipo(esPedida){
 /* §2z203 LA VÍA LIBRE TIENE LIBRETOS: los pesos y las perillas del perseguidor y de la ayuda temprana (las cuatro líneas, en DISEÑO) */
 const CARRIL_LIBRETOS={regalo:0.20, perseguidor:0.40, ayuda:0.40};
 const CARRIL_PERSEG_GAP=72, CARRIL_PERSEG_V=150, CARRIL_PERSEG_ESPERA=600, CARRIL_AYUDA_LEE=450;
+/* §2z257 LOS PISOS DE VELOCIDAD ESCALAN CON LA DEFENSA (su caza 2026-09-13 en la mínima de la beta: "tu marca no te corre, pero el de
+   atrás en la contra y el big te corren a una velocidad bastante alta… no es consistente"). Las velocidades de los defensores tenían
+   PISOS fijos (112 el de atrás en la contra, 130–170 el que vuelve, 150 el perseguidor de la vía libre, 60 el protector, 55 los
+   cierres) que a def 24 valían lo mismo que en la LNB de arriba. Ahora cada piso se multiplica por este factor: 0,40 a def 16, ~0,6 en
+   la primera dificultad de la beta (def 24), 1 desde def 41 (★5 de la LNB) — arriba nada cambia. Su corte: "un poquito menos en la
+   primera dificultad, pero que ajusten todos". SIN PELOTA (§2z207/§2z212) queda afuera: su lección es la distancia contra tu corte. */
+const escalaDef=()=>clamp(0.40+0.60*((dif.def||16)-16)/25, 0.40, 1);
 /* §2z207 SIN PELOTA: las perillas (las cuatro líneas, en DISEÑO). En el partido, apagada hasta que la juegue en el banco. */
 const SIN_PELOTA_EN_PARTIDO=true;   // 2026-09-11: la jugó en el banco y la aprobó (v8), así que entra al partido
 /* v2 (su caza jugándola: «es MUY fácil desmarcarte… es como un regalo»): el listón de LIBRE sube de 45 a 55·ESC — casi dos
@@ -15212,7 +15219,7 @@ function armarPosesion(){
          "si no parece abandono de nuestro lado"). */
       G.defs[1].x=W/2+rnd(-W*0.15,W*0.15); G.defs[1].y=lerp(G.vos.y, a.y, 0.30);
       const puesto={x:a.x, y:a.y+60*ESC()}, tVos=dist(G.vos,a)/190, margen=0.25+0.5*Math.max(0,56-(dif.def||16))/56;
-      G.defs[1].vuelve=true; G.defs[1].vTarde=clamp(dist(G.defs[1],puesto)/(tVos+margen), 40, 170);
+      G.defs[1].vuelve=true; G.defs[1].vTarde=clamp(dist(G.defs[1],puesto)/(tVos+margen), 40, 170*escalaDef());   // §2z257
       G.custodio=G.defs[1]; }
     G.comprometido=false; G.custodioLee=null;   // §2z39.27
   }
@@ -17232,7 +17239,7 @@ function lanzar(zona){
       for(const x of G.defs){ if(x===G.marca) continue;
         const q=dist(x,cae); if(q<dd){dd=q;df=x;} }
       if(df){
-        const vCierre=Math.max(55, dif.def*2);          // cerrar es sprint anticipado, no contención
+        const vCierre=Math.max(55*escalaDef(),dif.def*2);          // cerrar es sprint anticipado, no contención
         const alcanza=vCierre*dur;
         const falta=Math.max(1, dd-26*ESC());
         /* §2z49 (su video: "recibe presionado" en casi todo pase largo, y su corte "lo que sirva para mejorar la
@@ -17324,7 +17331,7 @@ function lanzar(zona){
                 {j:cD,x0:cD.x,y0:cD.y,x1:rod.x+8,y1:rod.y,t:0,dur:tD}];
       /* §2z205.3: y LOS DEMÁS NO MIRAN — los otros defensores (menos tu marca) cierran hacia donde para, al sprint del volado
          (el calibrado), hasta un cuerpo, durante vuelo + rodado + levantada. El que la levanta decide con ellos ahí. */
-      { const tLev=Math.min(1.6, Math.max(0, Math.min(tC,tD)-(dur+Troll))), Ttot=dur+Troll+tLev, vCierre=Math.max(55,dif.def*2);
+      { const tLev=Math.min(1.6, Math.max(0, Math.min(tC,tD)-(dur+Troll))), Ttot=dur+Troll+tLev, vCierre=Math.max(55*escalaDef(),dif.def*2);
         for(const df of G.defs){ if(df===cD||df===G.marca) continue;
           const dd=dist(df,rod), av=Math.min(Math.max(0,dd-30*ESC()), vCierre*Ttot); if(av<2) continue;
           G.corres.push({j:df,x0:df.x,y0:df.y,x1:df.x+(rod.x-df.x)/dd*av,y1:df.y+(rod.y-df.y)/dd*av,t:0,dur:Math.max(0.2,Ttot)}); } }
@@ -18177,7 +18184,7 @@ function carrilVuelta(desde,hasta){
 function lobVuelta(desde,hasta){
   if(dist(desde,hasta)<=PASE_CORTO() || dist(hasta,aro())>=R3()*1.05) return false;
   let dd=1e9; for(const x of G.defs){ const q=dist(x,hasta); if(q<dd) dd=q; }
-  const alcanza=Math.max(55,dif.def*2)*(dist(desde,hasta)/360);
+  const alcanza=Math.max(55*escalaDef(),dif.def*2)*(dist(desde,hasta)/360);
   return dd-26*ESC()>alcanza && (dd-alcanza)>55*ESC();
 }
 /* §2z207 SIN PELOTA — la inversa del corte: la tiene él, te desmarcás vos y ÉL decide el pase (las cuatro líneas, en DISEÑO).
@@ -18413,7 +18420,7 @@ function lobLibera(compi,p){
     const q=dist(x,p); if(q<dd){dd=q;df=x;} }
   if(!df) return dist(p,aro())<R3()*1.05;
   const dur=dist(G.vos,p)/360;
-  const alcanza=Math.max(55,dif.def*2)*dur;
+  const alcanza=Math.max(55*escalaDef(),dif.def*2)*dur;
   /* §2z49: A MÁS DE DOS CUERPOS (60·ESC) NADIE LLEGA — el pase largo bien leído llega limpio; el que cierra contesta
      el tiro después (cierraAlArmado), no la recepción. Misma regla que el cierre real (12-lanzar). */
   if(dd>60*ESC()) return dist(p,aro())<R3()*1.20;
@@ -18427,7 +18434,7 @@ function lobLibera(compi,p){
 function receptorEscuda(compi,p,df,dur){
   const dR=dist(compi,p), dD=dist(df,p);
   const vR=(G.corrida&&G.corrida.j===compi&&!G.corrida.llego)?G.corrida.v:95;
-  const vD=Math.max(55,dif.def*2);
+  const vD=Math.max(55*escalaDef(),dif.def*2);
   const tR=Math.max(0,dR-26*ESC())/vR, tD=Math.max(0,dD-26*ESC())/vD;
   if(tR<=Math.min(dur,tD)) return true;                                   // (a) llega antes
   if(dR<dD){ const a1=Math.atan2(compi.y-p.y,compi.x-p.x), a2=Math.atan2(df.y-p.y,df.x-p.x);
@@ -18460,7 +18467,7 @@ function paseRapidoLibera(compi,p){
   /* §2z38.3 (su video: el cartel decía "lo libera" con tres defensores encima): se mide en el punto
      de caída Y en el cuerpo del que recibe — apuntar un poco al costado del montón no lo libera */
   for(const x of G.defs){ if(x===G.marca) continue; dd=Math.min(dd,dist(x,p),dist(x,compi)); }
-  const alcanza=Math.max(55,dif.def*2)*(dist(G.vos,p)/520);
+  const alcanza=Math.max(55*escalaDef(),dif.def*2)*(dist(G.vos,p)/520);
   return (dd-alcanza)>45*ESC();
 }
 /* UN SOLO MODELO DE CALIDAD DE TIRO PARA TODOS (su cierre 2026-08-23: "que decida
@@ -18520,7 +18527,7 @@ function tiraElCompi(compi,p,msArmado){
   const ct=G.cierraTarde;
   const llegaPronto=(d)=>!!(ct && ct.df===d && ct.j===compi && (dist(d,p)-34*ESC())/Math.max(1,ct.v)<0.6);
   const ms=msArmado===undefined?armadoDe('medio',compi):msArmado;   // sin dato, el tenso: el cartel de apuntar promete lo mejor
-  const cubre=Math.max(55,dif.def*2)*Math.max(0,ms-380)/1000;         // lo que el cierre corre durante el armado
+  const cubre=Math.max(55*escalaDef(),dif.def*2)*Math.max(0,ms-380)/1000;         // lo que el cierre corre durante el armado
   if(G.defs.every(d=>dist(d,p)-cubre>60*ESC() && !llegaPronto(d))) return true;
   const qCompi=calidadDesde(p,false), qTuya=calidadDesde(G.vos,true);
   /* tira si su tiro es BUENO en sí (amarillo alto para arriba), o decente Y claramente
@@ -18581,7 +18588,7 @@ function cierraAlArmado(j,ms){
     const q=dist(x,j); if(q<dd){dd=q;df=x;} }
   if(!df) return;
   const durS=(ms-reaccion)/1000;
-  const paso=Math.max(55,dif.def*2)*durS;                          // el sprint del volado
+  const paso=Math.max(55*escalaDef(),dif.def*2)*durS;                          // el sprint del volado
   const avanza=Math.min(Math.max(0,dd-30*ESC()), paso);            // se planta a cuerpo
   if(avanza<2) return;
   const ang=Math.atan2(j.y-df.y,j.x-df.x);
@@ -20624,11 +20631,11 @@ function frame(now){
         /* §2z203 EL PERSEGUIDOR, conduciendo: nace atrás y a los CARRIL_PERSEG_ESPERA ms te corre a CARRIL_PERSEG_V; te sigue a
            un cuerpo y medio (40·ESC) y no cobra — el de atrás apura, no baja (§2z158). Si frenás te alcanza (la regla de parado). */
         if(G.carrilVar==='perseguidor' && esMarca){
-          if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>40*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*dt, d0-40*ESC());
+          if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>40*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*escalaDef()*dt, d0-40*ESC());
             df.x+=(G.vos.x-df.x)/d0*vP; df.y=Math.max(df.y+(G.vos.y-df.y)/d0*vP, pisoDef()); cuerpoPantalla(df); }
           continue; }
         if(G.tipo==='contra' && esMarca && df.y>G.vos.y+10*ESC()){
-          const vT=Math.max(v, clamp(dif.def*2.6, 112, 140)*dt);
+          const vT=Math.max(v, clamp(dif.def*2.6, 112*escalaDef(), 140)*dt);   // §2z257
           if(d0>40*ESC()){ df.x+=(G.vos.x-df.x)/d0*vT; df.y=Math.max(df.y+(G.vos.y-df.y)/d0*vT, pisoDef()); cuerpoPantalla(df); }
           continue; }
         if(d0>26*ESC()){ df.x+=(G.vos.x-df.x)/d0*v;
@@ -21091,7 +21098,7 @@ function frame(now){
       } else if(!G.comprometido) G.custodioLee=null;
       const meta = G.comprometido ? G.vos
         : {x:a2.x+(G.vos.x-a2.x)/dVA*60*ESC(), y:a2.y+(G.vos.y-a2.y)/dVA*60*ESC()};
-      const vCu=(G.comprometido ? Math.max(55,dif.def*2) : cu.vuelve ? (cu.vTarde||Math.max(130,dif.def*1.6)) : dif.def*1.6)*dt;   // §2z106: el que vuelve tarde sprintea hasta su puesto · §2z147: o a la velocidad de la desigualdad
+      const vCu=(G.comprometido ? Math.max(55*escalaDef(),dif.def*2) : cu.vuelve ? (cu.vTarde||Math.max(130*escalaDef(),dif.def*1.6)) : dif.def*1.6)*dt;   // §2z257   // §2z106: el que vuelve tarde sprintea hasta su puesto · §2z147: o a la velocidad de la desigualdad
       const dd=dist(cu,meta), tope=G.comprometido?26*ESC():4;
       /* el custodio plantado también tiene latch (sólo sin comprometer: el sprint del
          closeout no se congela) — llegó al puesto y se queda; re-corre pasando 14·ESC */
@@ -21168,7 +21175,7 @@ function frame(now){
           /* §2z212 v4: cortando SIN pelota, el protector no trota — CIERRA (el sprint de cierre de siempre, 2·def, piso 120).
              Vos vas a 170 y él salía a 60-110: llegabas antes siempre, que es el regalo que él cazó. */
           const sinP=!!(G.desmarque&&G.desmarque.sp);
-          const vP=(sinP?Math.max(120,(dif.def||16)*2):Math.min(110,Math.max(60,(dif.def||16)*1.6))*(G.rot.suave?0.7:1))*dt, dM=dist(prot,meta);
+          const vP=(sinP?Math.max(120,(dif.def||16)*2):Math.min(110,Math.max(60*escalaDef(),(dif.def||16)*1.6))*(G.rot.suave?0.7:1))*dt, dM=dist(prot,meta);
           if(dM>3){ prot.x+=(meta.x-prot.x)/dM*Math.min(vP,dM); prot.y+=(meta.y-prot.y)/dM*Math.min(vP,dM); }
           if(portador===G.vos && G.fase==='conduzco' && !G.rot.cobro && dist(prot,G.vos)<26*ESC()){ G.rot.cobro=true;
             /* §2z39.19 (su regla: "no sólo el nivel del rival, sino el tuyo — a favor"): el FÍSICO decide el
@@ -21272,7 +21279,7 @@ function frame(now){
         if(!profundo) P.dropLee=null;
         if(profundo && now>=P.dropLee){
           const ddD=dist(P.d,G.vos);
-          if(ddD>26*ESC()) mv3(P.d, G.vos, Math.max(55,dif.def*2));
+          if(ddD>26*ESC()) mv3(P.d, G.vos, Math.max(55*escalaDef(),dif.def*2));
           else if(Math.random()<FALTA_AL_CHOCAR){ flash(P.d);   /* §2z227 */
             irALaLinea(2,t(L('Te bajaron conduciendo — dos libres.','They hacked you on the drive — two free throws.','Te derrubaram na condução — dois lances livres.'))); }
           else { flash(P.d); veredicto(t(L('¡MANOTAZO!','STRIPPED!','TAPA NA BOLA!')),'mal');
@@ -21417,7 +21424,7 @@ function frame(now){
       /* §2z203 EL PERSEGUIDOR, parado: frenar es dejar que te alcance — llega a 24·ESC a CARRIL_PERSEG_V y NO roba (viene de atrás:
          en el tiro cuenta la mitad, §2z112, pero a esa distancia igual te contesta y la tapa del que suelta tarde existe) */
       else if(G.carrilVar==='perseguidor'){
-        if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>24*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*dt, d0-24*ESC());
+        if(now-G.carrilT0>CARRIL_PERSEG_ESPERA && d0>24*ESC()){ const vP=Math.min(CARRIL_PERSEG_V*escalaDef()*dt, d0-24*ESC());
           G.marca.x+=(G.vos.x-G.marca.x)/d0*vP; G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/d0*vP, aro().y+20*ESC()); cuerpoPantalla(G.marca); } }
       else if(d0>piso){ G.marca.x+=(G.vos.x-G.marca.x)/d0*v;
         G.marca.y=Math.max(G.marca.y+(G.vos.y-G.marca.y)/d0*v, aro().y+20*ESC());

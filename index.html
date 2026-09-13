@@ -80,6 +80,12 @@
      slalom: "el cartel en negro tiene que ir ARRIBA — tapa todo, es un desastre"): en el
      slalom los conos ocupan la mitad de abajo entera, y el aviso caía justo encima. */
   #chips.arriba{bottom:auto;top:20%}
+  /* 2026-09-13 (su pedido: «si DETECTA que iniciaste la gomera desde un lugar donde no te da el espacio y errás, un cartelito que se vea»):
+     por encima del feed (z 9), naranja lleno, arriba del medio; entra y se va solo */
+  #avisoCancha{position:fixed;left:16px;right:16px;top:28%;z-index:20;pointer-events:none;text-align:center;opacity:0;transform:translateY(8px);
+       transition:opacity .25s,transform .25s;background:var(--naranja);color:#10151f;font-size:17px;font-weight:700;letter-spacing:1px;line-height:1.25;
+       padding:10px 14px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.55)}
+  #avisoCancha.ver{opacity:1;transform:none}
   /* §2z123: con la barra del tiro viva, el relato y los chips no la tapan */
   body.conBarra #relato, body.conBarra #chips{visibility:hidden}
   #chipJugada{background:var(--chip);border:1px solid rgba(255,150,51,.5);color:var(--tinta);
@@ -1939,7 +1945,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='8f19488037';
+const BUILD='3b0a02d82f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -1956,6 +1962,7 @@ const BUILD='8f19488037';
   <div id="relato"></div>
 </div>
 <div id="chips"><div id="chipJugada"></div></div>
+<div id="avisoCancha"></div>
 
 <div id="feed" class="oculto">
   <div id="feedMarcador">
@@ -14659,6 +14666,7 @@ const VEL_DESMARQUE=170;
    moviste»): la espera hasta tu primer toque 1,5 → 3 s y la paciencia desde el toque 2,5 → 3,5 s (tope 6,5 s, ~40 % de un reloj de 15) */
 const SINP={ventana:3500, lectura:3000, leeMs:250, libre:55, postura:34, cuerpo:26, enPartido:0.50};
 function armarPosesion(){
+  G.tiroBorde=false;   // 2026-09-13: el aviso de la gomera sin lugar es de UNA posesión
   G._hintContado=false;   // el hint de arrastre cuenta por posesión (18-frame)
   medirHud();      // el techo de la cancha es el HUD real de ESTA pantalla, medido ahora
   const a=aro(), d=dif.dist/100;
@@ -16269,11 +16277,11 @@ c.addEventListener('pointermove',e=>{
         G.bola={x:G.vos.x, y:G.vos.y}; G.boteo=null;
         G.flickIni={x:G.pend.x0, y:G.pend.y0}; G.pend=null;
       } else {
-        G.drag={x0:G.pend.x0,y0:G.pend.y0,x:P.x,y:P.y,t0:G.pend.t0};
+        G.drag={x0:G.pend.x0,y0:G.pend.y0,x:P.x,y:P.y,t0:G.pend.t0,borde:dedoEnBorde(e)};
         G.pend=null; G.fase='apunto';
       }
     }
-  } else if(G.fase==='apunto'&&G.drag){ G.drag.x=P.x; G.drag.y=P.y; }
+  } else if(G.fase==='apunto'&&G.drag){ G.drag.x=P.x; G.drag.y=P.y; if(dedoEnBorde(e)) G.drag.borde=true; }
   /* §2z193 vivió una hora (2026-09-10): el primer arrastre largo de la contra se volvía la gomera, y jugándolo "me tomó el
      pase mal" — el arrastre de bote también se pasa de largo. Volvió a como estaba: la gomera se pide frenando. */
 });
@@ -16480,9 +16488,20 @@ function intencion(dx,dy,largo){
     return {tipo:'lob', p:cae};
   return {tipo:'pase', p:cae};
 }
+/* 2026-09-13 (su caza con su novia, pegada a la línea: "no pudo arrastrar para el costado"): la gomera se arrastra desde cualquier
+   lugar, pero jugando por inercia se arranca desde el jugador. Si apuntando el dedo llegó al borde de la pantalla (se quedó sin
+   lugar) y ese tiro se erra, finPosesion lo avisa con un cartel que se ve (hasta tres veces por teléfono). */
+function dedoEnBorde(e){ const b=14; return e.clientX<b || e.clientX>innerWidth-b || e.clientY>innerHeight-b; }
+function avisoGomeraBorde(){
+  if(yaVisto('gomeraBorde',3)) return; marcarVisto('gomeraBorde');
+  const el=$('#avisoCancha'); if(!el) return;
+  el.textContent=t(L('La gomera se arrastra desde cualquier lugar de la pantalla','You can pull the slingshot from anywhere on the screen','O estilingue se puxa de qualquer lugar da tela'));
+  el.classList.add('ver'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('ver'),4200);
+}
 function apuntar(dx,dy,largo){
   if(G.tipo==='libre'){ tirarLibre(dx,dy,largo); return; }
   const mejor=intencion(dx,dy,largo);
+  G.tiroBorde = mejor.tipo==='tiro' && !!(G.drag&&G.drag.borde);
   /* §2z39.16 (su corte: "ni siquiera te debería dejar tirar al aro en el drill; sin querer tiré"): en el
      drill de visión el tiro no existe — la pelota se queda y el chip lo dice. El globo sí: es un pase. */
   if(mejor.tipo==='tiro' && G.esDrill && window.drillEsVision && window.drillEsVision()){
@@ -19342,6 +19361,7 @@ function clutchOk(c){ return !!c && (c.ok!==undefined ? !!c.ok : !!c.anoto); }
 /* al cerrar TU posesión: el resultado entra al feed y el guion sigue */
 function finPosesion(anoto, resumen){
   if(G.fase==='fin'||G.fase==='feed') return;
+  if(G.tiroBorde){ G.tiroBorde=false; if(!anoto) avisoGomeraBorde(); }   // 2026-09-13: la gomera que se quedó sin lugar (10)
   /* 2026-09-12: la defensiva GANADA (robo · tapa · tiro molestado · carga: `D.merito`) se cuenta al cerrar la escena, una vez — es lo que pide la misión */
   if(G.tipo==='defensa' && G.defensa && G.defensa.merito && !G.defensa.contada){ G.defensa.contada=true; G.defGanadas=(G.defGanadas||0)+1; }
   if(G.enPedida){ if(anoto) G.pedidasResueltas=(G.pedidasResueltas||0)+1; G.enPedida=false; }   // 2026-09-10: la pedida que terminó en algo

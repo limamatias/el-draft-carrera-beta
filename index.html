@@ -554,7 +554,8 @@
 
   /* chicos y al borde (su caza 2026-08-28: la pausa "me queda tapando todo" — el
      marcador simétrico llegó hasta los botones a 375px): 30px, pegados a la esquina */
-  #btnAjustes{position:fixed;right:6px;top:11px;z-index:7;background:rgba(20,27,44,.8);color:var(--tinta2);
+  /* su caza 2026-09-13 («el botón de opciones durante el relato queda tapado»): estaba en 7, debajo del feed (9); va con la pausa, en 11 */
+  #btnAjustes{position:fixed;right:6px;top:11px;z-index:11;background:rgba(20,27,44,.8);color:var(--tinta2);
               border:1px solid rgba(255,255,255,.14);border-radius:9px;width:30px;height:30px;font-size:15px;padding:0}
   /* la pausa vive ARRIBA del feed (z 9): se puede frenar en cualquier momento del partido */
   #btnPausa{position:fixed;left:6px;top:11px;z-index:11;background:rgba(20,27,44,.8);color:var(--tinta2);
@@ -1930,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='f9f974c6ac';
+const BUILD='d5c7b51c92';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

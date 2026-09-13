@@ -1931,7 +1931,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='817090878b';
+const BUILD='a15437cdd6';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -25375,7 +25375,7 @@ function pintaLobby(){
        continental — el marcador del último no miraba los partidos `am`, quedaba vacío y el renglón salía con las dos
        etiquetas pegadas. Ahora el continental también trae su marcador; y sin marcador, "Tuyos:" no se escribe. */
     const marcAM=()=>{ const j=ultimo.am?misJuegosAMyIC(e).find(x=>x.etapa===ultimo.etapa&&x.n===ultimo.n):null;
-      return j&&j.res?{local:j.local?miIdU:j.rival, visita:j.local?j.rival:miIdU, ptsLocal:j.res.ptsLocal, ptsVisita:j.res.ptsVisita}:null; };
+      return j&&j.res?{local:j.local?miIdU:j.rival, visita:j.local?j.rival:miIdU, ptsLocal:j.res.ptsLocal, ptsVisita:j.res.ptsVisita, neutral:!!j.neutral}:null; };
     const marc=ultimo.am ? marcAM()
       : ultimo.sel
       ? (e.seleccion&&e.seleccion.juegos||[]).filter(g=>g.jugado&&g.j===ultimo.n&&(g.local===paisU||g.visita===paisU)).pop()
@@ -25389,8 +25389,11 @@ function pintaLobby(){
       { const a=clubDe(miIdU), b=clubDe(soyLocal?marc.visita:marc.local);
         /* 2026-09-10 (su corte: "devolvemos las siglas: el escudo chiquito no siempre te muestra quién es, sobre todo si es
            receta; el escudo en todas menos cuando se pasa"): las dos variantes; encajarGoteo1 mide y elige */
-        const marca=siglaEntre(a,[b]).txt+' '+mis+'–'+sus+' '+siglaEntre(b,[a]).txt, cls=mis>sus?'ok':mis<sus?'mal':'';
-        m='<b class="'+cls+'">'+escudito(a.id)+marca+escudito(b.id)+'</b> — ';   // §2z185 · el resultado en su color
+        /* su caza 2026-09-13 («el resultado del último partido siempre muestra a tu equipo primero, incluso de visitante»): como en la
+           tele (2026-09-12, el marcador del partido), el LOCAL a la izquierda; en cancha neutral, vos. El color sigue siendo el tuyo. */
+        const izqYo=soyLocal||!!marc.neutral, [iz,de,pIz,pDe]=izqYo?[a,b,mis,sus]:[b,a,sus,mis];
+        const marca=siglaEntre(iz,[de]).txt+' '+pIz+'–'+pDe+' '+siglaEntre(de,[iz]).txt, cls=mis>sus?'ok':mis<sus?'mal':'';
+        m='<b class="'+cls+'">'+escudito(iz.id)+marca+escudito(de.id)+'</b> — ';   // §2z185 · el resultado en su color
         mSin='<b class="'+cls+'">'+marca+'</b> — '; }
     }
     /* §2z39.66 (su caza: "¿siempre dice anoche?"): sí, decía. El lobby vive antes del próximo partido, así que el

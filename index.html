@@ -1917,7 +1917,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='5c40a5da6e';
+const BUILD='c455c147f2';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -16008,7 +16008,7 @@ function audioDormir(){ if(AU.ctx&&AU.ctx.state==='running') AU.ctx.suspend(); }
 document.addEventListener('visibilitychange',()=>{
   if(!AU.ctx) return;
   if(document.hidden) audioDormir();
-  else if(AU.ctx.state==='suspended') AU.ctx.resume();
+  else if(AU.ctx.state==='suspended'&&pref('sonido',true)) AU.ctx.resume();   /* su caza 2026-09-13: volver a la pestaña prendía el murmullo con SONIDO OFF */
 });
 window.addEventListener('pagehide', audioDormir);
 
@@ -20493,7 +20493,9 @@ function frame(now){
     // proporcional y en cualquier dirección; el jugador corre atrás de su bote) o sostenido
     if(G.fase==='conduzco'){
       /* cuanto más dura el dribbling, más te cansás y más rápido cierran: dar vueltas cuesta */
-      G.tDrive=(G.tDrive||0)+dt;
+      /* su caza 2026-09-13 («el tutorial de dribble a veces es MUY lento»): el cansancio castiga al que tarda, y en el tutorial
+         tarda el que está aprendiendo — a los 15 s iba a 1/4 de velocidad. En un tutorial no hay cansancio. */
+      if(!G.tut) G.tDrive=(G.tDrive||0)+dt;
       if(dif.drive==='toques'){
         if(G.boteo){ const b=G.boteo; b.t+=dt/b.dur; const k=Math.min(1,b.t);
           G.bola={x:lerp(b.x0,b.x1,k), y:lerp(b.y0,b.y1,k)};
@@ -29675,20 +29677,30 @@ function salir(){
    hasta que hacés el gesto en ESTE intento (T.gestoHecho); si el intento salió mal, el
    siguiente lo trae de vuelta. Recién el acierto lo apaga para siempre (tutg_<k> en vistos,
    viaja con el save). Cada verbo tiene su detección de "ya lo hizo". ── */
+/* su caza (2026-09-13, captura del tutorial de PASAR): el rótulo del gesto se dibujaba en la cancha abajo del jugador y caía
+   encima de los cuerpos, mientras arriba el renglón del relato repetía la píldora. La instrucción del gesto va AL RENGLÓN DE
+   ARRIBA (#relato, el lugar de las instrucciones) y en la cancha quedan sólo el dedito y la línea. `guia` es lo que pide este
+   frame; cuando deja de pedir, se borra sólo si el renglón sigue diciendo lo nuestro (si el juego ya escribió otra cosa, queda). */
 function dibujar(now){
   if(!T||!T.m||!G.tut) return;
+  const txt=pedirGesto(now), r=$t('relato');
+  if(txt){ if(r.textContent!==txt) relato(txt,false); T.guiaTxt=txt; }
+  else if(T.guiaTxt){ if(r.textContent===T.guiaTxt) relato('',false); T.guiaTxt=null; }
+}
+function pedirGesto(now){
+  let guia=null;
   const k=T.m.k, clave='tutg_'+k;
   /* la pausa de DEFENDER se suelta con tu primer toque (el joystick): el reloj de su
      decisión arranca recién ahí */
   if(k==='defender'&&G.defensa&&G.defensa.espera&&G.joy){ G.defensa.espera=false; G.defensa.tDec=now+(G.defensa.tDecRel||2500); }
   if(G.tutFrenoPide){ const sv0=aPantalla(G.vos);
-    fantasmaToque(sv0.x, Math.min(sv0.y+64,H-40), performance.now(), t(L('TOCÁ para frenar','TAP to stop','TOQUE para parar'))); return; }   // §2z58: con el juego en pausa, el dedito late con el reloj real
-  if(yaVisto(clave)||T.gestoHecho) return;
+    fantasmaToque(sv0.x, Math.min(sv0.y+64,H-40), performance.now()); return t(L('TOCÁ para frenar','TAP to stop','TOQUE para parar')); }   // §2z58: con el juego en pausa, el dedito late con el reloj real
+  if(yaVisto(clave)||T.gestoHecho) return null;
   const hecho=()=>{ T.gestoHecho=true; };
   const sv=aPantalla(G.vos), ar=aPantalla(aro());
   const gomera=(hacia,txt)=>{   // la gomera: arrastrás AL REVÉS del blanco y soltás
     const dx=sv.x-hacia.x, dy=sv.y-hacia.y, l=Math.hypot(dx,dy)||1;
-    fantasmaArrastre(sv.x, sv.y, sv.x+dx/l*80, sv.y+dy/l*80, now, txt);
+    fantasmaArrastre(sv.x, sv.y, sv.x+dx/l*80, sv.y+dy/l*80, now); guia=txt;
   };
   if(k==='tirar'){
     if(G.fase==='espera') gomera(ar, t(L('gomera: arrastrá para atrás y soltá','slingshot: pull back and release','estilingue: puxa pra trás e solta')));
@@ -29708,7 +29720,7 @@ function dibujar(now){
        esquiva a la marca, y acá no hay marca (está en -9999), así que el cálculo del lado mandaba el dedito a
        33° de donde tenés que ir. */
     if(G.fase==='espera'||G.fase==='conduzco'){
-      fantasmaArrastre(sv.x, sv.y, sv.x, sv.y-90, now, t(L('arrastrá y soltá, arrastrá y soltá','drag and release, drag and release','arrasta e solta, arrasta e solta')));
+      fantasmaArrastre(sv.x, sv.y, sv.x, sv.y-90, now); guia=t(L('arrastrá y soltá, arrastrá y soltá','drag and release, drag and release','arrasta e solta, arrasta e solta'));
     }
     else if(G.levanto||G.fase==='apunto'||G.fase==='forma'||G.fase==='vuelo') hecho();
   }
@@ -29719,13 +29731,13 @@ function dibujar(now){
       const dx=ar.x-sv.x, dy=ar.y-sv.y, l=Math.hypot(dx,dy)||1, ux=dx/l, uy=dy/l;
       const sm=aPantalla(G.marca), cruz=(sm.x-sv.x)*(-uy)+(sm.y-sv.y)*ux;   // de qué lado está la marca
       const s=cruz>=0?-1:1, gx=ux*0.55+(-uy)*s*0.85, gy=uy*0.55+ux*s*0.85, gl=Math.hypot(gx,gy)||1;
-      fantasmaArrastre(sv.x, sv.y, sv.x+gx/gl*90, sv.y+gy/gl*90, now, t(L('arrastrá: la pelota va para donde arrastrás','drag: the ball goes where you drag','arrasta: a bola vai pra onde você arrasta')));
+      fantasmaArrastre(sv.x, sv.y, sv.x+gx/gl*90, sv.y+gy/gl*90, now); guia=t(L('arrastrá: la pelota va para donde arrastrás','drag: the ball goes where you drag','arrasta: a bola vai pra onde você arrasta'));
     }
     else if(G.fase==='conduzco'){ T.boteo=true; }   // §2z58: el toque lo pide el paso dos, con el juego frenado
     else if(G.levanto||G.fase==='apunto'||G.fase==='forma'||G.fase==='vuelo') hecho();
   }
   else if(k==='defender'){
-    if(G.joy){ hecho(); return; }
+    if(G.joy){ hecho(); return null; }
     if(G.fase==='defiendo'&&G.defensa){
       const p=aPantalla(G.defensa.portador), lado=p.x>=sv.x?1:-1;
       const y=Math.min(sv.y+60, p.y-70, H-40);   // entre vos y el que viene, sin taparlo (cancha corta)
@@ -29733,9 +29745,10 @@ function dibujar(now){
          dribblear el primer impulso es arrastrar igual"): el bote es arrastrá-y-SOLTÁ y la defensa es apoyá-y-NO-
          SUELTES; venís del tutorial anterior con el dedo entrenado al revés. "apoyá el dedo" no alcanzaba: el que
          suelta se planta y el que viene le pasa por al lado. */
-      fantasmaArrastre(W/2-lado*35, y, W/2+lado*35, y, now, t(L('mantené apretado y deslizá el dedo','hold down and slide your finger','segura apertado e desliza o dedo')));
+      fantasmaArrastre(W/2-lado*35, y, W/2+lado*35, y, now); guia=t(L('mantené apretado y deslizá el dedo','hold down and slide your finger','segura apertado e desliza o dedo'));
     }
   }
+  return guia;
 }
 window.__tutoriales={abrir, jugar, dibujar, get activo(){ return !!(T&&T.m); }};
 })();

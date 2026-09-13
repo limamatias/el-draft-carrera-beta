@@ -1916,7 +1916,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='fea99f5ee8';
+const BUILD='fe4d48463b';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -6562,7 +6562,8 @@ function ctxCarta(u){
   const esc=$C().ultimaEscalera||null;
   let vis=0;   // de visitante seguidos, leídos del fixture desde la próxima fecha
   try{ if(e.fase==='regular'&&e.fixture) for(let i=e.fechaJugada;i<e.fechasTotales;i++){ const f=e.fixture[i]; if(!f) break; const m=f.partidos.find(p=>p.local===e.miClubId||p.visita===e.miClubId); if(!m) continue; if(m.visita===e.miClubId) vis++; else break; } }catch(err){}
-  return {edad:J.edad,nacion:J.nacionalidad||'ar',liga:$C().ligaId,clubId:e.miClubId,nivel:J.nivel||1,rel:J.relaciones,skills:J.skills,
+  return {edad:J.edad,nacion:J.nacionalidad||'ar',liga:$C().ligaId,clubId:e.miClubId,clubNombre:(club&&club.nombre)||'',   // 2026-09-12: para la prosa (te conocen hasta acá)
+    nivel:J.nivel||1,rel:J.relaciones,skills:J.skills,
     plata:J.plata,energia:J.energia,latas:J.latas||0,minutos:J.minutos,rol:J.rol,
     pago:pagoPartido(), tieneVehiculo:['moto','auto','autoLujo','helicoptero'].some(tieneItemFn.bind(null,J)),   // §2z42.3
     fase:e.fase==='terminada'?'receso':e.fase,posicion:pos||0,nClubes:tb.length,racha,
@@ -6843,6 +6844,8 @@ function salidaDe(o){
     s.rivalGrande=!!(typeof SELECCIONES!=='undefined'&&SELECCIONES[o.rival]&&SELECCIONES[o.rival].fuerza>=78);
     s.etapaTxt=typeof SEL_TXT!=='undefined'&&SEL_TXT[o.etapa]?t(SEL_TXT[o.etapa]).toLowerCase():(o.etapa||'');
   }
+  /* 2026-09-12 LA COPA INTERCONTINENTAL: qué partido del grupo es y de dónde es el rival (las cartas del viaje y del rival que nadie vio) */
+  if(o.ic){ s.ic=true; s.icJuego=o.ventana?o.ventana.n:null; const ri=typeof clubIC==='function'?clubIC(o.rival):null; s.rivalCont=ri?ri.cont:null; s.rivalPais=ri?ri.pais:null; }
   /* §2z40.1 (su pedido: "el clásico contra [rival]", "la final de [competencia]"): nombres para la prosa */
   const rc=clubDe(o.rival)||(o.ic?clubIC(o.rival):null); s.rival=rc?(rc.corto||rc.nombre):'';   // los de afuera del padrón (la Copa) tienen ficha en clubIC
   s.competencia=o.tipo==='seleccion'?(typeof nombreTorneoSel==='function'&&$C().selTorneo?nombreTorneoSel($C().selTorneo.torneo):''):o.tipo==='americas'?(o.ic?t(L('la Copa Intercontinental','the Intercontinental Cup','a Copa Intercontinental')):t(L('la Liga de las Américas','the Americas League','a Liga das Américas'))):((typeof LIGAS!=='undefined'&&LIGAS[$C().ligaId]&&LIGAS[$C().ligaId].nombre)||'');   // §2z194: el continental tiene nombre
@@ -7240,6 +7243,18 @@ const CARTAS_PRENSA=[
     {etapa, campeon, afuera} lo arma ultimoPartido (18b). */
  /* 2026-09-12 (su ok a la prosa): la final de la Copa Intercontinental, ganada y perdida. Reusables: la sede es la sorteada ese año y
     nada supone de qué país sos ni de qué liga venís. `u.ic` = {etapa, campeon, sede} lo arma ultimoPartido (18b). */
+ /* 2026-09-12 (su pedido; la prosa con su ok, y su corte al premio: "+7 es un montón"): TE CONOCEN HASTA ACÁ, una vez por copa */
+ { id:'prensa_ic_te_conocen', repite:true, evento:true, unaPorAnio:'ic_te_conocen',
+   cuando:(c)=>!!(c.u&&c.u.ic&&c.u.ic.etapa==='ic-grupo'),
+   gancho:(c)=>{ const s=(c&&c.u&&c.u.ic&&c.u.ic.sede)||'', cl=(c&&c.clubNombre)||'';
+     return L('En el lobby del hotel de '+s+' un chico te espera con una camiseta de '+cl+' que le llegó por correo. No sabés cómo la consiguió.',
+       'In the hotel lobby in '+s+' a kid is waiting for you with a '+cl+' jersey that came in the mail. You have no idea how he got it.',
+       'No saguão do hotel em '+s+' um garoto te espera com uma camisa do '+cl+' que chegou pelo correio. Você não sabe como ele conseguiu.'); },
+   opciones:[
+     {tipo:'segura',label:L('Foto y firma','Photo and autograph','Foto e autógrafo'),desenlaces:[{p:100,remate:null,texto:L('Te saca la foto temblando. Esa noche la sube, y en tu club la comparten todos.','He takes the photo, shaking. That night he posts it, and everyone at your club shares it.','Ele tira a foto tremendo. À noite posta, e no seu clube todo mundo compartilha.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('Regalarle la del próximo partido','Give him your jersey for the next game','Dar a camisa do próximo jogo'),desenlaces:[
+       {p:60,remate:L('Lo subió el club','The club posted it','O clube postou'),texto:L('El club la publica con la foto del chico. En casa se hace viral antes de que te despiertes.','The club posts it with the kid\'s photo. Back home it goes viral before you wake up.','O clube publica com a foto do garoto. Em casa viraliza antes de você acordar.'),ef:{rel:{hinchada:5}}},
+       {p:40,remate:L('Era la única','It was the only one','Era a única'),texto:L('El utilero no tiene otra con tu número. Salís con una sin nombre y el DT no se ríe.','The equipment manager has no other with your number. You go out in a blank one and the coach is not laughing.','O roupeiro não tem outra com seu número. Você sai com uma sem nome e o técnico não ri.'),ef:{rel:{dt:-3}}}]}]},
  { id:'prensa_ic_campeon', repite:true, evento:true,
    cuando:(c)=>c.u.ic&&c.u.ic.etapa==='ic-final'&&c.u.ic.campeon,
    gancho:(c)=>{ const s=(c&&c.u&&c.u.ic&&c.u.ic.sede)||"";
@@ -10036,11 +10051,20 @@ const CARTAS_NBA_A=[
        {p:55,remate:L('Tu nombre en la caja','Your name on the box','Seu nome na caixa'),texto:L('El par sale en marzo y se agota en Buenos Aires en dos días. Tu primo te manda la foto de la fila.','The pair drops in March and sells out in Buenos Aires in two days. Your cousin sends you a photo of the line.','O par sai em março e esgota em Buenos Aires em dois dias. Seu primo te manda a foto da fila.'),ef:{plataX:4,rel:{hinchada:3}}},
        {p:45,remate:L('Quebró en junio','Broke by June','Quebrou em junho'),texto:L('La marca cierra antes de fabricar el segundo color. Te quedan seis pares y un logo que nadie conoce.','The brand folds before making the second colorway. You are left with six pairs and a logo nobody recognizes.','A marca fecha antes de fabricar a segunda cor. Sobram seis pares e um logo que ninguém conhece.'),ef:{plataX:-1,rel:{hinchada:-2}}}]}]},
  { id:'nba_el_sponsor_nacional', de:'nba', peso:100, maxVeces:1, edadMin:19, ligas:['nba'], fondo:'despacho',
+   cuando:(c)=>['ar','uy'].includes(c.nacion),   /* 2026-09-12 (su corte): la yerba, sólo si sos argentino o uruguayo; el resto tiene la del café */
    gancho:L('Una marca de yerba te quiere de cara para toda Sudamérica. Mandan el contrato y un pack de veinte kilos al hotel.','A yerba mate brand wants you as its face for all of South America. They send the contract and a twenty-kilo pack to the hotel.','Uma marca de erva-mate te quer como cara para toda a América do Sul. Mandam o contrato e um pacote de vinte quilos para o hotel.'),
    opciones:[
      {tipo:'segura',label:L('Firmar','Sign','Assinar'),desenlaces:[{p:100,remate:null,texto:L('Tu cara en el paquete, en la góndola del chino de tu vieja.','Your face on the pack, on the shelf of your mom\'s corner store.','Sua cara no pacote, na gôndola do mercadinho da sua mãe.'),ef:{plataX:1,rel:{hinchada:2}}}]},
      {tipo:'apuesta',label:L('Pedir que se filme en tu barrio','Ask them to shoot it in your neighborhood','Pedir que filmem no seu bairro'),desenlaces:[
        {p:65,remate:L('La cancha de tu esquina','The court on your corner','A quadra da sua esquina'),texto:L('Cuarenta personas de producción en la canchita donde aprendiste. Los pibes del barrio salen en el aviso.','Forty crew members on the little court where you learned. The neighborhood kids are in the ad.','Quarenta pessoas da produção na quadrinha onde você aprendeu. Os moleques do bairro aparecem no comercial.'),ef:{rel:{hinchada:6},plataX:2}},
+       {p:35,remate:L('Cuatro vuelos en tres días','Four flights in three days','Quatro voos em três dias'),texto:L('Te dan un día libre para filmar. Lo gastás en aviones y volvés con el aviso hecho y el cuerpo en otro huso horario.','They give you one day off to shoot. You spend it on planes and come back with the ad done and your body in another time zone.','Te dão um dia de folga para filmar. Você gasta em aviões e volta com o comercial feito e o corpo em outro fuso.'),ef:{plataX:-1,energia:-15}}]}]},
+ { id:'nba_el_sponsor_cafe', de:'nba', peso:100, maxVeces:1, edadMin:19, ligas:['nba'], fondo:'despacho',
+   cuando:(c)=>!['ar','uy'].includes(c.nacion),   /* 2026-09-12 (su corte): la de la yerba, sin país — mismos números */
+   gancho:L('Una marca de café te quiere de cara en tu país. Mandan el contrato y diez kilos de café al hotel.','A coffee brand wants you as its face back home. They send the contract and ten kilos of coffee to the hotel.','Uma marca de café te quer como cara no seu país. Mandam o contrato e dez quilos de café para o hotel.'),
+   opciones:[
+     {tipo:'segura',label:L('Firmar','Sign','Assinar'),desenlaces:[{p:100,remate:null,texto:L('Tu cara en el paquete, en el supermercado del barrio de tu vieja.','Your face on the pack, at the supermarket in your mom\'s neighborhood.','Sua cara no pacote, no supermercado do bairro da sua mãe.'),ef:{plataX:1,rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('Pedir que se filme en tu barrio','Ask them to shoot it in your neighborhood','Pedir que filmem no seu bairro'),desenlaces:[
+       {p:65,remate:L('La cancha de tu esquina','The court on your corner','A quadra da sua esquina'),texto:L('Cuarenta personas de producción en la canchita donde aprendiste. Los chicos del barrio salen en el aviso.','Forty crew members on the little court where you learned. The neighborhood kids are in the ad.','Quarenta pessoas da produção na quadrinha onde você aprendeu. As crianças do bairro aparecem no comercial.'),ef:{rel:{hinchada:6},plataX:2}},
        {p:35,remate:L('Cuatro vuelos en tres días','Four flights in three days','Quatro voos em três dias'),texto:L('Te dan un día libre para filmar. Lo gastás en aviones y volvés con el aviso hecho y el cuerpo en otro huso horario.','They give you one day off to shoot. You spend it on planes and come back with the ad done and your body in another time zone.','Te dão um dia de folga para filmar. Você gasta em aviões e volta com o comercial feito e o corpo em outro fuso.'),ef:{plataX:-1,energia:-15}}]}]},
  { id:'nba_la_publicidad', de:'nba', peso:90, maxVeces:2, edadMin:19, ligas:['nba'], fondo:'despacho',
    gancho:L('Un comercial de seguros. Filman en tu único día libre de la semana, diez horas, y te piden que sonrías con una pelota en la mano.','An insurance commercial. They shoot on your one day off this week, ten hours, and ask you to smile holding a ball.','Um comercial de seguros. Filmam no seu único dia de folga da semana, dez horas, e pedem que você sorria com uma bola na mão.'),
@@ -13013,6 +13037,31 @@ const CARTAS_SALIDA=[
     te da ritmo, no toca al rival; sólo la rama mala lo toca (sale a matar). Y sale menos: chance 0,6 → 0,35. Su tercera vuelta ("en la
     final SÍ tiene que salir algo, pero no la misma carta cuatro rondas seguidas"): la final de las Américas tiene SUS cartas
     (`sal_final_am_*`, abajo, chance 1); ésta sigue ocasional, y el sorteo no repite la última carta vista. */
+ /* 2026-09-12 LA COPA INTERCONTINENTAL EN EL TÚNEL (su pedido; la prosa con su ok: "no siempre es en Asia, ni todos tus clubes van a
+    estar en Argentina"): el primer partido es EL VIAJE, el segundo es EL RIVAL QUE NADIE VIO (salvo la G League, que la conoce todo el mundo) */
+ { id:'sal_ic_viaje', de:'salida', peso:350, repite:true, chance:0.9, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.ic&&c.salida.etapa==='ic-grupo'&&c.salida.icJuego===1,
+   gancho:(c)=>{ const s=(c.salida&&c.salida.ciudad)||'';
+     return L('Primer partido de la Copa Intercontinental, en '+s+', lejos de casa. El cuerpo todavía no se acomodó al viaje. En el túnel, el preparador físico te ofrece un café doble.',
+       'First game of the Intercontinental Cup, in '+s+', far from home. Your body still has not caught up with the trip. In the tunnel, the strength coach offers you a double espresso.',
+       'Primeiro jogo da Copa Intercontinental, em '+s+', longe de casa. O corpo ainda não se acostumou com a viagem. No túnel, o preparador físico te oferece um café duplo.'); },
+   opciones:[
+     {tipo:'segura',label:L('Agua y a la cancha','Water, and out you go','Água e pra quadra'),desenlaces:[{p:100,remate:null,texto:L('Salís un poco lento, como todos. Nadie te lo va a reprochar.','You come out a little slow, like everyone. Nobody will hold it against you.','Você sai um pouco lento, como todo mundo. Ninguém vai te cobrar.'),ef:{}}]},
+     {tipo:'apuesta',label:L('El café doble','The double espresso','O café duplo'),desenlaces:[
+       {p:55,remate:L('Despierto','Wide awake','Acordado'),texto:L('Los primeros minutos sos el único de los diez que parece haber dormido.','For the first few minutes you are the only one of the ten who looks like he slept.','Nos primeiros minutos você é o único dos dez que parece ter dormido.'),ef:{partido:{fuego:1}}},
+       {p:45,remate:L('Temblando','Jittery','Tremendo'),texto:L('El café te agarra en la entrada en calor y la primera tirada sale con la mano de otro.','The coffee hits you during warm-ups and your first shot leaves someone else\'s hand.','O café bate no aquecimento e o primeiro arremesso sai com a mão de outro.'),ef:{partido:{frio:1}}}]}]},
+ { id:'sal_ic_desconocido', de:'salida', peso:350, repite:true, chance:0.8, fondo:'tunel',
+   cuando:(c)=>c.salida&&c.salida.ic&&c.salida.etapa==='ic-grupo'&&c.salida.icJuego===2&&!!c.salida.rivalCont&&c.salida.rivalCont!=='gleague',
+   gancho:(c)=>{ const r=(c.salida&&c.salida.rival)||'', P={es:['España','Spain','da Espanha'],lt:['Lituania','Lithuania','da Lituânia'],ly:['Libia','Libya','da Líbia'],ao:['Angola','Angola','de Angola'],
+       rw:['Ruanda','Rwanda','de Ruanda'],jp:['Japón','Japan','do Japão'],lb:['Líbano','Lebanon','do Líbano'],cn:['China','China','da China'],au:['Australia','Australia','da Austrália']}[c.salida&&c.salida.rivalPais]||null;
+     return L('Enfrente está '+r+(P?', de '+P[0]:'')+'. Nadie en el vestuario lo vio jugar nunca; el DT repartió un video de ocho minutos a la mañana.',
+       'Across from you is '+r+(P?', from '+P[1]:'')+'. Nobody in the locker room has ever seen them play; the coach handed out an eight-minute video this morning.',
+       'Do outro lado está o '+r+(P?', '+P[2]:'')+'. Ninguém no vestiário viu esse time jogar; o técnico distribuiu um vídeo de oito minutos de manhã.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Lo miré dos veces"','"I watched it twice"','"Assisti duas vezes"'),desenlaces:[{p:100,remate:null,texto:L('Te sabés de memoria la zurda de su base. El DT lo nota en la entrada en calor.','You know their point guard\'s left hand by heart. The coach notices during warm-ups.','Você sabe de cor a canhota do armador deles. O técnico percebe no aquecimento.'),ef:{rel:{dt:2}}}]},
+     {tipo:'apuesta',label:L('"Lo descubro en la cancha"','"I will figure them out on the court"','"Descubro na quadra"'),desenlaces:[
+       {p:50,remate:L('Nadie te avisó','Nobody told you','Ninguém te avisou'),texto:L('Nadie te explicó cómo te iban a defender, y los primeros tres ataques son tuyos.','Nobody explained how they would guard you, and the first three plays are yours.','Ninguém te explicou como iam te marcar, e os três primeiros ataques são seus.'),ef:{partido:{fuego:1}}},
+       {p:50,remate:L('Tenían un plan','They had a plan','Eles tinham um plano'),texto:L('Juegan una defensa que no viste nunca. La primera pelota te la roban y no te acordás del video.','They play a defense you have never seen. They steal your first touch and you cannot remember the video.','Jogam uma defesa que você nunca viu. Roubam a primeira bola e você não lembra do vídeo.'),ef:{partido:{fuerzaRival:2}}}]}]},
  { id:'sal_anfitrion', de:'salida', peso:350, repite:true, chance:0.35, fondo:'tunel',
    cuando:(c)=>c.salida&&c.salida.anfitrion&&(c.salida.tipo==='seleccion'||c.salida.tipo==='americas'),
    gancho:(c)=>L('Torneo en casa: '+c.salida.competencia+(c.salida.ciudad?', en '+c.salida.ciudad:'')+'. La sala de prensa está llena y todos preguntan lo mismo: "¿Pesa jugar de local?"','Home tournament: '+c.salida.competencia+(c.salida.ciudad?', in '+c.salida.ciudad:'')+'. The press room is packed and everyone asks the same thing: "Does playing at home weigh on you?"','Torneio em casa: '+c.salida.competencia+(c.salida.ciudad?', em '+c.salida.ciudad:'')+'. A sala de imprensa está cheia e todos perguntam a mesma coisa: "Pesa jogar em casa?"'),
@@ -13873,10 +13922,13 @@ function encuadrar(suave){
    Con la heredada deslizando, el encuadre que vale es el DESTINO (camXDest). Medido
    antes del arreglo: ~10% de las marcas nacían afuera, y el elenco heredado quedaba
    oculto en el hasta 0,25·W que el pan corre. */
-function elencoAlEncuadre(){
+function elencoAlEncuadre(heredada){
   if(G.camLat) return;   // la vista ancha arma su propio encuadre (medido: nace limpia)
   const cx=(G.camXDest!=null?G.camXDest:G.camX)||0;
-  const x0=Math.max(MARG()+14, cx+14), x1=Math.min(W-MARG()-14, cx+W-14);
+  /* ⚠️ 2026-09-12 EL SIGNO: aPantalla SUMA camX, así que lo visible en el mundo es [14−cx, W−14−cx] (como 06 con el drill). Con
+     [cx+14, cx+W−14] el clamp metía para adentro de golpe al que ya se veía contra un borde y dejaba afuera al que no se veía. */
+  const x0=Math.max(MARG()+14, 14-cx), x1=Math.min(W-MARG()-14, W-14-cx);
+  const prev=new Map([...G.comps, ...G.defs].map(j=>[j,{x:j.x,y:j.y}]));
   /* ⚠️⚠️ EL PISO ES SÓLO PARA EL QUE EL CLAMP MOVIÓ (su caza 2026-08-30: "en una contra,
      cuando hice la transición me saltó un jugador encima que no se estaba moviendo — en
      ese mínimo segundo de transición lo sentí rarísimo").
@@ -13917,6 +13969,8 @@ function elencoAlEncuadre(){
       }
     }
   }
+  /* en la heredada (sin corte) el que entra al encuadre llega corriendo desde donde estaba */
+  if(heredada) for(const j of movidos){ const p=prev.get(j); if(p) deslizarVista(j,p.x,p.y); }
 }
 function aPantalla(p){ const c=camActiva();
   if(c) return c.lado>0 ? {x:-p.y+c.tx, y:p.x+c.ty} : {x:p.y+c.tx, y:-p.x+c.ty};
@@ -14690,7 +14744,7 @@ function armarPosesion(){
     { const piso=55*ESC();
       for(const d of [...G.defs, ...G.comps]){
         if(dist(d,G.vos)>=piso) continue;
-        const an=Math.atan2(d.y-G.vos.y,d.x-G.vos.x)||0;
+        const an=Math.atan2(d.y-G.vos.y,d.x-G.vos.x)||0, ex0=d.x, ey0=d.y;
         const xc=clamp(G.vos.x+Math.cos(an)*piso, MARG()+14, W-MARG()-14);
         const dx=xc-G.vos.x, dy=Math.sqrt(Math.max(0, piso*piso-dx*dx))+1;
         const arriba=G.vos.y-dy >= a.y+20*ESC();
@@ -14698,6 +14752,7 @@ function armarPosesion(){
         d.x=xc;
         d.y=clamp(G.vos.y+signo*dy, a.y+20*ESC(), pisoVos()+30);
         if(dist(d,G.vos)<piso) d.y=clamp(G.vos.y+dy, a.y+20*ESC(), pisoVos()+30);
+        deslizarVista(d,ex0,ey0);   // 2026-09-12: la heredada no tiene corte
       } }
   }
   if(G.tipo==='avance'){
@@ -15163,9 +15218,10 @@ function armarPosesion(){
   /* la ventaja que ganaste cruzando el avance: la marca de ESTA posesión te flota */
   if(G.conVentaja){ G.conVentaja=false;
     const d0=dist(G.marca,G.vos), dNueva=d0*1.6+40;
-    const angV=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x);
+    const angV=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x), mx0=G.marca.x, my0=G.marca.y;
     G.marca.x=G.vos.x+Math.cos(angV)*dNueva;
     G.marca.y=G.vos.y+Math.sin(angV)*dNueva;
+    deslizarVista(G.marca,mx0,my0);   // 2026-09-12: el cruce no corta — se la ve retroceder, no saltar
     setTimeout(()=>{ if(G.fase==='espera'||G.fase==='apunto') chip(t(L('Llegaste con ventaja: te flotan.',"You've got the edge: they're sagging off.",'Chegou com vantagem: estão te dando espaço.'))); }, 900);
   }
   /* ⚠️ NADIE ARRANCA FUERA DE LA CANCHA (su corte 2026-08-30: "cambiemos, entonces, si
@@ -15259,7 +15315,7 @@ function armarPosesion(){
                         :t(L('Cuando arranque, pasásela adelante, hacia donde corre.','When he goes, throw it ahead of him, where he is running.','Quando ele sair, joga na frente dele, pra onde ele corre.')),
               t3:t(L('tocá para empezar','tap to start','toca para começar'))};
             G.tutQuieto=true; G.corrida.arranca=Infinity; } } } }
-  elencoAlEncuadre();       // y NADIE queda fuera de pantalla (04, su regla 2026-08-28)
+  elencoAlEncuadre(heredada);       // y NADIE queda fuera de pantalla (04, su regla 2026-08-28)
   /* la situación se ANUNCIA en grande y queda fija en la píldora (reclamo suyo: el texto
      chico no se leía y las situaciones se veían idénticas) */
   const sit=$('#sit');
@@ -16863,7 +16919,8 @@ function lanzar(zona){
       const caeL={x:cae.x+(-Math.sin(dir))*desvL*(40+d*0.14),
                   y:cae.y+Math.cos(dir)*desvL*(40+d*0.14)};
       const durL=Math.max(0.5, d/430);
-      correr(rol, {x:caeL.x, y:Math.max(caeL.y, aro().y+22*ESC())}, durL, ()=>{});
+      { const metaR={x:caeL.x, y:Math.max(caeL.y, aro().y+22*ESC())};
+        correr(rol, metaR, durCorrida(rol,metaR,durL), ()=>{}); }   // 2026-09-12: el que rueda corre a su paso (d es el largo del PASE, no el suyo); si no llega, quedó en la nada
       G.pelotaEn=null;
       vuelo(desde, caeL, 1.15, durL, ()=>{
         /* el manoteo cobra POR LADO (radioManoteo): de frente 50·ESC — el drop parado
@@ -16952,7 +17009,7 @@ function lanzar(zona){
          el resultado es el mismo. Si estaba lejos (más de 220·ESC), no corre: nadie corre lo incorrible. */
       if(dist(compi,sal)<220*ESC()){
         const adentro={x:Math.max(MARG()+12*ESC(),Math.min(W-MARG()-12*ESC(),sal.x)), y:Math.max(baseY()+12*ESC(),Math.min(H-20,sal.y))};
-        correr(compi,adentro,Math.max(0.3,durSal),()=>{}); }
+        correr(compi,adentro,durCorrida(compi,adentro,Math.max(0.3,durSal)),()=>{}); }   // 2026-09-12: a su paso; la pelota sale antes y él queda donde llegó
       vuelo(desde,sal,arco,durSal,()=>{
         veredicto(L('¡AFUERA!','OUT!','FORA!')[idioma()],'mal');
         perderPelota(L('El pase se fue afuera: nadie lo puede levantar ahí.','The pass went out of bounds: nobody can pick it up there.','O passe saiu pela linha: ninguém pode pegar ali.')[idioma()],null,true); });
@@ -17074,7 +17131,7 @@ function lanzar(zona){
           G.corres.push({j:df,x0:df.x,y0:df.y,x1:df.x+(rod.x-df.x)/dd*av,y1:df.y+(rod.y-df.y)/dd*av,t:0,dur:Math.max(0.2,Ttot)}); } }
     } else if(aCompiP>50 && !(G.corrida&&G.corrida.j===compi&&compiAlCaer!==compi)){   // §2z39.10/52: el que corre ya va solo por su camino (y llega)
       // el pase justo también se corre EN EL AIRE: llega con la pelota, no después
-      correr(compi,{x:cae.x,y:cae.y},dur+0.15,()=>{});
+      correr(compi,{x:cae.x,y:cae.y},durCorrida(compi,cae,dur+0.15),()=>{});   // 2026-09-12: a su paso (el §2z156 de abajo lo juzga donde esté)
     }
     vuelo(desde,cae,arco,dur,()=>{
       const aCompi=dist(cae,compi);
@@ -17304,8 +17361,9 @@ function resolverRebote(gana){
     /* recepción protegida, como la devolución: la marca no puede estar ya encima */
     /* §2z146 (su corte: "me preocupa que la mayoría sean rebote + bandeja"): la marca se re-planta ENTRE vos y el
        aro, a un cuerpo — la segunda chance no es un carril libre */
-    { const piso=55*ESC(), an=Math.atan2(a.y-G.vos.y,a.x-G.vos.x)||0;
-      G.marca.x=G.vos.x+Math.cos(an)*piso; G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, a.y+20*ESC()); }
+    { const piso=55*ESC(), an=Math.atan2(a.y-G.vos.y,a.x-G.vos.x)||0, mx0=G.marca.x, my0=G.marca.y;
+      G.marca.x=G.vos.x+Math.cos(an)*piso; G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, a.y+20*ESC());
+      deslizarVista(G.marca,mx0,my0); }   // 2026-09-12: llega a cerrarte, no aparece
     G.devuelta=true; G.levanto=false; G.fase='espera';
     return;
   }
@@ -18093,6 +18151,19 @@ function devolver(compi,forma,txt){
 }
 /* un jugador corre a un punto (a una pelota viva, o al aro a volcarla) */
 function correr(j,hasta,dur,fn){ G.corre={j, x0:j.x, y0:j.y, x1:hasta.x, y1:hasta.y, t:0, dur, fn}; }
+/* 2026-09-12 LA CLASE DEL TELETRANSPORTE (su caza de §2z226 y el barrido de la clase; su criterio: "si realmente no llega y para eso
+   tenemos que teletransportarlo, está mal; si corre a un ritmo esperable, no"). Dos herramientas:
+   · `durCorrida`: el que corre a una pelota viva tarda lo que su cuerpo tarda. La duración que venía del VUELO de la pelota queda
+     como piso; el tope es VEL_TOPE_NPC, más alto que todo lo calibrado (el corte va a 120-190, vos a 170): sólo corta lo imposible.
+   · `deslizarVista`: cuando la jugada RE-PLANTA un cuerpo a la vista (la ventaja del avance, la recepción protegida, el encuadre de la
+     heredada), la lógica queda en el lugar nuevo —el juego no cambia— y el DIBUJO lo alcanza trotando (`posVista`). */
+const VEL_TOPE_NPC=240, VEL_VISTA_NPC=190;
+const durCorrida=(j,hasta,piso)=>Math.max(piso||0, dist(j,hasta)/VEL_TOPE_NPC);
+function deslizarVista(j,x0,y0){ const dx=x0-j.x, dy=y0-j.y, d=Math.hypot(dx,dy); if(d<3) return;
+  j.vis={dx, dy, t0:performance.now(), ms:Math.min(700, 1000*d/VEL_VISTA_NPC)}; }
+function posVista(j){ const v=j&&j.vis; if(!v) return j; const k=(performance.now()-v.t0)/v.ms;
+  if(k>=1){ j.vis=null; return j; } return {x:j.x+v.dx*(1-k), y:j.y+v.dy*(1-k)}; }
+const deslizando=(j)=>!!(j&&j.vis&&performance.now()-j.vis.t0<j.vis.ms);
 /* LOS NPC TAMBIÉN POSAN (2026-08-23, la capa que faltaba de los muñecos v2): cuando el
    compañero tira o pasa, el cuerpo lo dice — misma gramática que la tuya */
 const posar=(j,t,hacia,ms)=>{ j.pose={t, hacia:{x:hacia.x,y:hacia.y}, hasta:performance.now()+ms}; };
@@ -20120,9 +20191,10 @@ function frame(now){
           const sinLeer=!!(dm.sp&&dm.sp.lee==null);
           if(!sinLeer)
           { const dM=dist(G.marca,G.vos), piso=55*ESC();
-            if(dM<piso){ const an=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x)||0;
+            if(dM<piso){ const an=Math.atan2(G.marca.y-G.vos.y,G.marca.x-G.vos.x)||0, mx0=G.marca.x, my0=G.marca.y;
               G.marca.x=G.vos.x+Math.cos(an)*piso;
-              G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, pisoDef()); } }   // §2z117 v2
+              G.marca.y=Math.max(G.vos.y+Math.sin(an)*piso, pisoDef());
+              deslizarVista(G.marca,mx0,my0); } }   // §2z117 v2 · 2026-09-12: se la ve dar el paso atrás
           /* Y EL RELOJ SE RE-ARMA AL PISO QUE DECAE (su regla 2026-08-28: el segundo
              movimiento tiene que dar tiempo de JUGAR, pero sin ping-pong): 4,5s la
              primera devolución, 3s la segunda, 2,6s después — ver pisoDevolucion(). */
@@ -21159,7 +21231,7 @@ function frame(now){
       /* las manos se levantan al que marca a CUALQUIERA (su video: el defensor pegado a
          su compañero se dibujaba pasivo y el 'te la devuelve' parecía mentira — el umbral
          viejo era sólo contra vos, y en px crudos) */
-      jugador(aPantalla(df),CASACAS.riv,{big:df.big, i:di+2, apunta:apD, pasa:pasaD,
+      jugador(aPantalla(posVista(df)),CASACAS.riv,{big:df.big, i:di+2, apunta:apD, pasa:pasaD,
         /* los rivales también corren CON POSE mientras les quede camino, y se quedan
            quietos al llegar (su reporte 2026-08-24, el espejo del corredor nuestro:
            patinaban sin trote cuando una carrera los movía) */
@@ -21167,7 +21239,7 @@ function frame(now){
             || !!(G.defensa&&G.defensa.escena&&df===G.defensa.portador&&!G.defensa.resuelto&&G.defensa.meta&&dist(df,G.defensa.meta)>8*ESC())   // §2z87 f
             || !!(G.defensa&&G.defensa.escena==='cortina'&&df===G.defensa.pantalla&&!G.defensa.resuelto&&(!G.defensa.plantada||G.defensa.corredor===df))   // §2z87 k: sube a plantar, y corta
             || (df===G.custodio && !!G.comprometido)
-            || !!(G.corre&&G.corre.j===df)
+            || !!(G.corre&&G.corre.j===df) || deslizando(df)
             || !!(G.corres&&G.corres.some(cr=>cr.j===df&&cr.t<1))
             || !!(G.corrida&&esPerseguidor(df)&&dist(df,G.corrida.j)>30)   // §2z199: el que persigue, sea quien sea (en la cortina puede haber cambiado)
             || !!(G.sacCortina&&!G.sacCortina.lista&&df===G.sacCortina.dBig)
@@ -21186,13 +21258,13 @@ function frame(now){
         pasa2=co.pose.t==='pasa';
         band2=co.pose.t==='bandeja'; vol2=co.pose.t==='volcada';
       }
-      jugador(aPantalla(co),CASACAS.nos,{big:co.big, i:ci, apunta:ap2, pasa:pasa2,
+      jugador(aPantalla(posVista(co)),CASACAS.nos,{big:co.big, i:ci, apunta:ap2, pasa:pasa2,
         bandeja:band2, volcada:vol2,
         manosArriba: !!(co.pose&&co.pose.t==='pide'&&now<co.pose.hasta),   // §2z199 `poste`: pide con las manos arriba
         /* el corredor que LLEGÓ deja de trotar (su reporte 2026-08-24: "figura corriendo
            contra el aro, contra una pared invisible"): el flag moría con la corrida, no
            con la llegada — ahora corre sólo mientras le falte camino */
-        corre: !!(G.corre&&G.corre.j===co)
+        corre: !!(G.corre&&G.corre.j===co) || deslizando(co)
             || !!(G.corres&&G.corres.some(cr=>cr.j===co&&cr.t<1))
             || !!(G.corrida&&G.corrida.j===co&&now>=G.corrida.arranca&&dist(co,G.corrida.meta)>6)
             || !!(G.tipo==='avance'&&G.transicion)
@@ -26873,7 +26945,7 @@ function pintaRelaciones(){
   if(e&&J.relSel&&e.relSel!==J.relSel) e.relSel=J.relSel;   // §12.21: la temporada guarda una COPIA al cargar; se re-enlaza
   const haySel=!!J.relSel&&!!((e&&e.seleccion&&(e.seleccion.ventanas||[]).some(v=>v.conv))||C.selTorneo||(C.seleccion&&C.seleccion.yaEstuvo));   // §12.21: la selección te tuvo alguna vez
   if(!haySel) ladoRel='club';
-  else if(ladoRel_auto){ const px=e?miProximo(e):null; ladoRel=(px&&px.tipo==='seleccion')||(!px&&C.selTorneo)?'sel':'club'; }
+  else if(ladoRel_auto){ const px=proxLobby||(e?miProximo(e):null); ladoRel=(px&&px.tipo==='seleccion')||(!px&&C.selTorneo)?'sel':'club'; }   // 2026-09-12: el próximo del LOBBY (§2z229): miProximo sólo sabe del club y no veía las ventanas del receso
   if(sw){
     sw.classList.toggle('oculto',!haySel);
     if(haySel){ const club=clubDe(e.miClubId), pais=J.nacionalidad||'ar';

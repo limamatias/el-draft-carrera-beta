@@ -966,6 +966,10 @@
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
   #lobby #lobMvp .r.mvpAS{margin-top:6px} #lobby #lobMvp .mvpEst{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:600}   /* §2z250 */
   #lobby #lobMvp .r.mvpSalto{padding:0}
+  /* 2026-09-15 (sus pedidos): el título del nivel arriba de la caja, en blanco y centrado; y los escudos más chicos (28 → 20) */
+  #lobby .mvpTit{text-align:center;font-size:13px;letter-spacing:2px;font-weight:600;color:var(--tinta);text-indent:2px;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+  #lobby .mvpTit:empty{display:none}
+  #lobby #lobMvp .escudito{width:20px;height:20px}
   #lobby #lobMvp .club .flag{flex:none;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.45)}   /* 2026-09-15: la nacionalidad del candidato */
   #lobby #lobMvp .pos{display:flex;justify-content:center;align-items:center}   /* 2026-09-14 (su caza): la corona y la estrella (14 px) centradas en la columna de los números, no apoyadas a la izquierda */
   #lobby #lobMvp .r.mvpVacia .nom{color:var(--tinta2)}   /* 2026-09-13: la tablita antes de que arranque la carrera */
@@ -2005,7 +2009,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='2456e8adb4';
+const BUILD='a21f1ccf67';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2477,6 +2481,7 @@ const BUILD='2456e8adb4';
         <!-- §2z250 LA CARRERA AL MVP (su caza: "que esté oculto en VER CARRERA es malo, no vas a entrar ahí nunca"): top 5 con el
              corte del quinteto, tu renglón si estás más abajo y el Juego de las Estrellas; la pinta pintaMvp() -->
         <div class="panel" id="lp-vos-mvp">
+          <div class="mvpTit" id="lobMvpTit"></div>   <!-- 2026-09-15 (su pedido): el nivel arriba de la caja, en blanco -->
           <div class="cajon tablita" id="lobMvp"></div>
         </div>
         <!-- §2z28 la vitrina: la grilla de trofeos (tocar nombra) y VER TODO para la lista; la pinta pintaPalmares() -->
@@ -5254,12 +5259,19 @@ function carreraPremios(estado, esc, vos) {
   /* vos entrás con el mismo empujón por puesto que los candidatos: el MVP sale de un equipo de arriba */
   if (vos) { const [p, n] = pos[estado.miClubId] || [1, 2];
     lista.push({ clubId: estado.miClubId, zona: estado.zonas ? estado.zonaDe[estado.miClubId] : null, edad: vos.edad, valor: vos.valor + 0.6 * ((n - p) / Math.max(1, n - 1) - 0.5), vos: true }); }
+  /* 2026-09-15 UNA PELOTA POR CLUB, SIN SALTOS (su caza: «dos candidatos del mismo equipo en dos equipos distintos, no suele ser así»; y
+     después: «peleo el MVP contra ROLDÁN, de mi equipo: si lo paso, pierde puntos que a mí no me afectan»). La primera versión descontaba
+     por ORDEN y pasarlo le costaba 0,35 de golpe. Ahora es fijo: (1) el segundo de un club resigna 0,35 frente a su figura; (2) tus
+     compañeros resignan 0,35 por vos — salvo los que NACIERON arriba tuyo el día que entraste a la carrera (su regla), que no pierden nada
+     aunque los pases. La foto de ese día vive en la temporada (`estado.mvpArriba`, la escribe revisarCarrera); sin foto, es la de hoy.
+     A vos nunca se te descuenta: tu nota es tuya. */
+  const claveCand = (x) => x.clubId + ':' + (x.segundo ? 1 : 0);
+  for (const x of lista) if (!x.vos && x.segundo) x.valor -= 0.35;
+  const yo = lista.find((x) => x.vos);
+  const arriba = Array.isArray(estado.mvpArriba) ? estado.mvpArriba
+    : (yo ? lista.filter((x) => !x.vos && x.clubId === estado.miClubId && x.valor > yo.valor).map(claveCand) : []);
+  if (yo) for (const x of lista) if (!x.vos && x.clubId === estado.miClubId && !arriba.includes(claveCand(x))) x.valor -= 0.35;
   lista.sort((a, b) => b.valor - a.valor);
-  /* 2026-09-15 (su caza: «dos candidatos a MVP del mismo equipo, en dos equipos distintos: no suele ser así»): la pelota es una — el que
-     tiene adelante a otro de su club (un candidato o VOS) resigna 0,35 por cada uno. A vos nunca se te descuenta: tu nota es tuya. */
-  { const delante = {};
-    for (const x of lista) { const k = delante[x.clubId] || 0; if (!x.vos && k) x.valor -= 0.35 * k; delante[x.clubId] = k + 1; }
-    lista.sort((a, b) => b.valor - a.valor); }
   const miPos = lista.findIndex((x) => x.vos) + 1 || null;
   /* el corte del Juego de las Estrellas es por conferencia cuando la liga tiene */
   const miZona = estado.zonas ? estado.zonaDe[estado.miClubId] : null;
@@ -5267,7 +5279,7 @@ function carreraPremios(estado, esc, vos) {
   const miPosZona = zonal.findIndex((x) => x.vos) + 1 || null;
   const jovenes = lista.filter((x) => x.edad <= CARRERA_MVP.joven);
   const miPosJoven = jovenes.findIndex((x) => x.vos) + 1 || null;
-  return { lista, miPos, miPosZona, miPosJoven };
+  return { lista, miPos, miPosZona, miPosJoven, arriba };
 }
 /** ¿La carrera ya se dice? (30 % de la regular jugado) */
 const carreraActiva = (estado) => !!estado.fechasTotales && (estado.fechaJugada || 0) >= Math.ceil(estado.fechasTotales * CARRERA_MVP.desde);
@@ -25548,7 +25560,9 @@ function carreraDe(e){ return carreraPremios(e,ligaDe().esc,miValorPremios(e,C.j
 function pintaMvp(e){
   const caja=$l('lobMvp'); if(!caja) return;
   const liga=ligaDe(), tot=e.fechasTotales||0;
-  const tag='<div class="cajTag">'+liga.nombre.toUpperCase()+' '+anioTxt()+'</div>';   // el nivel es la liga (§2z240.1): sin el escudo del club
+  /* 2026-09-15 (su pedido: «LIGA NACIONAL 2026/27 debería estar en blanco y arriba del contenedor, no adentro»): el nivel va afuera */
+  { const tt=$l('lobMvpTit'); if(tt) tt.textContent=liga.nombre.toUpperCase()+' '+anioTxt(); }
+  const tag='';   // el nivel es la liga (§2z240.1): sin el escudo del club
   if(!e.clubes||!tot){ caja.innerHTML=tag+'<div class="fila-item vacia">—</div>'; return; }
   const fArranca=fechaTuyaDesde(Math.ceil(tot*CARRERA_MVP.desde)), fAS=fechaTuyaDesde(Math.ceil(tot*CARRERA_MVP.allstar));
   const filaAS=()=>{ if(!liga.allstar) return '';
@@ -25587,6 +25601,8 @@ function avisoMvpTxt(a){
 function revisarCarrera(e){
   if(!e||!e.clubes||!carreraActiva(e)) return null;
   const car=carreraDe(e);
+  /* 2026-09-15: el día que entrás a la carrera queda la foto de tus compañeros que iban arriba tuyo (no pierden puntos por vos, 01e) */
+  if(car.miPos && !Array.isArray(e.mvpArriba)){ e.mvpArriba=car.arriba||[]; guardar(); }
   if(allStarToca(e,ligaDe())&&!e.allstar){
     e.allstar={pos:car.miPosZona,elegido:!!(car.miPosZona&&car.miPosZona<=CARRERA_MVP.top)};
     if(e.allstar.elegido){ if(!C.palmares) C.palmares=[]; C.palmares.push({anio:C.anio,ligaId:C.ligaId,club:e.miClubId,clave:'allstar'});

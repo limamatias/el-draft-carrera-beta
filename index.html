@@ -1569,16 +1569,7 @@
      salís y volvés con tu partida. En el vestuario no cuelga nada. */
   /* §2z246.1 · §2z273 la cuenta: el molde de BotonCuenta de la casa — sin círculo propio, el glifo de 22 y la foto de 38 con su
      borde, el puntito verde abajo a la derecha */
-  #introEsqDer{position:absolute;right:18px;top:14px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:4px}   /* el ⚙ debajo del avatar (su corte) */
-  #introAjustes{display:grid;place-items:center;padding:6px;border:0;background:none;color:var(--tinta2);cursor:pointer}
-  #introAjustes:active{color:var(--tinta)}
-  #introCuenta{position:relative;display:grid;place-items:center;padding:6px;border:0;background:none;
-       color:var(--tinta2);cursor:pointer}
-  #introCuenta.oculto{display:none}
-  #introCuenta img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid rgba(154,164,184,.3)}
-  #introCuenta svg{width:22px;height:22px}
-  #introCuenta .punto{position:absolute;right:1px;bottom:1px;width:8px;height:8px;border-radius:50%;background:var(--ok);border:2px solid var(--fondo)}
-  #introCuenta:active{color:var(--tinta)}
+  /* el velo de la cuenta (cuentaVelo) sigue: lo abre TUS PARTIDAS; el botón de la portada se fue (§2z274) */
   #cuentaVelo{z-index:47}
   #cuentaVelo .cuentaGoogle{display:flex;justify-content:center;min-height:44px;padding:4px 0 2px}
   #cuentaVelo .cuentaFallo{font-size:13px;color:var(--mal);text-align:center}
@@ -1999,7 +1990,7 @@
      costados, el select sin caja con la flechita dibujada, el avatar sin círculo propio (la foto ES el círculo, 38 px) */
   /* la esquina izquierda en COLUMNA (su corte: la flecha pegada a la bandera parecía parte del selector): VOLVER arriba, con el molde
      del `.step-back` de El Draft (flecha + palabra, 13/600, gris), y la banderita debajo — espejo del avatar / ⚙ de la derecha */
-  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;align-items:center;gap:6px}
   #introAtras{display:inline-flex;align-items:center;gap:6px;min-height:38px;margin-left:-4px;padding:0 10px 0 6px;border:0;border-radius:10px;
        background:none;color:var(--tinta2);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.4px;line-height:1;cursor:pointer}
   #introAtras.oculto{display:none}
@@ -2016,7 +2007,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='166ddf67ca';
+const BUILD='86d3c0aa93';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2112,18 +2103,13 @@ const BUILD='166ddf67ca';
      barra. El tutorial de verdad / skills a lo NSS es de una etapa lejana, no de acá. -->
 <div id="vineta" class="oculto"><div class="vimg"></div><div class="vbarra"></div></div>
 <div class="velo" id="intro" style="background:linear-gradient(rgba(8,11,19,.30),rgba(8,11,19,.72)),var(--keyartVolcada) center/cover">
-  <!-- §2z273 (su caza en beta.eldraftgame.com, 2026-09-17: "hoy hablan diferente idioma los dos juegos"): la esquina de la
-       portada copia a la de El Draft — la banderita con desplegable arriba a la izquierda, el avatar de la cuenta arriba a la
-       derecha (sólo en /carrera), y ‹ para volver a la casa cuando hay casa. El ⚙ se fue: el idioma está acá y el resto vive
-       en el ⚙ del lobby. -->
+  <!-- §2z273/§2z274 (sus cazas en beta.eldraftgame.com, 2026-09-17: "hoy hablan diferente idioma los dos juegos"): la esquina de la
+       portada es LA MISMA que la de Destino — a la izquierda, en un renglón, VOLVER (sólo cuando hay casa) y la banderita con
+       desplegable. Sin ⚙ (lo único que se elige antes de entrar es el idioma, y es la banderita) y sin la cara de Google (el login
+       vive en la casa; adentro la sesión se lee sola y TUS PARTIDAS abre el velo de la cuenta). -->
   <div id="introEsqIzq">
     <button id="introAtras" class="oculto"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span data-l-en="BACK" data-l-pt="VOLTAR">VOLVER</span></button>
     <select id="introIdioma" aria-label="Idioma"><option value="es">🇦🇷</option><option value="en">🇺🇸</option><option value="pt">🇧🇷</option></select>
-  </div>
-  <div id="introEsqDer">
-    <!-- el ⚙ vuelve (su pedido, mismo día): OPCIONES desde la portada, con el molde de la esquina -->
-    <button id="introCuenta" class="oculto" aria-label="Tu cuenta"></button>
-    <button id="introAjustes" aria-label="Opciones"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
   <!-- EL NOMBRE (2026-09-03, decisión suya): El Draft es la casa y éste es CARRERA — el hermano de
        El Draft: Destino. Es un nombre: no se traduce. -->
@@ -14763,7 +14749,7 @@ async function cuentaBotonGoogle(caja,alFallar){
 
 /* ── LA PORTADA: el avatar al lado del ⚙ (el lugar de BotonCuenta en la casa), y el velo TU CUENTA ── */
 function cuentaPintaBoton(){
-  const b=document.getElementById('introCuenta'); if(!b) return;
+  const b=document.getElementById('introCuenta'); if(!b) return;   // §2z274: la portada ya no tiene el botón; queda por si un banco lo trae
   if(!cuentaActiva()){ b.classList.add('oculto'); return; }
   b.classList.remove('oculto');
   const f=cuentaFoto();
@@ -14801,7 +14787,7 @@ function cuentaInstalarPortada(){
   if(!cuentaActiva()) return;
   cuentaPuerta();
   cuentaAlCambiar(()=>{ cuentaPintaBoton(); cuentaPintaVelo(); });
-  document.getElementById('introCuenta').onclick=cuentaAbrir;
+  const bc=document.getElementById('introCuenta'); if(bc) bc.onclick=cuentaAbrir;
   document.getElementById('cuentaX').onclick=cuentaCerrar;
   document.getElementById('cuentaSalir').onclick=()=>{ cuentaSalir(); cuentaCerrar(); };
   cuentaPintaBoton();
@@ -25710,10 +25696,6 @@ document.querySelectorAll('#lobby .tabs').forEach(grupo=>{
    perillas): los botones del partido se esconden al cargar y sólo los prende el partido (botonesDelJuego). Y el ⚙ de la portada se
    fue — el idioma está en la esquina y el resto vive en el ⚙ del lobby. */
 botonesDelJuego(false);
-/* el ⚙ de la portada volvió (su pedido, mismo día): OPCIONES; con ?prueba, el panel de prueba de los bancos */
-document.getElementById('introAjustes').addEventListener('click',()=>{
-  if(/[?&]prueba\b/.test(location.search)) document.getElementById('ajustes').classList.toggle('oculto');
-  else abrirOpciones('portada'); });
 cuentaInstalarPortada();   // §2z246.1: sólo hace algo en /carrera
 /* §2z273 ‹ vuelve a la casa: sólo cuando hay casa (el armado para El Draft trae `cuentas`); en el artifact y en Pages no existe */
 if(window.MODO_BETA&&window.MODO_BETA.cuentas){ const a=document.getElementById('introAtras'); a.classList.remove('oculto'); a.onclick=()=>{ location.href='/'; }; }

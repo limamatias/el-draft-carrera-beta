@@ -283,7 +283,14 @@
   #bajon.sube h1{color:var(--tinta)}
   #bajon .pista{width:100%;height:10px;border-radius:5px;background:rgba(255,255,255,.14);position:relative;overflow:hidden}
   #bajon .pista i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
-  #bajon #bajonPerdida{background:var(--mal)}
+  #bajon #bajonPerdida{background:var(--mal);transition:opacity .5s ease-out}
+  /* 2026-09-14 (su caza en SE FUE EL DT: «la parte roja queda clavada; el 50 es a donde baja pero figura al final de la barra; DT dice en
+     tres lugares»): el rótulo se fue (la barra ya nombra la relación y el titular la cuenta), el número cuelga DEBAJO de la punta de la
+     barra y baja con ella, y el tramo perdido se apaga cuando la barra llegó */
+  #bajon .rotulo:empty{display:none}
+  #bajon .bajonMarca{position:relative;height:26px}
+  #bajon .bajonMarca b{position:absolute;top:3px;transform:translateX(-50%);font-size:22px;color:var(--tinta);font-variant-numeric:tabular-nums;line-height:1}
+  #bajon .bajonMarca b.cae{color:var(--mal)}
   #bajon #bajonBarra{background:var(--ok);transition:width .9s cubic-bezier(.2,.8,.2,1)}
   #bajon button{font-size:20px;letter-spacing:1.5px;min-height:48px;padding:0 34px;border-radius:12px;margin-top:6px}
   /* §2z196: el velo del retiro habla el idioma del titular */
@@ -377,6 +384,16 @@
      CLAUDE.md — se esconde, no se deja con aire. */
   #carta .gancho:empty,#carta .texto:empty{display:none}
   #carta .opciones{display:flex;flex-direction:column;gap:8px}
+  /* 2026-09-14 (su caza: «en las cartas donde perdés sí o sí una relación no te dice en ningún lugar cuánto tenés; NSS lo resolvía — no
+     sabés qué te conviene perder»): el renglón de LO QUE TENÉS de lo que la carta toca — sólo esas relaciones (y la plata si hay plata en
+     juego), con la barrita del vestuario. En el desenlace la barra se corre al valor nuevo. */
+  #carta .cartaRels{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:-4px}
+  #carta .cartaRels .rc{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.5px;font-weight:600;color:var(--tinta2)}
+  #carta .cartaRels .rc i{display:block;width:46px;height:5px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+  #carta .cartaRels .rc i b{display:block;height:100%;border-radius:3px;background:var(--tinta2);transition:width .9s cubic-bezier(.2,.8,.2,1),background-color .3s}
+  #carta .cartaRels .rc em{font-style:normal;font-size:13px;font-weight:700;color:var(--tinta);font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  #carta .cartaRels .rc.sube i b{background:var(--ok)} #carta .cartaRels .rc.sube em{color:var(--ok)}
+  #carta .cartaRels .rc.baja i b{background:var(--mal)} #carta .cartaRels .rc.baja em{color:var(--mal)}
   #carta .opc{background:rgba(20,27,44,.92);border:1px solid rgba(154,164,184,.22);border-radius:12px;padding:12px 14px;
               display:flex;flex-direction:column;gap:4px;min-height:48px;cursor:pointer;-webkit-tap-highlight-color:transparent}
   #carta .opc.apuesta{border-color:rgba(255,150,51,.55)}
@@ -742,6 +759,14 @@
   #lobby .mediaBox.med-3 .num{color:#8d7ae8} #lobby .mediaBox.med-3{border-color:rgba(141,122,232,.55)}
   #lobby .mediaBox.med-4 .num{color:#ff7a29} #lobby .mediaBox.med-4{border-color:rgba(255,122,41,.55)}
   #lobby .mediaBox.med-5 .num{color:#ffb100;text-shadow:0 0 12px rgba(255,177,0,.45)} #lobby .mediaBox.med-5{border-color:rgba(255,177,0,.6)}
+  /* 2026-09-14 (su caza: «cuando sube post entrenamiento sólo se ilumina el +1, no la caja ni el número»): el color de la escala (.med-N,
+     más específico) pisaba el verde del número, y el fondo encendido (::after, z −1) quedaba DEBAJO del fondo de la caja. Mientras
+     sube o baja, la caja y el número se encienden por encima de la escala. */
+  #lobby .mediaBox{transition:background-color .25s,border-color .25s}
+  #lobby .mediaBox[class].is-up{background:rgba(125,208,135,.16);border-color:rgba(125,208,135,.8)}
+  #lobby .mediaBox[class].is-down{background:rgba(224,108,90,.14);border-color:rgba(224,108,90,.75)}
+  #lobby .mediaBox[class].is-up .num{color:var(--ok);text-shadow:0 0 16px rgba(125,208,135,.55)}
+  #lobby .mediaBox[class].is-down .num{color:var(--mal);text-shadow:0 0 16px rgba(224,108,90,.5)}
   /* §2z39.18: el botón de pasar, armado para confirmar */
   #lobby .jugar.secundario.confirmar{border-color:var(--naranja);color:var(--naranja)}
   #lobby .recursos{display:flex;gap:8px;margin-top:3px}
@@ -761,6 +786,7 @@
   #lobby .rec.nrg .num{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
   #lobby .barraNrg{height:7px;background:#0a0e18;border-radius:99px;overflow:hidden;flex:1}
   #lobby .barraNrg i{display:block;height:100%;width:64%;border-radius:99px;transition:width .3s}
+  #lobby.sinTransicion *{transition:none!important}   /* 2026-09-14: al cambiar de carrera, la primera pintada no anima desde la otra */
   #lobby .lataMini{font-family:inherit;flex:none;border:0;border-radius:7px;cursor:pointer;
        background:linear-gradient(180deg,#e0b13f,var(--naranja));color:#10151f;
        font-size:13px;font-weight:700;padding:3px 8px 3px 5px;
@@ -1139,7 +1165,7 @@
   #lobby .puntos i.q{background:var(--naranja)}
   /* en la previa, debajo de la latita: lo que tenés en uso */
   #lobby .latita{flex-wrap:wrap}
-  #lobby .activosPre{flex-basis:100%;display:flex;flex-direction:column;gap:6px;padding-top:9px;border-top:1px solid rgba(154,164,184,.14)}
+  #lobby .activosPre{flex-basis:100%;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 16px;padding-top:9px;border-top:1px solid rgba(154,164,184,.14)}   /* 2026-09-14: un renglón, no una fila por consumible */
   #lobby .activosPre .activo{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:1.5px;font-weight:600}
   #lobby .activosPre .ico{flex:none;width:16px;height:16px;color:var(--naranja);display:flex} #lobby .activosPre .icoT{width:16px;height:16px}
   #lobby .activosPre .que{flex:1;min-width:0;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1190,7 +1216,8 @@
   #lobby #lv-pre .preTop{height:calc(18dvh - 12px);min-height:auto;flex:0 1 auto}
   #lobby #lv-pre .fecha-pre{min-height:33px}
   #lobby #lv-pre .preRival,#lobby #lv-pre .preRival>*,#lobby #lv-pre>.cajon,#lobby #lv-pre>.jugar{flex:none}
-  #lobby #lv-pre #lobPreSalteo:empty{display:none}   /* clase (5): el renglón vacío con alto — 22 px de nada */
+  #lobby #lv-pre #lobPreSalteo:empty{display:none}
+  @media (max-height:560px){ #lobby #lv-pre .preRival .ciudad{display:none} }   /* 2026-09-14: en las pantallas bajas, lo siguiente que cede es la ciudad (el estadio queda) */   /* clase (5): el renglón vacío con alto — 22 px de nada */
   #lobby .preRival{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 2px}
   #lobby .preRival .escudoR{width:64px;height:64px;border-radius:50%;background:#31427a;
        display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
@@ -1977,7 +2004,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='e411d38c42';
+const BUILD='824dbe00a6';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2161,8 +2188,9 @@ const BUILD='e411d38c42';
   <h1 id="bajonTxt"></h1>
   <div class="linea" id="bajonSub"></div>
   <div class="bajonRel">
-    <div class="bajonCab"><span id="bajonQuien"></span><b id="bajonNum"></b></div>
+    <div class="bajonCab"><span id="bajonQuien"></span></div>
     <div class="pista"><i id="bajonPerdida"></i><i id="bajonBarra"></i></div>
+    <div class="bajonMarca"><b id="bajonNum"></b></div>   <!-- 2026-09-14: el número viaja con la punta de la barra -->
   </div>
   <button id="bajonOk" data-l-en="CONTINUE &#9656;" data-l-pt="SEGUIR &#9656;">SEGUIR &#9656;</button>
 </div>
@@ -2198,6 +2226,7 @@ const BUILD='e411d38c42';
   <div class="cuerpoCarta">
     <div class="rotulo" id="cartaRotulo"></div>
     <div class="gancho" id="cartaGancho"></div>
+    <div class="cartaRels oculto" id="cartaRels"></div>   <!-- 2026-09-14: lo que tenés de lo que la carta toca -->
     <div class="opciones" id="cartaOpciones"></div>
     <div class="desenlace oculto" id="cartaDesenlace">
       <b class="remate" id="cartaRemate"></b>
@@ -2705,7 +2734,7 @@ const BUILD='e411d38c42';
     <div id="resTBeta" class="oculto">
       <div class="pronto"><b data-l-en="SOON: THE FULL CAREER" data-l-pt="EM BREVE: A CARREIRA INTEIRA">PRONTO: LA CARRERA ENTERA</b>
         <span data-l-en="From the Federal league to the NBA." data-l-pt="Da Federal à NBA.">De la Federal a la NBA.</span></div>
-      <button class="jugar ancho" id="resTLista" data-l-en="SIGN ME UP" data-l-pt="ME INSCREVER">ANOTARME</button>
+      <button class="jugar ancho" id="resTLista" data-l-en="KEEP ME POSTED" data-l-pt="ME AVISA">AVISAME</button>   <!-- 2026-09-14 (su pedido): AVISAME, que es lo que pasa -->
       <div class="gancho anotado oculto" id="resTAnotado"></div>
       <div class="resTDos">
         <button class="jugar secundario" id="resTCard" data-l-en="SHARE" data-l-pt="COMPARTILHAR">COMPARTIR</button>
@@ -4391,6 +4420,7 @@ function crearTemporada(semilla, clubes, opciones) {
     playoffsDef: opciones.playoffs || null,
     playoffs: null, // la llave, cuando la fase regular termina (armarLlave)
     americas: null, // §2z27: la Liga de las Américas de este año, si tu club clasificó (el lobby la instala)
+    figuras: opciones.figuras || null, // §2z264: la foto de las figuras de la liga (01e2), sólo lectura; sin foto, el campo sembrado de siempre
   };
 }
 
@@ -5183,6 +5213,12 @@ function campoPremios(estado, esc) {
   for (const c of estado.clubes) {
     const r = rngFor(estado.semilla, 'premios', c.id);
     const rel = hi > lo ? (c.fuerza - lo) / (hi - lo) : 0.5;
+    /* §2z264: con figuras, la calidad y la edad son de ELLAS (viven en la carrera); sin foto, las sembradas de siempre */
+    const fg = estado.figuras && estado.figuras[c.id];
+    if (fg) {
+      for (const s of [0, 1]) out.push({ clubId: c.id, zona: c.zona || null, edad: fg[s].edad, base: tope - 1.8 + 1.4 * rel + fg[s].cal, ape: fg[s].ape, ...(s ? { segundo: true } : {}) });
+      continue;
+    }
     const base = tope - 1.8 + 1.4 * rel + r.float(-0.35, 0.35);
     out.push({ clubId: c.id, zona: c.zona || null, edad: r.int(19, 34), base });
     out.push({ clubId: c.id, zona: c.zona || null, edad: r.int(19, 34), base: base - r.float(0.4, 0.9), segundo: true });
@@ -5227,6 +5263,76 @@ function carreraPremios(estado, esc, vos) {
 const carreraActiva = (estado) => !!estado.fechasTotales && (estado.fechaJugada || 0) >= Math.ceil(estado.fechasTotales * CARRERA_MVP.desde);
 /* `liga.allstar` (01d): LNB · LA · LUB · NBB · NBA lo juegan de verdad; Federal, secundaria, NCAA y Euroliga no */
 const allStarToca = (estado, liga) => !!(liga && liga.allstar) && !!estado.fechasTotales && (estado.fechaJugada || 0) >= Math.ceil(estado.fechasTotales * CARRERA_MVP.allstar);
+
+/* ══ §2z264 LAS FIGURAS DE LA LIGA (2026-09-14, su pregunta mirando la pestaña MVP: *"¿los apellidos se mantienen temporada a
+ * temporada? O sea, ¿podés tener cierta rivalidad?"* — no: cada temporada sorteaba otros, y de un pool de 14 salían dos LEIVA) ══
+ * Cada club de la LNB y de la NBA tiene DOS figuras (la figura y el segundo, las mismas dos plazas que el campo de §2z45) con
+ * apellido, edad y calidad, y viven en la CARRERA (`C.figuras[ligaId]`), no en la temporada. Al dar vuelta el año cumplen uno,
+ * mejoran hasta los 24, se sostienen hasta los 29 y bajan desde los 30; desde los 33 pueden retirarse y a los 35 se retiran
+ * (entra un pibe de 19 a 23); un 8 % cambia de club; el club que asciende trae las suyas y el que desciende se las lleva.
+ * La temporada recibe una FOTO (`estado.figuras`, sólo lectura) al nacer, y el campo de premios la usa. El reparto de calidad es
+ * el del campo sembrado de siempre, así el premio no se vuelve ni más fácil ni más difícil.
+ * Todo determinista: la carrera y el año deciden cada tirada (rngFor), así recargar no mueve nada. */
+const FIGURAS_LIGAS = ['nacional', 'nba'];
+const FIG_RANGO = [[-0.35, 0.35], [-1.25, -0.05]];   // la figura y el segundo: el `base ± 0,35` y el `base − 0,4…0,9` de campoPremios
+const FIG_TOPE = [[-0.6, 0.6], [-1.5, 0.2]];
+/* 2026-09-14 (su pedido: «en Argentina alguna figura debería ser de otro país — algún estadounidense, algún latino… le da picante, y en
+   la LNB es real»; y «nacionalidad + apellido, claro: si González es polaco estamos mal»): cada figura tiene PAÍS y su apellido sale del
+   pool de ese país. Uno de cada cuatro es de afuera, con el reparto de cada liga. */
+const FIG_EXTRANJEROS = {
+  nacional: [['us', 0.14], ['uy', 0.03], ['br', 0.02], ['ve', 0.02], ['pr', 0.015], ['do', 0.015], ['cu', 0.01]],
+  nba: [['ca', 0.04], ['fr', 0.03], ['rs', 0.025], ['au', 0.02], ['es', 0.02], ['de', 0.02], ['gr', 0.015], ['lt', 0.015], ['ng', 0.015],
+        ['si', 0.01], ['tr', 0.01], ['ar', 0.01], ['br', 0.01], ['cm', 0.01]],
+};
+function figuraNueva(r, slot, usados, poolDe, ligaId, local, edadMin, edadMax) {
+  let pais = local, x = r.float(0, 1);
+  for (const [p, q] of (FIG_EXTRANJEROS[ligaId] || [])) { if (x < q) { pais = p; break; } x -= q; }
+  let pool = poolDe(pais) || poolDe(local), libres = pool.filter((a) => !usados.has(a));
+  if (!libres.length && pais !== local) { pais = local; pool = poolDe(local); libres = pool.filter((a) => !usados.has(a)); }   // su país sin apellidos libres: local
+  const ape = libres.length ? r.pick(libres) : r.pick(pool);
+  usados.add(ape);
+  return { ape, pais, edad: r.int(edadMin, edadMax), cal: Math.round(r.float(FIG_RANGO[slot][0], FIG_RANGO[slot][1]) * 1000) / 1000 };
+}
+function figurasCrear(semilla, ligaId, anio, clubes, poolDe, local) {
+  const r = rngFor(semilla, 'figuras', ligaId, 'alta'), usados = new Set(), porClub = {};
+  for (const c of clubes) porClub[c.id] = [0, 1].map((s) => figuraNueva(r, s, usados, poolDe, ligaId, local, 19, 34));
+  return { anio, porClub };
+}
+/** Lleva el registro hasta `anio` (una vuelta por año que falte) y lo sincroniza con los clubes de la liga de hoy. Idempotente. */
+function figurasAvanzar(reg, semilla, ligaId, anio, clubes, poolDe, local) {
+  const usadosDe = () => { const u = new Set(); for (const id in reg.porClub) for (const f of reg.porClub[id]) u.add(f.ape); return u; };
+  while (reg.anio < anio) {
+    const a = ++reg.anio, r = rngFor(semilla, 'figuras', ligaId, a), usados = usadosDe();
+    const ids = Object.keys(reg.porClub).sort();
+    for (const id of ids) reg.porClub[id].forEach((f, s) => {
+      f.edad++;
+      const d = f.edad <= 24 ? r.float(0, 0.12) : f.edad <= 29 ? r.float(-0.04, 0.06) : f.edad <= 32 ? r.float(-0.10, 0.02) : r.float(-0.20, -0.05);
+      f.cal = Math.round(Math.max(FIG_TOPE[s][0], Math.min(FIG_TOPE[s][1], f.cal + d)) * 1000) / 1000;
+      if (f.edad >= 35 || (f.edad >= 33 && r.float(0, 1) < 0.35)) reg.porClub[id][s] = figuraNueva(r, s, usados, poolDe, ligaId, local, 19, 23);   // el retirado no libera el apellido este año
+    });
+    /* el segundo que pasó a la figura toma su lugar */
+    for (const id of ids) { const [f, g] = reg.porClub[id]; if (g.cal > f.cal) reg.porClub[id] = [g, f]; }
+    /* los pases: la plaza se cambia con la misma plaza de otro club, así ningún club queda sin figura */
+    for (const id of ids) for (const s of [0, 1]) {
+      if (r.float(0, 1) >= 0.08) continue;
+      const otro = r.pick(ids.filter((x) => x !== id));
+      const f = reg.porClub[id][s]; reg.porClub[id][s] = reg.porClub[otro][s]; reg.porClub[otro][s] = f;
+    }
+  }
+  /* el padrón de hoy: los que descendieron se llevan sus figuras; los que subieron traen las suyas */
+  const vivos = new Set(clubes.map((c) => c.id));
+  for (const id of Object.keys(reg.porClub)) if (!vivos.has(id)) delete reg.porClub[id];
+  const faltan = clubes.filter((c) => !reg.porClub[c.id]);
+  if (faltan.length) { const r = rngFor(semilla, 'figuras', ligaId, anio, 'padron'), usados = usadosDe();
+    for (const c of faltan) reg.porClub[c.id] = [0, 1].map((s) => figuraNueva(r, s, usados, poolDe, ligaId, local, 19, 34)); }
+  return reg;
+}
+/** La foto de la temporada: lo que el campo de premios y la pantalla leen. */
+function figurasFoto(reg) {
+  const o = {};
+  for (const id in reg.porClub) o[id] = reg.porClub[id].map((f) => ({ ape: f.ape, pais: f.pais, edad: f.edad, cal: f.cal }));
+  return o;
+}
 /* LOS FONDOS DE LA CARRERA — generados en la tanda Higgsfield (research/refs-higgsfield/,
    ver FUENTES-DE-ASSETS.md), achicados a 900px de ancho y embebidos como data URI — el
    mismo trato que el parquet de 02. Pedidos con el tercio de abajo libre para UI (§2m.8).
@@ -6869,7 +6975,10 @@ function pildorasDe(ef,sinPlata){
   if(ef.partido&&ef.partido.frio) out.push({txt:t(L('ARRANCÁS FRÍO','YOU START COLD','VOCÊ COMEÇA FRIO')),ok:false});   /* §2z224 */
   if(ef.verdePrimero) out.sort((a,b)=>(b.ok?1:0)-(a.ok?1:0));   // §12.28 v3 (su corte: "los dos verdes primero y los dos rojos después")
   /* §2z27: la píldora del club — lo que la carta mueve no sos vos, es el plantel en uno de los dos torneos */
-  if(ef.copa) out.push({txt:ef.copa==='liga'?t(L('CLUB +2 EN LA LIGA','CLUB +2 IN THE LEAGUE','CLUBE +2 NA LIGA')):t(L('CLUB +3 EN LAS AMÉRICAS','CLUB +3 IN THE AMERICAS','CLUBE +3 NAS AMÉRICAS')),ok:true});
+  /* 2026-09-14 (su caza: «¿qué es CLUB +2? es la fuerza, pero ese dato no vive en ningún lugar»): en palabras, y las DOS caras del trato
+     (priorizarCopa: +2 en uno, −3 en el otro) — la píldora contaba sólo la que suma */
+  if(ef.copa==='liga') out.push({txt:t(L('MÁS ENTEROS EN LA LIGA','FRESHER IN THE LEAGUE','MAIS INTEIROS NA LIGA')),ok:true},{txt:t(L('MÁS FLOJOS EN LAS AMÉRICAS','WEAKER IN THE AMERICAS','MAIS FRACOS NAS AMÉRICAS')),ok:false});
+  else if(ef.copa) out.push({txt:t(L('MÁS ENTEROS EN LAS AMÉRICAS','FRESHER IN THE AMERICAS','MAIS INTEIROS NAS AMÉRICAS')),ok:true},{txt:t(L('MÁS FLOJOS EN LA LIGA','WEAKER IN THE LEAGUE','MAIS FRACOS NA LIGA')),ok:false});
   return out;
 }
 const FONDO_CARTA={vestuario:()=>FONDO_VESTUARIO,despacho:()=>FONDO_DESPACHO,playground:()=>FONDO_PLAYGROUND,tunel:()=>FONDO_TUNEL};
@@ -6895,6 +7004,36 @@ function lineaEfectos(o){
 }
 /* §2z237: ¿la cancha está atrás? El velo translúcido de la carta (sobreCancha) sólo tiene sentido con el partido a la vista */
 const lobbyOculto=()=>{ const l=document.getElementById('lobby'); return !l||l.classList.contains('oculto'); };
+/* 2026-09-14 (su caza: «no te dice cuánto tenés ahora de la relación que perdés»): qué toca la carta — las relaciones del club (o las de la
+   selección en su túnel), las de la selección explícitas y la plata — y el renglón que lo muestra. `valoresCarta` lee lo de hoy. */
+function enJuegoCarta(c){
+  const rel=new Set(), sel=new Set(); let plata=false;
+  for(const o of c.opciones){ if(o.requierePlataX||precioComun(o)) plata=true;
+    for(const d of o.desenlaces){ const ef=d.ef||{};
+      if(ef.rel) for(const k in ef.rel) if(ef.rel[k]) rel.add(k);
+      if(ef.relSel) for(const k in ef.relSel) if(ef.relSel[k]) sel.add(k);
+      if(ef.plataX) plata=true; } }
+  const orden=['dt','plantel','hinchada'];
+  return [...orden.filter(k=>rel.has(k)).map(k=>({k,sel:salidaEnSel})), ...orden.filter(k=>sel.has(k)).map(k=>({k,sel:true,marca:true})), ...(plata?[{k:'plata'}]:[])];
+}
+function valorCarta(x){ const J=$C().jugador; if(x.k==='plata') return J.plata||0; const R=x.sel?(J.relSel||RELSEL_NEW):J.relaciones; return R[x.k]; }
+function pintarRelsCarta(c){
+  const box=document.getElementById('cartaRels'); if(!box) return;
+  const xs=enJuegoCarta(c);
+  box.classList.toggle('oculto',!xs.length);
+  box.innerHTML=xs.map((x,i)=>{ const v=valorCarta(x);
+    return x.k==='plata' ? '<span class="rc" data-i="'+i+'"><em>'+fplataFn(v)+'</em></span>'
+      : '<span class="rc" data-i="'+i+'"><small>'+t(REL_TXT[x.k])+(x.marca?' '+t(L('SEL.','NT','SEL.')):'')+'</small><i><b style="width:'+v+'%"></b></i><em>'+v+'</em></span>'; }).join('');
+  box._xs=xs; box._antes=xs.map(valorCarta);
+}
+/* en el desenlace: cada barra al valor nuevo, verde si subió y roja si bajó */
+function moverRelsCarta(){
+  const box=document.getElementById('cartaRels'); if(!box||!box._xs) return;
+  box._xs.forEach((x,i)=>{ const el=box.querySelector('.rc[data-i="'+i+'"]'); if(!el) return; const v=valorCarta(x), a=box._antes[i];
+    el.classList.toggle('sube',v>a); el.classList.toggle('baja',v<a);
+    const b=el.querySelector('b'); if(b) b.style.width=v+'%';
+    el.querySelector('em').textContent=x.k==='plata'?fplataFn(v):v; });
+}
 function mostrarCarta(c,rotulo,alTerminar){
   const v=document.getElementById('carta');
   cartaAbierta={c,alTerminar};
@@ -6905,6 +7044,7 @@ function mostrarCarta(c,rotulo,alTerminar){
   /* §2z136: red — un gancho-función que llegue crudo se resuelve con el contexto general; nunca una carta muda */
   let gancho=c.gancho; if(typeof gancho==='function'){ try{ gancho=gancho(ctxCarta(null)); }catch(err){ gancho=''; } }
   document.getElementById('cartaGancho').textContent=t(gancho);
+  pintarRelsCarta(c);   // 2026-09-14
   const ops=document.getElementById('cartaOpciones');
   /* §2z42.3 (su regla: "puede salirte «invitar el asado» aunque estés con 0 pesos, pero grisada y que te aclare que
      necesitás X cantidad de plata"): `requierePlataX` es cuántos pagos por partido pide la opción; si no llegás,
@@ -6962,6 +7102,7 @@ function elegirCarta(i){
     ? ps.map(p=>'<span class="pil '+(p.ok?'ok':'mal')+(p.skill?' skill':'')+'">'+p.txt+'</span>').join('')
     : '<span class="pil">'+t(L('SIN CAMBIOS','NO CHANGE','SEM MUDANÇAS'))+'</span>';
   document.getElementById('cartaDesenlace').classList.remove('oculto');
+  requestAnimationFrame(moverRelsCarta);   // 2026-09-14: la barra se corre al valor nuevo
   };
   const ops=document.getElementById('cartaOpciones'), opc=ops.querySelector('.opc[data-i="'+i+'"]');
   const ramas=opc?[...opc.querySelectorAll('.rama')]:[], gi=o.desenlaces.indexOf(d);
@@ -7216,7 +7357,7 @@ function mostrarEventoRel(x,alTerminar){
   R[x.ev.rel]=ahora; guardar();
   const v=document.getElementById('bajon'), pct=(n)=>Math.max(0,Math.min(100,n))+'%';
   v.classList.toggle('sube',sube);   /* un reset puede salirte a favor: ahí no es rojo y no hay tramo perdido */
-  document.getElementById('bajonRot').textContent=t(EVENTO_REL_ROTULO[x.ev.rel]);
+  document.getElementById('bajonRot').textContent='';   /* 2026-09-14: la barra ya nombra la relación (su caza: «DT dice en tres lugares») */
   document.getElementById('bajonTxt').textContent=t(x.ev.titular);
   document.getElementById('bajonSub').textContent=t(x.ev.sub);
   document.getElementById('bajonQuien').textContent=t(EVENTO_REL_NOMBRE[x.ev.rel]);
@@ -7224,14 +7365,15 @@ function mostrarEventoRel(x,alTerminar){
   /* la barra arranca donde estabas; el tramo perdido ya está pintado en rojo detrás */
   /* cayendo: el tramo perdido queda pintado en rojo detrás y la barra se corre hasta el valor nuevo.
      Subiendo (el reset del DT): no hay nada perdido — la barra sube sola sobre la pista. */
-  perd.style.width=pct(sube?0:antes); barra.style.width=pct(antes); num.textContent=antes; num.classList.remove('cae');
+  const marca=(n)=>{ num.style.left=Math.max(5,Math.min(95,n))+'%'; };   /* el número debajo de la punta de la barra */
+  perd.style.width=pct(sube?0:antes); perd.style.opacity='1'; barra.style.width=pct(antes); num.textContent=antes; marca(ahora); num.classList.remove('cae');   /* su corte: el número no viaja — espera donde la barra va a llegar */
   v.classList.remove('oculto');
   verQueSeVe('bajon','El parte');
   setTimeout(()=>{
     barra.style.width=pct(ahora); if(!sube) num.classList.add('cae');
     const t0=Date.now(), dur=900;   /* el número baja con la barra */
-    const paso=()=>{ const k=Math.min(1,(Date.now()-t0)/dur);
-      num.textContent=Math.round(antes-(antes-ahora)*k); if(k<1) requestAnimationFrame(paso); };
+    const paso=()=>{ const k=Math.min(1,(Date.now()-t0)/dur), ease=1-Math.pow(1-k,3), n=antes-(antes-ahora)*ease;
+      num.textContent=Math.round(n); if(k<1) requestAnimationFrame(paso); else if(!sube) setTimeout(()=>{ perd.style.opacity='0'; },350); };
     requestAnimationFrame(paso);
   },550);
   document.getElementById('bajonOk').onclick=()=>{ v.classList.add('oculto'); if(alTerminar) alTerminar(); };
@@ -7249,6 +7391,7 @@ function mostrarAviso(a, alTerminar){
   document.getElementById('cartaRotulo').textContent=t(a.rotulo);
   document.getElementById('cartaRotulo').className='rotulo'+(a.rotuloCls?' '+a.rotuloCls:'');   // 2026-09-13: SPONSOR NUEVO en naranja
   document.getElementById('cartaGancho').textContent='';        /* :empty lo esconde: sin renglón vacío con aire */
+  { const rb=document.getElementById('cartaRels'); if(rb){ rb.innerHTML=''; rb.classList.add('oculto'); rb._xs=null; } }   // 2026-09-14: un aviso no tiene nada en juego
   const ops=document.getElementById('cartaOpciones'); ops.innerHTML=''; ops.classList.add('oculto');
   document.getElementById('cartaRemate').textContent=t(a.remate);
   document.getElementById('cartaTexto').textContent=a.texto?t(a.texto):'';
@@ -14233,6 +14376,14 @@ function elencoAlEncuadre(heredada){
      "me aparece lejísimo") y quedaba empujada a 61 en todas las escenas sin cámara lateral.
      Ahora el piso se aplica a TODO el elenco pero SÓLO a quien el clamp movió: lo que se
      colocó a mano se respeta, y lo que se teletransportó no te cae encima. */
+  /* 2026-09-14 (su caza en la contra ABRE: «el que se va solo a la línea de 3 se fue afuera de la pantalla»): los cuerpos entraban
+     al encuadre pero el DESTINO de la corrida no — el que se abre nacía adentro y corría a un ala que la cámara de esta posesión no
+     ve. La meta y los tramos de la corrida también viven adentro: corre hasta el borde de lo que ves y se planta ahí. */
+  if(G.corrida){ const c=G.corrida;
+    if(c.meta) c.meta={x:clamp(c.meta.x,x0,x1), y:c.meta.y};
+    /* el que se ABRE va a tirar de tres: si acotar la x lo metió en el arco, sube hasta quedar detrás de la línea (1,06·R3) */
+    if(c.meta && c.abre){ const a=aro(), dx=Math.abs(c.meta.x-a.x), rr=R3()*1.06; if(dx<rr) c.meta.y=Math.max(c.meta.y, a.y+Math.sqrt(rr*rr-dx*dx)); }
+    if(c.camino) c.camino=c.camino.map(p=>({x:clamp(p.x,x0,x1), y:p.y})); }
   const movidos=[];
   for(const j of [...G.comps, ...G.defs]){
     const x0j=j.x; j.x=clamp(j.x, x0, x1);
@@ -14377,11 +14528,10 @@ function prendeFuego(){
       setTimeout(()=>{ if(G.fase!=='fin') veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); }, 1200); }
     else veredicto(t(L('\u00A1ON FIRE!','ON FIRE!','EM CHAMAS!')),'fuego',1400); } }, 780);
 }
-function apagaFuego(soloFuego,ajena){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0;   // §2z114: la próxima racha se vuelve a anunciar
+function apagaFuego(soloFuego){ G.fuego=0; G.fuegoRegalo=0; G.fuegoDicho=0; if(!soloFuego) G.rachaTiros=0;   // §2z114: la próxima racha se vuelve a anunciar
   /* §2z224: TODO apagaFuego es un fallo tuyo o una pérdida (`soloFuego`), y los dos suman al frío — por eso entra
-     acá y no en los doce lugares que lo llaman. 2026-09-13 (su caza: «no desmarcarte bien y que la pierdas no debería
-     contar: sólo errados y pérdidas tuyas»): la pérdida `ajena` —el pase del compañero que cortan— apaga el fuego y no enfría. */
-  if(!ajena) enfriar(); }
+     acá y no en los doce lugares que lo llaman. La pérdida AJENA no pasa por acá (perderPelota, 14). */
+  enfriar(); }
 function enfriar(){ G.frio=(G.frio||0)+1;
   if(G.frio===frioUmbral()) setTimeout(()=>{ if(G.fase!=='fin') relato(t(L('Se te enfrió la mano.','Your hand went cold.','Sua mão esfriou.')),true); }, 750); }
 
@@ -14395,12 +14545,11 @@ function enfriar(){ G.frio=(G.frio||0)+1;
    cambia de liga sin recargar la página.
    ⚠️ Apellidos comunes, no jugadores reales: la doctrina de los escudos y los íconos. */
 const APELLIDOS_POR_PAIS={
-  ar:['GONZÁLEZ','FERNÁNDEZ','QUINTEROS','ACOSTA','MAIDANA','SANTIAGO','CABRERA','LEIVA',
-      'ROMERO','GIMÉNEZ','PERALTA','BENÍTEZ','SOSA','ALMADA'],
-  us:['HAYES','OKAFOR','SLATER','BROOKS','MITCHELL','WARREN','HOLLIS','DAWKINS',
-      'REEVES','WHITFIELD','CARMICHAEL','BOONE'],
-  br:['SILVA','SANTOS','OLIVEIRA','ALMEIDA','MACHADO','BARBOSA','TEIXEIRA','NASCIMENTO'],
-  uy:['RODRÍGUEZ','BATISTA','PEREYRA','MACHÍN','OLIVERA','CARBAJAL','VIERA'],
+  /* §2z264: los de la ar y los us crecieron a 82/84 — las figuras no repiten apellido dentro de una liga (la NBA pide 60) */
+  ar:['GONZÁLEZ','FERNÁNDEZ','QUINTEROS','ACOSTA','MAIDANA','SANTIAGO','CABRERA','LEIVA','ROMERO','GIMÉNEZ','PERALTA','BENÍTEZ','SOSA','ALMADA','RODRÍGUEZ','GÓMEZ','LÓPEZ','DÍAZ','MARTÍNEZ','PÉREZ','SÁNCHEZ','ÁLVAREZ','RUIZ','SUÁREZ','AGUIRRE','PEREYRA','GUTIÉRREZ','MOLINA','CASTRO','ROJAS','NÚÑEZ','LUNA','JUÁREZ','RÍOS','FERREYRA','GODOY','DOMÍNGUEZ','VEGA','CARRIZO','QUIROGA','LEDESMA','MUÑOZ','OJEDA','PONCE','VERA','VÁZQUEZ','VILLALBA','CARDOZO','CORONEL','CÁCERES','ARIAS','FIGUEROA','CORREA','AYALA','PAZ','BUSTOS','PÁEZ','MIRANDA','ARGAÑARAZ','BRITOS','ESCOBAR','OVIEDO','RIVAS','BARRIOS','TOLEDO','BRIZUELA','ZALAZAR','OCAMPO','MANSILLA','VALDEZ','CEJAS','ROLDÁN','SEGOVIA','LUCERO','MAYA','ALBORNOZ','CHÁVEZ','RIQUELME','FRÍAS','PALACIOS','BARRIONUEVO','CISTERNA'],
+  us:['HAYES','OKAFOR','SLATER','BROOKS','MITCHELL','WARREN','HOLLIS','DAWKINS','REEVES','WHITFIELD','CARMICHAEL','BOONE','WALKER','TURNER','PARKER','COLLINS','EDWARDS','STEWART','MORRIS','MURPHY','COOK','ROGERS','MORGAN','COOPER','PETERSON','BAILEY','REED','KELLY','HOWARD','WARD','RICHARDSON','WATSON','BENNETT','GRAY','HUGHES','PRICE','SANDERS','MYERS','FOSTER','POWELL','JENKINS','PERRY','RUSSELL','SULLIVAN','COLEMAN','BUTLER','SIMMONS','GRAHAM','WALLACE','WEST','CARTER','ROBERTS','PHILLIPS','CAMPBELL','NELSON','BAKER','WRIGHT','SCOTT','GREENE','ADAMS','HILL','YOUNG','ALLEN','KING','LEWIS','ROBINSON','CLARK','HARRIS','THOMPSON','JACKSON','MOORE','TAYLOR','ANDERSON','WILSON','MILLER','BRENNAN','FLETCHER','GRANT','HOLLAND','MCCOY','OWENS','PATTERSON','SHAW','TUCKER'],
+  br:['SILVA','SANTOS','OLIVEIRA','ALMEIDA','MACHADO','BARBOSA','TEIXEIRA','NASCIMENTO','CARVALHO','RIBEIRO','ARAÚJO','MOREIRA'],
+  uy:['RODRÍGUEZ','BATISTA','PEREYRA','MACHÍN','OLIVERA','CARBAJAL','VIERA','FERNÁNDEZ','SUÁREZ','DE LOS SANTOS','CORREA','MÉNDEZ'],
   eu:['KOVAC','VUKIC','MARKOVIC','PAPPAS','DIALLO','MBAYE','FONTANA','BERTONI',
       'LAURITSEN','JANKAUSKAS','NOVAK','MORENO'],
 };
@@ -14438,12 +14587,53 @@ Object.assign(APELLIDOS_POR_PAIS,{
   ci:['KONÉ','KOUASSI','TRAORÉ','OUATTARA','DIABY','YAO','KOUAMÉ','BAMBA'],
   cv:['TAVARES','FORTES','LOPES','MONTEIRO','SEMEDO','ANDRADE','ÉVORA','BRITO'],
   kr:['KIM','LEE','PARK','CHOI','JUNG','KANG','CHO','YOON','JANG','LIM'],
+  /* 2026-09-14 (su pregunta jugando contra Cuba: «¿tiene apellidos cubanos, o son todos lo mismo?»): eran lo mismo — 25 selecciones no
+     tenían pool y caían en el de TU liga, y siete latinas compartían uno. Ahora cada país tiene el suyo. */
+  cu:['HERNÁNDEZ','ALFONSO','ECHEVARRÍA','MIRABAL','PORTUONDO','BETANCOURT','GUERRA','CÁRDENAS','RODRÍGUEZ','LEYVA','DESPAIGNE','MARRERO'],
+  mx:['HERNÁNDEZ','GARCÍA','MARTÍNEZ','LÓPEZ','GONZÁLEZ','RAMÍREZ','CRUZ','FLORES','ORTEGA','VILLALOBOS','CERVANTES','ALCARAZ'],
+  pr:['RIVERA','COLÓN','VÉLEZ','SANTIAGO','ORTIZ','TORRES','CRUZ','DÍAZ','RODRÍGUEZ','BERRÍOS','BAYÓN','LUGO'],
+  do:['FÉLIX','PEÑA','ROSARIO','DE LA CRUZ','MEJÍA','REYES','BATISTA','ENCARNACIÓN','GUERRERO','PERALTA','TAVÁREZ','POLANCO'],
+  ve:['GONZÁLEZ','RODRÍGUEZ','PÉREZ','HERNÁNDEZ','GARCÍA','VARGAS','BRICEÑO','CARRASCO','ÁVILA','MONTILLA','GUEVARA','ARVELO'],
+  pa:['CASTILLO','QUINTERO','BARRÍA','MORENO','DE GRACIA','RÍOS','SAMANIEGO','TEJEIRA','CORTÉS','ARAÚZ','BATISTA','SANJUR'],
+  co:['RODRÍGUEZ','GÓMEZ','MARTÍNEZ','CASTAÑO','OSPINA','CUADRADO','RESTREPO','MOSQUERA','ARBOLEDA','VALENCIA','RENTERÍA','PALACIOS'],
+  cl:['GONZÁLEZ','MUÑOZ','ROJAS','DÍAZ','SOTO','CONTRERAS','SILVA','MARTÍNEZ','SEPÚLVEDA','ARAYA','FUENTES','VALENZUELA'],
+  ni:['LÓPEZ','GONZÁLEZ','MARTÍNEZ','RIVAS','CHAMORRO','OBANDO','SOMARRIBA','OCHOA','LACAYO','ZELEDÓN'],
+  ca:['MURRAY','BROWN','CAMPBELL','TREMBLAY','GAGNON','ROY','MACDONALD','LEBLANC','WILSON','THOMPSON','GRANT','BOUCHER'],
+  bs:['KNOWLES','ROLLE','SMITH','JOHNSON','FERGUSON','MAJOR','BETHEL','PINDER','CARTWRIGHT','MOSS'],
+  jm:['BROWN','WILLIAMS','CAMPBELL','THOMPSON','SMITH','GORDON','GRANT','REID','CLARKE','MORGAN'],
+  me:['VUJOVIĆ','RADULOVIĆ','PEROVIĆ','VUKČEVIĆ','BOJOVIĆ','MARTINOVIĆ','DRAŠKOVIĆ','IVANOVIĆ','LEKIĆ','NIKČEVIĆ'],
+  lb:['KHOURY','HADDAD','NASSAR','SAAB','AOUN','RIZK','HAJJ','FARAH','MANSOUR','SFEIR'],
+  ly:['BEN ALI','EL MAHDI','ZWAI','SHARIF','AL-MISRATI','BADI','SALEM','OMAR','MANSOURI','TARHUNI'],
+  sg:['TAN','LIM','LEE','NG','ONG','WONG','GOH','CHUA','KOH','TEO'],
+  at:['GRUBER','HUBER','BAUER','WAGNER','PICHLER','STEINER','MOSER','MAYER','HOFER','LEITNER'],
+  ba:['HODŽIĆ','HADŽIĆ','BEGIĆ','DELIĆ','MEHMEDOVIĆ','SALIHOVIĆ','ALIĆ','ČOLAK','HASANOVIĆ','MUJIĆ'],
+  be:['PEETERS','JANSSENS','MAES','JACOBS','MERTENS','WILLEMS','CLAES','GOOSSENS','WOUTERS','DE SMET'],
+  bg:['IVANOV','GEORGIEV','DIMITROV','PETROV','NIKOLOV','HRISTOV','STOYANOV','TODOROV','ANGELOV','KOLEV'],
+  cm:['NKOULOU','MBARGA','ESSOMBA','ATANGANA','FOTSO','NGUEMA','ETOUNDI','BELINGA','EKANI','MBIA'],
+  dk:['JENSEN','NIELSEN','HANSEN','PEDERSEN','ANDERSEN','CHRISTENSEN','LARSEN','SØRENSEN','RASMUSSEN','JØRGENSEN'],
+  ee:['TAMM','SAAR','SEPP','MÄGI','KASK','KUKK','REBANE','ILVES','PÄRN','KOPPEL'],
+  gb:['SMITH','JONES','WILLIAMS','DAVIES','EVANS','THOMAS','ROBERTS','WRIGHT','HUGHES','EDWARDS'],
+  hr:['HORVAT','KOVAČEVIĆ','BABIĆ','MARIĆ','JURIĆ','KNEŽEVIĆ','VUKOVIĆ','BOŽIĆ','PAVLOVIĆ','BLAŽEVIĆ'],
+  hu:['NAGY','KOVÁCS','TÓTH','SZABÓ','HORVÁTH','VARGA','KISS','MOLNÁR','NÉMETH','FARKAS'],
+  il:['COHEN','LEVI','MIZRAHI','PERETZ','BITON','DAHAN','AVRAHAM','FRIEDMAN','AZOULAY','KATZ'],
+  is:['JÓNSSON','SIGURÐSSON','GUÐMUNDSSON','GUNNARSSON','ÓLAFSSON','EINARSSON','KRISTJÁNSSON','MAGNÚSSON','STEFÁNSSON','PÁLSSON'],
+  jo:['AL-ZOUBI','HADDAD','ABU HAMDAN','AL-MASRI','SALEH','KHALIL','OBEIDAT','AL-AHMAD','SHARAIRI','AL-KHATIB'],
+  mk:['STOJANOVSKI','NIKOLOVSKI','TRAJKOVSKI','GEORGIEVSKI','PETROVSKI','ANGELOVSKI','DIMOVSKI','KOSTOVSKI','JOVANOVSKI','ILIEVSKI'],
+  nl:['DE JONG','JANSEN','DE VRIES','VAN DEN BERG','VAN DIJK','BAKKER','VISSER','SMIT','MEIJER','MULDER'],
+  pt:['SILVA','SANTOS','FERREIRA','PEREIRA','OLIVEIRA','COSTA','RODRIGUES','MARTINS','SOUSA','FERNANDES'],
+  qa:['AL-KUWARI','AL-SULAITI','AL-MARRI','AL-HAJRI','AL-MANNAI','AL-NAIMI','AL-KHATER','AL-MAADADI','AL-DOSARI','AL-MOHANNADI'],
+  se:['ANDERSSON','JOHANSSON','KARLSSON','NILSSON','ERIKSSON','LARSSON','OLSSON','PERSSON','SVENSSON','GUSTAFSSON'],
+  sk:['KOVÁČ','BALÁŽ','LUKÁČ','KRAJČÍR','HUDEC','MRÁZ','POLÁK','BARTOŠ','ŠIMKO','ŽIAK'],
+  sn:['DIOP','NDIAYE','FALL','SARR','SECK','GUEYE','FAYE','SOW','CISSÉ','NIANG'],
+  tn:['BEN SALAH','TRABELSI','GHARBI','JEBALI','HAMMAMI','MEJRI','CHERIF','SASSI','KHALFALLAH','BEN AMOR'],
+  au:['SMITH','JONES','WILLIAMS','BROWN','WILSON','TAYLOR','ANDERSON','MARTIN','KELLY','RYAN'],
+  nz:['SMITH','WILLIAMS','BROWN','WILSON','TAYLOR','NGATA','TE AWA','PARATA','WEBSTER','FOX'],
   rw:['MUGISHA','HABIMANA','NIYONZIMA','UWIMANA','BIZIMANA','NDAYISABA','HAKIZIMANA','MUKAMANA'],   // 2026-09-14: los Tigers de Kigali (Copa Intercontinental)
 });
-const POOL_DE_PAIS={ar:'ar',us:'us',ca:'us',br:'br',uy:'uy',pr:'lat',do:'lat',ve:'lat',mx:'lat',pa:'lat',co:'lat',cl:'lat',
-  es:'es',rs:'srb',me:'srb',fr:'fr',de:'de',gr:'gr',it:'it',lt:'lt',si:'si',tr:'tr',lv:'lv',au:'anglo',nz:'anglo',
-  ss:'ss',ng:'ng',cn:'cn',jp:'jp',ph:'ph',ao:'ao',eg:'eg',ir:'ir',ua:'ua',fi:'fi',ge:'ge',pl:'pl',cz:'cz',ci:'ci',cv:'cv',kr:'kr',
-  rw:'rw',lb:'eg',ly:'eg',sg:'cn'};   // 2026-09-14: los países de los clubes de la Copa Intercontinental que no son selección del padrón
+const POOL_DE_PAIS={ar:'ar',us:'us',br:'br',uy:'uy',es:'es',rs:'srb',fr:'fr',de:'de',gr:'gr',it:'it',lt:'lt',si:'si',tr:'tr',lv:'lv',
+  ss:'ss',ng:'ng',cn:'cn',jp:'jp',ph:'ph',ao:'ao',eg:'eg',ir:'ir',ua:'ua',fi:'fi',ge:'ge',pl:'pl',cz:'cz',ci:'ci',cv:'cv',kr:'kr',rw:'rw',
+  /* 2026-09-14: uno por país (antes lat/anglo/srb/eg/cn agrupaban y 25 no estaban) */
+  cu:'cu',mx:'mx',pr:'pr',do:'do',ve:'ve',pa:'pa',co:'co',cl:'cl',ni:'ni',ca:'ca',bs:'bs',jm:'jm',me:'me',lb:'lb',ly:'ly',sg:'sg',at:'at',ba:'ba',be:'be',bg:'bg',cm:'cm',dk:'dk',ee:'ee',gb:'gb',hr:'hr',hu:'hu',il:'il',is:'is',jo:'jo',mk:'mk',nl:'nl',pt:'pt',qa:'qa',se:'se',sk:'sk',sn:'sn',tn:'tn',au:'au',nz:'nz'};   // 2026-09-14: los países de los clubes de la Copa Intercontinental que no son selección del padrón
 function apellidosDeLiga(){
   let liga='federal';
   try{ const k=window.__carrera, c=k&&k.C; if(c&&c.ligaId) liga=c.ligaId;
@@ -15252,7 +15442,9 @@ function armarPosesion(){
       meta={x:a.x+ladoT*R3()*0.42, y:a.y+R3()*0.35};   // sigue y define por su carril
     } else if(vC==='abre'){    /* corre al ala de tres y frena ahí */
       corredor={x: a.x+ladoC*R3()*rnd(0.35,0.55), y: lerp(a.y, piso, 0.62), big:false};
-      meta={x:a.x+ladoC*R3()*0.92, y:a.y+R3()*0.38}; extra={abre:true};
+      /* 2026-09-14 (su caza: «el que se abre, ¿va atrás de la línea de 3? tiró un doble largo sin sentido»): la meta vivía a 0,99·R3 del
+         aro, o sea ADENTRO del arco. Se abre a tirar de tres: detrás de la línea, a ~1,1·R3 (y 04 la sostiene afuera si la acota la cámara) */
+      meta={x:a.x+ladoC*R3()*1.0, y:a.y+R3()*0.45}; extra={abre:true};
     } else if(vC==='tresdos'){ /* uno ya llegó al ala opuesta; el otro corre al aro (§2z78: arranca más atrás) */
       corredor={x: a.x+ladoC*R3()*rnd(0.30,0.55), y: lerp(a.y, piso, 0.78), big:false};
       meta={x:a.x+ladoC*R3()*0.18, y:a.y+R3()*0.35};
@@ -16691,7 +16883,7 @@ function juntar(){
   const tapa = dBD<40*ESC() && limpio<0.35-0.015*(dif.fis||3);
   const vola = calidad>0.75;
   if(finalMio()) G.sueltaFinal=true;   // la definición también es un tiro suelto
-  G.fase='vuelo'; G.tiros++; G.tiro=null;
+  G.fase='vuelo'; G.tiros++; G.tiro=null; relato('');   // 2026-09-14: el relato de antes (la devolución) no queda colgado sobre la definición
   /* el porqué a la vista: la definición la decidió TU llegada, no un dado */
   chip(vola?t(L('Llegaste limpio · Volcada','Got there clean · Dunk','Chegou limpo · Enterrada')):(limpio>0.35?t(L('Llegaste justo · Bandeja','Got there just in time · Layup','Chegou no limite · Bandeja')):t(L('Llegaste trabado · Bandeja forzada','Got there smothered · Forced layup','Chegou travado · Bandeja forçada'))));
   /* TU cuerpo define (su pedido 2026-08-24: "lo más vistoso del básquet ni existe"):
@@ -16737,7 +16929,7 @@ function juntar(){
 function recibisSolo(){ return dist(G.vos,aro())<R3()*0.45 && G.defs.every(d=>dist(d,G.vos)>36*ESC()); }
 function definirSolo(){
   const a=aro(), vola=(dif.fis||3)>=7;
-  G.fase='vuelo'; G.tiros++; G.tiro=null; G.devuelta=false; G.levanto=false;
+  G.fase='vuelo'; G.tiros++; G.tiro=null; G.devuelta=false; G.levanto=false; relato('');
   chip(vola?t(L('Solo abajo del aro · Volcada','Alone at the rim · Dunk','Sozinho no aro · Enterrada')):t(L('Solo abajo del aro · Bandeja','Alone at the rim · Layup','Sozinho no aro · Bandeja')));
   posar(G.vos, vola?'volcada':'bandeja', a, vola?950:650);
   G.corres=[{j:G.vos, x0:G.vos.x, y0:G.vos.y, x1:a.x+rnd(-5,5), y1:a.y+15*ESC(), t:0, dur:vola?0.22:0.42}];
@@ -16953,6 +17145,7 @@ function soltarMedidor(){
   const p = md.t0 ? (md.pVisto!=null ? md.pVisto : (performance.now()-md.t0)/md.T) : 2;
   G.medidor=null; G.fase='vuelo'; G.tiro=null;
   if(t.libre){ soltarLibre(p,md,t); return; }   // §2z201: el libre cuenta en la línea, no en los tiros de cancha
+  relato('');   /* 2026-09-14 (su caza: «la pasás, te la devuelven y errás, y arriba sigue diciendo que te ubicaste mejor»): el relato de lo que pasó ANTES del tiro se borra al soltar — lo que viene lo cuentan el vuelo y el veredicto */
   const desde={...G.vos}, hasta={...t.blanco.p};
   const d=dist(desde,hasta), justa=potPara(d), m=metrosDe(d);
   const es3=esTriple(desde);
@@ -17119,6 +17312,7 @@ function lanzar(zona){
   const cae={x:desde.x+Math.cos(dir)*alcance(t.potencia), y:desde.y+Math.sin(dir)*alcance(t.potencia)};
 
   if(esTiro){
+    relato('');   // 2026-09-14: el relato de antes del tiro no queda colgado (11, soltarMedidor)
     if(finalMio()) G.sueltaFinal=true;   // el tiro ya salió: la chicharra no lo mata
     const es3=esTriple(desde);
     G.tiros++; if(es3)G.tiros3++;
@@ -18614,6 +18808,8 @@ function enFrame(j){ const q=aPantalla(j);
    el armado suma 350 ms (`giroDe`), y con (1) eso alcanza para que el que tenía a alguien cerca deje de estar solo. El relato
    lo dice al tirar («de espaldas al aro: gira y la tira»). Perillas: GIRO_MS y el sprint del cierre. */
 const GIRO_MS=350;
+/* 2026-09-14: lo que cuesta una devolución — tu desmarque (1500), la vuelta y tu tiro. Con menos reloj al recibir, la juega él (recibe) y el cartel lo avisa (18) */
+const RELOJ_DEVOLUCION=3000;
 function giroDe(compi,cae){
   if(!cae) return false;
   const c=G.corrida;
@@ -18730,7 +18926,14 @@ function recibe(compi,forma,txt,va){
     const cerroElVolado=!!(G.cierreVolado&&G.cierreVolado.df!==suMarca&&dist(G.cierreVolado.df,compi)<30*ESC()); G.cierreVolado=null;
     G.pelotaEn=null;
     if(alQueCorto&&largo&&libre){ G.paseBueno=(G.paseBueno||0)+1; veredicto(t(L('¡PASE BUENO!','GOOD PASS!','BOM PASSE!')),'ok');
-      finPosesion(true,t(L('Lo encontraste libre.','You found him open.','Você o achou livre.'))); }
+      /* 2026-09-14 (su caza: «después del pase la cancha queda visible y vacía, sin que se vea el tiro»): el drill terminaba en la
+         recepción y el cierre esperaba 3 s una bandeja que nunca salía. El premio se VE: el que recibió libre tira y la mete —sólo el
+         dibujo, no toca la planilla del drill—, y el cierre sale cuando entra. */
+      const a=aro(), dA=dist(compi,a), cerca=dA<R3()*0.55;
+      posar(compi,cerca?'bandeja':'tira',a,cerca?900:1000);
+      vuelo({x:compi.x,y:compi.y},{...a},cerca?0.35:0.5,Math.max(cerca?0.25:0.3,dA/(cerca?300:520)),()=>{ canastaFx();
+        finPosesion(true,t(L('Lo encontraste libre.','You found him open.','Você o achou livre.'))); });
+    }
     else if(!alQueCorto){ veredicto(t(L('ESE NO CORTÓ','HE DIDN\'T CUT','ESSE NÃO CORTOU')),'mal');
       finPosesion(false,t(L('Se la diste al que no se movió: el pase era al que cortaba.','You gave it to the one who stood still: the pass was to the cutter.','Você deu pra quem ficou parado: o passe era pra quem cortava.'))); }
     else if(!largo){ veredicto(t(L('PASE DE MANO','HANDOFF','PASSE DE MÃO')),'mal');
@@ -18898,8 +19101,13 @@ function recibe(compi,forma,txt,va){
   /* §2z128 (su caza 2026-09-07: "metí un pase de mitad de cancha en la contra a uno cerca del aro, y como estaba
      marcado frenó para devolvérmela cuando yo estaba MUY lejos"): la devolución pide que estés a tiro de pase
      (≤1,0·R3). Lejos, no hay devolución: la juega él como puede — marcado, con su Q de apuro. */
-  if(dist(compi,G.vos)>R3()*1.0 && !saqueDevuelve()){   // §2z205: en la devolución vas entrando: te la devuelve igual
-    relato(t(L('Estás lejos: la juega él.','You are far: he plays it himself.','Você está longe: ele joga sozinho.')),true);
+  /* 2026-09-14 (su caza: «le pasé con poco reloj, el cartel decía TE LA DEVUELVE, tiró marcado "porque no me desmarqué" — y a mí nunca
+     me dio el tiempo»): la devolución cuesta el desmarque (1,5 s), la vuelta y TU tiro. Con menos de RELOJ_DEVOLUCION al recibir no hay
+     devolución: la juega él, y lo que se dice es el reloj, no tu desmarque. El cartel de antes de soltar (18) usa el mismo número. */
+  const lejos=dist(compi,G.vos)>R3()*1.0, sinReloj=G.posClock<RELOJ_DEVOLUCION;
+  if((lejos||sinReloj) && !saqueDevuelve()){   // §2z205: en la devolución vas entrando: te la devuelve igual
+    relato(sinReloj?t(L('Queda poco reloj: la juega él.','Little clock left: he plays it himself.','Pouco relógio: ele joga sozinho.'))
+                   :t(L('Estás lejos: la juega él.','You are far: he plays it himself.','Você está longe: ele joga sozinho.')),true);
     setTimeout(()=>{ if(G.fase==='fin') return;
       G.pelotaEn=null; posar(compi,'tira',aro(),1000);
       vuelo({x:compi.x,y:compi.y},{...aro()},0.65,Math.max(0.3,dAro/460),()=>{
@@ -18908,7 +19116,8 @@ function recibe(compi,forma,txt,va){
           aprende('pase'); veredicto(v===3?t(L('¡TRIPLE MARCADO!','CONTESTED THREE!','TRIPLO MARCADO!')):t(L('¡LA METIÓ!','HE HIT IT!','ACERTOU!')),'ok');   // §2z232
           finPosesion(true,t(L('Asistencia tuya: la resolvió marcado.','Your assist: he scored under pressure.','Assistência sua: resolveu marcado.'))); }
         else { G.pasesTiro=(G.pasesTiro||0)+1; veredicto(t(L('Marcado — afuera','Contested — no good','Marcado — fora')),'mal');
-          finPosesion(false,t(L('La tiró marcado y no entró. Estabas lejos para la devolución.','He shot it contested and missed. You were too far for the return pass.','Arremessou marcado e errou. Você estava longe pra devolução.'))); }
+          finPosesion(false,sinReloj?t(L('La tiró marcado con el reloj encima y no entró.','He shot it contested with the clock running out and missed.','Arremessou marcado com o relógio acabando e errou.'))
+                                    :t(L('La tiró marcado y no entró. Estabas lejos para la devolución.','He shot it contested and missed. You were too far for the return pass.','Arremessou marcado e errou. Você estava longe pra devolução.'))); }
       });
     },350);
     return;
@@ -18927,7 +19136,10 @@ function perderPelota(txt,titulo,sinV,ajena){
   if(titulo) veredicto(titulo,'mal');
   if(!ajena){ G.perdidas=(G.perdidas||0)+1; if((G.cuarto||1)>=4) G.perdidasQ4=(G.perdidasQ4||0)+1; }   // la planilla no perdona (su caza 2026-08-28) · 2026-09-10: la misión del último cuarto
   G.suelo=null; G.corre=null; G.pelotaEn=null; G.paseVivo=null;
-  apagaFuego(true,ajena); aprende('robo');   // la pérdida apaga el fuego, no las SEGUIDAS de la misión
+  /* 2026-09-13/14 (sus cazas: «no desmarcarte bien y que la pierdas no debería contar al frío» y «voy 5/5 de campo sin pérdidas y me dijo
+     3 seguidas… tiro errado o pérdidas deberían cortar la racha, el resto no»): la pérdida AJENA —el pase del compañero que cortan— no
+     toca ni el fuego ni el frío. La tuya apaga el fuego (no las SEGUIDAS de la misión) y enfría. */
+  if(!ajena) apagaFuego(true); aprende('robo');
   relato(txt,false); finPosesion(false,ajena?t(L('Se perdió en la devolución.','Lost on the return pass.','Perdeu-se na devolução.'))
                                             :t(L('La perdiste.','You lost it.','Você perdeu ela.')));
 }
@@ -21432,6 +21644,11 @@ function frame(now){
            con el corte armado desde el arranque, la marca del abierto quedaba clavada en su spawn, en
            el medio de la cancha, sin ir nunca a su puesto) */
         if(G.corrida && (df===G.defs[0] || (df===G.corrida.ch && now>=G.corrida.arranca))) continue;
+        /* 2026-09-14 (su caza en la contra ABRE: «cuando clavé el dribble, el que marcaba al que se abría casi se teletransporta encima
+           suyo»): el perseguidor de la contra ABRE es defs[1] (perseguidorDe), no `corrida.ch`, así que al frenar lo movían DOS reglas a
+           la vez —esta, trotando a su puesto a 110, y el closeout a 0,88× de la corrida— y la suma era un salto. Al perseguidor lo mueve
+           sólo su corrida (antes del closeout, §2z106 dice que se queda). Sólo la contra: la sacada tiene sus libretos medidos (sacadas-check). */
+        if(G.tipo==='contra' && G.corrida && df===perseguidorDe(G.corrida)) continue;
         if(G.rot && (G.rot.df?df===G.rot.df:df.big) && now>=G.rot.leido) continue;   // §2z39.1: el protector está rotando (§2z76: el suave también)
         const man=G.asig.get(df); if(!man) continue;
         const meta=puestoBase(df,man);   // §2z39: la misma fórmula que usa el sorteo del corte para prever dónde va a estar
@@ -22044,6 +22261,8 @@ function frame(now){
              el umbral es EL MISMO 1200 de recibe(). */
           const llegaMs=dist(G.vos,b.p)/520*1000;
           const sinTiempo=estable('apuro', G.posClock-llegaMs<1200);
+          /* 2026-09-14 (su caza: «decía TE LA DEVUELVE con poco reloj y tiró marcado»): sin reloj para la devolución no se promete una */
+          const pocoReloj=estable('poco', G.posClock-llegaMs<RELOJ_DEVOLUCION && !saqueDevuelve());
           /* el contrato NO pisa el aro (su frente: el grandote postea pegado al aro y el
              cartel le caía encima): si el renglón queda cerca del aro EN PANTALLA, se da
              vuelta y vive arriba del receptor */
@@ -22063,7 +22282,7 @@ function frame(now){
             ctx.fillText(t(L('¡TAPADO!','COVERED!','TAPADO!')), cp.x, ty);
           } else {
           ctx.fillStyle=va?'rgba(125,208,135,.95)':'rgba(233,236,243,.9)';
-          ctx.fillText(va?t(L('¡LA TIRA!','HE SHOOTS IT!','ELE ARREMESSA!')):t(L('te la devuelve','he gives it back','ele devolve pra você')), cp.x, ty);
+          ctx.fillText(va?t(L('¡LA TIRA!','HE SHOOTS IT!','ELE ARREMESSA!')):pocoReloj?t(L('poco reloj — la juega él','little clock — he plays it','pouco relógio — ele joga')):t(L('te la devuelve','he gives it back','ele devolve pra você')), cp.x, ty);
           /* el globo se anuncia (mismo contrato): si el volado lo deja solo, se ve antes.
              §2z25: al que tenés CERCA lo libera el pase rápido, no el globo — el cartel
              dice eso, y el globo no se ofrece en un pase de 2 metros. */
@@ -22829,17 +23048,29 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
     apellido:limpiarApellido(apellido)||t(APELLIDO_SIN),arquetipo:arquetipo||'tirador',
     nacionalidad:nacionalidad||'ar',   // de dónde sos: identidad, y viaja con la carrera
     dorsal:dorsal===undefined?7:dorsal};   // el 0 es dorsal legal
+  const regF=figurasRegDe(null,ligaId||'federal',ANIO_INICIO,liga.clubes,semilla);   // §2z264: las figuras nacen con la carrera
   const temporada=crearTemporada(semilla+'-t2026',liga.clubes,{
+      figuras:regF?figurasFoto(regF):null,
       miClubId:club,skills:jugador.skills,fechas:liga.fechas,
       playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.calendario?ligaId:liga.ritmo,   // §2z83: con calendario, el ritmo ES la liga
       fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(temporada,ligaId||'federal',ANIO_INICIO,null);   // §2z27
   instalarSeleccion(temporada,jugador,ligaId||'federal',ANIO_INICIO,semilla,null);   // §12
   anclarAmericas(temporada);   // 2026-09-13
-  return {v:1,semilla,anio:ANIO_INICIO,ligaId:ligaId||'federal',jugador,
+  return {v:1,semilla,anio:ANIO_INICIO,ligaId:ligaId||'federal',jugador,figuras:regF?{[ligaId||'federal']:regF}:{},
     contrato:ofertaDe(jugador,ligaId||'federal',liga.clubes.find(c=>c.id===club)||liga.clubes[0],null),   // §2z15
     padron:padronInicial(),   // §2z7: la escalera de clubes vive en la carrera
     temporada};
+}
+/* §2z264: el registro de figuras de una liga en la carrera `car` (o uno suelto si `car` es null: la carrera que nace), llevado al
+   año y a los clubes de hoy. Null en las ligas sin figuras (las usa la LNB y la NBA; el resto, cuando salga el juego). */
+function figurasRegDe(car,ligaId,anio,clubes,semilla){
+  if(!FIGURAS_LIGAS.includes(ligaId)) return null;
+  const local=PAIS_DE_LIGA[ligaId]||'ar', poolDe=(p)=>APELLIDOS_POR_PAIS[POOL_DE_PAIS[p]||p];   // 2026-09-14: cada figura con su país
+  if(!car) return figurasCrear(semilla,ligaId,anio,clubes,poolDe,local);
+  if(!car.figuras) car.figuras={};
+  if(!car.figuras[ligaId]) car.figuras[ligaId]=figurasCrear(car.semilla,ligaId,anio,clubes,poolDe,local);
+  return figurasAvanzar(car.figuras[ligaId],car.semilla,ligaId,anio,clubes,poolDe,local);
 }
 function guardar(){ if(C) C.guardadoTs=Date.now(); try{localStorage.setItem(slotKey(ranura),JSON.stringify(C));}catch(e){} nubeAgendar(); }   // §2z246.3: la hora de la copia y la subida a la cuenta
 
@@ -23029,6 +23260,8 @@ function cargarCarrera(n){
        de llevar `pj` (480e012) no tienen con qué irse en playoffs, donde la fecha no avanza. Sin `pj`, se van al cargar. */
     if(c.temporada) for(const k of ['avisoDbeta','avisoOxido']){ const av=c.temporada[k]; if(av&&av.pj==null) delete c.temporada[k]; }
     if(c.selTorneo) religarLlaveSel(c.selTorneo);
+    /* §2z264: la temporada en curso de una partida de antes de las figuras las recibe UNA vez (queda guardada en la temporada) */
+    if(c.temporada&&Array.isArray(c.temporada.clubes)&&!c.temporada.figuras){ const regF=figurasRegDe(c,c.ligaId,c.anio,c.temporada.clubes); if(regF) c.temporada.figuras=figurasFoto(regF); }
     if(c.selAviso&&c.selAviso.clave==='jugado') c.selAviso=null;   // 2026-09-14: las partidas viejas traían el reminder del torneo jugado; ya no existe
     /* 2026-09-10 (su caza): las ventanas FIBA de las partidas viejas no tenían días y la segunda jornada caía el día de la fecha
        pegada del club — a veces al día siguiente, con vuelo. Se les ponen los de la regla (§12.28): la jornada 1 el día de la
@@ -25289,7 +25522,8 @@ function cerrarSinVos(){
    corre en cada pintada y es idempotente: corta el Juego de las Estrellas UNA vez por temporada (e.allstar) y deja
    el aviso del HOY cuando entrás o salís del top 3 (e.avisoMVP, que vive hasta la próxima fecha jugada). Los
    candidatos se llaman como la liga (los pools de §12.27), sembrados: el mismo apellido toda la temporada. */
-function nombreCandidato(e,clubId,segundo){ const pool=APELLIDOS_POR_PAIS[PAIS_DE_LIGA[C.ligaId]||'ar']; return rngFor(e.semilla,'premiosNombre',clubId,segundo?2:1).pick(pool); }
+function nombreCandidato(e,clubId,segundo){ const fg=e.figuras&&e.figuras[clubId]; if(fg) return fg[segundo?1:0].ape;   // §2z264
+  const pool=APELLIDOS_POR_PAIS[PAIS_DE_LIGA[C.ligaId]||'ar']; return rngFor(e.semilla,'premiosNombre',clubId,segundo?2:1).pick(pool); }
 function carreraDe(e){ return carreraPremios(e,ligaDe().esc,miValorPremios(e,C.jugador)); }
 /* §2z250 LA PESTAÑA MVP: el molde de la tablita (escudo, nombre, corte sólido + leyenda). Sin notas (§2z45). Antes del 30 % dice
    en qué fecha arranca: saber que hay una carrera le cambia a alguien lo que cree que puede ganar. Es del club: sin switch. */
@@ -26249,7 +26483,7 @@ function finDrill(anoto){
   estrellasDrill();
   /* 2026-09-10 (su caza: "en el drill de pase, cuando das el pase bueno deberíamos ver cómo el jugador tira y mete; hoy corta muy
      rápido"): en visión el cierre espera 3 s en vez de 1,5 — la bandeja del que cortó y el aro se ven enteros */
-  if(gano){ setTimeout(cerrarDrill,drillT.k==='vision'?3000:1500); return; }
+  if(gano){ setTimeout(cerrarDrill,1500); return; }   // 2026-09-14: en visión el tiro ya se vio antes de cerrar (14): la espera vuelve a la de siempre
   if(drillT.intentos<3){ relato(t(L('Otra vez.','Again.','De novo.')),false); setTimeout(lanzarIntentoDrill,1300); return; }
   drillT.estrellas=0; setTimeout(cerrarDrill,1500);
 }
@@ -27208,7 +27442,9 @@ function otraTemporada(destino){
     if(selV&&!selV.fin&&parteElim(C.anio)==='A'){ avanzarSeleccion(eV,eV.fechasTotales); if(selV.fin) cerrarEliminatoriasCarrera(eV); else { memSel(); C.seleccion.elimPendiente=selV; } } }
   C.anio++;
   C.jugador.energia=100;   // 2026-09-10 (su pregunta: "¿no recuperás energía en el receso?"): la pretemporada son semanas — arrancás entero
+  const regF=figurasRegDe(C,C.ligaId,C.anio,clubesDeCarrera(C.ligaId));   // §2z264: cumplen un año, se retiran, cambian de club
   C.temporada=crearTemporada(C.semilla+'-t'+C.anio,clubesDeCarrera(C.ligaId),{
+    figuras:regF?figurasFoto(regF):null,
     miClubId:miClub,skills:C.jugador.skills,fechas:liga.fechas,
     playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
@@ -27497,7 +27733,10 @@ function pintaActivosPre(){ const J=C.jugador;
   /* en la previa, debajo de la latita: lo que tenés en uso para este partido */
   const pa=$l('lobPreActivos'); if(pa){ const u=J.enUso||{}, ids=TIENDA_PARTIDOS.filter(it=>u[it.id]);
     pa.classList.toggle('oculto',!ids.length);
-    pa.innerHTML=ids.map(it=>'<div class="activo"><span class="ico">'+iconoPartido(it.id)+'</span><span class="que">'+t(it.nom)+' <em>· '+fraseItem('partido',it,J)+'</em></span>'+puntosEnUso(u[it.id])+'</div>').join(''); }
+    /* 2026-09-14 (su pregunta: «¿qué pasa si compro varios consumibles? ¿y si la resolución es más chica?»): una fila por consumible no
+       aguantaba el próximo ni una pantalla baja. Lo que tenés en uso es UN renglón: el ícono y los partidos que le quedan, lado a lado —
+       qué hace cada uno lo dice la tienda */
+    pa.innerHTML=ids.map(it=>'<span class="activo" title="'+esc(t(it.nom))+'"><span class="ico">'+iconoPartido(it.id)+'</span>'+puntosEnUso(u[it.id])+'</span>').join(''); }
 }
 /* §2z165 v3 LO TUYO era una pestaña de VIDA; §2z247 (su corte 2026-09-12: "ya no tiene sentido") la sacó: cada tienda muestra su escalera con lo tuyo adentro */
 /* §12.20: las relaciones tienen DOS lados — el club y la selección (su corte: "es otro DT, otro plantel, otra
@@ -28105,9 +28344,27 @@ function pintaPartidas(){
     b.onclick=(e)=>{ e.stopPropagation(); pedirBorrar(+b.dataset.borrar); };
   });
 }
+/* 2026-09-14 (su caza: «salí de una partida, entré a otra y al lado de la media dice −21, con la animación de 69 a 48»): el vestuario
+   recuerda en variables del cierre (y en la media, lo último que mostró) lo que era de LA carrera abierta — la media para animar el
+   cambio, los switches de lado, la vitrina, el mercado, el resumen. Al cambiar de carrera todo eso vuelve a como nace; lo que se
+   ANIMA es lo que cambió en tu carrera, nunca la diferencia con otra. Se llama en las dos puertas: seguir una partida y crear una. */
+function reiniciarVistaCarrera(){
+  const m=$l('lobMedia'); if(m){ clearTimeout(m._cuentaT); (m._cuentaTs||[]).forEach(clearTimeout); m._cuentaTs=[]; delete m._mostrado;
+    const mb=m.closest('.mediaBox'); if(mb){ mb.classList.remove('is-up','is-down'); const d=mb.querySelector('.mediaDelta'); if(d) d.remove(); } }
+  preAbierto=null; retomando=null; salidaLista=false; proxLobby=null; ultimoFix=null;
+  grupoAmSel=null; grupoSelSel=null; tramoAm=null; tramoSel=null; subAm=null; grupoIcSel=null; compSel=null; zonaTablaSel=null;
+  ladoSel='club'; ladoSel_auto=true; ladoRel='club'; ladoRel_auto=true; ladoVos='club'; ladoVos_auto=true;
+  escaleraAbierta=null; tiendaAbierta=null;
+  palTodo=false; palSel=null; ladoPal='club';
+  mercadoSel=null; mercadoOfertas=[]; mercadoBusca=''; mercadoAbiertos=null; mercadoFiltro=null;
+  resumenModo='liga'; betaVeloDesde=null;
+  /* y las barras (energía, nivel) no viajan con transición desde los valores de la otra carrera: la primera pintada sale quieta */
+  const lob=$l('lobby'); if(lob){ lob.classList.add('sinTransicion'); requestAnimationFrame(()=>requestAnimationFrame(()=>lob.classList.remove('sinTransicion'))); }
+}
 function seguirPartida(n){
   const c=cargarCarrera(n);
   if(!c) return;
+  reiniciarVistaCarrera();
   ranura=n; C=c; guardar();          // guardar de entrada deja escritas las migraciones
   $l('partidas').classList.add('oculto');
   if(C.retirado){ retirarse(true); return; }   // §2z196: una carrera retirada se mira, no se juega
@@ -28579,6 +28836,7 @@ $l('creaSeguir').onclick=()=>{
   /* la liga sale del CLUB, no de una pregunta: elegir club ya la contestó */
   const ligaId=ligaDelPais();   // una liga de entrada por país: no hay nada que buscar
   ranura=creaDestino;
+  reiniciarVistaCarrera();   // 2026-09-14: la carrera nueva no hereda la vista de la que estaba abierta
   C=nuevaCarrera(ligaId,creaSel.clubId,dorsal,creaSel.arquetipo,ap,creaSel.nacionalidad,(opcionesArranque().find(p=>p.id===creaSel.pais)||{}).rol);
   C.intenso=!!creaSel.intenso;   // §2z43
   if(window.__vistosSuelto) C.vistos=Object.assign({},window.__vistosSuelto,C.vistos||{});   // §7.1: lo que viste desde el alta viaja con la carrera
@@ -28858,6 +29116,11 @@ function premiarLiga(){
   if(!C.palmares) C.palmares=[];
   const e=est(); if(!e||e.fase!=='terminada'||C.premiadoAnio===C.anio) return false;
   C.premiadoAnio=C.anio;
+  /* §2z264: cada figura anota dónde terminó en la carrera al MVP (las doce de arriba) — la memoria de las rivalidades */
+  { const reg=C.figuras&&C.figuras[C.ligaId];
+    if(reg&&e.figuras) try{ const car=carreraDe(e); car.lista.forEach((x,i)=>{ if(x.vos||i>=12) return;
+      const f=reg.porClub[x.clubId]&&reg.porClub[x.clubId][x.segundo?1:0];
+      if(f&&f.ape===x.ape) (f.hist=f.hist||[]).push({anio:C.anio,pos:i+1,club:x.clubId,vos:car.miPos||null}); }); }catch(err){} }
   const mt=miTabla(e);
   premiarIndividuales();   // 2026-09-12: si todavía no se entregaron (una liga sin llave, un save de antes)
   const nuevos=premiosDe(C.jugador,e,(mt&&mt.puesto)||99,ligaDe().esc).filter(p=>!PREMIOS_INDIVIDUALES.includes(p.clave));   // §2z45: contra el campo de la liga

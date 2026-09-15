@@ -2007,7 +2007,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='82dbf633d5';
+const BUILD='6d2cabb87f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -3489,6 +3489,74 @@ const CLUBES_CHILE = [
 ];
 
 /** NBA · 30 franquicias (zona = conferencia). */
+/** §2z271 (2026-09-17) LAS SEGUNDAS DE URUGUAY, BRASIL Y CHILE — con formato real, copiadas del research de El Draft
+ * (`docs/segundas/UY-clubes.md` · `BR-clubes.md` · `docs/chile/CL-clubes-Segunda.md`, 2026-09-05/10, con fuentes) y de lo que allá
+ * ya está en producción (`teams-uy.ts` metro() · `teams-br.ts` ouro() · `teams-cl.ts` LIGA_DOS_TEAMS: los colores son los MEDIDOS
+ * sobre los escudos de allá). `fuerza` = el strength derivado allá (60 % historia / 40 % presente), en la banda de abajo de cada
+ * primera: LDA 38-49 bajo la LUB 45-60 · Liga Ouro 47-53 bajo el NBB 50-67 · Liga Dos 35-46 bajo Chile 48-56. Sin `kit`
+ * (franjas con color/color2, §2z254) y sin receta de escudo (patrón por hash): pendiente, como se hizo con las primeras en §2z269 e.
+ * Los rivales son SÓLO los que tienen fuente (Olimpia–Sayago el Clásico del Norte; Brusque–Blumenau el Clássico do Vale;
+ * Sportiva–Árabe el clásico porteño; Truenos–Curicó–Chillán los del Maule/Ñuble). */
+/** Liga de Ascenso (Uruguay, «el Metro») · 14 clubes de 2026, todos de Montevideo salvo Lagomar y Urupan. */
+const CLUBES_LDA = [
+  { id: 'TROU', sigla: 'TRO', nombre: 'Trouville', ciudad: 'Montevideo', apodo: 'El Rojo de Pocitos', color: '#F02B2D', color2: '#FFFFFF', alt: ['franjas', '#FFFFFF', '#F02B2D'], fuerza: 49, rival: null },
+  { id: 'OLMV', sigla: 'OLI', nombre: 'Olimpia', ciudad: 'Montevideo', apodo: 'Alas Rojas', color: '#FFFFFF', color2: '#CF000C', fuerza: 48, rival: 'SAYA', rivales: ['SAYA'] },
+  { id: 'TABA', sigla: 'TAB', nombre: 'Tabaré', ciudad: 'Montevideo', apodo: 'El Indio', color: '#555658', color2: '#FFFFFF', fuerza: 47, rival: null },
+  { id: 'SAYA', sigla: 'SAY', nombre: 'Sayago', ciudad: 'Montevideo', apodo: 'El Saya', color: '#D40000', color2: '#FFFFFF', fuerza: 44, rival: 'OLMV', rivales: ['OLMV'] },
+  { id: 'LARB', sigla: 'LAB', nombre: 'Larre Borges', ciudad: 'Montevideo', apodo: 'El Gigante de la Unión', color: '#FFF103', color2: '#111111', fuerza: 44, rival: null },
+  { id: 'VERD', sigla: 'VER', nombre: 'Verdirrojo', ciudad: 'Montevideo', apodo: 'El Verdi', color: '#055031', color2: '#DC4F4E', fuerza: 42, rival: null },
+  { id: 'STOC', sigla: 'STO', nombre: 'Stockolmo', ciudad: 'Montevideo', apodo: 'El Azul del Prado', color: '#00244E', color2: '#FFFFFF', fuerza: 42, rival: null },
+  { id: 'URUP', sigla: 'URU', nombre: 'Urupan', ciudad: 'Pando', apodo: 'La Verde', color: '#296C36', color2: '#E1D939', fuerza: 42, rival: null },
+  { id: 'LAGO', sigla: 'LAG', nombre: 'Lagomar', ciudad: 'Ciudad de la Costa', apodo: null, color: '#00972B', color2: '#FFFFFF', fuerza: 41, rival: null },
+  { id: 'MVBB', sigla: 'MBC', nombre: 'Montevideo BBC', ciudad: 'Montevideo', apodo: 'Los Rojos del Mercado', color: '#DD251D', color2: '#FFFFFF', fuerza: 41, rival: null },
+  { id: 'COMV', sigla: 'COL', nombre: 'Colón', corto: 'Colón (MVD)', ciudad: 'Montevideo', apodo: null, color: '#0DB24B', color2: '#ED1C24', kit: ['bastones', '#ED1C24', '#0DB24B'], alt: ['franjas', '#FFFFFF', '#0DB24B'], fuerza: 40, rival: null },
+  { id: 'MARN', sigla: 'MAR', nombre: 'Marne', ciudad: 'Montevideo', apodo: null, color: '#CD0400', color2: '#022381', fuerza: 39, rival: null },
+  { id: 'OLMU', sigla: 'OLM', nombre: 'Olivol Mundial', ciudad: 'Montevideo', apodo: 'El Oli', color: '#014398', color2: '#FBDC06', fuerza: 39, rival: null },
+  { id: 'ALBA', sigla: 'ALB', nombre: 'Albatros', ciudad: 'Montevideo', apodo: 'El Ave', color: '#DB1F28', color2: '#15154B', fuerza: 38, rival: null },
+];
+/** Liga Ouro (Brasil, la Divisão de Acesso de la LNB) · 8: los seis reales de 2026 más Blumenau (el clásico con Brusque) y Vitória
+ * (Liga Ouro 2025) — su decisión en El Draft (2026-09-05): «Liga Ouro sola, 8 clubes, sin estaduales». */
+const CLUBES_OURO = [
+  { id: 'TATU', sigla: 'TAT', nombre: 'Tatuí', ciudad: 'Tatuí, SP', apodo: null, color: '#202020', color2: '#F8B21B', fuerza: 53, rival: null },
+  { id: 'BRUS', sigla: 'BRU', nombre: 'Brusque', ciudad: 'Brusque, SC', apodo: null, color: '#E93237', color2: '#FCCA27', kit: ['franjas', '#FFFFFF', '#E93237'], alt: ['franjas', '#151515', '#FCCA27'], fuerza: 52, rival: 'BLUM', rivales: ['BLUM'] },
+  { id: 'BLUM', sigla: 'BLU', nombre: 'Blumenau', ciudad: 'Blumenau, SC', apodo: null, color: '#224069', color2: '#E72028', fuerza: 50, rival: 'BRUS', rivales: ['BRUS'] },
+  { id: 'VITO', sigla: 'VIT', nombre: 'Vitória', ciudad: 'Salvador, BA', apodo: 'Leão da Barra', color: '#FE1100', color2: '#000000', kit: ['horizontales', '#FE1100', '#000000'], alt: ['franjas', '#FFFFFF', '#FE1100'], fuerza: 50, rival: null },   // §2z271 b: el rubro-negro a rayas horizontales del club
+  { id: 'FLUM', sigla: 'FLU', nombre: 'Fluminense', ciudad: 'Rio de Janeiro, RJ', apodo: 'Tricolor', color: '#92062A', color2: '#006039', kit: ['bastones', '#92062A', '#006039'], alt: ['franjas', '#FFFFFF', '#92062A'], fuerza: 49, rival: null, rivales: ['FLAM', 'VASC', 'BOTA'] },   // §2z271 b: el tricolor a bastones
+  { id: 'JOAC', sigla: 'JOA', nombre: 'Joaçaba', ciudad: 'Joaçaba, SC', apodo: null, color: '#1D3063', color2: '#FFC20E', fuerza: 48, rival: null },
+  { id: 'TOWE', sigla: 'TOW', nombre: 'América Towers', ciudad: 'Contagem, MG', apodo: null, color: '#117241', color2: '#FFFFFF', fuerza: 48, rival: null, rivales: ['MINA'] },
+  { id: 'CETA', sigla: 'CET', nombre: 'Cetaf', ciudad: 'Vila Velha, ES', apodo: null, color: '#FE9D00', color2: '#000000', kit: ['franjas', '#000000', '#FE9D00'], fuerza: 47, rival: null },
+];
+/** Liga Dos (Chile) · los 23 de 2026 en CUATRO ZONAS (6·6·6·5); la zona es dato del juego (`zona`). Sportiva ya subió y
+ * Arturo Prat ya bajó en la realidad: van porque jugaron la temporada. */
+const CLUBES_LIGA_DOS = [
+  /* Zona A · 6 */
+  { id: 'SPIT', sigla: 'SPI', nombre: 'Sportiva Italiana', corto: 'Sportiva', ciudad: 'Valparaíso', apodo: 'Los Itálicos', color: '#E21D23', color2: '#0E542B', alt: ['franjas', '#1B2A4E', '#E21D23'], fuerza: 46, rival: 'ARAB', rivales: ['ARAB'], zona: 'dos_a' },
+  { id: 'ILLA', sigla: 'ILL', nombre: 'Illapel', ciudad: 'Illapel', apodo: null, color: '#010013', color2: '#F90101', kit: ['franjas', '#F90101', '#FFFFFF'], alt: ['franjas', '#010013', '#F90101'], fuerza: 37, rival: null, zona: 'dos_a' },
+  { id: 'ARAB', sigla: 'ARA', nombre: 'Árabe de Valparaíso', corto: 'Árabe', ciudad: 'Valparaíso', apodo: 'Los de calle Colón', color: '#005824', color2: '#B20007', fuerza: 37, rival: 'SPIT', rivales: ['SPIT'], zona: 'dos_a' },
+  { id: 'QLPU', sigla: 'QUI', nombre: 'Quilpué', ciudad: 'Quilpué', apodo: null, color: '#E3AC32', color2: '#24303C', fuerza: 37, rival: null, zona: 'dos_a' },
+  { id: 'HUMB', sigla: 'HUM', nombre: 'Humboldt', ciudad: 'Viña del Mar', apodo: 'Los Pingüinos', color: '#F8F8F8', color2: '#020202', fuerza: 36, rival: null, zona: 'dos_a' },
+  { id: 'SHAR', sigla: 'SHA', nombre: 'The Sharks', ciudad: 'La Serena', apodo: null, color: '#5C1A84', color2: '#00C6FD', fuerza: 36, rival: null, zona: 'dos_a' },
+  /* Zona B · 6 */
+  { id: 'CEPP', sigla: 'CEP', nombre: 'Sergio Ceppi', ciudad: 'La Cisterna', apodo: null, color: '#1A1819', color2: '#F2A800', fuerza: 39, rival: null, zona: 'dos_b' },
+  { id: 'STIT', sigla: 'STA', nombre: 'Stadio Italiano', ciudad: 'Las Condes', apodo: null, color: '#201F1F', color2: '#B58840', fuerza: 38, rival: null, zona: 'dos_b' },
+  { id: 'SOKO', sigla: 'SOK', nombre: 'Sokol', ciudad: 'Antofagasta', apodo: null, color: '#806A38', color2: '#B00522', kit: ['franjas', '#FFFFFF', '#1F3A93'], fuerza: 38, rival: null, zona: 'dos_b' },
+  { id: 'LMAT', sigla: 'LML', nombre: 'Luis Matte Larraín', corto: 'Luis Matte', ciudad: 'Puente Alto', apodo: null, color: '#141FAE', color2: '#FEFEFE', fuerza: 37, rival: null, zona: 'dos_b' },
+  { id: 'SLQU', sigla: 'SLU', nombre: 'San Luis de Quillota', corto: 'San Luis', ciudad: 'Quillota', apodo: 'Los Canarios', color: '#FEEC00', color2: '#010101', fuerza: 36, rival: null, zona: 'dos_b' },
+  { id: 'APRA', sigla: 'PRA', nombre: 'Arturo Prat', ciudad: 'San Felipe', apodo: null, color: '#12279B', color2: '#F3F9FC', fuerza: 35, rival: null, zona: 'dos_b' },
+  /* Zona C · 6 */
+  { id: 'ALCO', sigla: 'ALC', nombre: 'Alemán de Concepción', corto: 'Alemán (Conce)', ciudad: 'San Pedro de la Paz', apodo: null, color: '#FCD103', color2: '#E10915', fuerza: 38, rival: null, zona: 'dos_c' },
+  { id: 'TRUE', sigla: 'TRU', nombre: 'Truenos de Talca', corto: 'Truenos', ciudad: 'Talca', apodo: null, color: '#52DC4B', color2: '#050303', fuerza: 37, rival: null, rivales: ['LCUR'], zona: 'dos_c' },
+  { id: 'VIAL', sigla: 'VAB', nombre: 'Villa Alemana', ciudad: 'Villa Alemana', apodo: null, color: '#068C48', color2: '#066DB5', fuerza: 37, rival: null, zona: 'dos_c' },
+  { id: 'LCUR', sigla: 'LIC', nombre: 'Liceo Curicó', ciudad: 'Curicó', apodo: 'Los Liceanos', color: '#C53834', color2: '#33549C', fuerza: 37, rival: null, rivales: ['TRUE', 'MCHI'], zona: 'dos_c' },
+  { id: 'CONS', sigla: 'CON', nombre: 'Constitución', ciudad: 'Constitución', apodo: null, color: '#F70101', color2: '#0F193D', fuerza: 36, rival: null, zona: 'dos_c' },
+  { id: 'MCHI', sigla: 'MCH', nombre: 'Municipal Chillán', corto: 'M. Chillán', ciudad: 'Chillán', apodo: 'Los Diablos', color: '#9B0000', color2: '#020000', fuerza: 35, rival: null, rivales: ['LCUR'], zona: 'dos_c' },
+  /* Zona D · 5 */
+  { id: 'UDET', sigla: 'UDE', nombre: 'UDE Temuco', ciudad: 'Temuco', apodo: null, color: '#F15A24', color2: '#E6C131', fuerza: 40, rival: null, zona: 'dos_d' },
+  { id: 'HUAC', sigla: 'HUA', nombre: 'Huachipato', ciudad: 'Talcahuano', apodo: 'Los Acereros', color: '#0074B6', color2: '#1C100C', fuerza: 39, rival: null, zona: 'dos_d' },
+  { id: 'OMEG', sigla: 'OME', nombre: 'Omega', ciudad: 'Concepción', apodo: null, color: '#FBA501', color2: '#010001', kit: ['franjas', '#010001', '#FBA501'], fuerza: 38, rival: null, zona: 'dos_d' },
+  { id: 'CDLU', sigla: 'CDL', nombre: 'CDB La Unión', ciudad: 'La Unión', apodo: null, color: '#027E31', color2: '#FC6601', fuerza: 37, rival: null, zona: 'dos_d' },
+  { id: 'EAPV', sigla: 'APV', nombre: 'Alemán Puerto Varas', corto: 'Alemán (PV)', ciudad: 'Puerto Varas', apodo: null, color: '#060506', color2: '#FB6F04', fuerza: 36, rival: null, zona: 'dos_d' },
+];
 const CLUBES_NBA = [
   { id: 'BOS', sigla: 'BOS', nombre: 'Celtics', ciudad: 'Boston', apodo: null, color: '#007A33', color2: '#BA9653', fuerza: 70, rival: 'LAL', rivales: ['LAL', 'PHI', 'NYK'], zona: 'este', division: 'atlantico' },
   { id: 'BKN', sigla: 'BKN', nombre: 'Nets', ciudad: 'Brooklyn', apodo: null, color: '#000000', color2: '#FFFFFF', fuerza: 45, rival: 'NYK', rivales: ['NYK'], zona: 'este', division: 'atlantico' },
@@ -3811,7 +3879,7 @@ const LIGAS = {
        la 2018-19 real jugó 50 por equipo (30 de zonal + 20 de nacional) y las 2023-25, 26-28; 36 deja la temporada del largo de la
        LNB—. La llave es la que Chile repite desde 2023 en las temporadas largas: play-in 7º-10º al mejor de 3 (2024 y 2025), cuartos
        y semis al mejor de 5, la final al mejor de 7. Sin descenso: la Liga Dos no está acá. */
-    nombre: 'Liga Chilena', allstar: false, clubes: CLUBES_CHILE, fechas: 36,
+    nombre: 'Liga Chilena', allstar: true, clubes: CLUBES_CHILE, fechas: 36,   // 2026-09-17 (su corte: «tienen que tener All-Star, MVP y quinteto como la LNB»); la LNB chilena lo jugó de verdad (2019 Valdivia, 2023 Puerto Montt)
     regen: 2, lata: 0.6, esc: 8, palancas: {}, ptsRef: 79, reloj: 600,
     /* §2z269 c: el descenso chileno como PLAY-OUT entre los dos últimos al mejor de 5 (el formato 2024 real: play-off 13º-14º); el
        Clausura 2026 lo define con una permanencia de cinco más una serie contra la tabla ponderada, que no tiene sentido sin los
@@ -3819,6 +3887,49 @@ const LIGAS = {
     playoffs: { clasifican: 10, directos: 6, playout: { mejorDe: 5 }, rondas: [
       { nombre: 'reclasificacion', mejorDe: 3 },   // el play-in chileno: 7º-10º, el ganador entra a cuartos
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 7 },
+    ] },
+  },
+  /* ══ §2z271 (2026-09-17) LAS SEGUNDAS, con formato real (research/CALENDARIOS.md). Las tres son de UN año calendario
+     (`mismoAnio`, como la Federal) y cortas; el ascenso lo decide `playoffs.ascienden` ('campeon' | 'finalistas') y lo mueve la
+     escalera de cada país (18b). Sin descenso: la DTA, los estaduales y la Liga de Desarrollo no están (su corte de El Draft,
+     2026-09-05: «si no armamos la categoría de abajo, no hay descenso en segunda»). Sin All-Star. */
+  lda: {
+    /* la LDA se juega en el RECESO de la LUB: 4 jun → fines de septiembre (2026: cuartos el 4/9, semis bo5, final única) */
+    calendario: { arranque: [6, 4], regularHasta: [8, 21], playoffsHasta: [9, 30], mismoAnio: true, diasPO: 3, recesos: [] },
+    /* 14 clubes: clasificatorio a UNA rueda (13) → la tabla se parte en la Liguilla (1º-8º, una rueda: 7) y el Reclasificatorio
+       (9º-14º, una rueda: 5) arrastrando los puntos → play-in a partido único 7º-8º vs 9º-10º → cuartos bo3, semis bo5 y la
+       FINAL A PARTIDO ÚNICO sólo por el título: los dos finalistas ya ascendieron. Un equipo de arriba juega 20 de regular. */
+    nombre: 'Liga de Ascenso', clubes: CLUBES_LDA, fechas: 20,
+    regen: 3, lata: 0.6, esc: 8, palancas: {}, ptsRef: 76, reloj: 600,
+    hexagonal: { tras: 13, arriba: 8, bajoFechas: 5 },
+    playoffs: { clasifican: 10, directos: 6, ascienden: 'finalistas', rondas: [
+      { nombre: 'reclasificacion', mejorDe: 1 },   // el play-in del Metro: 7º-10º, a partido único
+      { nombre: 'cuartos', mejorDe: 3 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 1 },
+    ] },
+  },
+  ouro: {
+    /* febrero → fines de mayo (2026: 23 feb → 27 may), en paralelo al NBB; el campeón debuta en el NBB en octubre */
+    calendario: { arranque: [2, 23], regularHasta: [4, 26], playoffsHasta: [5, 27], mismoAnio: true, diasPO: 4, recesos: [] },
+    /* 8 clubes, tabla única a ida y vuelta (14); clasifican 6, el 1º y el 2º directo a semis; cuartos (3º-6º, 4º-5º) y semis
+       al mejor de 3, la final al mejor de 5. Sube el campeón. */
+    nombre: 'Liga Ouro', clubes: CLUBES_OURO, fechas: 14,
+    regen: 3, lata: 0.6, esc: 8, palancas: {}, ptsRef: 80, reloj: 600,
+    playoffs: { clasifican: 6, directos: 2, ascienden: 'campeon', rondas: [
+      { nombre: 'cuartos', mejorDe: 3 }, { nombre: 'semifinal', mejorDe: 3 }, { nombre: 'final', mejorDe: 5 },
+    ] },
+  },
+  ligados: {
+    /* 24 mar → 31 may la regular; octavos desde el 6 jun, la final el 15 ago (2026) */
+    calendario: { arranque: [3, 24], regularHasta: [5, 31], playoffsHasta: [8, 15], mismoAnio: true, diasPO: 5, recesos: [] },
+    /* 23 clubes en cuatro zonas (6·6·6·5) a ida y vuelta —10 partidos, 8 en la zona D—; clasifican los 4 de cada zona;
+       octavos CRUZADOS con la zona hermana (1A-4B, 2A-3B, 1B-4A, 2B-3A · lo mismo C-D), cuartos y semis (las «finales de
+       conferencia» A-B y C-D) al mejor de 3, la final al mejor de 5. Sube el campeón. */
+    nombre: 'Liga Dos', clubes: CLUBES_LIGA_DOS, fechas: 10,
+    regen: 3, lata: 0.4, esc: 0, palancas: {}, ptsRef: 74, reloj: 600, ritmo: 'espaciado',
+    zonas: ['dos_a', 'dos_b', 'dos_c', 'dos_d'], fechasPorZona: true,
+    playoffs: { clasifican: 4, directos: 0, ascienden: 'campeon', conferencias: { ab: ['dos_a', 'dos_b'], cd: ['dos_c', 'dos_d'] }, rondas: [
+      { nombre: 'octavos', mejorDe: 3, porZona: true }, { nombre: 'cuartos', mejorDe: 3, porZona: true },
+      { nombre: 'semifinal', mejorDe: 3, porZona: true }, { nombre: 'final', mejorDe: 5 },
     ] },
   },
   euroliga: {
@@ -4049,6 +4160,53 @@ const RECETAS_ESCUDO = {
   WAS: { pattern: 'estrella', colors: ['#002B5C', '#FFFFFF', '#E31837'] },
   ZALG: { pattern: 'aro' },
   ZBAS: { pattern: 'banda' },
+  /* §2z271 b (2026-09-17): LAS RECETAS DE LAS SEGUNDAS, leídas de los escudos reales que El Draft bajó (`docs/segundas/escudos-candidatos`,
+     `docs/chile/escudos-candidatos`), mirados en planchas: la forma, el patrón más parecido y los dos colores dominantes con el filete. */
+  TROU: { pattern: 'liso', colors: ['#F02B2D', '#FFFFFF', '#5A2D8C'] },   // el triángulo rojo con la T violeta
+  OLMV: { pattern: 'liso', colors: ['#FFFFFF', '#CF000C', '#CF000C'] },   // las alas rojas sobre blanco
+  TABA: { shape: 'redondel', pattern: 'aro', colors: ['#555658', '#FFFFFF'] },   // el redondel gris del indio
+  SAYA: { pattern: 'banda', colors: ['#D40000', '#FFFFFF', '#120079'] },   // el triángulo rojo con la S azul sobre blanco
+  LARB: { shape: 'redondel', pattern: 'aro', colors: ['#FFF103', '#111111'] },   // el redondel amarillo con el aro a cuadros
+  VERD: { pattern: 'liso', colors: ['#055031', '#DC4F4E', '#FFFFFF'] },   // las alas verdes y rojas
+  STOC: { pattern: 'liso', colors: ['#00244E', '#FFFFFF', '#C9A227'] },   // el escudo azul con la S blanca y la estrella
+  URUP: { shape: 'redondel', pattern: 'banda', colors: ['#296C36', '#FFFFFF', '#E1D939'] },   // el redondel verde con la franja blanca
+  LAGO: { pattern: 'diagonal', colors: ['#FFFFFF', '#00972B', '#E63232'] },   // blanco con las diagonales verdes y el velero rojo
+  MVBB: { shape: 'redondel', pattern: 'aro', colors: ['#FFFFFF', '#DD251D'] },   // el aro rojo
+  COMV: { pattern: 'franjas', colors: ['#0DB24B', '#ED1C24', '#FFFFFF'] },   // las franjas verdes y rojas
+  MARN: { pattern: 'banda', colors: ['#CD0400', '#022381', '#F2C12E'] },   // rojo con la banda azul
+  OLMU: { pattern: 'liso', colors: ['#014398', '#FBDC06', '#FBDC06'] },   // azul con las letras amarillas
+  ALBA: { shape: 'redondel', pattern: 'aro', colors: ['#FFFFFF', '#DB1F28', '#15154B'] },   // el redondel blanco con el aro rojo y la A azul
+  TATU: { pattern: 'liso', colors: ['#202020', '#F8B21B', '#FFFFFF'] },   // el lobo negro con el naranja
+  BRUS: { pattern: 'liso', colors: ['#E93237', '#FCCA27', '#FFFFFF'] },   // el pato rojo y amarillo
+  BLUM: { shape: 'redondel', pattern: 'aro', colors: ['#224069', '#E72028', '#FFFFFF'] },   // el redondel azul con el ave roja
+  VITO: { pattern: 'banda', colors: ['#FE1100', '#000000', '#FFFFFF'] },   // rojo arriba, negro abajo
+  FLUM: { pattern: 'banda', colors: ['#92062A', '#006039', '#FFFFFF'] },   // grená arriba, verde abajo
+  JOAC: { pattern: 'liso', colors: ['#1D3063', '#FFC20E', '#FFC20E'] },   // azul con las letras amarillas
+  TOWE: { pattern: 'liso', colors: ['#117241', '#FFFFFF', '#FFFFFF'] },   // verde con el monograma blanco
+  CETA: { pattern: 'liso', colors: ['#FE9D00', '#000000', '#000000'] },   // naranja con el jaguar
+  SPIT: { pattern: 'franjas', colors: ['#E21D23', '#0E542B', '#FFFFFF'] },   // rojo, verde y blanco
+  ILLA: { pattern: 'liso', colors: ['#010013', '#F90101', '#FFFFFF'] },   // el carnero negro y rojo
+  ARAB: { pattern: 'diagonal', colors: ['#FFFFFF', '#005824', '#B20007'] },   // blanco con la diagonal verde, negra y roja
+  QLPU: { shape: 'redondel', pattern: 'liso', colors: ['#24303C', '#E3AC32', '#E3AC32'] },   // la pelota azul con el rayo dorado
+  HUMB: { shape: 'redondel', pattern: 'aro', colors: ['#FFFFFF', '#020202'] },   // el pingüino en el redondel blanco
+  SHAR: { shape: 'redondel', pattern: 'liso', colors: ['#5C1A84', '#00C6FD', '#FFFFFF'] },   // el tiburón violeta y celeste
+  CEPP: { shape: 'redondel', pattern: 'liso', colors: ['#1A1819', '#F2A800', '#F2A800'] },   // la C negra con la pelota naranja
+  STIT: { pattern: 'franjas', colors: ['#0E7A45', '#B20007', '#B58840'] },   // el águila sobre verde, blanco y rojo, con el dorado
+  SOKO: { shape: 'redondel', pattern: 'aro', colors: ['#806A38', '#B00522', '#1F3A93'] },   // la corona de laurel dorada con el rojo y el azul
+  LMAT: { pattern: 'mitades', colors: ['#FFFFFF', '#141FAE', '#141FAE'] },   // blanco y azul a mitades
+  SLQU: { pattern: 'liso', colors: ['#FEEC00', '#010101', '#010101'] },   // amarillo con las letras negras
+  APRA: { pattern: 'liso', colors: ['#FFFFFF', '#12279B', '#12279B'] },   // la pelota azul con el ancla sobre blanco
+  ALCO: { shape: 'redondel', pattern: 'aro', colors: ['#FCD103', '#E10915', '#FFFFFF'] },   // el redondel amarillo con el aro rojo
+  TRUE: { shape: 'redondel', pattern: 'liso', colors: ['#52DC4B', '#050303', '#FFFFFF'] },   // el loro sobre verde
+  VIAL: { shape: 'redondel', pattern: 'liso', colors: ['#068C48', '#066DB5', '#FFFFFF'] },   // el paisaje verde y azul
+  LCUR: { pattern: 'liso', colors: ['#FFFFFF', '#C53834', '#33549C'] },   // la L roja y el perfil sobre blanco
+  CONS: { shape: 'redondel', pattern: 'aro', colors: ['#F70101', '#0F193D', '#FFFFFF'] },   // el redondel rojo con el pelícano
+  MCHI: { shape: 'redondel', pattern: 'aro', colors: ['#9B0000', '#020000', '#F2C12E'] },   // el redondel granate con el escudo de la ciudad
+  UDET: { shape: 'redondel', pattern: 'liso', colors: ['#F15A24', '#E6C131', '#010101'] },   // la pelota naranja con el águila
+  HUAC: { pattern: 'franjas', colors: ['#1C100C', '#0074B6', '#FFFFFF'] },   // negro y celeste a franjas
+  OMEG: { pattern: 'liso', colors: ['#FBA501', '#010001', '#010001'] },   // el jaguar naranja y negro
+  CDLU: { pattern: 'liso', colors: ['#027E31', '#FC6601', '#FFFFFF'] },   // verde con el naranja
+  EAPV: { shape: 'redondel', pattern: 'aro', colors: ['#060506', '#FB6F04', '#FFFFFF'] },   // el redondel negro con el aro naranja y el cóndor
 };
 /* §2z41 (su pedido 2026-09-04: "hay equipos que tienen más de un clásico; y a los 76ers le damos Toronto y no Boston"):
    `rival` sigue siendo EL clásico (el primero) y `rivales` la lista entera, por intensidad. Un partido es clásico si
@@ -4107,8 +4265,8 @@ function escudoSVG(c, extra) {
    Jorge Contte aunque esta temporada jugó en otro («no importa el realismo») · los dudosos quedan · el club sin estadio con nombre
    (gimnasio propio, sin nombre, o sin casa) no inventa: el pre-partido muestra sólo la ciudad · tope 40 letras, los largos con su
    nombre corto a mano. ══ */
-/* por id de club (ligas, invitados de las Américas y la Intercontinental) */
-const ESTADIO_CLUB = {"AMAN":"Estadio del Club Atlético Riojano","CEIB":"Estadio Antonio Cena","BPAR":"El Teatro del Parque","BOCH":"Estadio José «Pepe» Nou","RIVA":"Estadio Leopoldo Juan Brozovix","COMU":"El Plateado","HIND":"Catedral del Básquet","ISDE":"Estadio Dr. Israel Parnas","JUJU":"Estadio de la Federación de Jujuy","RIAC":"Superdomo de La Rioja","SALT":"Estadio Delmi","SISI":"Estadio Antonio Manno","SPAU":"Estadio Víctor Comelli","SUAR":"El Gigante de la Avenida","CENV":"Estadio Mateo Migliore","CENT":"Estadio José María Bértora","CICL":"Estadio El Coliseo del Boulevard","DNOR":"Estadio Jorge Ferrero","VIED":"Polideportivo Ángel Cayetano Arias","GILP":"Polideportivo Víctor Nethol","LUCO":"Estadio Carlos José Delasoie","PICO":"Estadio Parque Ángel Larrea","PROR":"Estadio Salvador Bonilla","QUIL":"Microestadio Centenario José Martínez","RACA":"Centro Deportivo Racing Club","RSAN":"La Ribera","RIVE":"Microestadio River Plate","ROCA":"Estadio Julio César Paccagnella","UMDP":"Polideportivo Islas Malvinas","UNSF":"Estadio Ángel P. Malvicino","VMIT":"Estadio José Martínez","RMAD":"Movistar Arena","FCBB":"Palau Blaugrana","PANA":"Telekom Center Athens","OLYM":"Peace and Friendship Stadium","FENE":"Ülker Sports and Event Hall","MONA":"Salle Gaston Médecin","EFES":"Turkcell Basketbol Gelişim Merkezi","MACC":"Menora Mivtachim Arena","MILA":"Unipol Forum","ZALG":"Žalgirio Arena","VIRT":"Virtus Arena","PART":"Beogradska Arena","ESTR":"Beogradska Arena","BASK":"Buesa Arena","BAYE":"SAP Garden","VALE":"Roig Arena","HAPO":"Menora Mivtachim Arena","PARI":"Adidas Arena","BOS":"TD Garden","BKN":"Barclays Center","NYK":"Madison Square Garden","PHI":"Xfinity Mobile Arena","TOR":"Scotiabank Arena","CHI":"United Center","CLE":"Rocket Arena","DET":"Little Caesars Arena","IND":"Gainbridge Fieldhouse","MIL":"Fiserv Forum","ATL":"State Farm Arena","CHA":"Spectrum Center","MIA":"Kaseya Center","ORL":"Kia Center","WAS":"Capital One Arena","DEN":"Ball Arena","MIN":"Target Center","OKC":"Paycom Center","POR":"Moda Center","UTA":"Delta Center","GSW":"Chase Center","LAC":"Intuit Dome","LAL":"Crypto.com Arena","PHX":"Mortgage Matchup Center","SAC":"Golden 1 Center","DAL":"American Airlines Center","HOU":"Toyota Center","MEM":"FedExForum","NOP":"Smoothie King Center","SAS":"Frost Bank Center","CACY":"Estadio Edgardo Michaud","EPRA":"Estadio Juan D'Alessandro","IZAR":"Estadio Omar Olguín","JHMA":"Estadio Alberto Millán","PINO":"Estadio Eduardo Olmedo","CDSA":"Estadio Enrique Tanghe","CASM":"Estadio Raúl Martí","ESCB":"Microestadio Juan Peralba","ZBAS":"DAM Stadium","CSAK":"Gigante de Lambardi","CEPA":"Gimnasio Samuel Revello","TALA":"Estadio Roberto Contini","GEVP":"Estadio Omar Monza","INDA":"Gimnasio Carlos Bottaro","MIDL":"Microestadio Ciudad de Libertad","HACO":"Estadio Tal Brody","FEBR":"Estadio Horacio Larramendy","CASA":"Estadio Juan Manuel \"Pepe\" López","GEIT":"Estadio Armando Milano","MORO":"Gimnasio Raúl Rezzónico","DERQ":"Gimnasio Carlos Carpegna","SPPI":"Gimnasio Marcelo \"Teate\" D'Andrea","LOIN":"Estadio Oscar Vicente Pérez","UNVE":"Estadio José Rebolini","UNON":"Estadio Érico \"Cacho\" Ossela","MATI":"Estadio Francisco Georgetti","HLHE":"Polideportivo Dr. Vicente Polimeni","RAFA":"Estadio Arq. Lucio Casarín","ALJU":"Gimnasio Dr. Enzo Scocco","ALMA":"Estadio Juan Carlos \"Pepote\" Spies","MARI":"Estadio Edgar \"Nenito\" Rivolta","SAST":"Gimnasio 29 de Mayo","TOST":"Estadio El Gigante de la Villa","SANJ":"Estadio Cuna de Matadores","UNJU":"Gigante del Sudeste","ALBS":"Estadio José Aquiles Regazzoli","ESOL":"Maxigimnasio del Parque Carlos Guerrero","FEGP":"El Colosito de Barrio Talleres","INGP":"Estadio El Gigante de la Avenida","INTA":"Polideportivo Duggan Martignoni","RAOL":"Gimnasio Parque Olavarría","ATLP":"Estadio Dante Demo","ATPI":"Gimnasio Javier Peverelli","BESA":"Estadio Fortunato Bonelli","SOMI":"Estadio Socios Fundadores","ESLP":"Polideportivo Jorge Luis Hirschi","SFER":"Polideportivo Municipal N° 3","ECHA":"Estadio Luis Butta","SION":"Estadio Moisés Flesler","GISA":"Estadio Ricardo \"Húngaro\" Crespi","COLO":"Gimnasio Roque Otrino","ESCO":"El Gigante Verde","QUIQ":"Estadio Guillermo Gaya","RBOC":"Estadio Antonio Zorzet","RIJR":"Estadio Ezequiel Ceratti","ARMO":"Estadio Gregorio \"Pocho\" Nieto","ARGE":"Estadio Aarón Gerchunoff","SAMA":"Estadio Leonardo Gutiérrez","NAUT":"Estadio Ricardo Velasco","OLVT":"Estadio Olimpia","ROSC":"Estadio de la Subsede Cruce Alberdi","TEMP":"Estadio Alfredo Morosano","CSYL":"Estadio Norberto \"Coco\" Viñetta","SALO":"Centro de Educación Física Nº 3","CORD":"Estadio Dr. Mariano Andino Igarzábal","HERC":"Estadio Rodolfo Címbaro Canela","TOKI":"Estadio Jorge Rokuro Yamaguchi","DBOS":"Centro Deportivo Don Bosco","HIRE":"Estadio Ricardo Moro","TALL":"La Leonera","CONC":"La Fortaleza – Carlos Enrique Cortez","MTMR":"El Nido","CARM":"Polideportivo Marcelo Palentini","REST":"Estadio Antonio Ricardo Bollea","REGI":"La Calderita","CEES":"El Templo","PLOT":"El Histórico","DROC":"Estadio Gimena Padín","BIGN":"El Nido","INEQ":"La Caldera","PACI":"El Viejo Ramírez","PERF":"Estadio Oscar \"Piti\" Claris","BOCA":"Estadio Luis Conde","SLOR":"Polideportivo Roberto Pando","OBRA":"Estadio Obras Sanitarias","QUIM":"Estadio Ciudad","INST":"Estadio Ángel Sandrín","ATEN":"Estadio Atenas","REGA":"Estadio José Jorge Contte","PENA":"Polideportivo Islas Malvinas","GIMN":"Estadio Socios Fundadores","OLIM":"Estadio Vicente Rosales","FERR":"Estadio Héctor Etchart","UNIO":"Estadio Cincuentenario","ARJU":"El Fortín de las Morochas","RACH":"Microestadio Grilon Arena","LANU":"Microestadio Antonio Rotili","PLAT":"Microestadio Ciudad de Vicente López","SMAR":"Estadio Raúl Argentino Ortiz","OBER":"Estadio Dr. Luis Augusto Derna","OLIV":"Polideportivo Independiente DSC","AGUA":"Gimnasio de Aguada","BIGU":"Gimnasio de Biguá","MALV":"Gimnasio Juan Francisco Canil","DEFE":"Gimnasio Óscar Magurno","HEBR":"Gimnasio Romeo Schinca","PEMV":"Palacio Peñarol","NACI":"Polideportivo Gran Parque Central","URUN":"Gimnasio Cr. Osvaldo Dohir","GOES":"Plaza de las Misiones","UNAT":"Gimnasio de Unión Atlética","ATMV":"Gimnasio Antonio María Borderes","LARR":"Gimnasio Doña Natividad Rivera","FRAN":"Ginásio Pedrocão","FLAM":"Ginásio do Maracanãzinho","BRAS":"Arena BRB Nilson Nelson","MINA":"Arena UniBH","PINH":"Ginásio Poliesportivo Henrique Villaboim","PAUL":"Ginásio Antônio Prado Júnior","BAUR":"Ginásio Panela de Pressão","CORI":"Ginásio Wlamir Marques","SJOS":"Ginásio Linneu de Moura","MOGI":"Ginásio Professor Hugo Ramos","UNIF":"Arena Unifacisa","UCOR":"Ginásio Poliesportivo Arnão","CAXI":"Ginásio do Sesi","FORT":"Centro de Formação Olímpica","PATO":"Ginásio do Sesi","CRUZ":"Ginásio Dona Salomé","VASC":"Ginásio de São Januário","RCLA":"Ginásio Felipe Karam","BOTA":"Ginásio Oscar Zelaya","OSAS":"Ginásio Geodésico","RESL":"Polideportivo Alexis Argüello","FRMO":"Arena Mobil","UDEC":"Casa del Deporte","LEON":"Gimnasio Colegio Los Leones","VALD":"Coliseo Antonio Azurmendy","UCAT":"Edificio de Deportes UC","EOSO":"Gimnasio Monumental María Gallardo","ETAL":"Gimnasio Cendyr Sur","COCO":"Gimnasio Municipal Irene Velásquez","PVAR":"Gimnasio Fiscal de Puerto Varas","ANIM":"Coliseo Antonio Azurmendy","PALT":"Gimnasio Municipal Irene Velásquez","CAST":"Gimnasio Municipal de Castro","ANCU":"Gimnasio Fiscal Luis «Caco» Suárez","PMON":"Gimnasio Mario Marchant Binder","TIBA":"Coliseo Elías Chegwin","ICUNI":"Palacio Martín Carpena","ICTEN":"Pabellón Insular Santiago Martín","ICBUR":"Coliseum Burgos","ICRYT":"Active Vilnius Arena","ICAHL":"Al Kobra Hall","ICPET":"Pavilhão da Cidadela","ICUTS":"Brex Arena Utsunomiya","ICRIY":"Saeb Salam Arena","ICSHA":"Shanghai Indoor Stadium","ICTAS":"MyState Bank Arena","ICILL":"WIN Entertainment Centre","AKR":"James A. Rhodes Arena","ALA":"Coleman Coliseum","ARIZ":"McKale Center at ALKEME Arena","ARK":"Bud Walton Arena","AUB":"Neville Arena","BAYL":"Foster Pavilion","BYU":"Marriott Center","CHAR":"TD Arena","CINC":"Fifth Third Arena","CREI":"CHI Health Center Omaha","DAY":"UD Arena","DUKE":"Cameron Indoor Stadium","FAU":"Eleanor R. Baldwin Arena","GONZ":"McCarthey Athletic Center","GTWN":"Capital One Arena","HOUS":"Fertitta Center","HOW":"Burr Gymnasium","INDI":"Simon Skjodt Assembly Hall","IONA":"Hynes Athletics Center","KAN":"Allen Fieldhouse","KEN":"Rupp Arena","LOU":"KFC Yum! Center","LOYC":"Joseph J. Gentile Arena","LSU":"Pete Maravich Assembly Center","MARQ":"Fiserv Forum","MCN":"Townsley Law Arena","MEMP":"FedExForum","MERR":"Lawler Arena","MICH":"Crisler Center","MIZZ":"Mizzou Arena","MSU":"Breslin Center","MTST":"Worthington Arena","MURR":"CFSB Center","ND":"Purcell Pavilion at the Joyce Center","OAK":"OU Credit Union O'rena","OKLA":"Lloyd Noble Center","OKST":"Gallagher-Iba Arena","OSU":"Value City Arena","PITT":"Petersen Events Center","PRIN":"Jadwin Gymnasium","PROV":"Amica Mutual Pavilion","PUR":"Mackey Arena","SDST":"First Bank & Trust Arena","SDSU":"Viejas Arena","SETON":"Prudential Center","SMCA":"University Credit Union Pavilion","SOU":"F. G. Clark Center","STAN":"Maples Pavilion","SYR":"JMA Wireless Dome","TENN":"Food City Center","TEX":"Moody Center","UCLA":"Pauley Pavilion","UCONN":"Harry A. Gampel Pavilion","UNC":"Dean E. Smith Center","UNLV":"Thomas & Mack Center","USC":"Galen Center","UTAH":"Jon M. Huntsman Center","VCU":"Stuart C. Siegel Center","VERM":"Patrick Gymnasium","VILL":"Finneran Pavilion","WAG":"Spiro Sports Center","WVU":"Hope Coliseum","XAV":"Cintas Center","YALE":"John J. Lee Amphitheater","MONT":"Montverde Academy Center","IMGA":"IMG Academy Fieldhouse","OAKH":"Turner Gymnasium","DEMA":"Morgan & Kathy Wootten Gymnasium","MATE":"Meruelo Athletic Center","SVSM":"LeBron James Arena","SIER":"Sierra Canyon Gym","DUNC":"Sandra Meadows Memorial Arena","HARG":"Walter Davis Gymnasium","BREW":"Smith Center for Athletics and Wellness"};
+/* por id de club (ligas, invitados de las Américas y la Intercontinental) · §2z271 c (2026-09-17): las tres segundas, del research de El Draft */
+const ESTADIO_CLUB = {"AMAN": "Estadio del Club Atlético Riojano", "CEIB": "Estadio Antonio Cena", "BPAR": "El Teatro del Parque", "BOCH": "Estadio José «Pepe» Nou", "RIVA": "Estadio Leopoldo Juan Brozovix", "COMU": "El Plateado", "HIND": "Catedral del Básquet", "ISDE": "Estadio Dr. Israel Parnas", "JUJU": "Estadio de la Federación de Jujuy", "RIAC": "Superdomo de La Rioja", "SALT": "Estadio Delmi", "SISI": "Estadio Antonio Manno", "SPAU": "Estadio Víctor Comelli", "SUAR": "El Gigante de la Avenida", "CENV": "Estadio Mateo Migliore", "CENT": "Estadio José María Bértora", "CICL": "Estadio El Coliseo del Boulevard", "DNOR": "Estadio Jorge Ferrero", "VIED": "Polideportivo Ángel Cayetano Arias", "GILP": "Polideportivo Víctor Nethol", "LUCO": "Estadio Carlos José Delasoie", "PICO": "Estadio Parque Ángel Larrea", "PROR": "Estadio Salvador Bonilla", "QUIL": "Microestadio Centenario José Martínez", "RACA": "Centro Deportivo Racing Club", "RSAN": "La Ribera", "RIVE": "Microestadio River Plate", "ROCA": "Estadio Julio César Paccagnella", "UMDP": "Polideportivo Islas Malvinas", "UNSF": "Estadio Ángel P. Malvicino", "VMIT": "Estadio José Martínez", "RMAD": "Movistar Arena", "FCBB": "Palau Blaugrana", "PANA": "Telekom Center Athens", "OLYM": "Peace and Friendship Stadium", "FENE": "Ülker Sports and Event Hall", "MONA": "Salle Gaston Médecin", "EFES": "Turkcell Basketbol Gelişim Merkezi", "MACC": "Menora Mivtachim Arena", "MILA": "Unipol Forum", "ZALG": "Žalgirio Arena", "VIRT": "Virtus Arena", "PART": "Beogradska Arena", "ESTR": "Beogradska Arena", "BASK": "Buesa Arena", "BAYE": "SAP Garden", "VALE": "Roig Arena", "HAPO": "Menora Mivtachim Arena", "PARI": "Adidas Arena", "BOS": "TD Garden", "BKN": "Barclays Center", "NYK": "Madison Square Garden", "PHI": "Xfinity Mobile Arena", "TOR": "Scotiabank Arena", "CHI": "United Center", "CLE": "Rocket Arena", "DET": "Little Caesars Arena", "IND": "Gainbridge Fieldhouse", "MIL": "Fiserv Forum", "ATL": "State Farm Arena", "CHA": "Spectrum Center", "MIA": "Kaseya Center", "ORL": "Kia Center", "WAS": "Capital One Arena", "DEN": "Ball Arena", "MIN": "Target Center", "OKC": "Paycom Center", "POR": "Moda Center", "UTA": "Delta Center", "GSW": "Chase Center", "LAC": "Intuit Dome", "LAL": "Crypto.com Arena", "PHX": "Mortgage Matchup Center", "SAC": "Golden 1 Center", "DAL": "American Airlines Center", "HOU": "Toyota Center", "MEM": "FedExForum", "NOP": "Smoothie King Center", "SAS": "Frost Bank Center", "CACY": "Estadio Edgardo Michaud", "EPRA": "Estadio Juan D'Alessandro", "IZAR": "Estadio Omar Olguín", "JHMA": "Estadio Alberto Millán", "PINO": "Estadio Eduardo Olmedo", "CDSA": "Estadio Enrique Tanghe", "CASM": "Estadio Raúl Martí", "ESCB": "Microestadio Juan Peralba", "ZBAS": "DAM Stadium", "CSAK": "Gigante de Lambardi", "CEPA": "Gimnasio Samuel Revello", "TALA": "Estadio Roberto Contini", "GEVP": "Estadio Omar Monza", "INDA": "Gimnasio Carlos Bottaro", "MIDL": "Microestadio Ciudad de Libertad", "HACO": "Estadio Tal Brody", "FEBR": "Estadio Horacio Larramendy", "CASA": "Estadio Juan Manuel \"Pepe\" López", "GEIT": "Estadio Armando Milano", "MORO": "Gimnasio Raúl Rezzónico", "DERQ": "Gimnasio Carlos Carpegna", "SPPI": "Gimnasio Marcelo \"Teate\" D'Andrea", "LOIN": "Estadio Oscar Vicente Pérez", "UNVE": "Estadio José Rebolini", "UNON": "Estadio Érico \"Cacho\" Ossela", "MATI": "Estadio Francisco Georgetti", "HLHE": "Polideportivo Dr. Vicente Polimeni", "RAFA": "Estadio Arq. Lucio Casarín", "ALJU": "Gimnasio Dr. Enzo Scocco", "ALMA": "Estadio Juan Carlos \"Pepote\" Spies", "MARI": "Estadio Edgar \"Nenito\" Rivolta", "SAST": "Gimnasio 29 de Mayo", "TOST": "Estadio El Gigante de la Villa", "SANJ": "Estadio Cuna de Matadores", "UNJU": "Gigante del Sudeste", "ALBS": "Estadio José Aquiles Regazzoli", "ESOL": "Maxigimnasio del Parque Carlos Guerrero", "FEGP": "El Colosito de Barrio Talleres", "INGP": "Estadio El Gigante de la Avenida", "INTA": "Polideportivo Duggan Martignoni", "RAOL": "Gimnasio Parque Olavarría", "ATLP": "Estadio Dante Demo", "ATPI": "Gimnasio Javier Peverelli", "BESA": "Estadio Fortunato Bonelli", "SOMI": "Estadio Socios Fundadores", "ESLP": "Polideportivo Jorge Luis Hirschi", "SFER": "Polideportivo Municipal N° 3", "ECHA": "Estadio Luis Butta", "SION": "Estadio Moisés Flesler", "GISA": "Estadio Ricardo \"Húngaro\" Crespi", "COLO": "Gimnasio Roque Otrino", "ESCO": "El Gigante Verde", "QUIQ": "Estadio Guillermo Gaya", "RBOC": "Estadio Antonio Zorzet", "RIJR": "Estadio Ezequiel Ceratti", "ARMO": "Estadio Gregorio \"Pocho\" Nieto", "ARGE": "Estadio Aarón Gerchunoff", "SAMA": "Estadio Leonardo Gutiérrez", "NAUT": "Estadio Ricardo Velasco", "OLVT": "Estadio Olimpia", "ROSC": "Estadio de la Subsede Cruce Alberdi", "TEMP": "Estadio Alfredo Morosano", "CSYL": "Estadio Norberto \"Coco\" Viñetta", "SALO": "Centro de Educación Física Nº 3", "CORD": "Estadio Dr. Mariano Andino Igarzábal", "HERC": "Estadio Rodolfo Címbaro Canela", "TOKI": "Estadio Jorge Rokuro Yamaguchi", "DBOS": "Centro Deportivo Don Bosco", "HIRE": "Estadio Ricardo Moro", "TALL": "La Leonera", "CONC": "La Fortaleza – Carlos Enrique Cortez", "MTMR": "El Nido", "CARM": "Polideportivo Marcelo Palentini", "REST": "Estadio Antonio Ricardo Bollea", "REGI": "La Calderita", "CEES": "El Templo", "PLOT": "El Histórico", "DROC": "Estadio Gimena Padín", "BIGN": "El Nido", "INEQ": "La Caldera", "PACI": "El Viejo Ramírez", "PERF": "Estadio Oscar \"Piti\" Claris", "BOCA": "Estadio Luis Conde", "SLOR": "Polideportivo Roberto Pando", "OBRA": "Estadio Obras Sanitarias", "QUIM": "Estadio Ciudad", "INST": "Estadio Ángel Sandrín", "ATEN": "Estadio Atenas", "REGA": "Estadio José Jorge Contte", "PENA": "Polideportivo Islas Malvinas", "GIMN": "Estadio Socios Fundadores", "OLIM": "Estadio Vicente Rosales", "FERR": "Estadio Héctor Etchart", "UNIO": "Estadio Cincuentenario", "ARJU": "El Fortín de las Morochas", "RACH": "Microestadio Grilon Arena", "LANU": "Microestadio Antonio Rotili", "PLAT": "Microestadio Ciudad de Vicente López", "SMAR": "Estadio Raúl Argentino Ortiz", "OBER": "Estadio Dr. Luis Augusto Derna", "OLIV": "Polideportivo Independiente DSC", "AGUA": "Gimnasio de Aguada", "BIGU": "Gimnasio de Biguá", "MALV": "Gimnasio Juan Francisco Canil", "DEFE": "Gimnasio Óscar Magurno", "HEBR": "Gimnasio Romeo Schinca", "PEMV": "Palacio Peñarol", "NACI": "Polideportivo Gran Parque Central", "URUN": "Gimnasio Cr. Osvaldo Dohir", "GOES": "Plaza de las Misiones", "UNAT": "Gimnasio de Unión Atlética", "ATMV": "Gimnasio Antonio María Borderes", "LARR": "Gimnasio Doña Natividad Rivera", "FRAN": "Ginásio Pedrocão", "FLAM": "Ginásio do Maracanãzinho", "BRAS": "Arena BRB Nilson Nelson", "MINA": "Arena UniBH", "PINH": "Ginásio Poliesportivo Henrique Villaboim", "PAUL": "Ginásio Antônio Prado Júnior", "BAUR": "Ginásio Panela de Pressão", "CORI": "Ginásio Wlamir Marques", "SJOS": "Ginásio Linneu de Moura", "MOGI": "Ginásio Professor Hugo Ramos", "UNIF": "Arena Unifacisa", "UCOR": "Ginásio Poliesportivo Arnão", "CAXI": "Ginásio do Sesi", "FORT": "Centro de Formação Olímpica", "PATO": "Ginásio do Sesi", "CRUZ": "Ginásio Dona Salomé", "VASC": "Ginásio de São Januário", "RCLA": "Ginásio Felipe Karam", "BOTA": "Ginásio Oscar Zelaya", "OSAS": "Ginásio Geodésico", "RESL": "Polideportivo Alexis Argüello", "FRMO": "Arena Mobil", "UDEC": "Casa del Deporte", "LEON": "Gimnasio Colegio Los Leones", "VALD": "Coliseo Antonio Azurmendy", "UCAT": "Edificio de Deportes UC", "EOSO": "Gimnasio Monumental María Gallardo", "ETAL": "Gimnasio Cendyr Sur", "COCO": "Gimnasio Municipal Irene Velásquez", "PVAR": "Gimnasio Fiscal de Puerto Varas", "ANIM": "Coliseo Antonio Azurmendy", "PALT": "Gimnasio Municipal Irene Velásquez", "CAST": "Gimnasio Municipal de Castro", "ANCU": "Gimnasio Fiscal Luis «Caco» Suárez", "PMON": "Gimnasio Mario Marchant Binder", "TIBA": "Coliseo Elías Chegwin", "ICUNI": "Palacio Martín Carpena", "ICTEN": "Pabellón Insular Santiago Martín", "ICBUR": "Coliseum Burgos", "ICRYT": "Active Vilnius Arena", "ICAHL": "Al Kobra Hall", "ICPET": "Pavilhão da Cidadela", "ICUTS": "Brex Arena Utsunomiya", "ICRIY": "Saeb Salam Arena", "ICSHA": "Shanghai Indoor Stadium", "ICTAS": "MyState Bank Arena", "ICILL": "WIN Entertainment Centre", "AKR": "James A. Rhodes Arena", "ALA": "Coleman Coliseum", "ARIZ": "McKale Center at ALKEME Arena", "ARK": "Bud Walton Arena", "AUB": "Neville Arena", "BAYL": "Foster Pavilion", "BYU": "Marriott Center", "CHAR": "TD Arena", "CINC": "Fifth Third Arena", "CREI": "CHI Health Center Omaha", "DAY": "UD Arena", "DUKE": "Cameron Indoor Stadium", "FAU": "Eleanor R. Baldwin Arena", "GONZ": "McCarthey Athletic Center", "GTWN": "Capital One Arena", "HOUS": "Fertitta Center", "HOW": "Burr Gymnasium", "INDI": "Simon Skjodt Assembly Hall", "IONA": "Hynes Athletics Center", "KAN": "Allen Fieldhouse", "KEN": "Rupp Arena", "LOU": "KFC Yum! Center", "LOYC": "Joseph J. Gentile Arena", "LSU": "Pete Maravich Assembly Center", "MARQ": "Fiserv Forum", "MCN": "Townsley Law Arena", "MEMP": "FedExForum", "MERR": "Lawler Arena", "MICH": "Crisler Center", "MIZZ": "Mizzou Arena", "MSU": "Breslin Center", "MTST": "Worthington Arena", "MURR": "CFSB Center", "ND": "Purcell Pavilion at the Joyce Center", "OAK": "OU Credit Union O'rena", "OKLA": "Lloyd Noble Center", "OKST": "Gallagher-Iba Arena", "OSU": "Value City Arena", "PITT": "Petersen Events Center", "PRIN": "Jadwin Gymnasium", "PROV": "Amica Mutual Pavilion", "PUR": "Mackey Arena", "SDST": "First Bank & Trust Arena", "SDSU": "Viejas Arena", "SETON": "Prudential Center", "SMCA": "University Credit Union Pavilion", "SOU": "F. G. Clark Center", "STAN": "Maples Pavilion", "SYR": "JMA Wireless Dome", "TENN": "Food City Center", "TEX": "Moody Center", "UCLA": "Pauley Pavilion", "UCONN": "Harry A. Gampel Pavilion", "UNC": "Dean E. Smith Center", "UNLV": "Thomas & Mack Center", "USC": "Galen Center", "UTAH": "Jon M. Huntsman Center", "VCU": "Stuart C. Siegel Center", "VERM": "Patrick Gymnasium", "VILL": "Finneran Pavilion", "WAG": "Spiro Sports Center", "WVU": "Hope Coliseum", "XAV": "Cintas Center", "YALE": "John J. Lee Amphitheater", "MONT": "Montverde Academy Center", "IMGA": "IMG Academy Fieldhouse", "OAKH": "Turner Gymnasium", "DEMA": "Morgan & Kathy Wootten Gymnasium", "MATE": "Meruelo Athletic Center", "SVSM": "LeBron James Arena", "SIER": "Sierra Canyon Gym", "DUNC": "Sandra Meadows Memorial Arena", "HARG": "Walter Davis Gymnasium", "BREW": "Smith Center for Athletics and Wellness", "TROU": "Gimnasio de Trouville", "OLMV": "Estadio Albérico J. Passadore", "TABA": "Gimnasio José A. Saldún", "SAYA": "Gimnasio Roberto Moro", "LARB": "Estadio Romeo Schinca", "VERD": "Gimnasio Verdirrojo", "STOC": "Gimnasio Héctor Domínguez", "URUP": "Gimnasio Santiago A. Cigliuti", "LAGO": "Gimnasio Lagomar", "MVBB": "Gimnasio Héctor Novick", "COMV": "Gimnasio Héctor Chaine", "MARN": "Gimnasio Marne", "OLMU": "Gimnasio Olivol Mundial", "ALBA": "Gimnasio Albatros", "TATU": "Ginásio Manoel Soares", "BRUS": "Arena Brusque", "BLUM": "Ginásio Sebastião Cruz", "VITO": "Ginásio de Cajazeiras", "FLUM": "Ginásio João Coelho Netto", "JOAC": "Complexo Esportivo Unoesc", "TOWE": "Ginásio Divino Braga", "CETA": "Ginásio João Goulart", "SPIT": "Fortín Prat", "ILLA": "Polideportivo Municipal de Illapel", "ARAB": "Fortín Prat", "QLPU": "Fortín Prat", "HUMB": "Arena Arlegui", "SHAR": "Gimnasio José Iglesias", "CEPP": "Gimnasio Sergio Ceppi", "STIT": "Gimnasio del Stadio Italiano", "SOKO": "Estadio Sokol", "LMAT": "Gimnasio Carlos Flores Cepeda", "SLQU": "Arena Arlegui", "APRA": "Fortín Prat de San Felipe", "ALCO": "Polideportivo Otto", "VIAL": "Fortín Prat", "TRUE": "Gimnasio Manuel Herrera Blanco", "LCUR": "Gimnasio Abraham Milad", "CONS": "Gimnasio Enrique Donn Müller", "MCHI": "Casa del Deporte de Chillán", "UDET": "Gimnasio Olímpico UFRO", "HUAC": "Gimnasio CAP Huachipato", "OMEG": "Gimnasio UC Santísima Concepción", "CDLU": "Gimnasio Fiscal de La Unión", "EAPV": "Gimnasio Fiscal de Puerto Varas"};
 /* por sede: 'pais:Ciudad' de SEL_SEDES y de los anfitriones de torneos (01r), 'ic:Ciudad' de la Intercontinental (01p3) */
 const ESTADIO_SEDE = {"ar:Buenos Aires":"Estadio Obras Sanitarias","ar:Mar del Plata":"Polideportivo Islas Malvinas","ar:Corrientes":"Estadio José Jorge Contte","ar:Santiago del Estero":"Estadio Ciudad","ar:Formosa":"Estadio Cincuentenario","ar:La Rioja":"Superdomo","br:São Paulo":"Ginásio Poliesportivo Wlamir Marques","br:Belo Horizonte":"Arena UniBH","br:Brasilia":"Ginásio Nilson Nelson","br:Franca":"Ginásio Pedrocão","br:Río de Janeiro":"Arena Carioca 1","us:College Park":"Gateway Center Arena","us:Oceanside":"Frontwave Arena","us:Washington":"CareFirst Arena","us:Las Vegas":"Cox Pavilion","ca:Toronto":"Mattamy Athletic Centre","ca:Hamilton":"TD Coliseum","ca:Edmonton":"Edmonton Expo Centre","ca:Vancouver":"Rogers Arena","pr:San Juan":"Coliseo Roberto Clemente","pr:Mayagüez":"Palacio de Recreación y Deportes","do:Santo Domingo":"Arena Banreservas","do:Santiago de los Caballeros":"Gran Arena del Cibao","ve:Caracas":"Gimnasio José Joaquín Papá Carrillo","ve:Barquisimeto":"Domo Bolivariano","mx:Chihuahua":"Gimnasio Auditorio Universitario","mx:Zacatecas":"Gimnasio Marcelino González","mx:Ciudad Obregón":"Arena ITSON","mx:Ciudad de México":"Arena CDMX","uy:Montevideo":"Antel Arena","pa:Ciudad de Panamá":"Arena Roberto Durán","co:Cali":"Coliseo Evangelista Mora","co:Medellín":"Coliseo Iván de Bedout","co:Bogotá":"Movistar Arena","cl:Valdivia":"Coliseo Antonio Azurmendy","cl:Santiago":"Centro de Deportes Colectivos","es:Madrid":"Caja Mágica","es:Zaragoza":"Pabellón Príncipe Felipe","es:Burgos":"Coliseum Burgos","es:Tenerife":"Pabellón Insular Santiago Martín","es:Vitoria":"Fernando Buesa Arena","rs:Belgrado":"Beogradska arena","rs:Niš":"Hala Čair","rs:Novi Sad":"SPENS","fr:París":"Accor Arena","fr:Pau":"Palais des Sports de Pau","fr:Ruan":"Kindarena","fr:Orleans":"CO'Met Arena","de:Berlín":"Uber Arena","de:Bonn":"Telekom Dome","de:Hamburgo":"Barclays Arena","de:Bremen":"ÖVB-Arena","gr:Atenas":"Telekom Center Athens","gr:Heraclión":"Heraklion Arena","gr:Larisa":"Neapolis Arena","it:Brescia":"PalaLeonessa","it:Pésaro":"Vitrifrigo Arena","it:Trento":"BTS Arena","it:Bolonia":"Virtus Arena","lt:Kaunas":"Žalgirio arena","lt:Klaipėda":"Švyturio arena","lt:Vilna":"Arena Vilnius","lt:Panevėžys":"Kalnapilio arena","si:Liubliana":"Arena Stožice","si:Koper":"Arena Bonifika","tr:Estambul":"Basketbol Gelişim Merkezi","tr:Ankara":"Ankara Spor Salonu","tr:Esmirna":"Halkapınar Spor Salonu","lv:Riga":"Xiaomi Arēna","lv:Ventspils":"Ventspils Olimpiskais centrs","au:Perth":"RAC Arena","au:Melbourne":"John Cain Arena","au:Hobart":"MyState Bank Arena","au:Cairns":"Cairns Convention Centre","ng:Lagos":"Indoor Sports Hall, National Stadium","ng:Abuya":"Moshood Abiola Indoor Sports Hall","cn:Pekín":"Wukesong Arena","cn:Shenyang":"Liaoning Gymnasium","cn:Xi'an":"Shaanxi Provincial Gymnasium","jp:Tokio":"Toyota Arena Tokyo","jp:Kobe":"GLION ARENA KOBE","jp:Okinawa":"Okinawa Arena","jp:Sendai":"Xebio Arena Sendai","nz:Wellington":"TSB Arena","nz:Auckland":"Spark Arena","nz:Christchurch":"Wolfbrook Arena","ph:Pasay":"SM Mall of Asia Arena","ph:Quezon City":"Smart Araneta Coliseum","ph:Bulacán":"Philippine Arena","ao:Luanda":"Pavilhão Multiusos de Luanda","eg:El Cairo":"Hassan Moustafa Sports Hall","eg:Alejandría":"Borg El Arab Sports Hall","ir:Teherán":"Azadi Basketball Hall","ua:Kiev":"Palats Sportu","ua:Riga":"Xiaomi Arēna","fi:Espoo":"Espoo Metro Areena","fi:Tampere":"Nokia Arena","fi:Helsinki":"Veikkaus Arena","ge:Tiflis":"Tbilisi Arena","pl:Gliwice":"PreZero Arena Gliwice","pl:Sosnowiec":"ArcelorMittal Park","pl:Lublin":"Hala Globus","pl:Gdansk":"Ergo Arena","me:Podgorica":"Sportski centar Morača","me:Bar":"Sportska dvorana Topolica","cz:Praga":"Královka Arena","cz:Pardubice":"Enteria arena","cz:Brno":"Starez Aréna Vodova","ci:Abiyán":"Palais des Sports de Treichville","cv:Praia":"Pavilhão Desportivo Vává Duarte","cv:Mindelo":"Polivalente de Amarante","kr:Wonju":"Wonju DB Promy Arena","kr:Goyang":"Goyang Sono Arena","kr:Seúl":"Jamsil Arena","ic:Singapur":"Singapore Indoor Stadium","ic:Pekín":"National Indoor Stadium","ic:Shanghái":"Shanghai Oriental Sports Center","ic:El Cairo":"Hassan Moustafa Sports Hall","ic:La Laguna":"Pabellón Insular Santiago Martín","qa:Doha":"Lusail Sports Arena","fr:Lille":"Stade Pierre-Mauroy","fr:Lyon":"LDLC Arena","us:Los Ángeles":"Intuit Dome","au:Brisbane":"Brisbane Entertainment Centre","ee:Tallin":"Unibet Arena","in:Ahmedabad":"Sardar Vallabhbhai Patel Sports Enclave","id:Yakarta":"Indonesia Arena","au:Sídney":"Afterpay Arena","it:Milán":"Unipol Forum","pl:Katowice":"Spodek","ph:Manila":"SM Mall of Asia Arena"};
 function estadioDeClub(id) { return (id && ESTADIO_CLUB[id]) || null; }
@@ -4320,13 +4478,17 @@ function armarHexagonales(estado) {
   const alto = t.slice(0, h.arriba).map((f) => f.id), bajo = t.slice(h.arriba).map((f) => f.id);
   estado.hex = { alto, bajo, desde: h.tras + 1 };
   const n = estado.fechasTotales - h.tras, porGrupo = {};
-  for (const [g, ids] of [['alto', alto], ['bajo', bajo]]) {
+  /* §2z271: el grupo de abajo puede jugar MENOS fechas que el de arriba (la LDA: liguilla de 8 a una rueda = 7, reclasificatorio
+     de 6 a una rueda = 5); `bajoFechas` lo dice, y las fechas que le sobran las juega sólo el de arriba */
+  const nBajo = h.bajoFechas ? Math.min(n, h.bajoFechas) : n;
+  for (const [g, ids, nf] of [['alto', alto, n], ['bajo', bajo, nBajo]]) {
     const set = new Set(ids);
-    porGrupo[g] = armarFixture(rngFor(estado.semilla, 'hex', g), estado.clubes.filter((c) => set.has(c.id)), n);
+    porGrupo[g] = armarFixture(rngFor(estado.semilla, 'hex', g), estado.clubes.filter((c) => set.has(c.id)), nf);
   }
-  for (let i = 0; i < n; i++) estado.fixture[h.tras + i] = { nro: h.tras + i + 1,
-    partidos: [...porGrupo.alto[i].partidos, ...porGrupo.bajo[i].partidos],
-    libres: [porGrupo.alto[i].libre, porGrupo.bajo[i].libre].filter(Boolean) };
+  for (let i = 0; i < n; i++) { const b = porGrupo.bajo[i] || { partidos: [], libre: null };
+    estado.fixture[h.tras + i] = { nro: h.tras + i + 1,
+      partidos: [...porGrupo.alto[i].partidos, ...b.partidos],
+      libres: [porGrupo.alto[i].libre, b.libre].filter(Boolean) }; }
 }
 /** La tabla de un hexagonal ('alto' | 'bajo'): esos clubes, con todo lo jugado (el arrastre). */
 function tablaHex(estado, g) {
@@ -4861,7 +5023,16 @@ function armarLlave(estado) {
       cl.forEach((id, i) => { po.siembra[id] = i + 1; });
       listas.push(sinDirectos(cl));
     }
-    armarRonda(estado, listas);
+    /* §2z271 LAS CONFERENCIAS (la Liga Dos): dos zonas comparten llave y los octavos se CRUZAN entre ellas — 1A-4B, 2A-3B, 1B-4A,
+       2B-3A. La lista de la conferencia se arma [1A, 2A, 1B, 2B, 3A, 4A, 3B, 4B]: apareada punta contra punta (armarRonda) da
+       exactamente esos cruces. Las rondas `porZona` siguientes agrupan por conferencia (gruposLlave). */
+    if (def.conferencias) {
+      const porZona = {}; estado.zonas.forEach((z, i) => { porZona[z] = listas[i]; });
+      const conf = [];
+      for (const k in def.conferencias) { const [a, b] = def.conferencias[k].map((z) => porZona[z] || []), m = Math.ceil(a.length / 2);
+        conf.push([...a.slice(0, m), ...b.slice(0, m), ...a.slice(m), ...b.slice(m)]); }
+      armarRonda(estado, conf, false, true);
+    } else armarRonda(estado, listas);
   } else {
     const t = estado.hex ? ordenFinal(estado) : tabla(estado.resultados);   // §2z269 c: con hexagonales, 6 del superior + 2 del reclasificatorio
     const cl = t.slice(0, def.clasifican).map((f) => f.id);
@@ -4954,11 +5125,11 @@ function cerrarRondaFederal(estado) {
  * listas son las zonas y el apareo va cruzado: el mejor del Norte contra el peor
  * clasificado del Sur — el primer cruce de la llave argentina.
  */
-function armarRonda(estado, listas, cruce) {
+function armarRonda(estado, listas, cruce, enOrden) {
   const po = estado.playoffs;
   const ronda = po.def.rondas[po.ronda];
   const mejor = (a, b) => (po.siembra[a] - po.siembra[b]) || (po.ordenGlobal[a] - po.ordenGlobal[b]);
-  const ordenar = (ids) => ids.slice().sort(mejor);
+  const ordenar = (ids) => enOrden ? ids.slice() : ids.slice().sort(mejor);   // §2z271: la lista de una conferencia ya viene en su orden
   const pares = [];
   if (cruce) {
     const [a, b] = listas.map(ordenar);
@@ -5074,19 +5245,31 @@ function cerrarRondaSiTermino(estado) {
   if (vivos.length === 1) {
     po.campeon = vivos[0];
     estado.fase = 'terminada';
+    /* §2z271: quiénes SUBEN, según la liga — el campeón (Liga Ouro, Liga Dos) o los dos finalistas (la LDA: la final es sólo por
+       el título). La Federal escribe los suyos en cerrarRondaFederal. La escalera (18b) los mueve de liga. */
+    if (po.def.ascienden === 'campeon') po.ascendidos = [po.campeon];
+    else if (po.def.ascienden === 'finalistas') { const f = po.series.find((s) => s.ganador === po.campeon); po.ascendidos = f ? [f.alta, f.baja].sort() : [po.campeon]; }
     return;
   }
   po.ronda++;
   const proxima = po.def.rondas[po.ronda];
   const anterior = po.def.rondas[po.ronda - 1];
+  /* §2z271: con conferencias, «por zona» agrupa por CONFERENCIA (las dos zonas de una llave); sin ellas, por zona */
+  const grupos = estado.zonas ? gruposLlave(estado, vivos) : null;
   if (estado.zonas && proxima.porZona) {
-    armarRonda(estado, estado.zonas.map((z) => vivos.filter((id) => estado.zonaDe[id] === z)));
+    armarRonda(estado, grupos);
   } else if (estado.zonas && anterior.porZona) {
     // El primer cruce: Norte contra Sur, cruzado.
-    armarRonda(estado, estado.zonas.map((z) => vivos.filter((id) => estado.zonaDe[id] === z)), true);
+    armarRonda(estado, grupos, true);
   } else {
     armarRonda(estado, [vivos]);
   }
+}
+/** Los vivos agrupados por zona, o por conferencia si la llave las tiene (§2z271). */
+function gruposLlave(estado, vivos) {
+  const conf = estado.playoffs.def.conferencias;
+  if (!conf) return estado.zonas.map((z) => vivos.filter((id) => estado.zonaDe[id] === z));
+  return Object.keys(conf).map((k) => vivos.filter((id) => conf[k].includes(estado.zonaDe[id])));
 }
 
 /**
@@ -5322,7 +5505,7 @@ function correrLigaEnSeco(semilla, clubes, liga) {
   const est = crearTemporada(semilla, clubes, {
     miClubId: null, skills: { tiro: 0, manejo: 0, vision: 0, fisico: 0, defensa: 0 },
     fechas: liga.fechas, playoffs: liga.playoffs, zonas: liga.zonas,
-    fechasPorZona: liga.fechasPorZona, vecindario: liga.vecindario,
+    fechasPorZona: liga.fechasPorZona, vecindario: liga.vecindario, hexagonal: liga.hexagonal || null,   // §2z271: la LUB y la LDA en seco también se parten
   });
   let guarda = 0;
   while (est.fase !== 'terminada' && ++guarda < 120) semana(est);
@@ -5428,7 +5611,7 @@ function carreraPremios(estado, esc, vos) {
 }
 /** ¿La carrera ya se dice? (30 % de la regular jugado) */
 const carreraActiva = (estado) => !!estado.fechasTotales && (estado.fechaJugada || 0) >= Math.ceil(estado.fechasTotales * CARRERA_MVP.desde);
-/* `liga.allstar` (01d): LNB · LA · LUB · NBB · NBA lo juegan de verdad; Federal, secundaria, NCAA y Euroliga no */
+/* `liga.allstar` (01d): LNB · LA · LUB · NBB · Chile · NBA lo juegan de verdad; Federal, secundaria, NCAA y Euroliga no */
 const allStarToca = (estado, liga) => !!(liga && liga.allstar) && !!estado.fechasTotales && (estado.fechaJugada || 0) >= Math.ceil(estado.fechasTotales * CARRERA_MVP.allstar);
 
 /* ══ §2z264 LAS FIGURAS DE LA LIGA (2026-09-14, su pregunta mirando la pestaña MVP: *"¿los apellidos se mantienen temporada a
@@ -6805,7 +6988,8 @@ function fraccionExp(exp, nivel) {
  * por elegirlo. El flag `amateur` sigue mandando en el CAMINO del mercado, no en la caja. */
 const SUELDO_LIGA = {
   federal: [110, 40], hs: [110, 40], argentina: [180, 60], ncaa: [180, 60],
-  nacional: [320, 100], lub: [320, 100], nbb: [320, 100], chile: [180, 60], euroliga: [900, 250], nba: [3000, 600],   // §2z269: Chile cobra como la Liga Argentina (mismo escalón)
+  nacional: [320, 100], lub: [320, 100], nbb: [320, 100], chile: [180, 60], euroliga: [900, 250], nba: [3000, 600],
+  lda: [180, 60], ouro: [180, 60], ligados: [110, 40],   // §2z271: las segundas cobran como la Liga Argentina; la Liga Dos como la Federal (mismo escalón)   // §2z269: Chile cobra como la Liga Argentina (mismo escalón)
 };
 const MISION_BONO = 0.3;   // el bono individual: 30% del partido
 function notaPromedio(misPartidos) {
@@ -7039,8 +7223,8 @@ function ctxCarta(u){
     proximoSeleccion:!!(prox&&prox.tipo==='seleccion'),
     proximoAmericas:!!(prox&&prox.tipo==='americas'),                                   // el que viene es del continental
     proximoLiga:prox?(prox.tipo==='americas'?e.americas.ligaDe[prox.rival]:$C().ligaId):null,   // …y de qué liga es el rival ('invitado' para los cuatro fijos)
-    ascendio:esc&&esc.anio===$C().anio&&(esc.subeLA===e.miClubId||(esc.subenFed||[]).includes(e.miClubId)),   // la escalera de ESTE receso (§2z7): tu club subió
-    descendio:esc&&esc.anio===$C().anio&&(esc.bajaLNB===e.miClubId||(esc.bajanLA||[]).includes(e.miClubId)), // …o bajó
+    ascendio:esc&&esc.anio===$C().anio&&(esc.subeLA===e.miClubId||(esc.subenFed||[]).includes(e.miClubId)||(esc.suben||[]).some(m=>m.id===e.miClubId)),   // la escalera de ESTE receso (§2z7): tu club subió · §2z271: en cualquier país
+    descendio:esc&&esc.anio===$C().anio&&(esc.bajaLNB===e.miClubId||(esc.bajanLA||[]).includes(e.miClubId)||(esc.bajan||[]).some(m=>m.id===e.miClubId)), // …o bajó
     proximoLocal:prox?!!prox.local:null,          // el que viene, ¿en casa? (el micro sólo antes de visitante)
     visitantesSeguidos:vis,                       // cuántos de visitante seguidos vienen (la gira)
     ultimoVisitante:mios.length?mios[mios.length-1].visita===e.miClubId:false,   // el tercer tiempo es después de jugar afuera
@@ -7097,6 +7281,7 @@ const poolGeneral=()=>[].concat(typeof CARTAS_GENERAL!=='undefined'?CARTAS_GENER
   typeof CARTAS_LUB!=='undefined'?CARTAS_LUB:[],
   typeof CARTAS_NBB!=='undefined'?CARTAS_NBB:[],
   CARTAS_CHILE,   // §2z269 (referencia directa: clase 19 de CLAUDE.md — si falta, revienta)
+  CARTAS_SEGUNDAS,   // §2z271 c: las cartas de la Liga de Ascenso, la Liga Ouro y la Liga Dos (referencia directa)
   typeof CARTAS_EURO!=='undefined'?CARTAS_EURO:[],
   typeof CARTAS_VIDA!=='undefined'?CARTAS_VIDA:[]);      // §2z42.3: la plata tiene algo que hacer
 /* §2z46: las de EVENTO — salen cuando pasa el evento, con cupo propio, sin tocar el presupuesto de las graciosas */
@@ -7877,6 +8062,42 @@ const CARTAS_PRENSA=[
      {tipo:'apuesta',label:L('"Que lo diga la cancha"','"Let the court decide"','"Que a quadra diga"'),desenlaces:[
        {p:55,remate:L('Picante','Spicy','Apimentado'),texto:L('La frase llega a su vestuario antes que a tu casa. El próximo cruce entre los dos equipos pasa al horario central de la tele.','The line reaches his locker room before you get home. The next game between the two teams moves to prime time.','A frase chega ao vestiário dele antes de você chegar em casa. O próximo jogo entre os dois times vai para o horário nobre da TV.'),ef:{rel:{hinchada:6}}},
        {p:45,remate:L('Te respondió','He answered','Ele respondeu'),texto:L('Al otro día hace 30 puntos y dice «la cancha habló». Todos los diarios lo ponen al lado de tu frase.','The next day he scores 30 and says "the court has spoken." Every paper runs it next to your line.','No dia seguinte ele faz 30 pontos e diz "a quadra falou". Todos os jornais colocam ao lado da sua frase.'),ef:{rel:{hinchada:-4}}}]}]},
+ /* §2z270 (2026-09-17) LA RIVALIDAD Y EL COMPAÑERO EN EL MVP (la prosa, con su ok). Tres eventos: el cruce con el que te terminó al lado
+    el año pasado (`u.rivalidad`, 18b), el cierre de la regular cuando le diste vuelta la carrera, y el compañero con el que compartís
+    los cinco de arriba (`u.mvpCompanero`). Una por temporada cada una. */
+ { id:'prensa_rivalidad_cruce', repite:true, evento:true, unaPorAnio:'rivalidad',
+   cuando:(c)=>c.fase==='regular'&&!!(c.u&&c.u.rivalidad&&c.u.rival&&c.u.rival===c.u.rivalidad.clubId),
+   gancho:(c)=>{ const r=(c&&c.u&&c.u.rivalidad)||{ape:'',posAnt:2,vosAnt:3}, arr=r.posAnt<r.vosAnt, ordEn=(n)=>n===1?'st':n===2?'nd':n===3?'rd':'th';
+     return L('Jugaste contra '+r.ape+'. El año pasado terminó '+r.posAnt+'° en la carrera al MVP y vos '+r.vosAnt+'°'+(arr?': te terminó arriba':': lo terminaste arriba')+'. Te preguntan si le mirás la planilla.',
+       'You played against '+r.ape+'. Last year he finished '+r.posAnt+ordEn(r.posAnt)+' in the MVP race and you '+r.vosAnt+ordEn(r.vosAnt)+(arr?': he finished above you':': you finished above him')+'. They ask if you check his box score.',
+       'Você jogou contra '+r.ape+'. Ano passado ele terminou em '+r.posAnt+'º na corrida ao MVP e você em '+r.vosAnt+'º'+(arr?': ele terminou acima de você':': você terminou acima dele')+'. Perguntam se você olha a súmula dele.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Le miro los pies. Los números los mira mi vieja"','"I watch his feet. My mom watches the numbers"','"Eu olho os pés dele. Os números quem olha é minha mãe"'),desenlaces:[{p:100,remate:null,texto:L('Él la lee, y en la entrada en calor del próximo cruce te saluda con la cabeza, nada más. Los dos saben.','He reads it, and in the warm-up of the next matchup he nods at you, nothing more. You both know.','Ele lê, e no aquecimento do próximo confronto te cumprimenta com a cabeça, só isso. Os dois sabem.'),ef:{rel:{hinchada:1}}}]},
+     {tipo:'apuesta',label:L('"Este año lo termino arriba"','"This year I finish above him"','"Este ano eu termino acima dele"'),desenlaces:[
+       {p:55,remate:L('Es personal','It is personal','É pessoal'),texto:L('La liga mueve el próximo cruce al cierre de la fecha, y en la pantalla de la cancha ponen las dos planillas lado a lado los cuarenta minutos.','The league moves the next matchup to the close of the round, and the arena screen shows both box scores side by side for forty minutes.','A liga muda o próximo confronto para o fechamento da rodada, e no telão do ginásio colocam as duas súmulas lado a lado os quarenta minutos.'),ef:{rel:{hinchada:6}}},
+       {p:45,remate:L('Él también lee','He reads too','Ele também lê'),texto:L('En el próximo cruce te marca él, desde el primer minuto y sin ayuda, y le pide al DT que no lo cambie. Cuarenta minutos con su aliento en la nuca.','In the next matchup he guards you himself, from the first minute and with no help, and asks his coach not to sub him out. Forty minutes with his breath on your neck.','No próximo confronto ele mesmo te marca, desde o primeiro minuto e sem ajuda, e pede ao técnico para não tirá-lo. Quarenta minutos com o bafo dele na nuca.'),ef:{energia:-10,rel:{hinchada:-2}}}]}]},
+ { id:'prensa_rivalidad_cierre', repite:true, evento:true, unaPorAnio:'rivalidad_cierre',
+   cuando:(c)=>!!(c.regularCerrada&&c.u&&c.u.rivalidad&&c.u.rivalidad.posAnt<c.u.rivalidad.vosAnt&&c.u.rivalidad.posHoy&&c.mvpPos&&c.mvpPos<c.u.rivalidad.posHoy),
+   gancho:(c)=>{ const r=(c&&c.u&&c.u.rivalidad)||{ape:''};
+     return L('Cerró la regular y esta vez terminaste arriba de '+r.ape+', que el año pasado te había terminado arriba a vos. Te preguntan si se lo vas a decir.',
+       'The regular season is over and this time you finished above '+r.ape+', who finished above you last year. They ask if you are going to tell him.',
+       'Fechou a fase regular e desta vez você terminou acima de '+r.ape+', que ano passado tinha terminado acima de você. Perguntam se você vai dizer isso a ele.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Él tuvo un mal año. Yo tuve uno bueno"','"He had a bad year. I had a good one"','"Ele teve um ano ruim. Eu tive um bom"'),desenlaces:[{p:100,remate:null,texto:L('A la noche te llega un mensaje suyo, sin saludo: «el año que viene».','That night you get a message from him, no greeting: "next year".','À noite chega uma mensagem dele, sem cumprimento: «ano que vem».'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('"Ya no es rival"','"He is not a rival anymore"','"Ele já não é rival"'),desenlaces:[
+       {p:50,remate:L('Con el vino en la mano','Wine in hand','Com o vinho na mão'),texto:L('En la gala de premios le toca sentarse en tu mesa. Te sirve el vino él, y brinda mirándote: «por el que sigue».','At the awards gala he is seated at your table. He pours your wine himself and toasts looking at you: "to whoever is next".','Na gala de premiação ele senta na sua mesa. Ele mesmo serve o seu vinho e brinda olhando para você: «ao próximo».'),ef:{rel:{hinchada:5,plantel:2}}},
+       {p:50,remate:L('Le regalaste el afiche','You handed him the poster','Você deu o cartaz de presente'),texto:L('El año que viene el primer cruce es en su cancha, y el afiche del partido es tu cara con tu frase abajo. Lo pegan hasta en los baños.','Next year the first matchup is at his arena, and the game poster is your face with your line under it. They stick it up even in the bathrooms.','No ano que vem o primeiro confronto é no ginásio dele, e o cartaz do jogo é a sua cara com a sua frase embaixo. Colam até nos banheiros.'),ef:{rel:{hinchada:-3},energia:-5}}]}]},
+ { id:'prensa_mvp_companero', repite:true, evento:true, unaPorAnio:'mvp_companero',
+   cuando:(c)=>c.fase==='regular'&&c.avance>=0.5&&c.avance<0.9&&!!(c.u&&c.u.mvpCompanero),
+   gancho:(c)=>{ const m=(c&&c.u&&c.u.mvpCompanero)||{nombre:'',pos:2};
+     return L('Vos y '+m.nombre+' están los dos entre los cinco de la carrera al MVP, con la misma camiseta. Te preguntan cuál de los dos es el mejor del equipo.',
+       'You and '+m.nombre+' are both in the top five of the MVP race, in the same jersey. They ask which of you is the best player on the team.',
+       'Você e '+m.nombre+' estão os dois entre os cinco da corrida ao MVP, com a mesma camisa. Perguntam qual dos dois é o melhor do time.'); },
+   opciones:[
+     {tipo:'segura',label:L('"Somos dos, y el aro es uno"','"There are two of us, and one rim"','"Somos dois, e o aro é um"'),desenlaces:[{p:100,remate:null,texto:L('El martes el DT los pone en el mismo equipo del cinco contra cinco, y no los separa en toda la práctica.','On Tuesday the coach puts you both on the same side of the five-on-five, and does not split you up all practice.','Na terça o técnico coloca os dois no mesmo time do cinco contra cinco, e não separa vocês o treino inteiro.'),ef:{rel:{plantel:3}}}]},
+     {tipo:'apuesta',label:L('"Los números están ahí. Léanlos"','"The numbers are right there. Read them"','"Os números estão aí. Leiam"'),desenlaces:[
+       {p:55,remate:L('La dupla','The duo','A dupla'),texto:L('El club arma el afiche del próximo partido con los dos espalda con espalda, como cartel de pelea, y lo cuelga en la boletería.','The club makes the next game\'s poster with the two of you back to back, like a fight card, and hangs it at the box office.','O clube monta o cartaz do próximo jogo com os dois de costas um para o outro, como cartaz de luta, e pendura na bilheteria.'),ef:{rel:{hinchada:6,plantel:1}}},
+       {p:45,remate:L('Nadie te ofrece el bloqueo','Nobody sets you a screen','Ninguém te oferece o bloqueio'),texto:L('Él no dice nada. En el próximo partido, con el reloj parado y la pelota en tu mano, ninguno de los cuatro sube a bloquear.','He says nothing. Next game, clock stopped and the ball in your hands, none of the other four comes up to set a screen.','Ele não diz nada. No próximo jogo, com o relógio parado e a bola na sua mão, nenhum dos quatro sobe para bloquear.'),ef:{rel:{plantel:-5}}}]}]},
  { id:'prensa_serie_ganada', repite:true, evento:true,
    cuando:(c)=>c.u.serie&&c.u.serie.tono==='ok',   /* 2026-09-12 (su caza: «ganamos la LNB y una rama dice PROMETER EL TÍTULO… acá no aplica»): con el título YA ganado no hay título que prometer. El campeón tiene la suya. */
    gancho:L('El festejo del vestuario sale en vivo. Te acercan el micrófono.','The locker-room party is live on air. They hand you the mic.','A festa do vestiário está ao vivo. Te passam o microfone.'),
@@ -9942,7 +10163,7 @@ const CARTAS_HS=[
    peso:75, maxVeces:1, edadMin:16, edadMax:18,
    ligas:['hs'],
    fondo:'vestuario',
-   gancho:L('Una volcada tuya del viernes amanece en una cuenta de mixtapes con dos millones de vistas. Los comentarios ya te pusieron apodo. En el colegio te lo muestran antes de que llegues al aula.', 'A dunk of yours from Friday wakes up on a mixtape account with two million views. The comments already gave you a nickname. At school they show it to you before you reach the classroom.', 'Uma enterrada sua de sexta amanhece numa conta de mixtapes com dois milhões de visualizações. Os comentários já te deram um apelido. Na escola te mostram antes de você chegar à sala.'),
+   gancho:L('Una volcada tuya del último partido amanece en una cuenta de mixtapes con dos millones de vistas. Los comentarios ya te pusieron apodo. En el colegio te lo muestran antes de que llegues al aula.', 'A dunk of yours from the last game wakes up on a mixtape account with two million views. The comments already gave you a nickname. At school they show it to you before you reach the classroom.', 'Uma enterrada sua do último jogo amanhece numa conta de mixtapes com dois milhões de visualizações. Os comentários já te deram um apelido. Na escola te mostram antes de você chegar à sala.'),
    opciones:[
      { tipo:'segura', label:L('El apodo me lo pongo yo','I pick my own nickname','O apelido quem escolhe sou eu'), desenlaces:[
          {p:100, remate:L('Un video viejo', 'Old news', 'Vídeo velho'), texto:L('No subís nada. En dos semanas el apodo se muere solo y en el colegio te vuelven a llamar por tu nombre.','You post nothing. In two weeks the nickname dies on its own and at school they go back to calling you by your name.','Você não posta nada. Em duas semanas o apelido morre sozinho e na escola voltam a te chamar pelo nome.'), ef:{}} ] },
@@ -9970,12 +10191,12 @@ const CARTAS_HS=[
    ligas:['hs'],
    fondo:'vestuario',
    cuando:(c)=>c.fase==='regular' && c.avance<0.5,
-   gancho:L('Torneo de diciembre, partido sin nada en juego, y el tobillo se te da vuelta en una pelota dividida. En tres semanas tu colegio juega el partido que vienen a ver los reclutadores.', 'A December tournament, a game with nothing on the line, and your ankle rolls over on a loose ball. In three weeks your school plays the game the recruiters are coming to see.', 'Torneio de dezembro, jogo sem nada em disputa, e o tornozelo vira numa bola dividida. Em três semanas sua escola joga a partida que os recrutadores vêm assistir.'),
+   gancho:L('Práctica del jueves, y el tobillo se te da vuelta en una pelota dividida. El médico dice tres semanas. Los reclutadores vienen a los partidos de todo el mes.', 'Thursday practice, and your ankle rolls over on a loose ball. The doctor says three weeks. The recruiters are coming to the games all month.', 'Treino de quinta, e o tornozelo vira numa bola dividida. O médico diz três semanas. Os recrutadores vêm aos jogos o mês inteiro.'),
    opciones:[
      { tipo:'segura', label:L('Esperar a estar bien', 'Wait until it heals', 'Esperar sarar'), desenlaces:[
-         {p:100, remate:L('El cuerpo manda', 'The body decides', 'O corpo manda'), texto:L('Mirás el partido grande de traje, desde el banco. El tobillo sana completo y te queda la lección.', 'You watch the big game in street clothes, from the bench. The ankle heals all the way and the lesson stays.', 'Você assiste à partida grande de roupa social, do banco. O tornozelo sara por completo e a lição fica.'), ef:{ energia:10 }} ] },
+         {p:100, remate:L('El cuerpo manda', 'The body decides', 'O corpo manda'), texto:L('Mirás tres partidos de traje, desde el banco. El tobillo sana completo y te queda la lección.', 'You watch three games in street clothes, from the bench. The ankle heals all the way and the lesson stays.', 'Você assiste a três jogos de roupa social, do banco. O tornozelo sara por completo e a lição fica.'), ef:{ energia:10 }} ] },
      { tipo:'apuesta', label:L('Apurar la vuelta', 'Rush the comeback', 'Apressar a volta'), desenlaces:[
-         {p:60, remate:L('Justo a tiempo', 'Just in time', 'Bem na hora'), texto:L('El tobillo aguanta vendado. Jugás el partido grande y nadie en la tribuna nota nada.', 'The ankle holds up taped. You play the big game and nobody in the stands notices a thing.', 'O tornozelo aguenta enfaixado. Você joga a partida grande e ninguém na arquibancada percebe nada.'), ef:{ rel:{hinchada:5}, minutos:2 }},
+         {p:60, remate:L('Justo a tiempo', 'Just in time', 'Bem na hora'), texto:L('El tobillo aguanta vendado. Jugás los tres y nadie en la tribuna nota nada.', 'The ankle holds up taped. You play all three and nobody in the stands notices a thing.', 'O tornozelo aguenta enfaixado. Você joga os três e ninguém na arquibancada percebe nada.'), ef:{ rel:{hinchada:5}, minutos:2 }},
          {p:40, remate:L('Doble factura', 'Twice the bill', 'Conta dobrada'), texto:L('A los diez minutos el tobillo dice basta. Ahora sí es una lesión de verdad.', 'Ten minutes in, the ankle says enough. Now it is a real injury.', 'Aos dez minutos o tornozelo diz chega. Agora sim é uma lesão de verdade.'), ef:{ skills:{fisico:-1}, energia:-15 }} ] },
    ] },
 
@@ -10279,11 +10500,11 @@ const CARTAS_NCAA=[
    peso:55, maxVeces:1, edadMin:18, edadMax:22,
    ligas:['ncaa'],
    fondo:'vestuario',
-   cuando:(c)=>c.avance>=0.8 && c.posicion<=Math.ceil(c.nClubes*0.3),
-   gancho:L('El tobillo se te da vuelta en la última práctica antes del torneo de la conferencia. El médico dice tres semanas. El torneo empieza en cuatro días.', 'Your ankle rolls in the last practice before the conference tournament. The doctor says three weeks. The tournament starts in four days.', 'Seu tornozelo vira no último treino antes do torneio da conferência. O médico diz três semanas. O torneio começa em quatro dias.'),
+   cuando:(c)=>c.regularCerrada && c.posicion<=Math.ceil(c.nClubes*0.3),   // §2z270: antes del TORNEO (los playoffs de la NCAA, que existen), no de un torneo de conferencia que el juego no tiene
+   gancho:L('El tobillo se te da vuelta en la última práctica antes del Torneo. El médico dice tres semanas. El primer partido es en cuatro días, y se pierde y te vas a casa.', 'Your ankle rolls in the last practice before the Tournament. The doctor says three weeks. The first game is in four days, and lose it and you go home.', 'Seu tornozelo vira no último treino antes do Torneio. O médico diz três semanas. O primeiro jogo é em quatro dias, e perder é ir para casa.'),
    opciones:[
      { tipo:'segura', label:L('Escuchar al médico', 'Listen to the doctor', 'Ouvir o médico'), desenlaces:[
-         {p:100, remate:L('De traje en el banco', 'In a suit on the bench', 'De terno no banco'), texto:L('Mirás el torneo de traje, desde la punta del banco. El equipo se queda en semifinales y vos, entero.', 'You watch the tournament in a suit, from the end of the bench. The team falls in the semifinals, and you stay in one piece.', 'Você assiste ao torneio de terno, na ponta do banco. O time cai na semifinal, e você fica inteiro.'), ef:{ energia:10 }} ] },
+         {p:100, remate:L('De traje en el banco', 'In a suit on the bench', 'De terno no banco'), texto:L('Mirás el primer partido de traje, desde la punta del banco. Lo que pase, pasa sin vos; vos quedás entero.', 'You watch the first game in a suit, from the end of the bench. Whatever happens, happens without you; you stay in one piece.', 'Você assiste ao primeiro jogo de terno, na ponta do banco. O que acontecer, acontece sem você; você fica inteiro.'), ef:{ energia:10 }} ] },
      { tipo:'apuesta', label:L('Vendarlo y jugar', 'Tape it and play', 'Enfaixar e jogar'), desenlaces:[
          {p:60, remate:L('Aguantó todo', 'It held', 'Aguentou tudo'), texto:L('Jugás con el pie dormido de vendas. Nadie en la tribuna se entera de que estabas roto.', 'You play with your foot numb under the tape. Nobody in the stands ever finds out you were broken.', 'Você joga com o pé dormente de tanta faixa. Ninguém na arquibancada fica sabendo que você estava quebrado.'), ef:{ rel:{hinchada:6, dt:3} }},
          {p:40, remate:L('Doble factura', 'The bill came due', 'Conta dobrada'), texto:L('Al segundo partido el tobillo dice basta. Lo que queda del año lo jugás a media pierna.', 'In the second game the ankle gives out. You play what is left of the year on one and a half legs.', 'No segundo jogo o tornozelo diz chega. O que sobra do ano você joga com uma perna e meia.'), ef:{ energia:-30 }} ] },
@@ -10470,10 +10691,10 @@ const CARTAS_EURO=[
        {p:60,remate:L('Tres horas de pizarra','Three hours of whiteboard','Três horas de prancheta'),texto:L('Te muestra cómo defiende cada uno de los lituanos y por qué. Aterrizás sabiendo más que el que va a jugar contra vos.','He shows you how each of the Lithuanians defends and why. You land knowing more than the guy who is going to play against you.','Ele mostra como cada um dos lituanos defende e por quê. Você aterrissa sabendo mais que o cara que vai jogar contra você.'),ef:{skills:{vision:2},rel:{dt:2}}},
        {p:40,remate:L('Sin dormir','No sleep','Sem dormir'),texto:L('Cierra la notebook cuando el avión toca la pista. Vos cerrás los ojos en el hotel a las dos de la tarde, y a las cinco hay práctica.','He closes the laptop when the plane touches the runway. You close your eyes at the hotel at two in the afternoon, and practice is at five.','Ele fecha o notebook quando o avião toca a pista. Você fecha os olhos no hotel às duas da tarde, e às cinco tem treino.'),ef:{energia:-15}}]}]},
  { id:'euro_doble_calendario', de:'euroliga', peso:100, maxVeces:1, edadMin:20, ligas:['euroliga'], fondo:'despacho',
-   cuando:(c)=>c.rol!=='suplente'&&c.avance>=0.3&&c.avance<=0.7,   // el medio de la temporada, cuando los dos calendarios se pisan
-   gancho:L('Ocho partidos en veinticuatro días entre las dos ligas. El preparador te pone el calendario adelante y te pregunta cuáles querés jugar.','Eight games in twenty-four days across the two leagues. The trainer puts the schedule in front of you and asks which ones you want to play.','Oito jogos em vinte e quatro dias entre as duas ligas. O preparador coloca o calendário na sua frente e pergunta quais você quer jogar.'),
+   cuando:(c)=>c.rol!=='suplente'&&c.avance>=0.3&&c.avance<=0.7,   // el medio de la temporada: las jornadas dobles (§2z270: acá no hay liga local; la Euroliga real juega martes y jueves en la misma semana)
+   gancho:L('Cuatro semanas de jornada doble: martes y jueves, ocho partidos seguidos. El preparador te pone el calendario adelante y te pregunta cuáles querés jugar enteros.','Four weeks of double rounds: Tuesday and Thursday, eight games in a row. The trainer puts the schedule in front of you and asks which ones you want to play in full.','Quatro semanas de rodada dupla: terça e quinta, oito jogos seguidos. O preparador coloca o calendário na sua frente e pergunta quais você quer jogar inteiros.'),
    opciones:[
-     {tipo:'segura',label:L('Regalar los domingos','Give away Sundays','Abrir mão dos domingos'),desenlaces:[{p:100,remate:null,texto:L('La liga local la mirás desde el banco con una campera. Los jueves llegás con piernas.','You watch the domestic league from the bench in a jacket. On Thursdays you arrive with legs.','A liga local você assiste do banco com uma jaqueta. Nas quintas você chega com pernas.'),ef:{energia:10}}]},
+     {tipo:'segura',label:L('Los martes, veinte minutos','Tuesdays, twenty minutes','Nas terças, vinte minutos'),desenlaces:[{p:100,remate:null,texto:L('Los martes salís al descanso y mirás el resto con una campera. Los jueves llegás con piernas.','On Tuesdays you come off at halftime and watch the rest in a jacket. On Thursdays you arrive with legs.','Nas terças você sai no intervalo e assiste ao resto de jaqueta. Nas quintas você chega com pernas.'),ef:{energia:10}}]},
      {tipo:'apuesta',label:L('Todos: descanso en junio','All of them: I rest in June','Todos: descanso em junho'),desenlaces:[
        {p:60,remate:L('El número de marzo','The March number','O número de março'),texto:L('Ocho de ocho. En marzo el preparador te mide y anota un número que no tenía a nadie del plantel.','Eight out of eight. In March the trainer measures you and writes down a number nobody on the roster had.','Oito de oito. Em março o preparador te mede e anota um número que ninguém do elenco tinha.'),ef:{skills:{fisico:2},rel:{dt:3}}},
        {p:40,remate:L('El gemelo','The calf','A panturrilha'),texto:L('En el sexto partido el gemelo te avisa. Diez días de camilla y el que entró por vos no quiere salir.','In the sixth game the calf gives you a warning. Ten days on the table and the guy who came in for you does not want to leave.','No sexto jogo a panturrilha avisa. Dez dias de maca e o que entrou no seu lugar não quer sair.'),ef:{energia:-20,minutos:-2}}]}]},
@@ -11075,6 +11296,85 @@ const CARTAS_CHILE=[
      {tipo:'apuesta',label:L('Dejar que tu vieja haga lo suyo','Let your mom do her thing','Deixar sua mãe fazer o dela'),desenlaces:[
        {p:65,remate:L('La foto de los seis años','The photo at age six','A foto dos seis anos'),texto:L('Tu vieja le muestra la foto tuya a los seis con la pelota más grande que vos. El DT se queda dos horas, se lleva queque envuelto y el lunes te mira distinto: ya sabe de dónde venís.','Your mom shows him the photo of you at six with a ball bigger than you. The coach stays two hours, leaves with cake wrapped up, and on Monday he looks at you differently: now he knows where you come from.','Sua mãe mostra a foto sua aos seis com a bola maior que você. O técnico fica duas horas, leva bolo embrulhado e na segunda te olha diferente: já sabe de onde você vem.'),ef:{rel:{dt:5,plantel:2}}},
        {p:35,remate:L('«Gordito» delante del plantel','“Chubby” in front of the roster','«Gordinho» na frente do elenco'),texto:L('Tu vieja le cuenta cómo te decían a los diez. El martes, en la práctica, el DT te llama así delante de todos. Queda para toda la temporada.','Your mom tells him what they called you at ten. On Tuesday, at practice, the coach calls you that in front of everyone. It sticks all season.','Sua mãe conta como te chamavam aos dez. Na terça, no treino, o técnico te chama assim na frente de todos. Fica a temporada inteira.'),ef:{rel:{dt:-3}}}]}]},
+];
+
+/* ══ §2z271 c (2026-09-17) LAS CARTAS DE LAS SEGUNDAS — lo que es PROPIO de cada una según el research de El Draft (`docs/segundas/`,
+   `docs/chile/`): el Metro se juega en invierno en el receso de la LUB y su final no vale nada porque los dos ya subieron; en la Liga
+   Ouro el campeón no sube, PIDE la plaza, y antes se juega el estadual de pretemporada; la Liga Dos es semiprofesional, cuatro clubes
+   comparten el Fortín Prat y Curicó perdió un playoff por los tableros. Prosa con su ok. ══ */
+const CARTAS_SEGUNDAS=[
+ { id:'lda_el_gimnasio_de_170', de:'lda', peso:100, maxVeces:1, edadMin:17, ligas:['lda'], fondo:'tunel',
+   cuando:(c)=>c.proximoLocal===false&&['LAGO','ALBA','OLMU'].includes(c.proximoId)&&!['LAGO','ALBA','OLMU'].includes(c.clubId),
+   gancho:L('El gimnasio de tu rival tiene ciento setenta lugares y hoy hay doscientos. El banco de suplentes es un tablón contra la pared, y el que está sentado atrás tuyo es el padre del base de ellos.','Your opponent’s gym seats a hundred and seventy and there are two hundred in it today. The bench is a plank against the wall, and the man sitting right behind you is their point guard’s father.','O ginásio do seu rival tem cento e setenta lugares e hoje tem duzentas pessoas. O banco de reservas é uma tábua encostada na parede, e quem está sentado atrás de você é o pai do armador deles.'),
+   opciones:[
+     {tipo:'segura',label:L('Jugar mirando el aro','Play looking at the rim','Jogar olhando para o aro'),desenlaces:[{p:100,remate:null,texto:L('Cuarenta minutos sin girar la cabeza. Al final el padre te da la mano: «buen partido, muchacho», y no sabés si lo dice en serio.','Forty minutes without turning your head. At the end the father shakes your hand: “good game, kid”, and you cannot tell if he means it.','Quarenta minutos sem virar a cabeça. No fim o pai te dá a mão: «bom jogo, garoto», e você não sabe se ele fala sério.'),ef:{energia:5}}]},
+     {tipo:'apuesta',label:L('Charlarle al padre en cada tiempo muerto','Chat with the father at every timeout','Conversar com o pai em cada tempo'),desenlaces:[
+       {p:55,remate:L('El padre cambió de bando','The father switched sides','O pai mudou de lado'),texto:L('Al tercer tiempo muerto te pasa el mate. Cuando termina, sea como termine, te acompaña hasta el micro y le pide a los de la puerta que te dejen pasar primero.','By the third timeout he is passing you the mate. When it ends, however it ends, he walks you to the bus and tells the guys at the door to let you through first.','No terceiro tempo ele te passa o mate. Quando termina, seja como for, ele te acompanha até o ônibus e pede aos da porta que te deixem passar primeiro.'),ef:{rel:{hinchada:4},energia:5}},
+       {p:45,remate:L('Le dijiste algo del hijo','You said something about his son','Você falou algo do filho'),texto:L('Lo que le dijiste del base lo escuchó medio tablón. A la semana tu DT te muestra el mensaje que le mandaron del otro club.','What you said about the point guard was heard by half the plank. A week later your coach shows you the message the other club sent him.','O que você disse do armador meia tábua ouviu. Uma semana depois seu técnico te mostra a mensagem que mandaram do outro clube.'),ef:{rel:{dt:-4}}}]}]},
+ { id:'lda_el_invierno', de:'lda', peso:100, maxVeces:1, edadMin:17, ligas:['lda'], fondo:'vestuario',
+   cuando:(c)=>c.avance<=0.3,
+   gancho:L('La Liga Uruguaya terminó hace dos semanas y el Metro arranca en pleno invierno. En la tribuna de tu debut hay tres jugadores de primera con la campera de su club, mirando a ver a quién se llevan en octubre.','The Liga Uruguaya ended two weeks ago and the Metro starts in the dead of winter. In the stands at your debut are three first-division players in their club jackets, watching who they will take in October.','A Liga Uruguaia terminou há duas semanas e o Metro começa em pleno inverno. Na arquibancada da sua estreia há três jogadores da primeira com a jaqueta do clube deles, olhando quem vão levar em outubro.'),
+   opciones:[
+     {tipo:'segura',label:L('Jugar tu partido','Play your game','Jogar o seu jogo'),desenlaces:[{p:100,remate:null,texto:L('No los mirás ni una vez. Uno de los tres te saluda a la salida por tu nombre; te acordás de eso todo el invierno.','You do not look at them once. One of the three greets you by name on the way out; you remember that all winter.','Você não olha para eles nem uma vez. Um dos três te cumprimenta pelo nome na saída; você lembra disso o inverno inteiro.'),ef:{rel:{hinchada:2}}}]},
+     {tipo:'apuesta',label:L('Jugar para ellos','Play for them','Jogar para eles'),desenlaces:[
+       {p:50,remate:L('La campera','The jacket','A jaqueta'),texto:L('Jugás con la cabeza levantada hacia esa tribuna toda la noche. Al día siguiente el manager de uno de esos clubes te pide el número.','You play with your head up toward those stands all night. The next day the manager of one of those clubs asks for your number.','Você joga com a cabeça erguida para aquela arquibancada a noite inteira. No dia seguinte o gerente de um desses clubes pede o seu número.'),ef:{skills:{tiro:1},rel:{hinchada:4}}},
+       {p:50,remate:L('Jugaste solo','You played alone','Você jogou sozinho'),texto:L('Se nota para quién jugás. Los tres se van en el entretiempo, y el lunes el DT abre la práctica con el video de cada vez que miraste a la tribuna.','It shows who you are playing for. The three of them leave at halftime, and on Monday the coach opens practice with the video of every time you looked at the stands.','Dá para ver para quem você joga. Os três vão embora no intervalo, e na segunda o técnico abre o treino com o vídeo de cada vez que você olhou para a arquibancada.'),ef:{rel:{dt:-3,plantel:-1}}}]}]},
+ { id:'lda_la_final_ya_subieron', de:'lda', peso:100, maxVeces:1, edadMin:17, ligas:['lda'], fondo:'vestuario',
+   cuando:(c)=>c.fase==='playoffs'&&c.posicion<=4,
+   gancho:L('En el Metro la final es a un partido y los dos finalistas ya subieron antes de jugarla. En el vestuario alguien lo dice en voz alta: «si llegamos, ya está». El DT lo escucha.','In the Metro the final is a single game and both finalists are already promoted before they play it. In the locker room someone says it out loud: “if we get there, we are done.” The coach hears it.','No Metro a final é um jogo só e os dois finalistas já subiram antes de jogá-la. No vestiário alguém diz em voz alta: «se chegarmos, já está». O técnico ouve.'),
+   opciones:[
+     {tipo:'segura',label:L('"Se llega ganando"','"You get there by winning"','"Chega-se ganhando"'),desenlaces:[{p:100,remate:null,texto:L('El DT te hace repetirlo delante de todos. Esa semana la práctica dura veinte minutos más, para vos y para el que lo dijo.','The coach makes you say it again in front of everyone. That week practice runs twenty minutes longer, for you and for the one who said it.','O técnico te faz repetir na frente de todos. Nessa semana o treino dura vinte minutos a mais, para você e para quem disse.'),ef:{energia:-5,rel:{dt:3}}}]},
+     {tipo:'apuesta',label:L('"Yo quiero la copa, no el ascenso"','"I want the cup, not the promotion"','"Eu quero a taça, não o acesso"'),desenlaces:[
+       {p:55,remate:L('El pizarrón del vestuario','The locker-room whiteboard','O quadro do vestiário'),texto:L('Alguien lo escribe en el pizarrón del vestuario y nadie lo borra hasta la final. Te mandan a vos al frente para el sorteo de la cancha.','Somebody writes it on the locker-room whiteboard and nobody erases it until the final. They send you up front for the court draw.','Alguém escreve no quadro do vestiário e ninguém apaga até a final. Mandam você à frente para o sorteio da quadra.'),ef:{rel:{plantel:4,hinchada:2}}},
+       {p:45,remate:L('Bocón','Big mouth','Boca grande'),texto:L('El rival lo lee. En la entrada en calor del próximo cruce, sus cinco titulares se paran en tu mitad de cancha a mirarte hasta que suena la chicharra.','The opponent reads it. In the warm-up of the next matchup, their five starters stand in your half of the court staring at you until the buzzer sounds.','O rival lê. No aquecimento do próximo confronto, os cinco titulares deles param na sua metade da quadra olhando para você até soar a buzina.'),ef:{energia:-10,rel:{hinchada:-2}}}]}]},
+ { id:'ouro_a_vaga', de:'ouro', peso:100, maxVeces:1, edadMin:19, ligas:['ouro'], fondo:'despacho',
+   cuando:(c)=>c.avance>=0.7&&c.posicion<=2,
+   gancho:L('El campeón de la Liga Ouro no sube: pide la plaza del NBB, y pedirla cuesta lo que el club no tiene. El presidente te llama al despacho para preguntarte si vos irías al NBB con este plantel.','The Liga Ouro champion does not go up: it applies for the NBB spot, and applying costs what the club does not have. The president calls you into his office to ask whether you would go to the NBB with this roster.','O campeão da Liga Ouro não sobe: pede a vaga do NBB, e pedir custa o que o clube não tem. O presidente te chama na sala para perguntar se você iria ao NBB com este elenco.'),
+   opciones:[
+     {tipo:'segura',label:L('"Pregúntele al plantel"','"Ask the roster"','"Pergunte ao elenco"'),desenlaces:[{p:100,remate:null,texto:L('Se lo pregunta al plantel el lunes, en ronda. Once dicen que sí. Vos no fuiste el primero, y él lo anota.','He asks the roster on Monday, in a circle. Eleven say yes. You were not the first, and he writes that down.','Ele pergunta ao elenco na segunda, em roda. Onze dizem que sim. Você não foi o primeiro, e ele anota.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('"Pídala. Yo me quedo"','"Apply for it. I am staying"','"Peça. Eu fico"'),desenlaces:[
+       {p:55,remate:L('Firmaste antes que el club','You signed before the club did','Você assinou antes do clube'),texto:L('Te hace firmar la renovación ahí mismo, con la pluma del club. La plaza se pide al día siguiente con tu nombre en la carta.','He has you sign the extension right there, with the club’s pen. The application goes out the next day with your name in the letter.','Ele te faz assinar a renovação ali mesmo, com a caneta do clube. O pedido da vaga sai no dia seguinte com o seu nome na carta.'),ef:{plataX:1,rel:{dt:3,hinchada:3}}},
+       {p:45,remate:L('La cuenta no daba','The numbers did not add up','A conta não fechava'),texto:L('Pide la plaza y en marzo el patrocinador se baja. Los dos sueldos que faltan los descuentan del tuyo primero, «porque vos lo pediste».','He applies, and in March the sponsor pulls out. The two missing salaries come out of yours first, “because you asked for it.”','Ele pede a vaga e em março o patrocinador cai fora. Os dois salários que faltam descontam do seu primeiro, «porque você pediu».'),ef:{plataX:-2,rel:{plantel:-2}}}]}]},
+  { id:'ouro_a_pratica', de:'ouro', peso:100, maxVeces:1, edadMin:18, ligas:['ouro'], fondo:'playground',
+   cuando:(c)=>c.avance<=0.2,
+   gancho:L('El club del NBB de tu estado invita a tu plantel a una prÃ¡ctica cerrada: cinco contra cinco contra sus titulares, sin pÃºblico, para que ellos se preparen. Tu DT te pregunta si querÃ©s marcar a su figura o mirar desde el costado.','The NBB club from your state invites your roster to a closed practice: five-on-five against their starters, no crowd, so that they can get ready. Your coach asks if you want to guard their star or watch from the sideline.','O clube do NBB do seu estado convida o seu elenco para um treino fechado: cinco contra cinco contra os titulares deles, sem pÃºblico, para eles se prepararem. Seu tÃ©cnico pergunta se vocÃª quer marcar a estrela deles ou olhar da lateral.'),
+   opciones:[
+     {tipo:'segura',label:L('Mirar desde el costado','Watch from the sideline','Olhar da lateral'),desenlaces:[{p:100,remate:null,texto:L('Dos horas mirando cÃ³mo se mueve un plantel del NBB sin pelota. VolvÃ©s con tres cosas anotadas en el telÃ©fono y las piernas enteras.','Two hours watching how an NBB roster moves without the ball. You come back with three notes in your phone and your legs intact.','Duas horas olhando como um elenco do NBB se move sem bola. VocÃª volta com trÃªs anotaÃ§Ãµes no celular e as pernas inteiras.'),ef:{energia:10}}]},
+     {tipo:'apuesta',label:L('Pedir marcar a su figura','Ask to guard their star','Pedir para marcar a estrela deles'),desenlaces:[
+       {p:60,remate:L('Le aguantaste','You held him','VocÃª aguentou'),texto:L('Dos horas pegado a un jugador del NBB, sin que te pase por arriba. El scout que fue a ver a los pibes de ellos anota otro nombre.','Two hours glued to an NBB player without him running you over. The scout who came to watch their kids writes down another name.','Duas horas grudado num jogador do NBB, sem ele passar por cima de vocÃª. O olheiro que foi ver os garotos deles anota outro nome.'),ef:{skills:{defensa:1,fisico:1},rel:{hinchada:3}}},
+       {p:40,remate:L('El tobillo de la prÃ¡ctica','The practice ankle','O tornozelo do treino'),texto:L('Un pisotÃ³n en una prÃ¡ctica que no vale nada. ArrancÃ¡s la Liga Ouro con la venda hasta la rodilla.','A stomp in a practice that counts for nothing. You start the Liga Ouro taped up to the knee.','Uma pisada num treino que nÃ£o vale nada. VocÃª comeÃ§a a Liga Ouro enfaixado atÃ© o joelho.'),ef:{energia:-20}}]}]},
+{ id:'ouro_a_viagem', de:'ouro', peso:100, maxVeces:1, edadMin:18, ligas:['ouro'], fondo:'vestuario',
+   cuando:(c)=>c.proximoLocal===false&&c.avance>0.2,
+   gancho:L('El rival de la fecha está a dos mil quinientos kilómetros. El club no paga avión: son treinta horas de micro con una parada en cada terminal. Tu capitán dice que él se paga el pasaje y pregunta quién más.','This round’s opponent is two thousand five hundred kilometers away. The club will not pay for flights: thirty hours by bus with a stop at every terminal. Your captain says he is paying for his own plane ticket and asks who else is in.','O rival da rodada está a dois mil e quinhentos quilômetros. O clube não paga avião: são trinta horas de ônibus com parada em cada rodoviária. Seu capitão diz que paga a passagem do bolso e pergunta quem mais.'),
+   opciones:[
+     {tipo:'segura',label:L('Treinta horas de micro','Thirty hours by bus','Trinta horas de ônibus'),desenlaces:[{p:100,remate:null,texto:L('Llegás con las piernas dormidas y el equipo entero igual. Perder o ganar, esa noche duermen los doce en el mismo pasillo del hotel.','You arrive with your legs asleep and so does the whole team. Win or lose, that night all twelve sleep in the same hotel hallway.','Você chega com as pernas dormentes e o time inteiro também. Ganhando ou perdendo, nessa noite os doze dormem no mesmo corredor do hotel.'),ef:{rel:{plantel:3},energia:-10}}]},
+     {tipo:'apuesta',label:L('Pagarte el avión con el capitán','Pay for the flight with the captain','Pagar o avião com o capitão'),desenlaces:[
+       {p:55,remate:L('Frescos','Fresh','Descansados'),texto:L('Llegás ocho horas antes que el micro y dormís en una cama. A la entrada en calor salís primero, y el DT lo anota.','You arrive eight hours before the bus and sleep in a bed. You are first out for the warm-up, and the coach takes note.','Você chega oito horas antes do ônibus e dorme numa cama. No aquecimento sai primeiro, e o técnico anota.'),ef:{plataX:-1,energia:20,rel:{dt:3}}},
+       {p:45,remate:L('El micro se acordó','The bus remembered','O ônibus lembrou'),texto:L('Los que viajaron en micro llegan y no te saludan hasta el entretiempo. A la vuelta, el asiento de al lado del capitán queda vacío, y el de al lado tuyo también.','The ones who rode the bus arrive and do not greet you until halftime. On the way back, the seat next to the captain stays empty, and so does the one next to you.','Os que vieram de ônibus chegam e não te cumprimentam até o intervalo. Na volta, o assento ao lado do capitão fica vazio, e o ao seu lado também.'),ef:{rel:{plantel:-3}}}]}]},
+ { id:'dos_el_gimnasio_prestado', de:'ligados', peso:100, maxVeces:1, edadMin:17, ligas:['ligados'], fondo:'tunel',
+   cuando:(c)=>['SPIT','ARAB','QLPU','VIAL'].includes(c.clubId)&&c.proximoLocal===true,
+   gancho:L('El Fortín Prat es «tu casa» y también la de otros tres clubes de la liga. Hoy jugás de local a las siete porque a las nueve juega el otro local, y sus hinchas ya están entrando mientras vos calentás.','The Fortín Prat is “your home” and also home to three other clubs in the league. Today you play at home at seven because the other home team plays at nine, and their fans are already coming in while you warm up.','O Fortín Prat é «a sua casa» e também a de outros três clubes da liga. Hoje você joga em casa às sete porque às nove joga o outro mandante, e a torcida deles já está entrando enquanto você aquece.'),
+   opciones:[
+     {tipo:'segura',label:L('Calentar entre los dos públicos','Warm up between the two crowds','Aquecer entre as duas torcidas'),desenlaces:[{p:100,remate:null,texto:L('Los de las nueve te silban por costumbre. Ganás o perdés, y a las nueve menos cuarto el gimnasio ya es de otro.','The nine o’clock crowd whistles at you out of habit. You win or lose, and by a quarter to nine the gym belongs to someone else.','A torcida das nove te vaia por costume. Você ganha ou perde, e às quinze para as nove o ginásio já é de outro.'),ef:{energia:5}}]},
+     {tipo:'apuesta',label:L('Pedir que el partido sea a las nueve','Ask for the nine o’clock slot','Pedir que o jogo seja às nove'),desenlaces:[
+       {p:50,remate:L('El horario grande','The big slot','O horário nobre'),texto:L('La liga te da las nueve y el Fortín se llena con los dos públicos. Jugás delante de tres mil por primera vez en tu vida.','The league gives you nine and the Fortín fills up with both crowds. You play in front of three thousand for the first time in your life.','A liga te dá as nove e o Fortín lota com as duas torcidas. Você joga diante de três mil pela primeira vez na vida.'),ef:{rel:{hinchada:6},skills:{fisico:1}}},
+       {p:50,remate:L('Enemigos de local','Enemies at home','Inimigos em casa'),texto:L('El otro club lo toma como una guerra. La próxima vez que jugás a las siete, sus hinchas entran a las seis para silbarte el calentamiento entero.','The other club takes it as war. The next time you play at seven, their fans come in at six to whistle through your entire warm-up.','O outro clube leva como guerra. Na próxima vez que você joga às sete, a torcida deles entra às seis para vaiar o seu aquecimento inteiro.'),ef:{rel:{hinchada:-3},energia:-10}}]}]},
+ { id:'dos_los_tableros', de:'ligados', peso:100, maxVeces:1, edadMin:17, ligas:['ligados'], fondo:'despacho',
+   cuando:(c)=>c.regularCerrada&&c.posicion<=4,
+   gancho:L('Llegan los playoffs y el veedor de la liga mide los tableros de tu gimnasio: no cumplen la norma. Hay una semana para cambiarlos o el club pierde la localía por walkover. El presidente te pregunta si conocés a alguien.','The playoffs arrive and the league inspector measures your gym’s backboards: they do not meet the standard. There is one week to replace them or the club forfeits home court. The president asks if you know anyone.','Chegam os playoffs e o fiscal da liga mede as tabelas do seu ginásio: não estão dentro da norma. Há uma semana para trocá-las ou o clube perde o mando de quadra por W.O. O presidente pergunta se você conhece alguém.'),
+   opciones:[
+     {tipo:'segura',label:L('"Yo juego; los tableros son suyos"','"I play; the backboards are your problem"','"Eu jogo; as tabelas são suas"'),desenlaces:[{p:100,remate:null,texto:L('El club los alquila a último momento. Jugás la serie de local con dos tableros prestados que suenan distinto.','The club rents them at the last minute. You play the home series on two borrowed backboards that sound different.','O clube aluga na última hora. Você joga a série em casa com duas tabelas emprestadas que soam diferente.'),ef:{energia:5}}]},
+     {tipo:'apuesta',label:L('Pasar la gorra en el plantel','Pass the hat around the roster','Passar o chapéu no elenco'),desenlaces:[
+       {p:55,remate:L('Los tableros del plantel','The roster’s backboards','As tabelas do elenco'),texto:L('Los doce ponen. El día que los instalan, el primer tiro lo tirás vos, con el presidente filmando.','All twelve chip in. The day they are installed, you take the first shot, with the president filming.','Os doze contribuem. No dia em que instalam, o primeiro arremesso é seu, com o presidente filmando.'),ef:{plataX:-1,rel:{plantel:5,hinchada:4}}},
+       {p:45,remate:L('Walkover','Forfeit','W.O.'),texto:L('La plata no alcanza y la liga multa al club por cada partido de local con esos tableros. La multa sale del sueldo de los doce, y los doce te miran a vos, que pasaste la gorra.','The money is not enough and the league fines the club for every home game on those backboards. The fine comes out of all twelve salaries, and all twelve look at you, the one who passed the hat.','O dinheiro não dá e a liga multa o clube por cada jogo em casa com essas tabelas. A multa sai do salário dos doze, e os doze olham para você, que passou o chapéu.'),ef:{plataX:-1,rel:{plantel:-2}}}]}]},
+ { id:'dos_semi_profesional', de:'ligados', peso:100, maxVeces:1, edadMin:20, ligas:['ligados'], fondo:'vestuario',
+   cuando:(c)=>c.avance>=0.3&&c.avance<=0.7,
+   gancho:L('La Liga Dos es semiprofesional: la mitad de tu plantel trabaja de mañana. Tu compañero de habitación reparte gas de seis a dos y llega a la práctica con el camión. El DT te pide que lo cubras cuando llega tarde.','The Liga Dos is semi-professional: half your roster works mornings. Your roommate delivers gas from six to two and shows up to practice in the truck. The coach asks you to cover for him when he is late.','A Liga Dos é semiprofissional: metade do seu elenco trabalha de manhã. Seu companheiro de quarto entrega gás das seis às duas e chega ao treino com o caminhão. O técnico pede que você o cubra quando ele chega atrasado.'),
+   opciones:[
+     {tipo:'segura',label:L('Cubrirlo','Cover for him','Cobrir ele'),desenlaces:[{p:100,remate:null,texto:L('Cuando llega tarde, calentás con su dorsal para que el DT no cuente. Te devuelve el favor con un tubo de gas para tu casa cada mes.','When he is late, you warm up in his number so the coach does not count. He returns the favor with a gas cylinder for your place every month.','Quando ele atrasa, você aquece com o número dele para o técnico não contar. Ele retribui com um botijão de gás para a sua casa todo mês.'),ef:{rel:{plantel:3}}}]},
+     {tipo:'apuesta',label:L('Subirte al camión a las seis','Get on the truck at six','Subir no caminhão às seis'),desenlaces:[
+       {p:60,remate:L('El reparto','The delivery round','A entrega'),texto:L('Un mes de reparto de gas antes de entrenar. Llegás a las prácticas con los brazos de otro, y con propina.','A month of gas deliveries before practice. You show up with somebody else’s arms, and with tips.','Um mês de entrega de gás antes de treinar. Você chega aos treinos com os braços de outro, e com gorjeta.'),ef:{skills:{fisico:2},plataX:1,energia:-10}},
+       {p:40,remate:L('Te dormiste en el vestuario','You fell asleep in the locker room','Você dormiu no vestiário'),texto:L('A la tercera semana te dormís en el vestuario y el DT te encuentra. Esa semana entrás desde el banco.','In the third week you fall asleep in the locker room and the coach finds you. That week you come off the bench.','Na terceira semana você dorme no vestiário e o técnico te encontra. Nessa semana você entra do banco.'),ef:{minutos:-2,energia:-15}}]}]},
 ];
 
 const CARTAS_NBA_B=[
@@ -14975,7 +15275,7 @@ const APELLIDOS_POR_PAIS={
       'LAURITSEN','JANKAUSKAS','NOVAK','MORENO'],
 };
 const PAIS_DE_LIGA={federal:'ar',argentina:'ar',nacional:'ar',hs:'us',ncaa:'us',nba:'us',
-                    lub:'uy',nbb:'br',chile:'cl',euroliga:'eu'};
+                    lub:'uy',nbb:'br',chile:'cl',euroliga:'eu',lda:'uy',ouro:'br',ligados:'cl'};   // §2z271: las segundas
 /* §12.27 (su caza 2026-09-05: "juego contra USA y me dice «Quinteros te empieza a dar aire»"): el que te marca se
    llama como SU país, no como tu liga. Pools por región para las 41 selecciones (apellidos comunes, no jugadores
    reales — la doctrina de siempre); el continental usa la liga del rival. */
@@ -23436,6 +23736,11 @@ let preAbierto=null; // qué ofrece el pre-partido: un objeto de miProximo (o el
 let enPartido=null;  // idem, mientras el partido de canvas corre
 
 /* ── el estado ── */
+/* §2z270 (2026-09-17; su nota del 09-13: «las relaciones deberían arrancar todas iguales — bah, depende el equipo donde arrancás»): en el
+   juego completo la HINCHADA nace según el club — un grande (tercio de arriba de su liga por fuerza) te espera a 45, uno chico a 55, el
+   resto a 50. DT y plantel como siempre (el DT a 40 desde el banco). En la beta, 50 (queda como la jugó). */
+function hinchadaInicial(liga,clubId){ const fs=liga.clubes.map(c=>c.fuerza).sort((a,b)=>b-a), c=liga.clubes.find(x=>x.id===clubId); if(!c||fs.length<3) return 50;
+  const n=Math.max(1,Math.floor(fs.length/3)); if(c.fuerza>=fs[n-1]) return 45; if(c.fuerza<=fs[fs.length-n]) return 55; return 50; }
 function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolInicial,semillaFija){
   /* ⚠️ LA SEMILLA SE PIDE, NO SE PISA DESPUÉS (2026-09-04). El arnés de capturas y los tres
      bancos decían tener "una carrera FIJA para que el antes y el después muestren lo mismo" y
@@ -23460,7 +23765,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
      quedás en 100 con una lata, que es exactamente el arranque de antes. */
   const jugador={plata:200,energia:70,latas:2,edad:16,
     skills:{...arranque},arranque,
-    relaciones:{dt:rolInicial==='suplente'?40:50,plantel:50,hinchada:50},   // §2m.7: el estado nace completo (§2z12: desde el banco, el DT arranca en 40)
+    relaciones:{dt:rolInicial==='suplente'?40:50,plantel:50,hinchada:window.MODO_BETA?50:hinchadaInicial(liga,club)},   // §2z270 · §2m.7: el estado nace completo (§2z12: desde el banco, el DT arranca en 40)
     minutos:semillaMinutos(ligaId||'federal',rolInicial||'titular'),   // §2z12: el continuo
     exp:0,nivel:1,expV2:true,   // el nivel personal (§2p · §2z101): nota − 6 por partido, con signo
     /* §2z8: donde arranc\u00e1s en la primera del pa\u00eds, arranc\u00e1s DESDE EL BANCO — el
@@ -23507,7 +23812,12 @@ function guardar(){ if(C) C.guardadoTs=Date.now(); try{localStorage.setItem(slot
    bo5) · LA sube 1 (campeón) y baja 2 (último de cada zona) · Federal sube 2 (los
    campeones de llave) y no expulsa a nadie. La plaza se HEREDA: el que baja entra a la
    zona que dejó libre el que subió — los tamaños quedan exactos para siempre. */
-const LIGAS_ESCALERA=['federal','argentina','nacional'];
+/* §2z271 (2026-09-17): LAS ESCALERAS DE LOS CUATRO PAÍSES. La argentina de tres (con su canje por km y su play-out); las otras de DOS
+   niveles, todas con la misma regla: la primera baja por tabla o play-out (`descendidos` / `descendido`, 01e) y la segunda sube lo que
+   dice `playoffs.ascienden` (el campeón, o los dos finalistas en la LDA). `LIGAS_ESCALERA` es el orden de TODAS las ligas con padrón
+   (dentro de cada país, de abajo hacia arriba; los índices sólo se comparan dentro del mismo país). */
+const ESCALERAS_PAIS={uy:['lda','lub'],br:['ouro','nbb'],cl:['ligados','chile']};
+const LIGAS_ESCALERA=['federal','argentina','nacional','lda','lub','ouro','nbb','ligados','chile'];
 function padronInicial(){
   const p={};
   for(const l of LIGAS_ESCALERA) p[l]=LIGAS[l].clubes.map(c=>({id:c.id, zona:c.zona||null}));
@@ -23519,7 +23829,7 @@ function maestroClub(id){
 }
 /* §2z255 LA FUERZA VIAJA CON EL CLUB (su ok 2026-09-13, del arreglo de El Draft medido acá): el padrón guarda `fz`, la fuerza
    que el club tuvo en cada liga que jugó. Sin `fz` para esa liga, la de la ficha (las partidas viejas quedan igual). */
-const ORDEN_ESCALERA={federal:0,argentina:1,nacional:2};
+const ORDEN_ESCALERA={federal:0,argentina:1,nacional:2,lda:0,lub:1,ouro:0,nbb:1,ligados:0,chile:1};   // §2z271: el escalón dentro de su país
 let _refEscalera=null;
 function refEscalera(l){   // centro y σ FIJOS de la liga, de las listas de 01d (como LEAGUE_TABLE de El Draft)
   if(!_refEscalera){ _refEscalera={};
@@ -23592,10 +23902,25 @@ function aplicarEscalera(){
   }).sort((a,b)=>a.id<b.id?-1:1);
   /* Federal: suben los dos campeones de llave */
   const subenFed=((eF.playoffs&&eF.playoffs.ascendidos)||[]).slice().sort();
-  if(!subeLA||subenFed.length<2||bajanLA.length<2){ C.escaleraAplicada=anio; return null; }
-  /* la mudanza, con herencia de plaza (por orden determinista de id) */
   const p=C.padron;
   const saca=(l,id)=>{ const i=p[l].findIndex(en=>en.id===id); return i>=0?p[l].splice(i,1)[0]:null; };
+  /* §2z255: cada mudanza lleva su `fz` (la fuerza por liga) */
+  const conFz=(en,desde,hacia)=>{ const fz=en?mudarFuerza(en,desde,hacia):null; return fz?{fz}:{}; };
+  /* §2z271: LAS ESCALERAS DE DOS NIVELES (Uruguay, Brasil, Chile) — se aplican siempre, falle o no la argentina */
+  const suben=[], bajan=[];
+  for(const pais in ESCALERAS_PAIS){ const [bot,top]=ESCALERAS_PAIS[pais];
+    if(!p[bot]||!p[top]) continue;
+    const eT=estadoDe(top), eB=estadoDe(bot);
+    const bj=((eT.playoffs&&eT.playoffs.descendidos)||[]).concat(eT.playoffs&&eT.playoffs.descendido?[eT.playoffs.descendido]:[]).slice().sort();
+    const sb=((eB.playoffs&&eB.playoffs.ascendidos)||[]).slice().sort();
+    const n=Math.min(bj.length,sb.length);
+    for(let i=0;i<n;i++){ const enS=saca(bot,sb[i]), enB=saca(top,bj[i]);
+      if(enS) p[top].push({id:enS.id,zona:null,...conFz(enS,bot,top)});
+      if(enB) p[bot].push({id:enB.id,zona:enS?enS.zona:(LIGAS[bot].zonas?LIGAS[bot].zonas[0]:null),...conFz(enB,top,bot)});   // hereda la plaza (la zona) del que subió
+      suben.push({id:sb[i],desde:bot,hacia:top}); bajan.push({id:bj[i],desde:top,hacia:bot}); }
+  }
+  if(!subeLA||subenFed.length<2||bajanLA.length<2){ C.escaleraAplicada=anio; C.ultimaEscalera={anio,suben,bajan}; guardar(); return suben.length?C.ultimaEscalera:null; }
+  /* la mudanza, con herencia de plaza (por orden determinista de id) */
   const salenFed=subenFed.map(id=>saca('federal',id));
   const libresFed=salenFed.map(en=>en?en.zona:null);
   /* §2z7 EL CANJE POR KILÓMETROS (de El Draft): el que baja no se come la vacante a ciegas —
@@ -23622,8 +23947,6 @@ function aplicarEscalera(){
     canje.zona=vacante;   // el canjeado se muda a la vacante; el que baja entra a su lugar
     return destino;
   };
-  /* §2z255: cada mudanza lleva su `fz` (la fuerza por liga) */
-  const conFz=(en,desde,hacia)=>{ const fz=en?mudarFuerza(en,desde,hacia):null; return fz?{fz}:{}; };
   bajanLA.forEach((b,i)=>{ const en=saca('argentina',b.id); p.federal.push({id:b.id, zona:destinoEnLaFederal(b.id,libresFed[i]||libresFed[0]), ...conFz(en||{id:b.id},'argentina','federal')}); });
   subenFed.forEach((id,i)=>{ p.argentina.push({id, zona:bajanLA[i].zona, ...conFz(salenFed[i]||{id},'federal','argentina')}); });
   const enSube=saca('argentina',subeLA);
@@ -23632,7 +23955,7 @@ function aplicarEscalera(){
   if(enBaja) p.argentina.push({id:enBaja.id, zona:enSube?enSube.zona:LIGAS.argentina.zonas[0], ...conFz(enBaja,'nacional','argentina')});
   C.escaleraAplicada=anio;
   C.ultimaEscalera={anio, bajaLNB, subeLA, bajanLA:bajanLA.map(b=>b.id), subenFed,
-    playout:{pen, ult, gPen, gUlt}};
+    playout:{pen, ult, gPen, gUlt}, suben, bajan};   // §2z271: y los movimientos de los otros tres países
   guardar();
   return C.ultimaEscalera;
 }
@@ -23660,6 +23983,7 @@ function cargarCarrera(n){
     if(!c||c.v!==1) return null;
     c.temporada.skills=c.jugador.skills;   // una sola fuente tras el JSON
     if(!c.padron) c.padron=padronInicial();   // §2z7: carreras pre-escalera arrancan con el mapa de hoy
+    for(const l of LIGAS_ESCALERA) if(!c.padron[l]) c.padron[l]=LIGAS[l].clubes.map(x=>({id:x.id, zona:x.zona||null}));   // §2z271: las segundas entran al padrón de las carreras que ya venían
     if(c.jugador.nivel===undefined){ c.jugador.exp=0; c.jugador.nivel=1; }  // carreras pre-grifo
     /* §2z101: la experiencia cambió de escala (30·n·(n−1) → 4·n·(n−1)); la partida vieja conserva la FRACCIÓN
        de la barra en que estaba, no el número */
@@ -23978,7 +24302,7 @@ function lineaAmericas(e){
    hacer con el tercer puesto no es una aclaración, es una regla). */
 const AMERICAS_PASAN=2;
 /** El país de un club: los invitados lo traen; el resto lo dice su liga. */
-const PAIS_LIGA={federal:'ar',argentina:'ar',nacional:'ar',lub:'uy',nbb:'br',chile:'cl',hs:'us',ncaa:'us',nba:'us'};
+const PAIS_LIGA={federal:'ar',argentina:'ar',nacional:'ar',lub:'uy',nbb:'br',chile:'cl',hs:'us',ncaa:'us',nba:'us',lda:'uy',ouro:'br',ligados:'cl'};   // §2z271
 function paisDeClub(id){
   const inv=clubPorId(CLUBES_INVITADOS_AMERICAS,id)||clubPorId(CLUBES_INTERCONTINENTAL,id); if(inv) return inv.pais;   // §2z27.3
   for(const l in LIGAS) if(clubPorId(LIGAS[l].clubes,id)) return PAIS_LIGA[l]||null;
@@ -25625,7 +25949,8 @@ function nombreTabla(id){ const c=clubDe(id); if(C.ligaId==='nba'&&c.ciudad) ret
   /* §2z269 c (la captura del NBB a 360: «Fortaleza Basquete Cea…», «Mogi das Cruzes Basqu…»): el completo mientras entra; si pasa de 22
      letras y el club tiene corto, el corto — la misma idea que nomAjustable en el fixture, con margen en vez de medición */
   return c.nombre.length>22&&c.corto?c.corto:c.nombre; }   /* §2z31: la tabla NO usa el corto — medido, tiene 232 px y el nombre entero entra */
-const ZONA_TXT={este:L('ESTE','EAST','LESTE'),oeste:L('OESTE','WEST','OESTE'),norte:L('NORTE','NORTH','NORTE'),sur:L('SUR','SOUTH','SUL')};
+const ZONA_TXT={este:L('ESTE','EAST','LESTE'),oeste:L('OESTE','WEST','OESTE'),norte:L('NORTE','NORTH','NORTE'),sur:L('SUR','SOUTH','SUL'),
+  dos_a:L('ZONA A','ZONE A','ZONA A'),dos_b:L('ZONA B','ZONE B','ZONA B'),dos_c:L('ZONA C','ZONE C','ZONA C'),dos_d:L('ZONA D','ZONE D','ZONA D')};   // §2z271: la Liga Dos
 const zonaTxt=(z)=>ZONA_TXT[z]?t(ZONA_TXT[z]):z.toUpperCase().replace('_',' ');
 let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tuya por defecto)
 function pintaTablaFull(){
@@ -25972,6 +26297,18 @@ function cerrarSinVos(){
 function nombreCandidato(e,clubId,segundo){ const fg=e.figuras&&e.figuras[clubId]; if(fg) return fg[segundo?1:0].ape;   // §2z264
   const pool=APELLIDOS_POR_PAIS[PAIS_DE_LIGA[C.ligaId]||'ar']; return rngFor(e.semilla,'premiosNombre',clubId,segundo?2:1).pick(pool); }
 function carreraDe(e){ return carreraPremios(e,ligaDe().esc,miValorPremios(e,C.jugador)); }
+/* §2z270 LA RIVALIDAD (2026-09-17, sobre la memoria de §2z264): la figura de OTRO club que el año pasado terminó más cerca tuyo en la
+   carrera al MVP, con los dos entre los seis de arriba. Devuelve dónde terminaron los dos (posAnt · vosAnt), su club de HOY (la clave
+   de porClub: si cambió de club, es el nuevo) y dónde va hoy en la carrera (posHoy, si la carrera ya se dice). */
+function rivalidadMvp(e){
+  const reg=C.figuras&&C.figuras[C.ligaId]; if(!reg||!reg.porClub) return null; let best=null;
+  for(const clubId in reg.porClub) reg.porClub[clubId].forEach((f,slot)=>{ if(clubId===e.miClubId) return;
+    const h=(f.hist||[]).find(x=>x.anio===C.anio-1&&x.vos); if(!h||h.pos>6||h.vos>6) return;
+    const d=Math.abs(h.pos-h.vos); if(!best||d<best.d) best={ape:f.ape,clubId,slot,posAnt:h.pos,vosAnt:h.vos,d,posHoy:null}; });
+  if(!best) return null;
+  try{ if(carreraActiva(e)){ const i=carreraDe(e).lista.findIndex(x=>!x.vos&&x.clubId===best.clubId&&!!x.segundo===(best.slot===1)); best.posHoy=i>=0?i+1:null; } }catch(err){}
+  return best;
+}
 /* §2z250 LA PESTAÑA MVP: el molde de la tablita (escudo, nombre, corte sólido + leyenda). Sin notas (§2z45). Antes del 30 % dice
    en qué fecha arranca: saber que hay una carrera le cambia a alguien lo que cree que puede ganar. Es del club: sin switch. */
 function pintaMvp(e){
@@ -26382,7 +26719,7 @@ function pintaLobby(){
       const asc=esBeta()?null:e.playoffs.ascendidos;   // §7.1: la escalera es de CARRERA
       const lineaAsc=asc&&asc.length
         ? '<br>⬆ '+(asc.includes(e.miClubId)
-            ? t(L('¡ASCENDEMOS a La Liga Argentina!','WE ARE PROMOTED to La Liga Argentina!','SUBIMOS para a Liga Argentina!'))
+            ? t(L('¡ASCENDEMOS a ','WE ARE PROMOTED to ','SUBIMOS para '))+t(DESTINO_ASCENSO[C.ligaId]||L('la categoría de arriba','the division above','a divisão de cima'))+'!'
             : t(L('Ascienden','Promoted','Sobem'))+': '+asc.map(id=>nomCorto(id).toUpperCase()).join(' · '))
         : '';
       /* §2z7: y la LNB anuncia al que baja — el tuyo incluido, si perdió el play-out */
@@ -27408,6 +27745,11 @@ function ultimoPartido(cierre,e){
     aviso:(e.avisoMVP&&e.avisoMVP.fecha===e.fechaJugada)?e.avisoMVP.tipo:null, mvpPos:e.mvpPos||null,   // §2z46
     mvpLider:(()=>{ try{ const car=e.clubes&&carreraActiva(e)?carreraDe(e):null, x=car&&car.lista.find(y=>!y.vos);
       return x?{nombre:nombreCandidato(e,x.clubId,x.segundo),club:clubDe(x.clubId).nombre}:null; }catch(err){ return null; } })(),   // §2z250: la carta del que te persigue
+    rival:enPartido?enPartido.rival:null,   // §2z270: contra quién fue (la carta del cruce con tu rival del MVP)
+    mvpCompanero:(()=>{ try{ const car=e.clubes&&carreraActiva(e)?carreraDe(e):null; if(!car||!car.miPos||car.miPos>CARRERA_MVP.quinteto) return null;
+      const i=car.lista.findIndex(y=>!y.vos&&y.clubId===e.miClubId); if(i<0||i>=CARRERA_MVP.quinteto) return null; const x=car.lista[i];
+      return {nombre:nombreCandidato(e,x.clubId,x.segundo),pos:i+1}; }catch(err){ return null; } })(),   // §2z270: un compañero y vos, los dos entre los cinco del MVP
+    rivalidad:(()=>{ try{ return rivalidadMvp(e); }catch(err){ return null; } })(),   // §2z270: el que te terminó al lado el año pasado
     debut:!((C.historial||[]).length) && (e.misPartidos||[]).filter(p=>p.jugado&&!p.sel&&!p.am).length===1,   // §2z61: tu primer partido de la carrera
     clasico:!!(mi&&mi.rival&&enPartido&&mi.rival===enPartido.rival),local:!!(enPartido&&enPartido.local),
     /* ⚠️ EL PARTIDO DE PLAYOFFS NO TIENE FECHA (miProximo devuelve {tipo:'serie'} sin `fecha`), y
@@ -29016,19 +29358,21 @@ const PAISES_ARRANQUE=[
    nota:L('Arrancás en la Liga Federal, la tercera del país. A las grandes y a la NBA se llega desde abajo.',
           'You start in the Liga Federal, the country\u2019s third tier. The big clubs and the NBA are earned from the bottom up.',
           'Você começa na Liga Federal, a terceira divisão. Os grandes e a NBA se conquistam de baixo para cima.')},
-  {id:'uy',nombre:L('Uruguay','Uruguay','Uruguai'),liga:'lub',rol:'suplente',
-   nota:L('Arranc\u00e1s directo en la Liga Uruguaya, la primera del pa\u00eds — desde el banco: los minutos se ganan.',
-          'You start straight in the Liga Uruguaya, the country\u2019s top flight \u2014 off the bench: minutes are earned.',
-          'Voc\u00ea come\u00e7a direto na Liga Uruguaia, a primeira do pa\u00eds \u2014 saindo do banco: os minutos se conquistam.')},
-  {id:'br',nombre:L('Brasil','Brazil','Brasil'),liga:'nbb',rol:'suplente',
-   nota:L('Arranc\u00e1s directo en el NBB, la primera de Brasil — desde el banco: los minutos se ganan.',
-          'You start straight in the NBB, Brazil\u2019s top flight \u2014 off the bench: minutes are earned.',
-          'Voc\u00ea come\u00e7a direto no NBB, a primeira do Brasil \u2014 saindo do banco: os minutos se conquistam.')},
+  /* §2z271 (2026-09-17): con las segundas en la escalera, Uruguay, Brasil y Chile arrancan ABAJO, como Argentina en la Federal
+     (decidido solo, a confirmar: antes «directo en la primera, desde el banco», que era el fallback sin segunda) */
+  {id:'uy',nombre:L('Uruguay','Uruguay','Uruguai'),liga:'lda',
+   nota:L('Arranc\u00e1s en la Liga de Ascenso, la segunda de Uruguay. A la Liga Uruguaya se sube.',
+          'You start in the Liga de Ascenso, Uruguay\u2019s second tier. The Liga Uruguaya is earned.',
+          'Voc\u00ea come\u00e7a na Liga de Ascenso, a segunda do Uruguai. A Liga Uruguaia se conquista.')},
+  {id:'br',nombre:L('Brasil','Brazil','Brasil'),liga:'ouro',
+   nota:L('Arranc\u00e1s en la Liga Ouro, la segunda de Brasil. Al NBB se sube.',
+          'You start in the Liga Ouro, Brazil\u2019s second tier. The NBB is earned.',
+          'Voc\u00ea come\u00e7a na Liga Ouro, a segunda do Brasil. O NBB se conquista.')},
   /* §2z269 (2026-09-16): Chile arranca como Uruguay y Brasil, directo en la primera y desde el banco */
-  {id:'cl',nombre:L('Chile','Chile','Chile'),liga:'chile',rol:'suplente',
-   nota:L('Arranc\u00e1s directo en la Liga Chilena, la primera del pa\u00eds — desde el banco: los minutos se ganan.',
-          'You start straight in the Liga Chilena, the country\u2019s top flight \u2014 off the bench: minutes are earned.',
-          'Voc\u00ea come\u00e7a direto na Liga Chilena, a primeira do pa\u00eds \u2014 saindo do banco: os minutos se conquistam.')},
+  {id:'cl',nombre:L('Chile','Chile','Chile'),liga:'ligados',
+   nota:L('Arranc\u00e1s en la Liga Dos, la segunda de Chile. A la Liga Chilena se sube.',
+          'You start in the Liga Dos, Chile\u2019s second tier. The Liga Chilena is earned.',
+          'Voc\u00ea come\u00e7a na Liga Dos, a segunda do Chile. A Liga Chilena se conquista.')},
   {id:'us',nombre:L('Estados Unidos','United States','Estados Unidos'),liga:'hs',
    nota:L('Arrancás en la secundaria e intentás abrirte paso hacia las universidades y la NBA.',
           'You start in high school and try to fight your way to college and the NBA.',
@@ -29329,8 +29673,8 @@ function fueDelClub(ligaId,clubId){
      liga — dice ASCENDIÓ o DESCENDIÓ, sin récord ni puesto */
   const esc=C.ultimaEscalera;
   if(esc&&esc.anio===C.anio){
-    if(esc.subeLA===clubId||(esc.subenFed||[]).includes(clubId)) return {movido:'sube'};
-    if(esc.bajaLNB===clubId||(esc.bajanLA||[]).includes(clubId)) return {movido:'baja'};
+    if(esc.subeLA===clubId||(esc.subenFed||[]).includes(clubId)||(esc.suben||[]).some(m=>m.id===clubId)) return {movido:'sube'};
+    if(esc.bajaLNB===clubId||(esc.bajanLA||[]).includes(clubId)||(esc.bajan||[]).some(m=>m.id===clubId)) return {movido:'baja'};
   }
   if(ligaId===C.ligaId){
     const t=tabla(est().resultados,est().clubes), i=t.findIndex(f=>f.id===clubId);
@@ -29621,7 +29965,8 @@ function asegurarPremios(){
   const esc=C.ultimaEscalera;
   if(esc&&esc.anio===C.anio&&C.ascensoAnio!==C.anio){
     C.ascensoAnio=C.anio;
-    const destino=esc.subeLA===e.miClubId?'nacional':(esc.subenFed||[]).includes(e.miClubId)?'argentina':null;
+    const mov=(esc.suben||[]).find(m=>m.id===e.miClubId);   // §2z271: las escaleras de dos niveles
+    const destino=esc.subeLA===e.miClubId?'nacional':(esc.subenFed||[]).includes(e.miClubId)?'argentina':mov?mov.hacia:null;
     if(destino) C.palmares.push({anio:C.anio,ligaId:destino,club:e.miClubId,clave:'ascenso'});
     guardar();
   }
@@ -29737,14 +30082,19 @@ let mercadoFiltro=null;
    partido en programa grande/mediano/chico — y sus filas dicen SOLO el rol (ni puesto,
    ni récord, ni estilo: su ley de no aclarar). Todo arranca plegado: a la lista se entra
    desde la portada, a propósito. El buscador abre solo los grupos con resultados. */
-const PAIS_MERC={ar:L('ARGENTINA','ARGENTINA','ARGENTINA'), uy:L('URUGUAY','URUGUAY','URUGUAI'), br:L('BRASIL','BRAZIL','BRASIL'),
+const PAIS_MERC={ar:L('ARGENTINA','ARGENTINA','ARGENTINA'), uy:L('URUGUAY','URUGUAY','URUGUAI'), br:L('BRASIL','BRAZIL','BRASIL'), cl:L('CHILE','CHILE','CHILE'),   // §2z271: Chile faltaba (sus clubes no salían en el mercado)
   us:L('UNIVERSIDADES \u00b7 NCAA','COLLEGES \u00b7 NCAA','UNIVERSIDADES \u00b7 NCAA'), eu:L('EUROPA','EUROPE','EUROPA')};   // §2z28: la bandera la dibuja banderaDe
 /* §2z269 c: a dónde baja cada liga — la Liga Argentina existe acá; la Liga de Ascenso, la Liga Ouro y la Liga Dos todavía no (el club
    baja de nombre y no se mueve, hasta que esas ligas entren a la escalera) */
 const DESTINO_DESCENSO={nacional:L('La Liga Argentina','La Liga Argentina','a Liga Argentina'),lub:L('la Liga de Ascenso','the Liga de Ascenso','a Liga de Ascenso'),
   nbb:L('la Liga Ouro','the Liga Ouro','a Liga Ouro'),chile:L('la Liga Dos','the Liga Dos','a Liga Dos')};
+/* §2z271: a dónde sube cada segunda (el resumen lo grita) */
+const DESTINO_ASCENSO={federal:L('La Liga Argentina','La Liga Argentina','a Liga Argentina'),argentina:L('la Liga Nacional','the Liga Nacional','a Liga Nacional'),
+  lda:L('la Liga Uruguaya','the Liga Uruguaya','a Liga Uruguaia'),ouro:L('el NBB','the NBB','o NBB'),ligados:L('la Liga Chilena','the Liga Chilena','a Liga Chilena')};
 const DIVISION_TXT={nacional:L(' (1\u00aa)',' (1st)',' (1\u00aa)'),
-  argentina:L(' (2\u00aa)',' (2nd)',' (2\u00aa)'), federal:L(' (3\u00aa)',' (3rd)',' (3\u00aa)')};
+  argentina:L(' (2\u00aa)',' (2nd)',' (2\u00aa)'), federal:L(' (3\u00aa)',' (3rd)',' (3\u00aa)'),
+  lub:L(' (1\u00aa)',' (1st)',' (1\u00aa)'),nbb:L(' (1\u00aa)',' (1st)',' (1\u00aa)'),chile:L(' (1\u00aa)',' (1st)',' (1\u00aa)'),   // §2z271: con escalera, la división
+  lda:L(' (2\u00aa)',' (2nd)',' (2\u00aa)'),ouro:L(' (2\u00aa)',' (2nd)',' (2\u00aa)'),ligados:L(' (2\u00aa)',' (2nd)',' (2\u00aa)')};
 const TIER_NCAA=(f)=>f>=58?'g':f>=46?'m':'c';
 const TIER_TXT={g:L('PROGRAMA GRANDE','POWER PROGRAM','PROGRAMA GRANDE'),
   m:L('PROGRAMA MEDIANO','MID-MAJOR','PROGRAMA M\u00c9DIO'),
@@ -29762,7 +30112,7 @@ function pintaMercado(){
   });
   if(!mercadoAbiertos) mercadoAbiertos={};
   let html='';
-  for(const pais of ['ar','uy','br','eu','us']){
+  for(const pais of ['ar','uy','br','cl','eu','us']){   // §2z271: Chile (faltaba desde §2z269)
     if(!porPais[pais]) continue;
     const grupos=Object.keys(porPais[pais]).sort((a,b)=>{
       const va=a.startsWith('ncaa-')?{g:3,m:2,c:1}[a.slice(5)]:LIGAS[a].esc;

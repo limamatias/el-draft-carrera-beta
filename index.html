@@ -2006,7 +2006,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='70f18ed0a6';
+const BUILD='c570e39e91';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -3833,6 +3833,10 @@ const RECETAS_ESCUDO = {
   ICRIY: { pattern: 'liso', colors: ['#23338F', '#F5C400', '#F5C400'] },   // su escudo: azul con el marco amarillo, no verde
   ICSHA: { pattern: 'diagonal', colors: ['#1A3D8F', '#F58220', '#FFFFFF'] },   // "que tenga naranja" y "que no sea igual al de Boca": diagonal naranja, filete blanco
   ICGLU: { pattern: 'estrella', colors: ['#F58220', '#FFFFFF'] },   // "naranja y blanco": la estrella blanca del UNITED sobre naranja
+  /* 2026-09-15 (su caza: «el escudo de Paulistano es TODO blanco»): sin receta, el hash le daba 'liso' sobre su color blanco. El real es
+     un redondel blanco con el anillo y el monograma rojos: redondel, aro rojo. Barrido de la clase (claro + liso): Midland también. */
+  PAUL: { shape: 'redondel', pattern: 'aro', colors: ['#FFFFFF', '#D0060D'] },
+  MIDL: { pattern: 'banda', colors: ['#FFFFFF', '#003399'] },
   AMAN: { pattern: 'banda' },
   ARJU: { pattern: 'diagonal' },
   ATEN: { pattern: 'cuartos', colors: ['#FFFFFF', '#31993F'] },   // 2026-09-12 (su pedido: el escudo verde y blanco a cuartos, no un verde plano como Ferro)

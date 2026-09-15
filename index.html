@@ -2009,7 +2009,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1683af0a14';
+const BUILD='1117d88d44';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2475,6 +2475,7 @@ const BUILD='1683af0a14';
              la carrera entera vive en la plena carrera-full, que abre desde VER COMPLETO -->
         <div class="panel act" id="lp-vos-resumen">
           <div class="tabs selSwitch oculto" id="lobVosSwitch"></div>
+          <div class="mvpTit" id="lobResumenTit"></div>   <!-- 2026-09-15 (su pedido): el año afuera, en blanco; el escudo ya vive en el switch -->
           <div class="cajon" id="lobResumen"></div>
           <div class="verMas" id="lobVerCarrera" data-lir="carrera-full" tabindex="0" data-l-en="SEE CAREER ▸" data-l-pt="VER CARREIRA ▸">VER CARRERA ▸</div>
         </div>
@@ -27943,14 +27944,9 @@ function pintaSecciones(){
     swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ ladoVos_auto=false; if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
   const enSel=ladoVos==='sel'&&haySelVos, lv=enSel?lSel:lClub;
   const stat=(v)=>lv.pj?fdec(v/lv.pj):'—';
-  /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el
-     encabezado y PJ en la grilla: no se repiten. */
-  const rotulo=enSel
-    ? banderaDe(J.nacionalidad||'ar',15)+' '+anioTxt()   // 2026-09-12: como el del club (escudo y año) — el switch de arriba ya dice ARG, y al lado vive NORMAL · INTENSO
-    : escuditoDe(clubDe(e.miClubId))+' '+anioTxt();   // 2026-09-12: las competencias van en el desglose, no en una ristra del rótulo   // §2z124 · 2026-09-14 (su caza: «LA REFERENCIA acá no tiene sentido; rompe la línea y no se entiende»): el rol NO va en el rótulo del resumen — vive en el velo TU ROL (§2z233)
+  /* 2026-09-15 (su pedido: «en TEMPORADA sacaría el año para afuera en blanco y le sacaría el escudo, que ya vive en el switch»): como MVP */
+  { const tt=$l('lobResumenTit'); if(tt) tt.textContent=anioTxt(); }
   $l('lobResumen').innerHTML=
-    /* §2z248: NORMAL · INTENSO se fue a OPCIONES; el rótulo queda solo */
-    '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
       '<div class="s"><b>'+stat(lv.pts)+'</b><span>PTS</span></div>'+
       '<div class="s"><b>'+stat(lv.ast)+'</b><span>AST</span></div>'+

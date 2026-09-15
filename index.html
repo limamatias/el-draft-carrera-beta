@@ -940,6 +940,7 @@
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
   #lobby #lobMvp .r.mvpAS{margin-top:6px} #lobby #lobMvp .mvpEst{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:600}   /* §2z250 */
   #lobby #lobMvp .r.mvpSalto{padding:0}
+  #lobby #lobMvp .pos{display:flex;justify-content:center;align-items:center}   /* 2026-09-14 (su caza): la corona y la estrella (14 px) centradas en la columna de los números, no apoyadas a la izquierda */
   #lobby #lobMvp .r.mvpVacia .nom{color:var(--tinta2)}   /* 2026-09-13: la tablita antes de que arranque la carrera */
   #lobby #lobMvp .cajNotas{margin:8px 0 2px}   /* con los 5 vacíos + estrellas + leyenda, a 360×612 la caja mide ~246: la nota cede 12 px */
   #lobby .tablita .ley.copa{width:5px;height:5px;border:0;border-radius:50%;background:var(--ok)}
@@ -1403,7 +1404,7 @@
   #lobby .trofeo.mas{font-size:15px;font-weight:700;padding:6px 10px;height:40px}
   #lobby .trofeos+.cajTag{margin-top:2px}
   #lobby .trofeo{display:inline-flex;align-items:center;gap:3px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
-       background:rgba(255,255,255,.04);color:var(--tinta2);line-height:1;font-family:inherit;cursor:pointer;transition:opacity .2s,filter .2s,transform .1s}
+       background:rgba(255,255,255,.04);color:var(--tinta);line-height:1;font-family:inherit;cursor:pointer;transition:opacity .2s,filter .2s,transform .1s}   /* 2026-09-14 (su caza: «las 4 son grises»): el gris se leía apagado, como no ganado — lo individual va en blanco, debajo del naranja de los títulos y del oro */
   #lobby .trofeo:active{transform:scale(.94)}
   #lobby .trofeo i{font-style:normal;font-size:11px;font-weight:700;opacity:.8}
   #lobby .trofeo.titulo{color:var(--naranja);border-color:rgba(255,150,51,.4)}
@@ -1976,7 +1977,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1a2c443926';
+const BUILD='7b8957c76b';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -25314,10 +25315,10 @@ function pintaMvp(e){
   /* 2026-09-12 (el barrido): con la regular cerrada la carrera tiene veredicto — el 1° lleva la corona y la leyenda lo nombra */
   const cerrada=e.fase!=='regular';
   const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+(cerrada&&pos===1?icono('corona',14):pos)+'</span><span class="club">'+escudito(x.clubId)+
-    '<span class="nom">'+(x.vos?t(L('VOS','YOU','VOCÊ')):nombreCandidato(e,x.clubId,x.segundo)+' · '+clubDe(x.clubId).nombre)+'</span></span></div>';
+    '<span class="nom">'+(x.vos?(C.jugador.apellido||t(APELLIDO_SIN)).toUpperCase():nombreCandidato(e,x.clubId,x.segundo))+' · '+clubDe(x.clubId).nombre+'</span></span></div>';   /* 2026-09-14 (su caza): tu apellido y tu club como los demás; la fila en blanco dice que sos vos */
   let h=car.lista.slice(0,N).map((x,i)=>fila(x,i+1)).join('');
   if(car.miPos&&car.miPos>N) h+='<div class="r mvpSalto"><span class="pos"></span><span class="club"><span class="nom">…</span></span></div>'+fila(car.lista[car.miPos-1],car.miPos);
-  caja.innerHTML=tag+h+filaAS()+'<div class="leyenda">'+(cerrada?'<span>'+icono('corona',12)+t(PREMIO_TXT.mvp[1])+'</span>':'')+leyendaQ.slice('<div class="leyenda">'.length);
+  caja.innerHTML=tag+h+filaAS()+leyendaQ;   /* 2026-09-14 (su pregunta: «¿la referencia de abajo tiene sentido?»): la corona en la pestaña MVP se explica sola; queda el corte del quinteto, que es una regla */
 }
 function avisoMvpTxt(a){
   const n=a.pos;
@@ -28640,8 +28641,8 @@ const PREMIO_TXT={
   joven:['novato',L('MEJOR JOVEN','BEST YOUNG PLAYER','MELHOR JOVEM')],
   quinteto:['quinteto',L('QUINTETO IDEAL','ALL-LEAGUE TEAM','QUINTETO IDEAL')],
   allstar:['estrella',L('JUEGO DE LAS ESTRELLAS','ALL-STAR','JOGO DAS ESTRELAS')],   // §2z45: el corte de mitad de temporada (v0: te nombran; jugarlo está en backlog)
-  mvp_americas:['estrella',L('MVP DE LAS AMÉRICAS','AMERICAS MVP','MVP DAS AMÉRICAS')],   // §2z28
-  mvp_ic:['estrella',L('MVP DE LA INTERCONTINENTAL','INTERCONTINENTAL MVP','MVP DA INTERCONTINENTAL')],   // 2026-09-12 (su pedido): el molde del de las Américas
+  mvp_americas:['corona',L('MVP DE LAS AMÉRICAS','AMERICAS MVP','MVP DAS AMÉRICAS')],   // §2z28
+  mvp_ic:['corona',L('MVP DE LA INTERCONTINENTAL','INTERCONTINENTAL MVP','MVP DA INTERCONTINENTAL')],   // 2026-09-12 (su pedido): el molde del de las Américas · 2026-09-14 (su caza): todo MVP es corona; la estrella es del Juego de las Estrellas y del goleador
   ascenso:['sube',L('ASCENSO','PROMOTION','ACESSO')],                                       // §2z28 (se guarda con la liga DESTINO)
   /* §12 LA SELECCIÓN. El orden de El Draft: el ORO OLÍMPICO y el MUNDIAL arriba de todo,
      incluso de los premios de la NBA — es lo único que no se compra con un pase. */

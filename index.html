@@ -1567,18 +1567,15 @@
   .rayo{display:inline-block;width:.5em;height:.95em;vertical-align:-.12em;fill:var(--naranja)}
   /* el ⚙ vive en la PORTADA, como NSS (su regla 2026-08-28): las opciones son del juego,
      salís y volvés con tu partida. En el vestuario no cuelga nada. */
-  #introAjustes{position:absolute;right:12px;top:12px;width:38px;height:38px;border-radius:50%;
-       background:rgba(20,27,44,.85);border:1.5px solid rgba(154,164,184,.4);color:var(--tinta2);
-       font-size:18px;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  #introAjustes:active{border-color:var(--naranja);color:var(--naranja)}
-  /* §2z246.1 la cuenta: el mismo círculo que el ⚙, a su izquierda; con Google el avatar ES la foto (como BotonCuenta de la casa) */
-  #introCuenta{position:absolute;right:58px;top:12px;width:38px;height:38px;border-radius:50%;
-       background:rgba(20,27,44,.85);border:1.5px solid rgba(154,164,184,.4);color:var(--tinta2);
-       padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+  /* §2z246.1 · §2z273 la cuenta: el molde de BotonCuenta de la casa — sin círculo propio, el glifo de 22 y la foto de 38 con su
+     borde, el puntito verde abajo a la derecha */
+  #introCuenta{position:absolute;right:18px;top:14px;z-index:2;display:grid;place-items:center;padding:6px;border:0;background:none;
+       color:var(--tinta2);cursor:pointer}
   #introCuenta.oculto{display:none}
-  #introCuenta img{width:100%;height:100%;object-fit:cover}
-  #introCuenta .punto{position:absolute;right:6px;bottom:6px;width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 2px #141b2c}
-  #introCuenta:active{border-color:var(--naranja);color:var(--naranja)}
+  #introCuenta img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid rgba(154,164,184,.3)}
+  #introCuenta svg{width:22px;height:22px}
+  #introCuenta .punto{position:absolute;right:1px;bottom:1px;width:8px;height:8px;border-radius:50%;background:var(--ok);border:2px solid var(--fondo)}
+  #introCuenta:active{color:var(--tinta)}
   #cuentaVelo{z-index:47}
   #cuentaVelo .cuentaGoogle{display:flex;justify-content:center;min-height:44px;padding:4px 0 2px}
   #cuentaVelo .cuentaFallo{font-size:13px;color:var(--mal);text-align:center}
@@ -1995,11 +1992,17 @@
   /* §2z11: un menú de dos es de PILLS, no de dos CTA */
   #partidasConfirm .opciones .jugar,#lobConfirm .opciones .jugar,#lobLataConfirm .opciones .jugar,#lobPasarConfirm .opciones .jugar{min-height:0;height:36px;font-size:13px;border-radius:999px;letter-spacing:1.2px}
   /* el switch de idioma de la portada: la píldora segmentada de siempre */
-  #idiomas{display:flex;background:rgba(20,27,44,.88);border:1px solid rgba(154,164,184,.3);
-       border-radius:99px;padding:3px;gap:2px;margin-top:14px}
-  #idiomas button{font-family:inherit;font-size:12px;font-weight:600;letter-spacing:1.5px;
-       color:var(--tinta2);background:none;border:0;border-radius:99px;padding:6px 14px;cursor:pointer}
-  #idiomas button.act{color:var(--naranja);background:#232d49}
+  /* §2z273 la esquina de la portada, con el molde de El Draft (.idioma-select · .cuenta-boton de allá): 14 px de arriba, 18 de los
+     costados, el select sin caja con la flechita dibujada, el avatar sin círculo propio (la foto ES el círculo, 38 px) */
+  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;align-items:center;gap:2px}
+  #introAtras{width:34px;height:38px;border:0;background:none;color:var(--tinta2);font-size:30px;line-height:1;padding:0 0 4px;cursor:pointer}
+  #introAtras.oculto{display:none}
+  #introAtras:active{color:var(--tinta)}
+  #introIdioma{appearance:none;-webkit-appearance:none;background:none;border:1px solid transparent;border-radius:10px;padding:8px 26px 8px 8px;
+       font-size:17px;line-height:1.4;color:var(--tinta);outline:none;cursor:pointer;
+       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%238d99ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+       background-repeat:no-repeat;background-position:right 8px center}
+  #introIdioma:focus-visible{border-color:var(--naranja)}
   /* el sello de versión: de taller, no de juego. Ver el comentario en 01-cuerpo. */
   #sello{position:absolute;bottom:calc(8px + env(safe-area-inset-bottom));left:0;right:0;
        text-align:center;font-size:10px;letter-spacing:1.5px;color:var(--tinta2);opacity:.45}
@@ -2007,7 +2010,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='6d2cabb87f';
+const BUILD='3c4239ae3e';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2103,19 +2106,20 @@ const BUILD='6d2cabb87f';
      barra. El tutorial de verdad / skills a lo NSS es de una etapa lejana, no de acá. -->
 <div id="vineta" class="oculto"><div class="vimg"></div><div class="vbarra"></div></div>
 <div class="velo" id="intro" style="background:linear-gradient(rgba(8,11,19,.30),rgba(8,11,19,.72)),var(--keyartVolcada) center/cover">
-  <button id="introAjustes" aria-label="Ajustes">⚙</button>
-  <!-- §2z246.1 la cuenta de El Draft: sólo en /carrera (01y la muestra si el armado trae `cuentas`) -->
+  <!-- §2z273 (su caza en beta.eldraftgame.com, 2026-09-17: "hoy hablan diferente idioma los dos juegos"): la esquina de la
+       portada copia a la de El Draft — la banderita con desplegable arriba a la izquierda, el avatar de la cuenta arriba a la
+       derecha (sólo en /carrera), y ‹ para volver a la casa cuando hay casa. El ⚙ se fue: el idioma está acá y el resto vive
+       en el ⚙ del lobby. -->
+  <div id="introEsqIzq">
+    <button id="introAtras" class="oculto" aria-label="El Draft">‹</button>
+    <select id="introIdioma" aria-label="Idioma"><option value="es">🇦🇷</option><option value="en">🇺🇸</option><option value="pt">🇧🇷</option></select>
+  </div>
   <button id="introCuenta" class="oculto" aria-label="Tu cuenta"></button>
   <!-- EL NOMBRE (2026-09-03, decisión suya): El Draft es la casa y éste es CARRERA — el hermano de
        El Draft: Destino. Es un nombre: no se traduce. -->
   <div style="color:var(--tinta2);font-size:18px;letter-spacing:5px;font-weight:700;margin-bottom:-6px">EL DRAFT</div>
   <h1 style="color:var(--naranja);font-size:46px;letter-spacing:3px">CARRERA</h1>
   <button id="btnEmpezar" data-l-en="PLAY" data-l-pt="JOGAR">JUGAR</button>
-  <div id="idiomas">
-    <button data-lang="es">ESPAÑOL</button>
-    <button data-lang="en">ENGLISH</button>
-    <button data-lang="pt">PORTUGUÊS</button>
-  </div>
   <div class="contador" id="cIntro"></div>
   <div id="sello">build 31ba599</div>
 </div>
@@ -2969,9 +2973,11 @@ function mostrarErrorNSS(txt){
 window.addEventListener('error',function(e){
   mostrarErrorNSS('✖ '+((e.error&&e.error.stack)||e.message||'error')+
     (e.filename?'\n'+String(e.filename).split('/').pop()+':'+e.lineno+':'+e.colno:''));
+  try{ medir('error',{msg:String(e.message||'error').slice(0,200),donde:String(e.filename||'').split('/').pop()+':'+e.lineno}); }catch(_){}   // §2z272
 });
 window.addEventListener('unhandledrejection',function(e){
   const r=e.reason; mostrarErrorNSS('✖ promesa: '+((r&&(r.stack||r.message))||r));
+  try{ medir('error',{msg:'promesa: '+String((r&&r.message)||r).slice(0,200)}); }catch(_){}   // §2z272
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -3004,14 +3010,13 @@ let idiomaActual='es';
 /* el switch en sí: tres píldoras en la portada; elegir guarda y recarga (el idioma se
    resuelve UNA vez por carga, igual que siempre — recargar es lo que lo mantiene simple) */
 document.addEventListener('DOMContentLoaded',function(){
-  const cont=document.getElementById('idiomas'); if(!cont) return;
-  cont.querySelectorAll('button').forEach(function(b){
-    if(b.dataset.lang===idiomaActual) b.classList.add('act');
-    b.addEventListener('click',function(){
-      if(b.dataset.lang===idiomaActual) return;
-      try{ localStorage.setItem('idiomaNSS',b.dataset.lang); }catch(e){}
-      location.reload();
-    });
+  /* §2z273: el select con banderitas, el mismo de la casa de El Draft (Idioma.tsx); elegir guarda y recarga, como siempre */
+  const sel=document.getElementById('introIdioma'); if(!sel) return;
+  sel.value=idiomaActual;
+  sel.addEventListener('change',function(){
+    if(sel.value===idiomaActual) return;
+    try{ localStorage.setItem('idiomaNSS',sel.value); }catch(e){}
+    location.reload();
   });
 });
 function idioma(){ return idiomaActual; }
@@ -7442,6 +7447,7 @@ function elegirCarta(i){
      rama buena es la primera de la opción (así están escritas todas). El registro va en la carrera guardada: sobrevive a la
      recarga y a las sesiones. */
   if(o.tipo==='apuesta'&&o.desenlaces.length>1){ s.dados=s.dados||[]; s.dados.push({id:c.id,p:o.desenlaces[0].p,ok:d===o.desenlaces[0],anio:$C().anio}); }
+  medir('carta',{id:c.id,op:i,tipo:o.tipo,ok:d===o.desenlaces[0],p:o.desenlaces[0].p});   // §2z272
   s.vistas[c.id]=(s.vistas[c.id]||0)+1; s.ultimo[c.id]=$C().anio; s.ultimaId=c.id;
   if(c.unaPorAnio){ s.porAnio=s.porAnio||{}; s.porAnio[c.unaPorAnio]=$C().anio; }   // §2z250
   if(salidaClave) s.salidaHecha=salidaClave;   /* la del túnel queda resuelta para ese partido en el momento en que cobra */
@@ -14772,8 +14778,18 @@ function cuentaPintaVelo(){
 }
 function cuentaAbrir(){ document.getElementById('cuentaVelo').classList.remove('oculto'); cuentaPintaVelo(); }
 function cuentaCerrar(){ document.getElementById('cuentaVelo').classList.add('oculto'); }
+/* §2z272 LA BETA CERRADA: en beta.eldraftgame.com, /carrera es sólo para las cuentas de la lista (0112 de El Draft). Sin sesión o
+   sin acceso, a la casa (`/`), que es donde vive la puerta y el botón de Google. En eldraftgame.com no se mira: la casa está apagada. */
+function cuentaBetaCerrada(){ return cuentaActiva()&&/^beta\./.test(location.hostname); }
+async function cuentaPuerta(){
+  if(!cuentaBetaCerrada()) return;
+  const c=await cuentaIniciar();
+  const r=c?await cuentaRpc('basquet_beta_tengo_acceso',{}):{ok:false};
+  if(!(r.ok&&r.json===true)) location.replace('/');
+}
 function cuentaInstalarPortada(){
   if(!cuentaActiva()) return;
+  cuentaPuerta();
   cuentaAlCambiar(()=>{ cuentaPintaBoton(); cuentaPintaVelo(); });
   document.getElementById('introCuenta').onclick=cuentaAbrir;
   document.getElementById('cuentaX').onclick=cuentaCerrar;
@@ -14781,6 +14797,45 @@ function cuentaInstalarPortada(){
   cuentaPintaBoton();
   cuentaIniciar();
 }
+/* ══ §2z272 LA MEDICIÓN DE LA BETA (2026-09-17, su pedido: "el seguimiento de qué clickea la gente, qué tanto juega, cómo le va
+   en los juegos… toda la info que querramos tener en la beta").
+   Dos capas, un solo id:
+   · POSTHOG (comportamiento): autocapture de clicks, vistas, tiempo de sesión, embudos, retención y grabaciones. Entra sólo si el
+     armado inyectó `MODO_BETA.posthog = {key, host}` (armar-beta.mjs --draft lo lee del .env.local de El Draft: VITE_POSTHOG_KEY);
+     sin clave no carga nada. `persistence:'localStorage'`: sin cookies, sin banner. En localhost no mide.
+   · SUPABASE (lo estructurado del juego, 0109 de El Draft): `betaEvento` de 18b, la cola local y los lotes de 50, como siempre.
+   `medir(tipo, datos)` escribe en las dos. El id es el mismo del teléfono que usa El Draft (`eldraft:device`, mismo origen), así una
+   persona es UNA en las dos casas; con cuenta, `identify(user.id)` — y en Supabase `auth.uid()` llena user_id. */
+const MEDIR_CFG=(window.MODO_BETA&&window.MODO_BETA.posthog&&window.MODO_BETA.posthog.key)?window.MODO_BETA.posthog:null;
+const medirLocal=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+let medirListo=false; const medirCola=[];
+function medirDevice(){ try{ return localStorage.getItem('eldraft:device')||betaDevice()||undefined; }catch(err){ return undefined; } }
+function medirIniciar(){
+  if(!MEDIR_CFG||medirLocal) return;
+  const s=document.createElement('script'); s.async=true; s.src=MEDIR_CFG.host+'/static/array.js';
+  s.onload=()=>{ try{
+    window.posthog.init(MEDIR_CFG.key,{api_host:MEDIR_CFG.host,persistence:'localStorage',autocapture:true,capture_pageview:true,
+      capture_pageleave:true,disable_surveys:true,bootstrap:{distinctID:medirDevice()},
+      loaded:()=>{ medirListo=true; for(const [tipo,d] of medirCola){ try{ window.posthog.capture(tipo,d); }catch(err){} } medirCola.length=0; medirIdentificar(); }});
+  }catch(err){} };
+  document.head.appendChild(s);
+  cuentaAlCambiar(medirIdentificar);
+}
+function medirIdentificar(){
+  if(!medirListo) return;
+  try{ const u=cuentaSesion&&cuentaSesion.user; if(u&&u.id) window.posthog.identify(u.id,{email:u.email||null}); }catch(err){}
+}
+function medir(tipo,datos){
+  try{ betaEvento(tipo,datos); }catch(err){}
+  if(!MEDIR_CFG||medirLocal) return;
+  try{
+    const d=Object.assign({},datos||{});
+    try{ d.partida=(C&&C.semilla)||null; d.liga=(C&&C.ligaId)||null; }catch(err){}   /* antes de que la carrera exista, sin partida */
+    if(medirListo) window.posthog.capture('basquet:'+tipo,d); else medirCola.push(['basquet:'+tipo,d]);
+  }catch(err){}
+}
+medirIniciar();
+window.addEventListener('load',()=>medir('sesion',{w:innerWidth,h:innerHeight,dpr:devicePixelRatio||1,lang:navigator.language,ua:String(navigator.userAgent).slice(0,120)}));
 'use strict';
 /* el reloj del cuarto por liga (§9.7): 12:00 NBA · 10:00 FIBA — presentación sobre el
    guion (los beats se reparten proporcional). El default es 720 (el prototipo nació NBA);
@@ -23596,9 +23651,10 @@ const BETA_NIVEL=3, BETA_SKILL_PLUS=18;   // skills de ★3 (arquetipo +18) — 
 /* Las URLs de la lista de espera y el feedback si algún día van a un form externo. Vacías: lo
    escrito queda en cola local (betaColaNSS) y viaja al Supabase de El Draft (abajo, betaEnviar). */
 const BETA_URLS={lista:'',feedback:''};
-/* ⚠️ LA LISTA DE TIPOS VIVE TAMBIÉN EN EL DRAFT (migración 0096, el CHECK de basquet_beta_evento):
-   un tipo nuevo se agrega en los dos a mano — un tipo que el check rechaza tira el lote entero. */
-const BETA_EVENTOS=['alta','partido','salteo','fin','sale'];
+/* ⚠️ LA LISTA DE TIPOS VIVE TAMBIÉN EN EL DRAFT (migración 0109, el CHECK de basquet_beta_evento):
+   un tipo nuevo se agrega en los dos a mano — un tipo que el check rechaza tira el lote entero.
+   §2z272: sesion (cada carga) · pantalla (cada vista del lobby) · carta (la opción y el dado) · compra · entreno · error. */
+const BETA_EVENTOS=['alta','partido','salteo','fin','sale','sesion','pantalla','carta','compra','entreno','error'];
 /* ⚠️ LA HISTORIA DEL MUNDO NO ES DE TU CARRERA. Lo que pasó en las ligas ANTES de que
    existieras es igual en las tres partidas: si dependiera de la semilla de la carrera,
    dos jugadores del mismo club leerían dos pasados distintos del mismo club, y el alta y
@@ -25595,6 +25651,7 @@ function apoyarPaneles(){ document.querySelectorAll('#lobby .paneles').forEach(p
 window.addEventListener('resize',apoyarPaneles);
 let fondoLob=null;
 function irLob(v){
+  medir('pantalla',{v});   // §2z272
   /* §2z74: la plena abre SIEMPRE del lado de la competencia del próximo partido */
   /* 2026-09-12 (su caza: "en la final, TABLA desde el lobby no me abrió la copa"): lo que elegiste adentro del lado (AMÉRICAS ·
      INTERCONTINENTAL, el tramo, el grupo) vivía mientras no cambiara la clave, y la clave no mira la fase — así que la elección de
@@ -25639,10 +25696,13 @@ document.querySelectorAll('#lobby .tabs').forEach(grupo=>{
 /* el ⚙ vive en la portada, como NSS (su regla): las opciones son del juego en sí */
 /* 2026-09-12 (el barrido): el ⚙ de la portada abría el PANEL DE PRUEBA (altura del aro, conducción, formas del tiro) y lo tocado quedaba
    en los partidos. Ahora abre OPCIONES de la portada (sonido · idioma · relato · pantalla); el panel, sólo con ?prueba en la URL. */
-document.getElementById('introAjustes').addEventListener('click',()=>{
-  if(/[?&]prueba\b/.test(location.search)) document.getElementById('ajustes').classList.toggle('oculto');
-  else abrirOpciones('portada'); });
+/* §2z273 (su caza 2026-09-17: en la portada de beta.eldraftgame.com estaban ⏸ y el ⚙ del PARTIDO, y ese ⚙ sin carrera abre las
+   perillas): los botones del partido se esconden al cargar y sólo los prende el partido (botonesDelJuego). Y el ⚙ de la portada se
+   fue — el idioma está en la esquina y el resto vive en el ⚙ del lobby. */
+botonesDelJuego(false);
 cuentaInstalarPortada();   // §2z246.1: sólo hace algo en /carrera
+/* §2z273 ‹ vuelve a la casa: sólo cuando hay casa (el armado para El Draft trae `cuentas`); en el artifact y en Pages no existe */
+if(window.MODO_BETA&&window.MODO_BETA.cuentas){ const a=document.getElementById('introAtras'); a.classList.remove('oculto'); a.onclick=()=>{ location.href='/'; }; }
 /* SALIR vive al fondo de VOS y confirma con un popup sí-no (su regla 2026-08-28):
    la carrera queda guardada siempre — el popup lo dice, y NO te deja donde estabas */
 $l('lobSalirPortada').addEventListener('click',()=>abrirOpciones('lobby'));   // §2z248: el ⚙ abre OPCIONES; SALIR vive al pie
@@ -25651,7 +25711,7 @@ $l('lobConfirmSi').addEventListener('click',()=>{
   $l('lobConfirm').classList.add('oculto');
   document.getElementById('ajustes').classList.add('oculto');
   $l('lobby').classList.add('oculto');
-  botonesDelJuego(true);
+  botonesDelJuego(false);   // §2z273: en la portada no hay partido
   document.getElementById('intro').classList.remove('oculto');
 });
 /* ══ §2z248 OPCIONES (co-diseñadas sobre un mock, 2026-09-12) ═══════════════════════════════════════════════════════
@@ -27160,6 +27220,7 @@ function entrenar(k,nivelPedido){
   /* §2s: rendís EL NIVEL elegido en la grilla (no "tu skill"): el circuito habla la
      escala del nivel; tu avatar se mueve con lo que sos (el 3er parámetro). */
   const nivel=Math.max(1,Math.min(nivelPedido||nivelSugerido(en,k),nivelesAbiertos(en,k)));
+  medir('entreno',{k,nivel,skill:J.skills[k]});   // §2z272
   drillT={k,nivel,estrellas:0,intentos:0,difSnap:{...dif}};
   if(k==='defensa') window.__defEscenaSesion=['defensa','defCierre','defCortina','def1v1'][Math.floor(Math.random()*4)];   // §2z87 n: una escena por sesión
   /* §2z202 (su caza 2026-09-12: "el drill de visión es siempre pasársela al jugador que se desmarca de la misma forma; no hay un
@@ -28443,6 +28504,7 @@ function comprarPartido(id){
   const p=precioPartidos();
   if(J.plata<p){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-p); J.enUso[id]=PARTIDOS_ENUSO;
+  medir('compra',{que:'partido',id,precio:p});   // §2z272
   guardar(); pintaRecursos(); pintaSecciones();
   momentoCompra('partido',it);
 }
@@ -28768,6 +28830,7 @@ function comprarLata(){
   const J=C.jugador;
   if(J.plata<precioLata()){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-precioLata()); J.latas++;
+  medir('compra',{que:'lata',id:'lata',precio:precioLata()});   // §2z272
   guardar(); pintaRecursos(); pintaSecciones();
 }
 /* 2026-09-12 EL MOMENTO DE LA COMPRA (su pedido: "cuando comprás algo en la tienda no hay transición; con las latas no
@@ -28801,6 +28864,7 @@ function comprarStaff(id){
   const n=nivelStaff(J,id), niv=p.niveles[n]; if(!niv) return;
   if(J.plata<niv.precio){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-niv.precio); J.staff=J.staff||{}; J.staff[id]=n+1;
+  medir('compra',{que:'staff',id,nivel:n+1,precio:niv.precio});   // §2z272
   guardar(); pintaRecursos(); pintaSecciones();
   momentoCompra('staff',{...niv, nom:p.nom});
 }
@@ -28811,6 +28875,7 @@ function comprarItem(id){
   if(!it||tieneItem(J,id)) return;
   if(J.plata<it.precio){ avisar(t(L('No te alcanza el dinero.','You can’t afford it.','A grana não dá.'))); return; }
   plata(-it.precio); J.mejoras=J.mejoras||{}; J.mejoras[id]=true;
+  medir('compra',{que:'item',id,cadena:cad,precio:it.precio});   // §2z272
   guardar(); pintaRecursos(); pintaSecciones();
   momentoCompra(cad,it);
   /* §2z42.3 (su ok: "la prensa registra el lujo"): comprás algo de LUJO y el diario lo titula — una carta con tu

@@ -2007,7 +2007,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='fd4b25610a';
+const BUILD='7c7d96ee06';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -3779,7 +3779,12 @@ const LIGAS = {
     // hexagonal — "el número real de partidos que juega un equipo de arriba", textual.
     nombre: 'Liga Uruguaya', allstar: true, clubes: CLUBES_LUB, fechas: 32,
     regen: 2, lata: 0.85, esc: 18, palancas: {}, ptsRef: 78, reloj: 600,
-    playoffs: { clasifican: 8, directos: 0, rondas: [
+    /* §2z269 c (2026-09-16, su pedido: el hexagonal y los descensos cableados): el formato REAL 2025-26 — clasificatorio a dos ruedas
+       (22), después la tabla se parte en el HEXAGONAL SUPERIOR (1º-6º, define los puestos 1-6 de playoffs) y el RECLASIFICATORIO
+       (7º-12º: los dos primeros entran a playoffs como 7º y 8º, los dos últimos bajan a la Liga de Ascenso), cada uno a dos ruedas
+       (10) ARRASTRANDO los puntos del clasificatorio. `tras` es la fecha en que se parte; `arriba` cuántos suben. */
+    hexagonal: { tras: 22, arriba: 6 },
+    playoffs: { clasifican: 8, directos: 0, descienden: 2, rondas: [
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 7 },
     ] },
   },
@@ -3789,7 +3794,8 @@ const LIGAS = {
     // clasifican 16, cuatro rondas TODAS al mejor de 5 — como La Liga Argentina
     nombre: 'NBB', allstar: true, clubes: CLUBES_NBB, fechas: 38,
     regen: 2, lata: 0.85, esc: 18, palancas: {}, ptsRef: 84, reloj: 600, ritmo: 'apretado',
-    playoffs: { clasifican: 16, directos: 0, rondas: [
+    /* §2z269 c: el NBB baja UNO, el último de la tabla, sin play-out (la regla real 2026-27; copiada de El Draft `desciende: 1`) */
+    playoffs: { clasifican: 16, directos: 0, descienden: 1, rondas: [
       { nombre: 'octavos', mejorDe: 5 }, { nombre: 'cuartos', mejorDe: 5 },
       { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 5 },
     ] },
@@ -3807,7 +3813,10 @@ const LIGAS = {
        y semis al mejor de 5, la final al mejor de 7. Sin descenso: la Liga Dos no está acá. */
     nombre: 'Liga Chilena', allstar: false, clubes: CLUBES_CHILE, fechas: 36,
     regen: 2, lata: 0.6, esc: 8, palancas: {}, ptsRef: 79, reloj: 600,
-    playoffs: { clasifican: 10, directos: 6, rondas: [
+    /* §2z269 c: el descenso chileno como PLAY-OUT entre los dos últimos al mejor de 5 (el formato 2024 real: play-off 13º-14º); el
+       Clausura 2026 lo define con una permanencia de cinco más una serie contra la tabla ponderada, que no tiene sentido sin los
+       cinco torneos. El que pierde baja a la Liga Dos — que no está acá: el club queda marcado y no se mueve (ver §2z269 c). */
+    playoffs: { clasifican: 10, directos: 6, playout: { mejorDe: 5 }, rondas: [
       { nombre: 'reclasificacion', mejorDe: 3 },   // el play-in chileno: 7º-10º, el ganador entra a cuartos
       { nombre: 'cuartos', mejorDe: 5 }, { nombre: 'semifinal', mejorDe: 5 }, { nombre: 'final', mejorDe: 7 },
     ] },
@@ -4230,6 +4239,13 @@ function armarFixtureNBA(rng, clubes) {
  * historia del año pasado, para que las dos jueguen el mismo formato (§2z5). */
 function armarFixtureLiga(semilla, clubes, liga) {
   if (liga.formato === 'nba') { const fx = armarFixtureNBA(rngFor(semilla, 'fixture'), clubes); return { fixture: fx, fechasTotales: fx.length }; }
+  /* §2z269 c (LUB): el clasificatorio se arma acá; las fechas de los hexagonales quedan POR DEFINIR hasta que la tabla se parte
+     (armarHexagonales, en jugarFecha), porque quién juega contra quién sale de la tabla de la fecha `tras` */
+  if (liga.hexagonal) {
+    const fx = armarFixture(rngFor(semilla, 'fixture'), clubes, liga.hexagonal.tras);
+    while (fx.length < liga.fechas) fx.push({ nro: fx.length + 1, partidos: [], libres: [], porDefinir: true });
+    return { fixture: fx, fechasTotales: liga.fechas };
+  }
   const zonas = liga.zonas || null;
   if (!zonas) return { fixture: armarFixture(rngFor(semilla, 'fixture'), clubes, liga.fechas), fechasTotales: liga.fechas };
   const porZona = {};
@@ -4250,6 +4266,34 @@ function armarFixtureLiga(semilla, clubes, liga) {
     });
   }
   return { fixture, fechasTotales: maxF };
+}
+
+/* §2z269 c LOS HEXAGONALES DE LA LUB: al cerrar la fecha `tras` la tabla se parte — los `arriba` primeros al hexagonal superior,
+ * el resto al reclasificatorio — y cada grupo juega las fechas que faltan a dos ruedas entre ellos. Los puntos se ARRASTRAN: la
+ * tabla de cada hexagonal es la tabla de esos clubes con TODO lo jugado (tablaHex). El fixture de esas fechas nace acá (reemplaza
+ * las `porDefinir`), con su propio label de rng, así la historia del año pasado y la temporada real parten igual. */
+function armarHexagonales(estado) {
+  const h = estado.hexagonal, t = tabla(estado.resultados, estado.clubes);
+  const alto = t.slice(0, h.arriba).map((f) => f.id), bajo = t.slice(h.arriba).map((f) => f.id);
+  estado.hex = { alto, bajo, desde: h.tras + 1 };
+  const n = estado.fechasTotales - h.tras, porGrupo = {};
+  for (const [g, ids] of [['alto', alto], ['bajo', bajo]]) {
+    const set = new Set(ids);
+    porGrupo[g] = armarFixture(rngFor(estado.semilla, 'hex', g), estado.clubes.filter((c) => set.has(c.id)), n);
+  }
+  for (let i = 0; i < n; i++) estado.fixture[h.tras + i] = { nro: h.tras + i + 1,
+    partidos: [...porGrupo.alto[i].partidos, ...porGrupo.bajo[i].partidos],
+    libres: [porGrupo.alto[i].libre, porGrupo.bajo[i].libre].filter(Boolean) };
+}
+/** La tabla de un hexagonal ('alto' | 'bajo'): esos clubes, con todo lo jugado (el arrastre). */
+function tablaHex(estado, g) {
+  const ids = new Set(estado.hex[g]), cz = estado.clubes.filter((c) => ids.has(c.id));
+  return tabla(estado.resultados.filter((r) => ids.has(r.local) || ids.has(r.visita)), cz).filter((f) => ids.has(f.id));
+}
+/** El orden FINAL de la fase regular (el que siembra la llave y cuenta para el continental): con hexagonales, el superior y
+ *  después el reclasificatorio; sin ellos, la tabla. */
+function ordenFinal(estado) {
+  return estado.hex ? [...tablaHex(estado, 'alto'), ...tablaHex(estado, 'bajo')] : tabla(estado.resultados, estado.clubes);
 }
 
 /* ── Los resultados ─────────────────────────────────────────────────────────── */
@@ -4393,7 +4437,12 @@ function tablaDelAnioPasado(semilla, ligaId, anio) {
   for (const c of liga.clubes) fuerzas[c.id] = c.fuerza;
   const { fixture } = armarFixtureLiga(sHist, liga.clubes, liga);
   const resultados = [];
-  for (const f of fixture) resultados.push(...simularFecha(rngFor(sHist, 'fecha', f.nro), f, fuerzas));
+  /* §2z269 c: la historia parte los hexagonales en la misma fecha y con el mismo label que la temporada real */
+  const hist = { semilla: sHist, clubes: liga.clubes, resultados, fixture, fechasTotales: liga.fechas, hexagonal: liga.hexagonal || null, hex: null };
+  for (let i = 0; i < fixture.length; i++) {
+    if (hist.hexagonal && !hist.hex && i >= hist.hexagonal.tras) armarHexagonales(hist);
+    resultados.push(...simularFecha(rngFor(sHist, 'fecha', fixture[i].nro), fixture[i], fuerzas));
+  }
   const out = {};
   if (liga.zonas) {
     for (const z of liga.zonas) {
@@ -4403,7 +4452,7 @@ function tablaDelAnioPasado(semilla, ligaId, anio) {
       t.forEach((fila, i) => { out[fila.id] = { puesto: i + 1, de: t.length, pg: fila.pg, pp: fila.pp }; });
     }
   } else {
-    const t = tabla(resultados, liga.clubes);
+    const t = ordenFinal(hist);   // §2z269 c: con hexagonales, el superior primero (el 7º y el 8º son los dos del reclasificatorio)
     t.forEach((fila, i) => { out[fila.id] = { puesto: i + 1, de: t.length, pg: fila.pg, pp: fila.pp }; });
   }
   _histCache[clave] = out;
@@ -4444,7 +4493,7 @@ function crearTemporada(semilla, clubes, opciones) {
   const zonaDe = {};
   if (zonas) for (const c of clubes) zonaDe[c.id] = c.zona;
   const armado = armarFixtureLiga(semilla, clubes, {
-    zonas, fechas, fechasPorZona: opciones.fechasPorZona, vecindario: opciones.vecindario,
+    zonas, fechas, fechasPorZona: opciones.fechasPorZona, vecindario: opciones.vecindario, hexagonal: opciones.hexagonal || null,
     formato: opciones.formato || (zonas && clubes.length && clubes.every((c) => c.division) ? 'nba' : null),   // 2026-09-09: el formato sale del padrón (divisiones) — ningún llamador tiene que saberlo
   });
   return {
@@ -4455,6 +4504,8 @@ function crearTemporada(semilla, clubes, opciones) {
     zonaDe,
     fixture: armado.fixture,
     fechasTotales: armado.fechasTotales,
+    hexagonal: opciones.hexagonal || null, // §2z269 c: {tras, arriba} — la LUB se parte en dos hexagonales
+    hex: null, // {alto, bajo, desde} cuando la tabla ya se partió (armarHexagonales)
     /* el RITMO del calendario se SELLA al nacer la temporada (revisión 2026-08-29): si
        mañana una liga cambia de densidad, la temporada en curso conserva el mapa de días
        con el que venía — y el save viejo (sin ritmo) sigue en 'normal', que es exactamente
@@ -4532,6 +4583,7 @@ function jugarFecha(estado, miJuego, noCitado) {   /* noCitado: el DT te dejó a
   }
   estado.resultados.push(...res);
   estado.fechaJugada = fecha.nro;
+  if (estado.hexagonal && !estado.hex && estado.fechaJugada >= estado.hexagonal.tras) armarHexagonales(estado);   // §2z269 c
   caminarForma(estado, 'f', fecha.nro);
   // Fase regular completa: la llave se arma YA (la pantalla la muestra al terminar la
   // última fecha); las series arrancan a jugarse en el paso que viene.
@@ -4768,10 +4820,13 @@ function armarLlave(estado) {
     }
     armarRonda(estado, listas);
   } else {
-    const t = tabla(estado.resultados);
+    const t = estado.hex ? ordenFinal(estado) : tabla(estado.resultados);   // §2z269 c: con hexagonales, 6 del superior + 2 del reclasificatorio
     const cl = t.slice(0, def.clasifican).map((f) => f.id);
     cl.forEach((id, i) => { po.siembra[id] = i + 1; });
     armarRonda(estado, [sinDirectos(cl)]);
+    /* §2z269 c: los que bajan POR TABLA (NBB: el último; LUB: los dos últimos del reclasificatorio) — sin play-out, se sabe al
+       cerrar la regular. El lobby los anuncia; moverlos de liga es cosa de la escalera, cuando la liga de abajo exista. */
+    if (def.descienden) po.descendidos = (estado.hex ? tablaHex(estado, 'bajo') : t).slice(-def.descienden).map((f) => f.id);
     /* §2z7: EL PLAY-OUT (LNB) — una serie más de la primera ronda, marcada `playout`:
        el penúltimo es el sembrado alto (2-2-1 en su casa), el último el bajo. Corre por
        el mismo camino que cualquier serie (jugable si es tuya, goteada si no), y el
@@ -11146,7 +11201,7 @@ const CARTAS_NBA_B=[
    continental, o al revés. Sale al arranque (avance < 0,25), una vez por carrera. ══ */
 const CARTAS_AMERICAS=[
  /* el viaje a un invitado: Estelí, Monterrey, Concepción, Barranquilla — vuelo de madrugada con escala */
- { id:'americas_el_viaje', de:'liga', peso:300, maxVeces:2, edadMin:17, ligas:['nacional','nbb','lub'], fondo:'tunel',
+ { id:'americas_el_viaje', de:'liga', peso:300, maxVeces:2, edadMin:17, ligas:['nacional','nbb','lub','chile'], fondo:'tunel',
    cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='invitado'&&c.proximoLocal===false,
    gancho:L('Vuelo a las cuatro de la mañana, escala de seis horas y una combi hasta el hotel. El partido es mañana. El plantel se divide en la puerta del aeropuerto: los que se tiran a dormir en el piso y los que salen a ver la ciudad.','Four a.m. flight, six-hour layover and a van to the hotel. The game is tomorrow. The squad splits at the airport door: those who sleep on the floor and those who go out to see the city.','Voo às quatro da manhã, escala de seis horas e uma van até o hotel. O jogo é amanhã. O elenco se divide na porta do aeroporto: os que se jogam para dormir no chão e os que saem para conhecer a cidade.'),
    opciones:[
@@ -11155,7 +11210,7 @@ const CARTAS_AMERICAS=[
        {p:60,remate:L('El plato sin nombre','The nameless dish','O prato sem nome'),texto:L('Comen algo que nadie sabe qué es, le inventan un nombre y vuelven gritándolo. Al otro día es lo que grita el plantel antes de salir a la cancha.','You eat something nobody can name, make up a name for it and come back yelling it. The next day it is what the squad shouts in the huddle before tip-off.','Comem algo que ninguém sabe o que é, inventam um nome e voltam gritando. No dia seguinte é o grito do elenco antes de entrar em quadra.'),ef:{rel:{plantel:5,hinchada:2}}},
        {p:40,remate:L('Fundido','Spent','Esgotado'),texto:L('Llegás al hotel a las dos de la mañana y el bus sale a las nueve. El DT cuenta cabezas en el lobby y la tuya aparece última.','You reach the hotel at two a.m. and the bus leaves at nine. The coach counts heads in the lobby and yours is the last to show up.','Chega no hotel às duas da manhã e o ônibus sai às nove. O técnico conta as cabeças no saguão e a sua é a última a aparecer.'),ef:{energia:-20,rel:{dt:-2}}}]}]},
  /* el rival brasileño: te habla en la cancha y no entendés nada */
- { id:'americas_portugues', de:'liga', peso:300, maxVeces:2, edadMin:17, ligas:['nacional','lub'], fondo:'vestuario',
+ { id:'americas_portugues', de:'liga', peso:300, maxVeces:2, edadMin:17, ligas:['nacional','lub','chile'], fondo:'vestuario',
    cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='nbb'&&!['br','pt'].includes(c.nacion),   /* 2026-09-12: al que habla portugués no le cuentan el portuñol */
    gancho:L('Mañana juegan contra los brasileños. El que te va a marcar habla todo el partido, te lo avisa el ayudante: te dice cosas al oído en cada pelota parada, y nadie sabe qué.','Tomorrow you play the Brazilians. The guy who will guard you talks the whole game, the assistant warns you: he whispers things in your ear at every dead ball, and nobody knows what.','Amanhã jogam contra os brasileiros. O cara que vai te marcar fala o jogo inteiro, o auxiliar te avisa: diz coisas no seu ouvido em cada bola parada, e ninguém sabe o quê.'),
    opciones:[
@@ -11163,7 +11218,7 @@ const CARTAS_AMERICAS=[
      {tipo:'apuesta',label:L('Contestarle en portuñol','Answer in Portuñol','Responder em portunhol'),desenlaces:[
        {p:60,remate:L('Se le escapó la risa','He cracked up','Ele caiu na risada'),texto:L('Un compañero que jugó en Brasil te enseña tres frases. Se las devolvés en cada pelota parada, y a la tercera se le escapa la risa en plena cancha.','A teammate who played in Brazil teaches you three lines. You hand them back at every dead ball, and on the third one he cracks up in the middle of the game.','Um companheiro que jogou no Brasil te ensina três frases. Você devolve em cada bola parada, e na terceira ele cai na risada no meio do jogo.'),ef:{rel:{hinchada:5,plantel:4}}},
        {p:40,remate:L('No era un saludo','Not a greeting','Não era um cumprimento'),texto:L('Un compañero te enseña algo que no era un saludo. Lo probás en la práctica delante del DT, que sí entiende portugués. Mañana arrancás en el banco.','A teammate teaches you something that was not a greeting. You try it at practice in front of the coach, who does understand Portuguese. Tomorrow you start on the bench.','Um companheiro te ensina algo que não era um cumprimento. Você testa no treino na frente do técnico, que entende português. Amanhã você começa no banco.'),ef:{rel:{dt:-3}}}]}]},
- { id:'las_dos_copas', de:'liga', peso:400, maxVeces:1, edadMin:17, ligas:['nacional','nbb','lub'], fondo:'vestuario',
+ { id:'las_dos_copas', de:'liga', peso:400, maxVeces:1, edadMin:17, ligas:['nacional','nbb','lub','chile'], fondo:'vestuario',
    cuando:(c)=>c.continental&&c.amFaltan!==null&&c.amFaltan>=1&&c.amFaltan<=3,   // §2z39.51: en las tres fechas antes del primer partido continental
    gancho:L('Está por arrancar el continental. El técnico junta al plantel: son dos torneos a la vez y el calendario no da para los dos, viajes de tres días, partidos entre semana y un plantel de doce. Te mira a vos primero.',
      'The continental is about to start. The coach gathers the squad: two tournaments at once and the calendar has no room for both, three-day trips, midweek games, a twelve-man roster. He looks at you first.',
@@ -11174,6 +11229,33 @@ const CARTAS_AMERICAS=[
      {tipo:'apuesta',label:L('El continental. Una liga hay todos los años','The continental. There is a league every year','O continental. Liga tem todo ano'),desenlaces:[
        {p:70,remate:L('Se viaja con todo','Everyone travels','Viaja todo mundo'),texto:L('Se viaja con todo. La hinchada llena el aeropuerto a las cinco de la mañana para despedirlos, y vos vas adelante.','Everyone travels. The fans fill the airport at five in the morning to see them off, and you are up front.','Viaja todo mundo. A torcida lota o aeroporto às cinco da manhã para se despedir, e você vai na frente.'),ef:{copa:'continental',rel:{hinchada:6}}},
        {p:30,remate:L('Piernas pesadas','Heavy legs','Pernas pesadas'),texto:L('Se viaja con todo, y en marzo se nota: tres vuelos en diez días y una fecha de liga entre medio. Llegás al vestuario sin piernas, y el plantel también.','Everyone travels, and by March it shows: three flights in ten days and a league round in between. You get to the locker room with no legs, and so does the squad.','Viaja todo mundo, e em março dá para ver: três voos em dez dias e uma rodada de liga no meio. Você chega ao vestiário sem pernas, e o elenco também.'),ef:{copa:'continental',energia:-15,rel:{plantel:-3}}}]}]},
+
+ /* ── §2z269 d (2026-09-16, su pedido: las cartas del continental vistas desde las ligas nuevas). Tres situaciones que la LNB no
+    tiene: ser el chico del grupo (LUB, Chile), ser el favorito (NBB) y el clásico del Río de la Plata (LUB contra un argentino). ── */
+ { id:'americas_el_chico_del_grupo', de:'liga', peso:300, maxVeces:1, edadMin:17, ligas:['lub','chile'], fondo:'tunel',
+   cuando:(c)=>c.proximoAmericas&&(c.proximoLiga==='nbb'||c.proximoLiga==='nacional')&&c.proximoLocal===false,
+   gancho:L('Mañana jugás de visitante contra uno de los grandes del continente, en un estadio de doce mil. En tu liga el más grande tiene tres mil. El ayudante te pasa el video: el pívot de ellos mide lo que vos y el base juntos.','Tomorrow you play away against one of the continent\u2019s giants, in a twelve-thousand-seat arena. In your league the biggest holds three thousand. The assistant sends you the film: their center is as tall as you and the point guard put together.','Amanhã você joga fora contra um dos grandes do continente, num ginásio de doze mil. Na sua liga o maior tem três mil. O assistente te passa o vídeo: o pivô deles mede o que você e o armador juntos.'),
+   opciones:[
+     {tipo:'segura',label:L('Jugar el partido que sabemos','Play the game we know','Jogar o jogo que sabemos'),desenlaces:[{p:100,remate:null,texto:L('Perdés por veinte y nadie en tu ciudad esperaba otra cosa. El lunes la liga sigue.','You lose by twenty and nobody back home expected anything else. On Monday the league goes on.','Você perde por vinte e ninguém na sua cidade esperava outra coisa. Na segunda a liga continua.'),ef:{}}]},
+     {tipo:'apuesta',label:L('Pedirle al DT la marca del mejor de ellos','Ask the coach to guard their best player','Pedir ao técnico a marcação do melhor deles'),desenlaces:[
+       {p:55,remate:L('Doce mil que se callan','Twelve thousand go quiet','Doze mil que se calam'),texto:L('Le sacás dos pelotas seguidas en el tercer cuarto y el estadio hace un silencio que se escucha desde el banco. Perdés igual, por seis. En el aeropuerto de vuelta hay cuarenta personas con tu camiseta.','You strip him twice in a row in the third quarter and the arena goes so quiet you can hear it from the bench. You still lose, by six. Back at the airport there are forty people wearing your jersey.','Você rouba duas bolas seguidas dele no terceiro quarto e o ginásio faz um silêncio que se ouve do banco. Perde mesmo assim, por seis. No aeroporto de volta tem quarenta pessoas com a sua camisa.'),ef:{skills:{defensa:2},rel:{hinchada:3}}},
+       {p:45,remate:L('Cuarenta puntos','Forty points','Quarenta pontos'),texto:L('Te mete cuarenta. El lunes el DT pasa el video jugada por jugada, y en cada una decís vos qué tendrías que haber hecho.','He drops forty on you. On Monday the coach plays the film play by play, and on each one you are the one saying what you should have done.','Ele faz quarenta em cima de você. Na segunda o técnico passa o vídeo jogada por jogada, e em cada uma é você quem diz o que deveria ter feito.'),ef:{energia:-15,rel:{dt:-2}}}]}]},
+ { id:'americas_favoritos', de:'liga', peso:300, maxVeces:1, edadMin:17, ligas:['nbb'], fondo:'despacho',
+   cuando:(c)=>c.proximoAmericas&&c.proximoLiga!=='nbb'&&c.proximoLocal===true,
+   gancho:L('Sos el favorito del grupo y el estadio lo sabe: seis mil entradas vendidas para ver a un equipo que nadie conoce. El de prensa te pide que en la conferencia digas que «respetan al rival».','You are the group favorite and the arena knows it: six thousand tickets sold to watch a team nobody has heard of. The press officer asks you to say at the presser that you \u201crespect the opponent.\u201d','Você é o favorito do grupo e o ginásio sabe: seis mil ingressos vendidos para ver um time que ninguém conhece. O assessor de imprensa pede que na coletiva você diga que «respeitam o adversário».'),
+   opciones:[
+     {tipo:'segura',label:L('Decir que respetan al rival','Say you respect the opponent','Dizer que respeitam o adversário'),desenlaces:[{p:100,remate:null,texto:L('Lo decís con la cara seria. Nadie lo escribe. Ganás por veinticinco y tampoco lo escribe nadie.','You say it with a straight face. Nobody writes it down. You win by twenty-five and nobody writes that down either.','Você diz com cara séria. Ninguém escreve. Ganha por vinte e cinco e também ninguém escreve.'),ef:{}}]},
+     {tipo:'apuesta',label:L('Decir que vinieron a ganar el grupo invictos','Say you came to win the group unbeaten','Dizer que vieram ganhar o grupo invictos'),desenlaces:[
+       {p:60,remate:L('Invictos','Unbeaten','Invictos'),texto:L('Ganan los seis. En el último, con el grupo ya cerrado, el estadio te grita la frase de la conferencia en cada tiro libre, y el plantel te deja a vos el discurso del vestuario.','You win all six. In the last one, with the group already sealed, the arena chants your presser line on every free throw, and the roster hands you the locker-room speech.','Ganham os seis. No último, com o grupo já fechado, o ginásio grita a sua frase da coletiva em cada lance livre, e o elenco deixa o discurso do vestiário para você.'),ef:{rel:{hinchada:5,plantel:2}}},
+       {p:40,remate:L('La frase en el vestuario de ellos','Your line in their locker room','A frase no vestiário deles'),texto:L('Perdés el segundo partido en tu cancha. Al día siguiente circula la foto: tu frase impresa, pegada en el vestuario del rival. El DT no te dice nada; te la muestra.','You lose the second game at home. The next day the photo goes around: your line, printed out, taped up in the opponent\u2019s locker room. The coach says nothing; he just shows it to you.','Você perde o segundo jogo em casa. No dia seguinte circula a foto: a sua frase impressa, colada no vestiário do adversário. O técnico não diz nada; te mostra.'),ef:{rel:{hinchada:-4,dt:-2}}}]}]},
+ { id:'americas_el_rioplatense', de:'liga', peso:300, maxVeces:1, edadMin:17, ligas:['lub'], fondo:'vestuario',
+   cuando:(c)=>c.proximoAmericas&&c.proximoLiga==='nacional',
+   gancho:L('Mañana, un argentino en el continental. Medio Montevideo tiene un tío en Buenos Aires y el otro medio jura que nunca cruzó el charco. Tu compañero de cuarto en la gira, que es argentino, te pide que no le hables hasta después del partido.','Tomorrow, an Argentine club in the continental. Half of Montevideo has an uncle in Buenos Aires and the other half swears they never crossed the river. Your road roommate, who is Argentine, asks you not to talk to him until after the game.','Amanhã, um argentino no continental. Metade de Montevidéu tem um tio em Buenos Aires e a outra metade jura que nunca cruzou o rio. Seu companheiro de quarto na viagem, que é argentino, pede que você não fale com ele até depois do jogo.'),
+   opciones:[
+     {tipo:'segura',label:L('No hablarle hasta después','Not talk to him until after','Não falar com ele até depois'),desenlaces:[{p:100,remate:null,texto:L('Veinticuatro horas de silencio en el cuarto. Después del partido, gane quien gane, se habla de otra cosa.','Twenty-four hours of silence in the room. After the game, whoever wins, you talk about something else.','Vinte e quatro horas de silêncio no quarto. Depois do jogo, ganhe quem ganhar, se fala de outra coisa.'),ef:{rel:{plantel:2}}}]},
+     {tipo:'apuesta',label:L('Apostarle la cena de la gira','Bet him the road-trip dinner','Apostar o jantar da viagem'),desenlaces:[
+       {p:60,remate:L('La cena en Ciudad Vieja','Dinner in Ciudad Vieja','O jantar na Ciudad Vieja'),texto:L('Ganás y él paga la cena de los doce en Ciudad Vieja. Se pasa la noche explicándole al mozo por qué perdieron, y vos aprendés más de ese equipo escuchándolo que en el video.','You win and he pays for dinner for all twelve in Ciudad Vieja. He spends the night explaining to the waiter why they lost, and you learn more about that team from listening to him than from the film.','Você ganha e ele paga o jantar dos doze na Ciudad Vieja. Passa a noite explicando ao garçom por que perderam, e você aprende mais sobre aquele time ouvindo ele do que no vídeo.'),ef:{rel:{plantel:5,hinchada:2},skills:{vision:1}}},
+       {p:40,remate:L('Pagás vos y él elige','You pay and he picks','Você paga e ele escolhe'),texto:L('Perdés. Elige el lugar más caro de la rambla y pide por los doce. La cuenta te llega por audio, leída en voz alta.','You lose. He picks the most expensive place on the rambla and orders for all twelve. The bill reaches you as a voice note, read out loud.','Você perde. Ele escolhe o lugar mais caro da rambla e pede para os doze. A conta chega por áudio, lida em voz alta.'),ef:{rel:{plantel:-2},plataX:-1}}]}]},
 ];
 
 /* ══ EL ASCENSO Y EL DESCENSO — cartas de RECESO con mecánica nuestra (su corte 2026-09-02: las de El
@@ -11235,9 +11317,10 @@ const NACION={
   lub_el_tablon_te_conoce:'uy', lub_el_cebador:'uy', lub_el_almacen_de_tu_barrio:'uy', lub_mitad_en_dolares:'uy', lub_tu_murga:'uy', lub_el_cumpleanos_en_salto:'uy', lub_la_radio_te_pregunta_por_ellos:'uy',
   nbb_o_gringo:'br', nbb_o_churrasco_da_familia:'br', nbb_brasil_argentina_de_local:'br', nbb_a_proposta:'br', nbb_a_mae_no_ginasio:'br',
   chile_el_temblor_del_gringo:'cl', chile_el_dt_no_cacha:'cl', chile_la_once_en_tu_casa:'cl',
+  americas_el_rioplatense:'!ar',   // §2z269 d: el compañero argentino es el otro
 };
 const pasaNacion=(regla,n)=>Array.isArray(regla)?regla.includes(n):regla[0]==='!'?n!==regla.slice(1):n===regla;
-for(const arr of [CARTAS_GENERAL,CARTAS_SITUACIONAL,CARTAS_LIGA,CARTAS_ARGENTINA,CARTAS_EQUIPOS,CARTAS_FEDERAL,CARTAS_NACIONAL,CARTAS_HS,CARTAS_NCAA,CARTAS_EURO,CARTAS_NBA_A,CARTAS_NBA_B,CARTAS_LUB,CARTAS_NBB,CARTAS_CHILE,CARTAS_RECESO]){
+for(const arr of [CARTAS_GENERAL,CARTAS_SITUACIONAL,CARTAS_LIGA,CARTAS_ARGENTINA,CARTAS_EQUIPOS,CARTAS_FEDERAL,CARTAS_NACIONAL,CARTAS_HS,CARTAS_NCAA,CARTAS_EURO,CARTAS_NBA_A,CARTAS_NBA_B,CARTAS_LUB,CARTAS_NBB,CARTAS_CHILE,CARTAS_RECESO,CARTAS_AMERICAS]){
   for(const c of arr){ const r=NACION[c.id]; if(!r) continue; const prev=c.cuando; c.cuando=(x)=>pasaNacion(r,x.nacion||'ar')&&(!prev||prev(x)); c.nacion=r; }
 }
 /* ══ 01p — LA LIGA DE LAS AMÉRICAS (§2z27, 2026-09-02) ═══════════════════════════════════
@@ -11857,6 +11940,16 @@ const CARTAS_SELECCION = [
      {tipo:'apuesta',label:L('Dársela a quien te llevó a entrenar de pibe','Give it to whoever drove you to practice as a kid','Dar para quem te levava ao treino quando criança'),desenlaces:[
        {p:70,remate:L('En el club de barrio','At the neighbourhood club','No clube do bairro'),texto:L('La dejás en la vitrina del club donde empezaste, con una foto tuya de doce años al lado. Esa semana se anotan cuarenta pibes en la escuelita.','You leave it in the trophy case of the club where you started, with a photo of you at twelve beside it. That week forty kids sign up for the youth program.','Você deixa na vitrine do clube onde começou, com uma foto sua aos doze anos ao lado. Naquela semana quarenta crianças se inscrevem na escolinha.'),ef:{rel:{hinchada:12},plataX:1}},
        {p:30,remate:L('El malentendido','The misunderstanding','O mal-entendido'),texto:L('En tu club actual lo leen como que el de barrio te importa más. Tardan un mes en decírtelo y te lo dicen mal.','At your current club they read it as the old one mattering more. It takes them a month to tell you and they tell you badly.','No seu clube atual entendem que o do bairro importa mais. Demoram um mês para te dizer e dizem mal.'),ef:{rel:{hinchada:-4,plantel:-2}}}]}]},
+
+  /* §2z269 d (2026-09-16): la ventana que decide la clasificación — sin país escrito, como las demás */
+  { id: 'sel_ultima_ventana', de: 'seleccion', peso: 150, maxVeces: 1, edadMin: 17, fondo: 'vestuario',
+    cuando: (c) => c.proximoSeleccion && c.selVentana && !c.selPase,
+    gancho: L('Última ventana y la clasificación se define en dos partidos. El entrenador de la selección cambia el sistema entero en tres prácticas; el capitán te dice al oído que él va a jugar el de siempre.', 'Last window, and qualification comes down to two games. The national coach changes the whole system in three practices; the captain whispers that he is going to run the usual one.', 'Última janela e a classificação se define em dois jogos. O técnico da seleção muda o sistema inteiro em três treinos; o capitão te diz no ouvido que ele vai jogar o de sempre.'),
+    opciones: [
+      { tipo: 'segura', label: L('Jugar lo que pide el entrenador', 'Run what the coach asks', 'Jogar o que o técnico pede'), desenlaces: [{ p: 100, remate: null, texto: L('Lo jugás como en la práctica. Clasifican por dos, y nadie sabe si fue por el sistema o a pesar de él.', 'You run it like in practice. You qualify by two, and nobody knows whether it was because of the system or in spite of it.', 'Você joga como no treino. Classificam por dois, e ninguém sabe se foi pelo sistema ou apesar dele.'), ef: {} }] },
+      { tipo: 'apuesta', label: L('Seguir al capitán', 'Follow the captain', 'Seguir o capitão'), desenlaces: [
+        { p: 55, remate: L('El de siempre', 'The usual one', 'O de sempre'), texto: L('El sistema nuevo dura un cuarto. El resto es el de siempre, y el pase que clasifica sale de tus manos con cuatro segundos en el reloj. El entrenador te abraza como si hubiera sido idea suya.', 'The new system lasts one quarter. The rest is the usual one, and the pass that qualifies leaves your hands with four seconds on the clock. The coach hugs you like it had been his idea.', 'O sistema novo dura um quarto. O resto é o de sempre, e o passe que classifica sai das suas mãos com quatro segundos no relógio. O técnico te abraça como se tivesse sido ideia dele.'), ef: { skills: { vision: 2 }, rel: { plantel: 2 } } },
+        { p: 45, remate: L('El entrenador se dio cuenta', 'The coach noticed', 'O técnico percebeu'), texto: L('Se da cuenta en el segundo cuarto y te saca. Clasifican igual, sin vos en cancha, y en el vuelo de vuelta el capitán te devuelve el asiento de la ventanilla sin decir nada.', 'He notices in the second quarter and pulls you. They qualify anyway, without you on the floor, and on the flight home the captain gives you the window seat without a word.', 'Ele percebe no segundo quarto e te tira. Classificam mesmo assim, sem você em quadra, e no voo de volta o capitão te devolve o assento da janela sem dizer nada.'), ef: { energia: -15 } }] }] },
 ];
 /* ══ 01p3 — LA COPA INTERCONTINENTAL FIBA (§2z27.3, 2026-09-11, co-diseñada por chat) ════════════════════════
    El campeón de la Liga de las Américas la juega EN LA PRETEMPORADA SIGUIENTE, como CLUB: si te fuiste en el mercado,
@@ -23339,7 +23432,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
       figuras:regF?figurasFoto(regF):null,
       varaMVP:window.MODO_BETA?0:rngFor(semilla,'varaMVP',ANIO_INICIO).float(-0.25,0.25),   // 2026-09-15: la vara fluctúa por temporada; en la beta, fija
       miClubId:club,skills:jugador.skills,fechas:liga.fechas,
-      playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.calendario?ligaId:liga.ritmo,   // §2z83: con calendario, el ritmo ES la liga
+      playoffs:liga.playoffs,zonas:liga.zonas,hexagonal:liga.hexagonal,ritmo:liga.calendario?ligaId:liga.ritmo,   // §2z83: con calendario, el ritmo ES la liga
       fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(temporada,ligaId||'federal',ANIO_INICIO,null);   // §2z27
   instalarSeleccion(temporada,jugador,ligaId||'federal',ANIO_INICIO,semilla,null);   // §12
@@ -25462,6 +25555,8 @@ function pintaFixFull(fechas,calPorFecha,proxKey){
     else if(!f.ic) icAnt=null;
     h+=filaFix(f,calPorFecha,proxKey,am);
   }
+  /* §2z269 c: la LUB tiene diez fechas POR DEFINIR hasta que la tabla se parte en la 22 — la lista lo dice, no termina en seco */
+  if(e.hexagonal&&!e.hex) h+='<div class="r amTit"><span class="f"></span><span class="q"><span class="nom">'+t(L('HEXAGONALES: SE SORTEAN AL CERRAR LA FECHA '+e.hexagonal.tras,'GROUP STAGE: DRAWN AFTER ROUND '+e.hexagonal.tras,'HEXAGONAIS: SORTEADOS AO FECHAR A RODADA '+e.hexagonal.tras))+'</span></span></div>';
   const box=$l('lobFixFull'); box.innerHTML=h;
   /* §2z238 v2: los tramos de Américas al tope de la lista; la Copa sin torneo muestra el contrato (o el sorteo con campeón) */
   if(am&&tramoF==='copa'&&!est().intercontinental){ box.innerHTML=htmlIntercontinental(est()); box.querySelectorAll('[data-gic]').forEach(b=>b.addEventListener('click',()=>{ grupoIcSel=b.dataset.gic; pintaFixFull(fechas,calPorFecha,proxKey); })); }
@@ -25480,7 +25575,10 @@ function apoyarFixEnProx(){
 
 /* el nombre COMPLETO en la tabla (su caza 2026-09-02: "Philadelphia 76ers, no 76ers"): en la
    NBA es ciudad + nombre; en las demás ligas el nombre ya es el del club */
-function nombreTabla(id){ const c=clubDe(id); return C.ligaId==='nba'&&c.ciudad?c.ciudad+' '+c.nombre:c.nombre; }   /* §2z31: la tabla NO usa el corto — medido, tiene 232 px y el nombre entero entra */
+function nombreTabla(id){ const c=clubDe(id); if(C.ligaId==='nba'&&c.ciudad) return c.ciudad+' '+c.nombre;
+  /* §2z269 c (la captura del NBB a 360: «Fortaleza Basquete Cea…», «Mogi das Cruzes Basqu…»): el completo mientras entra; si pasa de 22
+     letras y el club tiene corto, el corto — la misma idea que nomAjustable en el fixture, con margen en vez de medición */
+  return c.nombre.length>22&&c.corto?c.corto:c.nombre; }   /* §2z31: la tabla NO usa el corto — medido, tiene 232 px y el nombre entero entra */
 const ZONA_TXT={este:L('ESTE','EAST','LESTE'),oeste:L('OESTE','WEST','OESTE'),norte:L('NORTE','NORTH','NORTE'),sur:L('SUR','SOUTH','SUL')};
 const zonaTxt=(z)=>ZONA_TXT[z]?t(ZONA_TXT[z]):z.toUpperCase().replace('_',' ');
 let zonaTablaSel=null;   // la pestaña de zona elegida en la tabla plena (la tuya por defecto)
@@ -25579,19 +25677,24 @@ function pintaTablaFull(){
     }
   }
   const PO='__po';
-  const opciones=(bkLiga?[PO]:[]).concat(e.zonas||[]);
-  const mia=e.zonas?e.zonaDe[e.miClubId]:null;
+  /* §2z269 c: con la tabla partida en hexagonales, las pestañas son los dos grupos (no son zonas: el continental y la tabla final siguen leyendo la liga entera) */
+  const grupos=e.hex?['__sup','__rec']:(e.zonas||[]);
+  const opciones=(bkLiga?[PO]:[]).concat(grupos);
+  const mia=e.hex?(e.hex.alto.includes(e.miClubId)?'__sup':'__rec'):e.zonas?e.zonaDe[e.miClubId]:null;
   let z=opciones.includes(zonaTablaSel)?zonaTablaSel:(bkLiga&&e.fase==='playoffs'&&zonaTablaSel===null?PO:(mia||(bkLiga?'__tabla':null)));
-  if(bkLiga&&!e.zonas&&z!==PO) z='__tabla';
-  const pestanas=bkLiga?(e.zonas?[...e.zonas,PO]:['__tabla',PO]):(e.zonas||[]);   // 2026-09-12 (su caza): la tabla ADELANTE de PLAYOFFS; en playoffs abre igual en PLAYOFFS
+  if(bkLiga&&!grupos.length&&z!==PO) z='__tabla';
+  const pestanas=bkLiga?(grupos.length?[...grupos,PO]:['__tabla',PO]):grupos;   // 2026-09-12 (su caza): la tabla ADELANTE de PLAYOFFS; en playoffs abre igual en PLAYOFFS
   /* 2026-09-12 (su caza: «LIGA NACIONAL debería ser blanco y estar afuera del contenedor»): un título arriba del cajón, no un rótulo adentro */
   { const tl=$l('lobTablaLiga'); tl.textContent=ligaDe().nombre.toUpperCase(); tl.classList.remove('oculto'); }
   if(!pestanas.length){ tabs.classList.add('oculto'); const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
-  const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):zonaTxt(x);
+  const nomTab=(x)=>x===PO?t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')):x==='__tabla'?t(L('TABLA','STANDINGS','TABELA')):x==='__sup'?t(L('SUPERIOR','TOP SIX','SUPERIOR')):x==='__rec'?t(L('RECLASIF.','BOTTOM SIX','RECLASSIF.')):zonaTxt(x);
   tabs.classList.remove('oculto'); tabs.classList.toggle('muchas',pestanas.length>3);
   tabs.innerHTML=pestanas.map(x=>'<div class="tab'+(x===z?' act':'')+'" data-zona="'+x+'" tabindex="0">'+nomTab(x)+'</div>').join('');
   tabs.querySelectorAll('[data-zona]').forEach(b=>b.addEventListener('click',()=>{ zonaTablaSel=b.dataset.zona; pintaTablaFull(); }));
   if(z===PO){ full.innerHTML=bkLiga; return; }
+  if(z==='__sup'||z==='__rec'){ const g=z==='__sup'?'alto':'bajo', th=tablaHex(e,g), kh=cortesHex(e,g), d0=g==='bajo'?e.hexagonal.arriba:0;   // el reclasificatorio se numera 7º-12º: son los puestos de la llave
+    full.innerHTML=th.map((f,i)=>filaTabla(f,i+1+d0,kh,d0+th.length)).join('')+leyendaTabla(kh)+notaDesempate(th)
+      +notas(...(g==='alto'?[t(L('LOS SEIS JUEGAN PLAYOFFS: EL HEXAGONAL DEFINE DEL 1º AL 6º','ALL SIX MAKE THE PLAYOFFS: THIS GROUP SETS SEEDS 1 TO 6','OS SEIS JOGAM PLAYOFFS: O HEXAGONAL DEFINE DO 1º AO 6º'))]:[]),t(L('LOS PUNTOS DEL CLASIFICATORIO SE ARRASTRAN','POINTS FROM THE FIRST PHASE CARRY OVER','OS PONTOS DA PRIMEIRA FASE SÃO MANTIDOS'))); return; }
   if(z==='__tabla'||!e.zonas){ const tb=tabla(e.resultados,e.clubes); full.innerHTML=tb.map((f,i)=>filaTabla(f,i+1,k,tb.length)).join('')+leyendaTabla(k)+notaDesempate(tb); return; }
   const tz=tablaZona(e,z);
   full.innerHTML=tz.map((f,i)=>filaTabla(f,i+1,k,tz.length)).join('')+leyendaTabla(k)+notaDesempate(tz);
@@ -25612,7 +25715,16 @@ function cortesTabla(e){
   const copa=(!e.zonas&&AMERICAS_CUPOS[C.ligaId])||0;
   const dir=def.directos||0, cl=def.clasifican||0;
   const salto=dir&&def.rondas?(def.rondas.find(r=>r.nombre!=='reclasificacion'&&r.nombre!=='playin'&&r.nombre!=='playin2')||{}).nombre||null:null;   // la primera ronda después de la previa
-  return {copa, dir, cl, playout:def.playout?2:0, salto};
+  /* §2z269 c: antes de partirse, la LUB corta en el 6º (HEXAGONAL SUPERIOR); el NBB marca en rojo al que baja por tabla */
+  if(e.hexagonal&&!e.hex) return {copa, dir:0, cl:e.hexagonal.arriba, clTxt:L('HEXAGONAL SUPERIOR','TOP SIX','HEXAGONAL SUPERIOR'), playout:0, desc:0, salto:null};
+  return {copa, dir, cl, playout:def.playout?2:0, desc:def.descienden||0, salto};
+}
+/* §2z269 c: las líneas de cada hexagonal — el superior entra entero a playoffs (puntito de copa arriba); del reclasificatorio
+   entran dos y bajan los últimos `descienden` */
+function cortesHex(e,g){
+  const def=e.playoffsDef||{};
+  if(g==='alto') return {copa:AMERICAS_CUPOS[C.ligaId]||0, dir:0, cl:0, playout:0, desc:0, salto:null};
+  return {copa:0, dir:0, cl:(e.hexagonal.arriba||6)+Math.max(0,(def.clasifican||8)-(e.hexagonal.arriba||6)), playout:0, desc:def.descienden||0, salto:null};   // los puestos van 7º-12º (numeración de la llave)
 }
 function claseCorte(k,pos,n){
   if(!k) return '';
@@ -25620,6 +25732,7 @@ function claseCorte(k,pos,n){
   if(pos<=k.copa) c+=' copa';
   if(pos===k.dir) c+=' corteDir'; else if(pos===k.cl) c+=' corte';
   if(k.playout&&n&&pos>n-k.playout) c+=(pos===n-k.playout+1?' playoutTop':'')+' playout';
+  if(k.desc&&n&&pos>n-k.desc) c+=(pos===n-k.desc+1?' playoutTop':'')+' playout';   // §2z269 c: los que bajan por tabla, con la misma línea roja
   return c;
 }
 /* la leyenda al pie de la tabla plena (su corte: "en el panel rompe la tabla"): sólo lo que esta liga tiene */
@@ -25636,8 +25749,9 @@ function leyendaTabla(k){
   const it=[];
   if(k.copa) it.push('<span class="ley copa"></span>'+t(AM_TXT.nombre));
   if(k.dir) it.push('<span class="ley dir"></span>'+t(L('DIRECTO A ','STRAIGHT TO ','DIRETO ÀS '))+t(RONDA_TXT[k.salto]||L(k.salto||'')));
-  if(k.cl) it.push('<span class="ley cl"></span>'+t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')));
+  if(k.cl) it.push('<span class="ley cl"></span>'+t(k.clTxt||L('PLAYOFFS','PLAYOFFS','PLAYOFFS')));
   if(k.playout) it.push('<span class="ley po"></span>'+t(L('PLAY-OUT','PLAY-OUT','PLAY-OUT')));
+  if(k.desc) it.push('<span class="ley po"></span>'+t(L('DESCIENDEN','RELEGATED','CAEM')));   // §2z269 c
   return '<div class="leyenda">'+it.map(x=>'<span>'+x+'</span>').join('')+'</div>';
 }
 function filaTabla(fila,pos,k,n){
@@ -26226,13 +26340,16 @@ function pintaLobby(){
             : t(L('Ascienden','Promoted','Sobem'))+': '+asc.map(id=>nomCorto(id).toUpperCase()).join(' · '))
         : '';
       /* §2z7: y la LNB anuncia al que baja — el tuyo incluido, si perdió el play-out */
-      const desc=esBeta()?null:e.playoffs.descendido;
+      /* §2z269 c: los que bajan por play-out (LNB, Chile) o por tabla (NBB, LUB), y a dónde lo dice la liga */
+      const descs=esBeta()?[]:(e.playoffs.descendidos||[]).concat(e.playoffs.descendido?[e.playoffs.descendido]:[]);
+      const desc=descs.length?descs[0]:null;
       const sPO=(e.playoffs.seriesJugadas||[]).find(s=>s.playout&&s.ganador);
-      const marcaPO=sPO&&desc===e.miClubId?' ('+(sPO.alta===desc?sPO.ganAlta+'–'+sPO.ganBaja:sPO.ganBaja+'–'+sPO.ganAlta)+' vs '+nomCorto(sPO.alta===desc?sPO.baja:sPO.alta).toUpperCase()+')':'';
+      const marcaPO=sPO&&descs.includes(e.miClubId)?' ('+(sPO.alta===e.miClubId?sPO.ganAlta+'–'+sPO.ganBaja:sPO.ganBaja+'–'+sPO.ganAlta)+' vs '+nomCorto(sPO.alta===e.miClubId?sPO.baja:sPO.alta).toUpperCase()+')':'';
+      const aDonde=t(DESTINO_DESCENSO[C.ligaId]||L('la categoría de abajo','the lower division','a divisão de baixo'));
       const lineaDesc=desc
-        ? '<br>⬇ '+(desc===e.miClubId
-            ? t(L('DESCENDEMOS a La Liga Argentina.','WE ARE RELEGATED to La Liga Argentina.','CAÍMOS para a Liga Argentina.'))+marcaPO
-            : t(L('Desciende','Relegated','Cai'))+': '+nomCorto(desc).toUpperCase())
+        ? '<br>⬇ '+(descs.includes(e.miClubId)
+            ? t(L('DESCENDEMOS a ','WE ARE RELEGATED to ','CAÍMOS para '))+aDonde+'.'+marcaPO
+            : t(descs.length>1?L('Descienden','Relegated','Caem'):L('Desciende','Relegated','Cai'))+': '+descs.map(id=>nomCorto(id).toUpperCase()).join(' · '))
         : '';
       /* y TU última serie, si no fuiste campeón (su pregunta 2026-09-02: "¿hay algo que te
          diga que te quedaste o descendiste?"): el play-out ganado, o en qué ronda y contra
@@ -26242,7 +26359,7 @@ function pintaLobby(){
       if(u&&e.playoffs.campeon!==e.miClubId){
         const miG=u.alta===e.miClubId?u.ganAlta:u.ganBaja, riG=u.alta===e.miClubId?u.ganBaja:u.ganAlta;
         const marca=' ('+miG+'–'+riG+' vs '+nomCorto(u.alta===e.miClubId?u.baja:u.alta).toUpperCase()+')';
-        if(u.playout&&u.ganador===e.miClubId) lineaMia='<br>✓ '+t(L('NOS QUEDAMOS EN LA LIGA NACIONAL','WE STAY UP','FICAMOS NA LIGA NACIONAL'))+marca;
+        if(u.playout&&u.ganador===e.miClubId) lineaMia='<br>✓ '+t(L('NOS QUEDAMOS EN ','WE STAY UP IN ','FICAMOS NA '))+ligaDe().nombre.toUpperCase()+marca;   // §2z269 c: la liga que sea
         else if(u.ganador!==e.miClubId) lineaMia='<br>'+eliminadoTxt(u.nombre)+marca;   // 2026-09-12: también el play-out perdido (antes no decía nada)
       }
       /* §2z229 f: si el bloque de arriba ya dice CAMPEONES, acá no se repite (y sin dejar un <br> huérfano, clase 5) */
@@ -27741,7 +27858,7 @@ function otraTemporada(destino){
     figuras:regF?figurasFoto(regF):null,
     varaMVP:esBeta()?0:rngFor(C.semilla,'varaMVP',C.anio).float(-0.25,0.25),   // 2026-09-15
     miClubId:miClub,skills:C.jugador.skills,fechas:liga.fechas,
-    playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.calendario?C.ligaId:liga.ritmo,   // §2z269 (2026-09-16): con calendario el ritmo ES la liga, como en nuevaCarrera — acá quedaba 'apretado' hasta la próxima recarga (clase 21: la migración de cargar lo corregía y el motor en memoria no)
+    playoffs:liga.playoffs,zonas:liga.zonas,hexagonal:liga.hexagonal,ritmo:liga.calendario?C.ligaId:liga.ritmo,   // §2z269 (2026-09-16): con calendario el ritmo ES la liga, como en nuevaCarrera — acá quedaba 'apretado' hasta la próxima recarga (clase 21: la migración de cargar lo corregía y el motor en memoria no)
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
   instalarAmericas(C.temporada,C.ligaId,C.anio,C.tablaFinal);   // §2z27
   instalarIntercontinental(C.temporada,null,C.anio); C.icPendiente=null;   // §2z27.3 → §2z229 e: la copa ya se jugó en el receso, con el club de la Copa; acá nunca hay nada que instalar
@@ -29576,6 +29693,10 @@ let mercadoFiltro=null;
    desde la portada, a propósito. El buscador abre solo los grupos con resultados. */
 const PAIS_MERC={ar:L('ARGENTINA','ARGENTINA','ARGENTINA'), uy:L('URUGUAY','URUGUAY','URUGUAI'), br:L('BRASIL','BRAZIL','BRASIL'),
   us:L('UNIVERSIDADES \u00b7 NCAA','COLLEGES \u00b7 NCAA','UNIVERSIDADES \u00b7 NCAA'), eu:L('EUROPA','EUROPE','EUROPA')};   // §2z28: la bandera la dibuja banderaDe
+/* §2z269 c: a dónde baja cada liga — la Liga Argentina existe acá; la Liga de Ascenso, la Liga Ouro y la Liga Dos todavía no (el club
+   baja de nombre y no se mueve, hasta que esas ligas entren a la escalera) */
+const DESTINO_DESCENSO={nacional:L('La Liga Argentina','La Liga Argentina','a Liga Argentina'),lub:L('la Liga de Ascenso','the Liga de Ascenso','a Liga de Ascenso'),
+  nbb:L('la Liga Ouro','the Liga Ouro','a Liga Ouro'),chile:L('la Liga Dos','the Liga Dos','a Liga Dos')};
 const DIVISION_TXT={nacional:L(' (1\u00aa)',' (1st)',' (1\u00aa)'),
   argentina:L(' (2\u00aa)',' (2nd)',' (2\u00aa)'), federal:L(' (3\u00aa)',' (3rd)',' (3\u00aa)')};
 const TIER_NCAA=(f)=>f>=58?'g':f>=46?'m':'c';

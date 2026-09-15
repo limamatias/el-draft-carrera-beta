@@ -966,6 +966,7 @@
   #lobby .tablita .ley{display:inline-block;width:14px;height:0;border-top:1px solid rgba(255,150,51,.6)}
   #lobby #lobMvp .r.mvpAS{margin-top:6px} #lobby #lobMvp .mvpEst{flex:none;font-size:11px;letter-spacing:1.5px;font-weight:600}   /* §2z250 */
   #lobby #lobMvp .r.mvpSalto{padding:0}
+  #lobby #lobMvp .club .flag{flex:none;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.45)}   /* 2026-09-15: la nacionalidad del candidato */
   #lobby #lobMvp .pos{display:flex;justify-content:center;align-items:center}   /* 2026-09-14 (su caza): la corona y la estrella (14 px) centradas en la columna de los números, no apoyadas a la izquierda */
   #lobby #lobMvp .r.mvpVacia .nom{color:var(--tinta2)}   /* 2026-09-13: la tablita antes de que arranque la carrera */
   #lobby #lobMvp .cajNotas{margin:8px 0 2px}   /* con los 5 vacíos + estrellas + leyenda, a 360×612 la caja mide ~246: la nota cede 12 px */
@@ -2004,7 +2005,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='2a64a9a86f';
+const BUILD='2456e8adb4';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -4420,6 +4421,7 @@ function crearTemporada(semilla, clubes, opciones) {
     playoffsDef: opciones.playoffs || null,
     playoffs: null, // la llave, cuando la fase regular termina (armarLlave)
     americas: null, // §2z27: la Liga de las Américas de este año, si tu club clasificó (el lobby la instala)
+    varaMVP: opciones.varaMVP || 0, // 2026-09-15: el desvío de la vara del MVP de ESTA temporada (0 en la beta)
     figuras: opciones.figuras || null, // §2z264: la foto de las figuras de la liga (01e2), sólo lectura; sin foto, el campo sembrado de siempre
   };
 }
@@ -5207,7 +5209,10 @@ const CARRERA_MVP = { desde: 0.30, allstar: 0.50, top: 12, quinteto: 5, minPJ: 6
 function campoPremios(estado, esc) {
   /* el techo: el mejor candidato de la Federal ronda 7,85 con su club arriba; el de la NBA, 8,45. Dos por club
      (la figura y el segundo, medio punto abajo): con uno solo, doce de quince entraban al Juego de las Estrellas. */
-  const tope = 7.6 + (esc || 0) / 34 * 0.6;
+  /* 2026-09-15 (su corte, primero en la carrera con 7,8 de nota: *"7,6 se siente bajo para MVP; que pida ese +0,5, y dinámico — que
+     fluctúe según la temporada (en la beta no, en el juego sí)"*): +0,5 al techo, y el desvío de la temporada (`estado.varaMVP`,
+     ±0,25, sembrado al nacer; 0 en la beta y en las temporadas de antes) mueve a todo el campo junto. */
+  const tope = 7.6 + 0.5 + (esc || 0) / 34 * 0.6 + (estado.varaMVP || 0);
   const fz = estado.clubes.map((c) => c.fuerza), lo = Math.min(...fz), hi = Math.max(...fz);
   const out = [];
   for (const c of estado.clubes) {
@@ -5216,7 +5221,7 @@ function campoPremios(estado, esc) {
     /* §2z264: con figuras, la calidad y la edad son de ELLAS (viven en la carrera); sin foto, las sembradas de siempre */
     const fg = estado.figuras && estado.figuras[c.id];
     if (fg) {
-      for (const s of [0, 1]) out.push({ clubId: c.id, zona: c.zona || null, edad: fg[s].edad, base: tope - 1.8 + 1.4 * rel + fg[s].cal, ape: fg[s].ape, ...(s ? { segundo: true } : {}) });
+      for (const s of [0, 1]) out.push({ clubId: c.id, zona: c.zona || null, edad: fg[s].edad, base: tope - 1.8 + 1.4 * rel + fg[s].cal, ape: fg[s].ape, pais: fg[s].pais || null, ...(s ? { segundo: true } : {}) });
       continue;
     }
     const base = tope - 1.8 + 1.4 * rel + r.float(-0.35, 0.35);
@@ -5250,6 +5255,11 @@ function carreraPremios(estado, esc, vos) {
   if (vos) { const [p, n] = pos[estado.miClubId] || [1, 2];
     lista.push({ clubId: estado.miClubId, zona: estado.zonas ? estado.zonaDe[estado.miClubId] : null, edad: vos.edad, valor: vos.valor + 0.6 * ((n - p) / Math.max(1, n - 1) - 0.5), vos: true }); }
   lista.sort((a, b) => b.valor - a.valor);
+  /* 2026-09-15 (su caza: «dos candidatos a MVP del mismo equipo, en dos equipos distintos: no suele ser así»): la pelota es una — el que
+     tiene adelante a otro de su club (un candidato o VOS) resigna 0,35 por cada uno. A vos nunca se te descuenta: tu nota es tuya. */
+  { const delante = {};
+    for (const x of lista) { const k = delante[x.clubId] || 0; if (!x.vos && k) x.valor -= 0.35 * k; delante[x.clubId] = k + 1; }
+    lista.sort((a, b) => b.valor - a.valor); }
   const miPos = lista.findIndex((x) => x.vos) + 1 || null;
   /* el corte del Juego de las Estrellas es por conferencia cuando la liga tiene */
   const miZona = estado.zonas ? estado.zonaDe[estado.miClubId] : null;
@@ -11261,12 +11271,15 @@ function simularJuegoAM(rng, am, local, visita, neutral) {
 /* tu línea en un continental: la real si lo jugaste, simulada si lo jugó el relato. SUMA a la
    temporada (decisión suya en El Draft: "si clasificás, jugás más"), marcada `am` para que el
    fixture y el resumen la distingan de las fechas. */
-function anotarLineaAM(e, etapa, n, rival, miJuego, rng) {
+/* 2026-09-15 (su caza: «¿por qué Américas me figura con — en la nota?»): el partido que el club jugó sin vos no tenía nota, y en la liga sí
+   (su corte del 2026-09-10: los salteados también tienen nota y cuentan). La misma cuenta que la liga, con el resultado del partido. */
+const notaSinVosAM = (linea, gano) => (typeof ratingDe === 'function' ? ratingDe({ pts: linea.pts, ast: linea.ast, rob: linea.rob, tiros: 0, ac: 0, per: 0, esc: 1 }, !!gano) : undefined);
+function anotarLineaAM(e, etapa, n, rival, miJuego, rng, gano) {
   let linea, minutos;
   if (miJuego) { linea = miJuego.linea; minutos = linea.min; }
   else { minutos = rng.int(22, 34); linea = lineaSimulada(rng, e.skills, minutos, e.forma); }
   e.misPartidos.push({ am: true, etapa, n, rival, minutos, pts: linea.pts, ast: linea.ast, rob: linea.rob, ...extrasDe(linea),
-    esc: linea.esc || 1, jugado: !!miJuego, rating: miJuego ? linea.rating : undefined });
+    esc: linea.esc || 1, jugado: !!miJuego, rating: miJuego ? linea.rating : notaSinVosAM(linea, gano) });
   sumarLinea(e.miLinea, linea, minutos);   // §2z29
 }
 
@@ -11385,7 +11398,7 @@ function jugarVentanaAM(e, v, miJuego) {
         [j.ptsLocal, j.ptsVisita] = simularJuegoAM(rng, am, j.local, j.visita, !!j.neutral);
       }
       j.jugado = true;
-      if (mio) { anotarLineaAM(e, 'grupo', v.n, j.local === mi ? j.visita : j.local, usado ? null : miJuego, rng); usado = true; }
+      if (mio) { anotarLineaAM(e, 'grupo', v.n, j.local === mi ? j.visita : j.local, usado ? null : miJuego, rng, j.local === mi ? j.ptsLocal > j.ptsVisita : j.ptsVisita > j.ptsLocal); usado = true; }
     }
     if (miPendiente) return false;
     if (v.n === ultimaGrupoAM(am)) cerrarGruposAM(am, mi);
@@ -11409,7 +11422,7 @@ function jugarVentanaAM(e, v, miJuego) {
     if (s.ganAlta >= meta) s.ganador = s.alta;
     else if (s.ganBaja >= meta) s.ganador = s.baja;
     if (mio) {
-      anotarLineaAM(e, s.nombre, nro, mio && s.alta === mi ? s.baja : s.alta, miJuego, rng);
+      anotarLineaAM(e, s.nombre, nro, mio && s.alta === mi ? s.baja : s.alta, miJuego, rng, local === mi ? pl > pv : pv > pl);
       if (s.ganador && s.ganador !== mi) { am.eliminado = s.nombre !== 'semifinal'; am.miFase = s.nombre === 'tercero' ? 'cuarto' : s.nombre; }   // perder la semi no te saca: queda el tercer puesto
     }
   }
@@ -11776,7 +11789,7 @@ function anotarLineaIC(e, j, miJuego, rng) {
   else { minutos = rng.int(22, 34); linea = lineaSimulada(rng, e.skills, minutos, e.forma); }
   const mi = e.miClubId;
   e.misPartidos.push({ am: true, ic: true, etapa: j.etapa, n: j.n || 1, rival: j.local === mi ? j.visita : j.local, minutos, pts: linea.pts, ast: linea.ast, rob: linea.rob, ...extrasDe(linea),
-    esc: linea.esc || 1, jugado: !!miJuego, rating: miJuego ? linea.rating : undefined });
+    esc: linea.esc || 1, jugado: !!miJuego, rating: miJuego ? linea.rating : notaSinVosAM(linea, j.local === mi ? j.ptsLocal > j.ptsVisita : j.ptsVisita > j.ptsLocal) });   // 2026-09-15: como la del continental
   sumarLinea(e.miLinea, linea, minutos);
 }
 /** Las ventanas que quedaron atrás las juega el relato (la llama `jugarFecha` antes de la fecha 1). */
@@ -23055,6 +23068,7 @@ function nuevaCarrera(ligaId,clubId,dorsal,arquetipo,apellido,nacionalidad,rolIn
   const regF=figurasRegDe(null,ligaId||'federal',ANIO_INICIO,liga.clubes,semilla);   // §2z264: las figuras nacen con la carrera
   const temporada=crearTemporada(semilla+'-t2026',liga.clubes,{
       figuras:regF?figurasFoto(regF):null,
+      varaMVP:window.MODO_BETA?0:rngFor(semilla,'varaMVP',ANIO_INICIO).float(-0.25,0.25),   // 2026-09-15: la vara fluctúa por temporada; en la beta, fija
       miClubId:club,skills:jugador.skills,fechas:liga.fechas,
       playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.calendario?ligaId:liga.ritmo,   // §2z83: con calendario, el ritmo ES la liga
       fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});
@@ -25552,7 +25566,10 @@ function pintaMvp(e){
   const car=carreraDe(e);
   /* 2026-09-12 (el barrido): con la regular cerrada la carrera tiene veredicto — el 1° lleva la corona y la leyenda lo nombra */
   const cerrada=e.fase!=='regular';
-  const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+(cerrada&&pos===1?icono('corona',14):pos)+'</span><span class="club">'+escudito(x.clubId)+
+  /* 2026-09-15 (su pedido: «acá debería estar la bandera de la nacionalidad: es uno de los pocos lugares donde CONOCÉS a tus rivales»): la
+     bandera de cada candidato (§2z267: las figuras tienen país) — la tuya, la de tu nacionalidad */
+  const band=(x)=>{ const p=x.vos?(C.jugador.nacionalidad||'ar'):x.pais; return p?banderaDe(p,16):''; };
+  const fila=(x,pos)=>'<div class="r'+(x.vos?' vos':'')+(pos===N?' corteDir':'')+'"><span class="pos">'+(cerrada&&pos===1?icono('corona',14):pos)+'</span><span class="club">'+escudito(x.clubId)+band(x)+
     '<span class="nom">'+(x.vos?(C.jugador.apellido||t(APELLIDO_SIN)).toUpperCase():nombreCandidato(e,x.clubId,x.segundo))+' · '+clubDe(x.clubId).nombre+'</span></span></div>';   /* 2026-09-14 (su caza): tu apellido y tu club como los demás; la fila en blanco dice que sos vos */
   let h=car.lista.slice(0,N).map((x,i)=>fila(x,i+1)).join('');
   if(car.miPos&&car.miPos>N) h+='<div class="r mvpSalto"><span class="pos"></span><span class="club"><span class="nom">…</span></span></div>'+fila(car.lista[car.miPos-1],car.miPos);
@@ -27449,6 +27466,7 @@ function otraTemporada(destino){
   const regF=figurasRegDe(C,C.ligaId,C.anio,clubesDeCarrera(C.ligaId));   // §2z264: cumplen un año, se retiran, cambian de club
   C.temporada=crearTemporada(C.semilla+'-t'+C.anio,clubesDeCarrera(C.ligaId),{
     figuras:regF?figurasFoto(regF):null,
+    varaMVP:esBeta()?0:rngFor(C.semilla,'varaMVP',C.anio).float(-0.25,0.25),   // 2026-09-15
     miClubId:miClub,skills:C.jugador.skills,fechas:liga.fechas,
     playoffs:liga.playoffs,zonas:liga.zonas,ritmo:liga.ritmo,
     fechasPorZona:liga.fechasPorZona,vecindario:liga.vecindario});

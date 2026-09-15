@@ -1990,8 +1990,8 @@
      costados, el select sin caja con la flechita dibujada, el avatar sin círculo propio (la foto ES el círculo, 38 px) */
   /* la esquina izquierda en COLUMNA (su corte: la flecha pegada a la bandera parecía parte del selector): VOLVER arriba, con el molde
      del `.step-back` de El Draft (flecha + palabra, 13/600, gris), y la banderita debajo — espejo del avatar / ⚙ de la derecha */
-  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;align-items:center;gap:6px}
-  #introAtras{display:inline-flex;align-items:center;gap:6px;min-height:38px;margin-left:-4px;padding:0 10px 0 6px;border:0;border-radius:10px;
+  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px}   /* VOLVER arriba, la banderita centrada debajo (su corte; en un renglón chocaba con el título de Destino) */
+  #introAtras{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 8px 0 6px;border:0;border-radius:10px;
        background:none;color:var(--tinta2);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.4px;line-height:1;cursor:pointer}
   #introAtras.oculto{display:none}
   #introAtras:active{color:var(--tinta);background:rgba(20,27,44,.85)}
@@ -2007,7 +2007,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='86d3c0aa93';
+const BUILD='0f1cfd3e1b';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>

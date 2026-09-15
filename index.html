@@ -2004,7 +2004,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='824dbe00a6';
+const BUILD='d3e0791042';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27902,6 +27902,14 @@ function pintaSecciones(){
     swV.innerHTML=tabV('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>')+tabV('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>');
     swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ ladoVos_auto=false; if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
   const enSel=ladoVos==='sel'&&haySelVos, lv=enSel?lSel:lClub;
+  /* 2026-09-14 (su pregunta, 1° en la carrera al MVP: «no me dice la nota promedio en VOS»): la nota es el número con el que te miden
+     los premios y no vivía en ningún lado de la beta. Va primera en la grilla; MIN se va (la previa dice los minutos que te da el DT). */
+  const notaLado=(()=>{ let s=0, n=0;
+    const suma=(ps)=>{ for(const p of ps) if(p.rating!==undefined&&p.rating!==null){ s+=p.rating; n++; } };
+    if(enSel){ suma(mp.filter(p=>p.sel)); for(const x of torAnio) if(x.linea&&x.linea.rating!=null){ s+=x.linea.rating*(x.linea.pj||0); n+=x.linea.pj||0; }
+      if(C.selTorneo) suma(C.selTorneo.mis||[]); }
+    else suma(mpClub);
+    return n?s/n:null; })();
   const stat=(v)=>lv.pj?fdec(v/lv.pj):'—';
   /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el
      encabezado y PJ en la grilla: no se repiten. */
@@ -27912,6 +27920,7 @@ function pintaSecciones(){
     /* §2z248: NORMAL · INTENSO se fue a OPCIONES; el rótulo queda solo */
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
+      '<div class="s"><b>'+(notaLado!=null?fdec(notaLado):'—')+'</b><span>'+t(L('NOTA','RATING','NOTA'))+'</span></div>'+
       '<div class="s"><b>'+stat(lv.pts)+'</b><span>PTS</span></div>'+
       '<div class="s"><b>'+stat(lv.ast)+'</b><span>AST</span></div>'+
       /* §2z39.67 (su pedido 2026-09-05: "el RESUMEN debería incluir el que tengas más, de tapas o robos"): la
@@ -27919,7 +27928,7 @@ function pintaSecciones(){
       ((lv.tap||0)>(lv.rob||0)
         ? '<div class="s"><b>'+stat(lv.tap)+'</b><span>'+t(L('TAP','BLK','TOC'))+'</span></div>'
         : '<div class="s"><b>'+stat(lv.rob)+'</b><span>'+t(L('ROB','STL','ROU'))+'</span></div>')+
-      '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
+
       '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
     ((enSel?compsSelV:compsClub).length?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'

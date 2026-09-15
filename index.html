@@ -1976,7 +1976,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='c184b74a88';
+const BUILD='1a2c443926';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -29389,9 +29389,10 @@ function pintarAnotadoFin(){ const m=betaAnotado();
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('lista'); };
 $l('resTCard').onclick=()=>CARD.abrirCard('corta');   // la card va encima (z 42) y al cerrarla quedás en el fin
 $l('resTOpinion').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('feedback'); };
-/* 2026-09-12 SALIR llevaba a la portada; 2026-09-14 (su caza: cinco botones compitiendo) se fue con VOLVER AL VESTUARIO: la salida es
-   ◂ VOLVER arriba, al vestuario, que tiene su SALIR */
-$l('resTAtras').onclick=()=>$l('resTVolver').onclick();
+/* 2026-09-12 SALIR llevaba a la portada; 2026-09-14 (su caza: cinco botones compitiendo) se fueron SALIR y VOLVER AL VESTUARIO y queda
+   ◂ VOLVER arriba. Y va a la PORTADA, no al vestuario (su caza el mismo día: «te manda a la partida, no te hace salir»): la beta
+   terminó, no hay nada que hacer en ese vestuario. La partida queda guardada, como con el SALIR del vestuario. */
+$l('resTAtras').onclick=()=>{ $l('resumenT').classList.add('oculto'); $l('lobConfirmSi').click(); };
 /* la tira fija del lobby y el velo (lista de espera / feedback) */
 let betaModo='lista';
 /**

@@ -1621,6 +1621,28 @@
   #selVelo #selPremios .fila-item .desc{color:var(--tinta)}
   #selVelo #selPremios svg{fill:#f2c94c;vertical-align:-3px}
   #resTBeta{display:flex;flex-direction:column;gap:8px}
+  #resumenT .resScroll{display:flex;flex-direction:column;gap:10px}
+  /* 2026-09-14 el fin de la beta: VOLVER arriba, el resumen scrollea adentro y el remate queda fijo abajo (su captura: cinco botones) */
+  #resumenT.finBeta .caja{overflow:hidden}
+  #resumenT.finBeta .resScroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  #resumenT.finBeta .resScroll::-webkit-scrollbar{display:none}
+  #resumenT.finBeta #resTBeta{flex:none;padding-top:10px;border-top:1px solid rgba(154,164,184,.18)}
+  #resumenT .volver{align-self:flex-start;flex:none;font-size:13px;font-weight:600;letter-spacing:1.4px;color:var(--tinta2);padding:0 2px 2px;cursor:pointer;user-select:none}
+  #resumenT .volver:active{color:var(--tinta)}
+  #resTBeta .pronto{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding-bottom:2px}
+  #resTBeta .pronto b{font-size:20px;letter-spacing:1.5px;line-height:1.1;color:var(--tinta);text-indent:1.5px}
+  #resTBeta .pronto span{font-size:15px;color:var(--tinta2)}
+  #resTBeta .resTDos{display:flex;gap:8px}
+  #resTBeta .resTDos .jugar{flex:1;min-width:0;min-height:44px;font-size:16px;padding:0 6px;white-space:nowrap}
+  #resTBeta .resTDos .jugar.principal{color:#10151f;background:var(--naranja)}
+  /* 2026-09-14 (su caza: «CAMPEONES en gris; las eliminatorias ocupan un montón con AL MUNDIAL; el Mundial no dice hasta dónde llegaste»):
+     un torneo es UNA fila de dos renglones — el nombre y cómo te fue (con su color), y abajo tu línea con el premio al lado */
+  .veloB .fila-item.torneo{flex-direction:column;align-items:stretch;gap:2px}
+  .veloB .fila-item.torneo .fT{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .veloB .fila-item.torneo .fT2{font-size:13px;color:var(--tinta2);letter-spacing:.5px;font-variant-numeric:tabular-nums}
+  .veloB .fila-item.torneo .fT2 b{font-size:12px;letter-spacing:1.5px}
+  .veloB .fila-item.torneo b.oro{color:#f2c94c} .veloB .fila-item.torneo b.plata{color:#cfd6e4} .veloB .fila-item.torneo b.bronce{color:#d69a63}
+  .veloB .fila-item.torneo b.ok{color:var(--ok)} .veloB .fila-item.torneo b.mal{color:var(--mal)}
   #resTBeta .anotado{color:var(--ok);font-size:13px;letter-spacing:1.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* 2026-09-13 EL CIERRE DE LA LIGA: héroe · tres fichas · lo que te dejó (escala §2z11: rótulo 11 · título 28 · fichas 22/11) */
   #resumenT h2 small{display:block;font-size:11px;letter-spacing:2px;color:var(--tinta2);font-weight:600;margin-bottom:2px}
@@ -1954,7 +1976,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='ba459e8a91';
+const BUILD='c184b74a88';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2670,18 +2692,24 @@ const BUILD='ba459e8a91';
 <!-- §7.1 EL RESUMEN DE TEMPORADA (del juego: siempre, antes del mercado; en la beta, el gancho) -->
 <div id="resumenT" class="veloB oculto">
   <div class="caja">
-    <h2 id="resTTit"></h2>
-    <div class="nota2" id="resTClub"></div>
-    <div id="resTCuerpo"></div>
+    <!-- 2026-09-14 (su captura: «¿por qué tenemos 5 botones todos compitiendo entre sí? y el PRONTO, que es lo clave, en chiquito»):
+         en el fin de la beta la salida es VOLVER arriba (al vestuario, que tiene su SALIR); el resumen scrollea solo y abajo, fijo,
+         el pronto con UN naranja y las dos secundarias en un renglón -->
+    <div class="volver oculto" id="resTAtras" tabindex="0" data-l-en="◂ BACK" data-l-pt="◂ VOLTAR">◂ VOLVER</div>
+    <div class="resScroll">
+      <h2 id="resTTit"></h2>
+      <div class="nota2" id="resTClub"></div>
+      <div id="resTCuerpo"></div>
+    </div>
     <div id="resTBeta" class="oculto">
-      <div class="gancho" data-l-en="Soon: the full career mode, from the Federal league to the NBA."
-           data-l-pt="Em breve: o modo carreira completo, da Federal à NBA.">Pronto: el modo carrera completo, de la Federal a la NBA.</div>
-      <!-- 2026-09-12 (el barrido, con su ok): lo que te llevás — la card y la opinión, justo cuando más ganas hay de darla -->
-      <button class="jugar ancho" id="resTCard" data-l-en="SHARE YOUR SEASON" data-l-pt="COMPARTILHAR SUA TEMPORADA">COMPARTIR TU TEMPORADA</button>
-      <button class="jugar secundario ancho" id="resTOpinion" data-l-en="TELL US WHAT YOU THOUGHT" data-l-pt="CONTA PRA GENTE O QUE ACHOU">CONTANOS QUÉ TE PARECIÓ</button>
+      <div class="pronto"><b data-l-en="SOON: THE FULL CAREER" data-l-pt="EM BREVE: A CARREIRA INTEIRA">PRONTO: LA CARRERA ENTERA</b>
+        <span data-l-en="From the Federal league to the NBA." data-l-pt="Da Federal à NBA.">De la Federal a la NBA.</span></div>
       <button class="jugar ancho" id="resTLista" data-l-en="SIGN ME UP" data-l-pt="ME INSCREVER">ANOTARME</button>
       <div class="gancho anotado oculto" id="resTAnotado"></div>
-      <button class="jugar secundario ancho" id="resTSalir" data-l-en="EXIT" data-l-pt="SAIR">SALIR</button>
+      <div class="resTDos">
+        <button class="jugar secundario" id="resTCard" data-l-en="SHARE" data-l-pt="COMPARTILHAR">COMPARTIR</button>
+        <button class="jugar secundario" id="resTOpinion" data-l-en="FEEDBACK" data-l-pt="OPINAR">OPINAR</button>
+      </div>
     </div>
     <button class="jugar ancho" id="resTSeguir"></button>
     <button class="jugar secundario ancho" id="resTVolver" data-l-en="BACK TO THE LOCKER ROOM" data-l-pt="VOLTAR AO VESTIÁRIO">VOLVER AL VESTUARIO</button>
@@ -24142,6 +24170,13 @@ document.getElementById('selVeloOk').onclick=()=>{
  *  torneo del receso de este año, con la medalla si la hubo. */
 /* 2026-09-12 el fin de la BETA cierra todo: lo internacional del club con el molde de la selección — una fila por copa con cómo te fue
    y PJ · PTS · AST, y sus MVP */
+/* 2026-09-14 (su caza en el fin de la beta: «CAMPEONES está en gris, las eliminatorias ocupan un montón con AL MUNDIAL, y el Mundial
+   no dice hasta dónde llegaste»): un torneo es UNA fila de dos renglones — el nombre y cómo te fue con su color; abajo tu línea y el
+   premio. Así la línea no envuelve contra el nombre ni el MVP pide un renglón propio. */
+const filaTorneo=(nom,como,tono,linea,premio)=>'<div class="fila-item torneo"><div class="fT"><span class="desc">'+nom+'</span>'
+  +(como?'<b class="'+(tono||'')+'">'+como+'</b>':'')+'</div>'
+  +(linea||premio?'<div class="fT fT2"><span>'+(linea||'')+'</span>'+(premio?'<b class="oro">'+premio+'</b>':'')+'</div>':'')+'</div>';
+const tonoFase=(camp,f)=>camp?'oro':f==='final'?'plata':f==='tercero'?'bronce':f==='cuarto'?'':'mal';
 function htmlResumenInternacional(e,fila){
   const mp=e.misPartidos||[], mi=e.miClubId, am=e.americas, ic=e.intercontinental;
   const linea=(ps)=>ps.length?ps.length+' PJ · '+fdec(ps.reduce((a,p)=>a+(p.pts||0),0)/ps.length)+' PTS · '+fdec(ps.reduce((a,p)=>a+(p.ast||0),0)/ps.length)+' AST':'';
@@ -24157,15 +24192,13 @@ function htmlResumenInternacional(e,fila){
       :fA==='tercero'?t(AM_TXT.tercero):fA==='cuarto'?t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR'))
       :fA==='grupo'?t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'))
       :t(L('AFUERA EN ','OUT IN THE ','FORA NAS '))+t(AM_TXT[fA]||L(fA)).replace(/^(LA|THE|A) /,'');
-    h+=fila(t(L('AMÉRICAS','AMERICAS','AMÉRICAS'))+' · '+como, linea(pAm));
-    if(tiene('mvp_americas')) h+=fila('',t(PREMIO_TXT.mvp_americas[1]));
+    h+=filaTorneo(t(L('AMÉRICAS','AMERICAS','AMÉRICAS')),como,tonoFase(am&&am.campeon===mi,fA),linea(pAm),tiene('mvp_americas')?'MVP':'');
   }
   if(pIc.length){
     const f=ic&&ic.miFase||'grupo';
     const como=ic&&ic.campeon===mi?t(L('CAMPEONES','CHAMPIONS','CAMPEÕES')):f==='final'?t(L('SUBCAMPEONES','RUNNERS-UP','VICE-CAMPEÕES')):f==='tercero'?t(AM_TXT.tercero)
       :f==='cuarto'?t(L('CUARTO PUESTO','FOURTH PLACE','QUARTO LUGAR')):t(L('AFUERA EN EL GRUPO','OUT IN THE GROUP','FORA NO GRUPO'));
-    h+=fila(t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL'))+' · '+como, linea(pIc));
-    if(tiene('mvp_ic')) h+=fila('',t(PREMIO_TXT.mvp_ic[1]));
+    h+=filaTorneo(t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL')),como,tonoFase(ic&&ic.campeon===mi,f),linea(pIc),tiene('mvp_ic')?'MVP':'');
   }
   return h;
 }
@@ -24176,13 +24209,16 @@ function htmlResumenSeleccion(e,fila){
   let h='<div class="cajTag">'+banderaDe(C.jugador.nacionalidad||'ar',15)+' '+t(SEL_TXT.seleccion)+'</div>';
   if(elim.length){
     const pts=elim.reduce((a,p)=>a+p.pts,0)/elim.length, ast=elim.reduce((a,p)=>a+p.ast,0)/elim.length;
-    h+=fila(t(SEL_TXT.eliminatorias),elim.length+' PJ · '+fdec(pts)+' PTS · '+fdec(ast)+' AST');
-    if(e.seleccion.fin) h+=fila('',e.seleccion.pase?t(L('AL MUNDIAL','TO THE WORLD CUP','AO MUNDIAL')):t(L('AFUERA DEL MUNDIAL','MISSED THE WORLD CUP','FORA DO MUNDIAL')));
+    /* el pase no se dice si el Mundial está abajo: la fila del Mundial ya lo cuenta */
+    const fin=e.seleccion.fin, mundialAbajo=tor.some(x=>x.torneo==='mundial');
+    const como=!fin||(e.seleccion.pase&&mundialAbajo)?'':e.seleccion.pase?t(L('CLASIFICADOS','QUALIFIED','CLASSIFICADOS')):t(L('AFUERA DEL MUNDIAL','MISSED THE WORLD CUP','FORA DO MUNDIAL'));
+    h+=filaTorneo(t(SEL_TXT.eliminatorias),como,e.seleccion.pase?'ok':'mal',elim.length+' PJ · '+fdec(pts)+' PTS · '+fdec(ast)+' AST');
   }
   for(const x of tor){
     const l=x.linea;
-    h+=fila(selTorneoTxt(x.torneo)+(x.medalla?' · '+t(SEL_TXT[x.medalla]):''),
-      l?(l.pj+' PJ · '+fdec(l.pts)+' PTS · '+fdec(l.ast)+' AST'):t(SEL_CEREMONIA_TXT[x.puesto]||L(x.puesto||'')));
+    /* hasta dónde llegaste: la medalla, o el puesto de la ceremonia (AFUERA EN CUARTOS · CUARTO PUESTO) */
+    const como=x.medalla?t(SEL_TXT[x.medalla]):(x.puesto&&x.puesto!=='final'&&SEL_CEREMONIA_TXT[x.puesto])?t(SEL_CEREMONIA_TXT[x.puesto]):'';
+    h+=filaTorneo(selTorneoTxt(x.torneo),como,x.medalla||(x.puesto==='cuarto'?'':'mal'),l?(l.pj+' PJ · '+fdec(l.pts)+' PTS · '+fdec(l.ast)+' AST'):'');
   }
   return h;
 }
@@ -29195,7 +29231,7 @@ function abrirResumenAM(){
   if(camp){ const ic=icAnunciado(e); filas.push('<div class="pr oro">'+icono('globo',20)+'<span>'+t(IC_TXT.nombre)+(ic?'<small>'+t(L('SEPTIEMBRE','SEPTEMBER','SETEMBRO'))+' '+ic.anio+(ic.sede&&ic.sede.ciudad?' · '+String(ic.sede.ciudad).toUpperCase():'')+'</small>':'')+'</span></div>'); }
   if(filas.length) html+='<div class="cajTag">'+(camp?t(L('TE DEJÓ','IT LEFT YOU','TE DEIXOU')):t(L('EL TORNEO','THE TOURNAMENT','O TORNEIO')))+'</div><div class="resPremios">'+filas.join('')+'</div>';
   $l('resTCuerpo').innerHTML=html;
-  $l('resTBeta').classList.add('oculto'); $l('resTVolver').classList.add('oculto');
+  $l('resTBeta').classList.add('oculto'); $l('resTVolver').classList.add('oculto'); $l('resTAtras').classList.add('oculto'); $l('resumenT').classList.remove('finBeta');
   $l('resTSeguir').classList.remove('oculto'); $l('resTSeguir').textContent=t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
   resumenModo='am';
   $l('resumenT').classList.remove('oculto');
@@ -29210,7 +29246,7 @@ function hojaBase(rot,tit,clubHtml,hero,fichas,tag,filas,seguirTxt){
   if(fichas.length) html+='<div class="resStats">'+fichas.map(([v,k])=>'<div class="st"><b>'+v+'</b><span>'+k+'</span></div>').join('')+'</div>';
   if(filas.length) html+='<div class="cajTag">'+tag+'</div><div class="resPremios">'+filas.join('')+'</div>';
   $l('resTCuerpo').innerHTML=html;
-  $l('resTBeta').classList.add('oculto'); $l('resTVolver').classList.add('oculto');
+  $l('resTBeta').classList.add('oculto'); $l('resTVolver').classList.add('oculto'); $l('resTAtras').classList.add('oculto'); $l('resumenT').classList.remove('finBeta');
   $l('resTSeguir').classList.remove('oculto'); $l('resTSeguir').textContent=seguirTxt||t(L('SEGUIR ▸','CONTINUE ▸','SEGUIR ▸'));
   $l('resumenT').classList.remove('oculto');
 }
@@ -29325,6 +29361,7 @@ function abrirResumenT(final){
   $l('resTCuerpo').innerHTML=html;
   const beta=esBeta(), fin=beta&&final===true, pend=recesoPendiente(e);
   $l('resTBeta').classList.toggle('oculto',!fin); if(fin) pintarAnotadoFin();
+  $l('resTVolver').classList.toggle('oculto',fin); $l('resTAtras').classList.toggle('oculto',!fin); $l('resumenT').classList.toggle('finBeta',fin);   // 2026-09-14
   $l('resTSeguir').classList.toggle('oculto',beta&&!pend);   // en la beta no hay mercado: sólo AL RECESO, o VOLVER
   $l('resTSeguir').textContent=pend?t(L('AL RECESO ▸','TO THE OFFSEASON ▸','AO RECESSO ▸')):t(L('AL MERCADO ▸','TO THE MARKET ▸','AO MERCADO ▸'));
   $l('resumenT').classList.remove('oculto');
@@ -29346,14 +29383,15 @@ const betaAnotado=()=>{ try{ return localStorage.getItem('betaAnotadoNSS')||''; 
 let betaVeloDesde=null;
 function pintarAnotadoFin(){ const m=betaAnotado();
   $l('resTLista').classList.toggle('oculto',!!m);
+  $l('resTCard').classList.toggle('principal',!!m); $l('resTCard').classList.toggle('secundario',!m);   // 2026-09-14: anotado, el naranja pasa a COMPARTIR
   $l('resTAnotado').classList.toggle('oculto',!m);
   $l('resTAnotado').textContent=m?'✓ '+t(L('ANOTADO · TE AVISAMOS A ','SIGNED UP · WE’LL WRITE TO ','INSCRITO · A GENTE AVISA EM '))+m.toUpperCase():''; }
 $l('resTLista').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('lista'); };
 $l('resTCard').onclick=()=>CARD.abrirCard('corta');   // la card va encima (z 42) y al cerrarla quedás en el fin
 $l('resTOpinion').onclick=()=>{ $l('resumenT').classList.add('oculto'); betaVeloDesde='fin'; abrirBetaVelo('feedback'); };
-/* 2026-09-12 (su caza: «FIN DE LA BETA no tiene salida: sólo VOLVER AL VESTUARIO o ANOTARME»): SALIR te lleva a la portada, donde está
-   JUGAR otra vez — la partida queda guardada, como con el SALIR del vestuario */
-$l('resTSalir').onclick=()=>{ $l('resumenT').classList.add('oculto'); $l('lobConfirmSi').click(); };
+/* 2026-09-12 SALIR llevaba a la portada; 2026-09-14 (su caza: cinco botones compitiendo) se fue con VOLVER AL VESTUARIO: la salida es
+   ◂ VOLVER arriba, al vestuario, que tiene su SALIR */
+$l('resTAtras').onclick=()=>$l('resTVolver').onclick();
 /* la tira fija del lobby y el velo (lista de espera / feedback) */
 let betaModo='lista';
 /**

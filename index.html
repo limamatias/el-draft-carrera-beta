@@ -1997,10 +1997,13 @@
   /* el switch de idioma de la portada: la píldora segmentada de siempre */
   /* §2z273 la esquina de la portada, con el molde de El Draft (.idioma-select · .cuenta-boton de allá): 14 px de arriba, 18 de los
      costados, el select sin caja con la flechita dibujada, el avatar sin círculo propio (la foto ES el círculo, 38 px) */
-  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;align-items:center;gap:2px}
-  #introAtras{width:34px;height:38px;border:0;background:none;color:var(--tinta2);font-size:30px;line-height:1;padding:0 0 4px;cursor:pointer}
+  /* la esquina izquierda en COLUMNA (su corte: la flecha pegada a la bandera parecía parte del selector): VOLVER arriba, con el molde
+     del `.step-back` de El Draft (flecha + palabra, 13/600, gris), y la banderita debajo — espejo del avatar / ⚙ de la derecha */
+  #introEsqIzq{position:absolute;left:18px;top:14px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+  #introAtras{display:inline-flex;align-items:center;gap:6px;min-height:38px;margin-left:-4px;padding:0 10px 0 6px;border:0;border-radius:10px;
+       background:none;color:var(--tinta2);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:1.4px;line-height:1;cursor:pointer}
   #introAtras.oculto{display:none}
-  #introAtras:active{color:var(--tinta)}
+  #introAtras:active{color:var(--tinta);background:rgba(20,27,44,.85)}
   #introIdioma{appearance:none;-webkit-appearance:none;background:none;border:1px solid transparent;border-radius:10px;padding:8px 26px 8px 8px;
        font-size:17px;line-height:1.4;color:var(--tinta);outline:none;cursor:pointer;
        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%238d99ad' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -2013,7 +2016,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='1779fcba8f';
+const BUILD='166ddf67ca';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2114,7 +2117,7 @@ const BUILD='1779fcba8f';
        derecha (sólo en /carrera), y ‹ para volver a la casa cuando hay casa. El ⚙ se fue: el idioma está acá y el resto vive
        en el ⚙ del lobby. -->
   <div id="introEsqIzq">
-    <button id="introAtras" class="oculto" aria-label="El Draft">‹</button>
+    <button id="introAtras" class="oculto"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span data-l-en="BACK" data-l-pt="VOLTAR">VOLVER</span></button>
     <select id="introIdioma" aria-label="Idioma"><option value="es">🇦🇷</option><option value="en">🇺🇸</option><option value="pt">🇧🇷</option></select>
   </div>
   <div id="introEsqDer">

@@ -1120,7 +1120,7 @@
   #lobby #lobResumen{display:flex;flex-direction:column}
   #lobby .titCajon{flex:none;font-size:13px;letter-spacing:2px;font-weight:600;color:var(--tinta);padding:0 14px 7px;text-align:left}   /* el nombre de la liga arriba de la tabla plena: blanco, alineado con el texto de adentro del cajón (12 + 1 de borde) */
   /* 2026-09-12 el desglose por competencia del lado del club: nombre (11, la escala de la navegación) y tres columnas numéricas fijas */
-  #lobby #lobResumen .desglose{display:grid;grid-template-columns:minmax(0,1fr) 34px 44px 44px;column-gap:6px;row-gap:6px;align-items:baseline;
+  #lobby #lobResumen .desglose{display:grid;grid-template-columns:minmax(0,1fr) 30px 40px 40px 40px;column-gap:6px;row-gap:6px;align-items:baseline;
        margin:8px 2px 12px;padding-top:9px;border-top:1px solid rgba(154,164,184,.14);font-variant-numeric:tabular-nums}
   #lobby #lobResumen .desglose .h{font-size:10.5px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;text-align:right}
   #lobby #lobResumen .desglose .c{font-size:11px;letter-spacing:1.5px;color:var(--tinta2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2004,7 +2004,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='d3e0791042';
+const BUILD='2a64a9a86f';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -19376,7 +19376,10 @@ function pedilaSinSentido(){
      había reseteado y el botón vivía — la pedida se agendaba DETRÁS de la que venía y las dos salían como pedidas. Con
      una jugada anunciada en la mano, no se pide. */
   if(G.beat && G.beat.t==='jugada') return true;
-  if(G.pedidaEnCuarto && G.cuarto<4) return true;  // una por cuarto; el último y el suplementario son libres (§2z138: "las que te quedan tienen que valer en el OT")
+  /* 2026-09-15 (su caza: «si te dan una pedida extra, te debería habilitar DOS en un cuarto —el que elijas— hasta que la consumas; si no,
+     se te pasó un cuarto sin pedir y la extra no sirve»): la extra de la sesión de video (`G.dobleCuarto`) deja pedir la segunda en un
+     mismo cuarto, una vez por partido. El último y el suplementario siguen libres. */
+  if(G.pedidaEnCuarto && G.cuarto<4 && !((G.dobleCuarto||0)>0 && (G.pedidasCuarto||0)<2)) return true;  // una por cuarto; el último y el suplementario son libres (§2z138: "las que te quedan tienen que valer en el OT")
   if(prox.t==='chicharra' || prox.t==='cuarto') return true;
   if(prox.t==='jugada') return (relojYa - (prox.hasta ?? relojYa)) <= 25;
   return false;
@@ -19390,7 +19393,8 @@ $('#btnPedila').onclick=()=>{
   const relojYa = G.relojAnim ? Math.min(G.reloj, G.relojAnim.b) : G.reloj;
   /* los dos casos de ruido murieron con el botón apagado: si igual llegan, silencio */
   if(pedilaSinSentido()) return;
-  G.pedidas--; G.pidio=true; G.pedidaEnCuarto=true; G.pedidasUsadas=(G.pedidasUsadas||0)+1;   // 2026-09-10: la misión SIN PEDIRLA
+  G.pedidas--; G.pidio=true; G.pedidasUsadas=(G.pedidasUsadas||0)+1;   // 2026-09-10: la misión SIN PEDIRLA
+  G.pedidasCuarto=(G.pedidasCuarto||0)+1; if(G.pedidaEnCuarto && G.cuarto<4) G.dobleCuarto=Math.max(0,(G.dobleCuarto||0)-1); G.pedidaEnCuarto=true;   // 2026-09-15: la segunda del cuarto gasta la doble
   /* la pedida llega EN LA PRÓXIMA BAJADA (8-25s de reloj), no en el minuto que el guion
      tenía agendado (su caza: "te la dan al minuto y medio siempre") */
   g.beats.splice(g.i,0,{t:'jugada', pedida:true, hasta: Math.max(2, Math.round(relojYa - rnd(8,25)))});
@@ -19444,7 +19448,7 @@ function siguienteBeat(){
   if(b.t==='cuarto'){
     cerrarRelojAnim(); G.cuarto=b.n+1; G.reloj=b.ot?OT_SEG:RELOJ_CUARTO; G.relojAnim=null; marcador();
     if(b.ot){   // §2z103: el suplementario — lo jugás si terminaste en cancha; sin rotación ni pedida
-      G.rotSale=null; G.rotEntra=null; G.enCancha=!G.sub; G.pedidaEnCuarto=false; pintarBtnPedila();   // §2z138: las pedidas que te quedan valen en el OT
+      G.rotSale=null; G.rotEntra=null; G.enCancha=!G.sub; G.pedidaEnCuarto=false; G.pedidasCuarto=0; pintarBtnPedila();   // §2z138: las pedidas que te quedan valen en el OT
       fila(t(L('EMPATADO — SUPLEMENTARIO.','TIED — OVERTIME.','EMPATADO — PRORROGAÇÃO.')),'hito');
       setTimeout(siguienteBeat, velRelato(1400)); return; }
     /* LA ROTACIÓN (su regla 2026-08-29): jugás el arranque de los tres primeros cuartos
@@ -19456,7 +19460,7 @@ function siguienteBeat(){
        cierre», sin que te hayan dicho que saliste"): el último cuarto arranca en el banco SIN AVISO — los tres
        primeros anuncian "salís a descansar" cuando cruzás la rotación, pero acá enCancha se apagaba en silencio. */
     if(b.n===3 && !G.enCancha && !G.sub) setTimeout(()=>fila(t(L('Arrancás el último cuarto en el banco.','You start the fourth on the bench.','Você começa o último quarto no banco.')),'hito'),700);   // §2z113 v2 (su caza: "volvés para el cierre" repetía al de la entrada)
-    G.pedidaEnCuarto=false;   // PEDILA: una por cuarto (el último es libre)
+    G.pedidaEnCuarto=false; G.pedidasCuarto=0;   // PEDILA: una por cuarto (el último es libre)
     pintarBtnPedila();   // el repintado del beat corrió ANTES de resetear el reloj (quedaba en 0)
     if(b.n===0 && window.partidoTitNSS) fila(window.partidoTitNSS,'hito');   /* 2026-09-12: lo que se juega, antes del salto inicial (18b) */
     fila([t(L('ARRANCA EL PARTIDO','THE GAME TIPS OFF','COMEÇA O JOGO')),
@@ -19744,7 +19748,7 @@ function ajustarTituloFin(){
    `g.beats[g.i++]`, así que continuar es exactamente no tocarlo. */
 function empezar(snap){
   pantallaEncendida(true);   // §2z248: la pantalla no se apaga mientras corre el partido
-  Object.assign(G,{defExtra:0,nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
+  Object.assign(G,{defExtra:0,nos:0,riv:0,cuarto:1,reloj:RELOJ_CUARTO,enCancha:true,pedidaEnCuarto:false,pedidasCuarto:0,dobleCuarto:0,rotSale:null,rotEntra:null,pts:0,ast:0,ptsAsist:0,pasesTiro:0,defensas:0,tiros:0,aciertos:0,perdidas:0,malDesmarque:0,robos:0,tapas:0,
     triples:0,tiros3:0,ftm:0,fta:0,libres:null,fuego:0,fuegoMax:0,fuegoRegalo:0,rachaTiros:0,rachaTirosMax:0,fuegoBolas:0,pedidas:3,pidio:false,pedidasUsadas:0,pedidasResueltas:0,perdidasQ4:0,enPedida:false,beat:null,avisoDuelo:null,relojAnim:null,sinCadena:false,
     pelota:null,pelotaEn:null,suelo:null,corre:null,desmarque:null,flashJ:null,
     intJugadas:0,intBuenas:0,sub:null,toco:null,conVentaja:false,camLat:null,camX:0,camY:0,bola:null,boteo:null,flickIni:null,scr:null,contraHubo:false,defensaHubo:false,defEscenasVistas:[],esFinal:false,finalDesde:null,rivAlFinal:null,frio:0,frioRegalo:0,frioExtra:0,vinetaFuego:false,clutch:null,ot:0,fuegoDicho:0});   /* §2z223: rivAlFinal arranca limpio en cada partido */
@@ -26740,7 +26744,7 @@ $l('lobSalir').addEventListener('click',()=>{
      cobraba el −7 % antes de tocar la pelota y la apuesta pasaba a no convenir nunca — el problema de siempre, dado
      vuelta (lo cazó cartas-check con el EV). */
   /* §2z247: lo que compraste para los partidos — la sesión de video da una pedida más, la psicóloga corre el frío un tiro */
-  if(!snap){ const u=C.jugador.enUso||{}; if(u.video) G.pedidas+=1; G.frioExtra=u.psicologa?1:0; }
+  if(!snap){ const u=C.jugador.enUso||{}; if(u.video){ G.pedidas+=1; G.dobleCuarto=1; } G.frioExtra=u.psicologa?1:0; }   // 2026-09-15: la extra también es la segunda en un cuarto
   if(!snap && efS.frio){ G.frio=frioUmbral()-1; G.frioRegalo=frioUmbral()-1; }   // 2026-09-12 (su caza: «erré UNO y me dijo 3 seguidas afuera»): prestado, como el fuego
   G.mision=enPartido.mision; marcador();   // el feed la muestra junto a la statline desde el primer renglón
   const mk=document.getElementById('marcador'); mk.classList.remove('cae'); void mk.offsetWidth; mk.classList.add('cae');   // §2z14: el marcador cae
@@ -27189,7 +27193,7 @@ function diaTorneoDe(t,paso){
    batería a mitad de un tiro la contara como errada.
    ⚠️ SE GUARDAN LOS DATOS, NO LA ESCENA: cuerpos, cámara y pelota se rearman solos al retomar. Lista blanca a
    propósito — con una lista negra, cada campo nuevo del motor entraría al guardado sin que nadie lo decida. */
-const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','rotSale','rotEntra','pts','ast','ptsAsist',
+const CAMPOS_PARTIDO=['nos','riv','cuarto','reloj','enCancha','pedidaEnCuarto','pedidasCuarto','dobleCuarto','rotSale','rotEntra','pts','ast','ptsAsist',
   'pasesTiro','defensas','tiros','aciertos','perdidas','malDesmarque','robos','tapas','triples','tiros3','ftm','fta','libres',
   'fuego','fuegoMax','fuegoRegalo','fuegoBolas','fuegoDicho','vinetaFuego','frio','frioRegalo','frioExtra','rachaTiros','rachaTirosMax',
   'pedidas','pedidasUsadas','pedidasResueltas','perdidasQ4','intJugadas','intBuenas','sub','contraHubo','defensaHubo',
@@ -27864,7 +27868,8 @@ function pintaSecciones(){
   /* §2z71: LA LÍNEA DE UN LADO. `miLinea` suma club + selección + continental (es el total, y así lo usan la card y el
      historial); el resumen muestra UN lado, calculado de la lista de partidos: el club sin `sel`·`am`·`po`·`conSeleccion`
      (los que te perdiste por la selección no son partidos tuyos), la selección con sus `sel` más los torneos del año. */
-  const sumar=(ps)=>ps.reduce((a,p)=>({pj:a.pj+1,min:a.min+(p.minutos||0),pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),rob:a.rob+(p.rob||0),tap:a.tap+(p.tap||0)}),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0});
+  const sumar=(ps)=>ps.reduce((a,p)=>({pj:a.pj+1,min:a.min+(p.minutos||0),pts:a.pts+(p.pts||0),ast:a.ast+(p.ast||0),rob:a.rob+(p.rob||0),tap:a.tap+(p.tap||0),
+    rat:a.rat+(p.rating!=null?p.rating:0),rn:a.rn+(p.rating!=null?1:0)}),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0,rat:0,rn:0});   // 2026-09-15: la nota viaja con cada competencia
   const mp=e.misPartidos||[];
   /* §2z124 (su caza 2026-09-07: "en RESUMEN, en VOS, sólo te toma partidos de liga nacional cuando jugaste el
      continental también"): el lado del club es TODO lo que jugaste con el club — liga + continental; los playoffs siguen
@@ -27886,12 +27891,13 @@ function pintaSecciones(){
   /* 2026-09-14 (su captura: ARG decía 7,6 PTS con 10,5 en las eliminatorias y 9,4 en el Mundial): `x.linea` es POR PARTIDO
      (lineaTorneoSel, 01r) y se sumaba como si fuera el total — el Mundial entero pesaba como un partido de 9 puntos. Se lleva a
      totales multiplicando por sus PJ. Y el lado de la selección tiene su desglose por competencia, como el del club. */
-  const aTot=(l)=>({pj:l.pj||0,min:(l.min||0)*(l.pj||0),pts:(l.pts||0)*(l.pj||0),ast:(l.ast||0)*(l.pj||0),rob:(l.rob||0)*(l.pj||0),tap:(l.tap||0)*(l.pj||0)});
-  const mas=(a,b)=>({pj:a.pj+b.pj,min:a.min+b.min,pts:a.pts+b.pts,ast:a.ast+b.ast,rob:a.rob+b.rob,tap:a.tap+b.tap});
+  const aTot=(l)=>({pj:l.pj||0,min:(l.min||0)*(l.pj||0),pts:(l.pts||0)*(l.pj||0),ast:(l.ast||0)*(l.pj||0),rob:(l.rob||0)*(l.pj||0),tap:(l.tap||0)*(l.pj||0),
+    rat:l.rating!=null?l.rating*(l.pj||0):0,rn:l.rating!=null?(l.pj||0):0});
+  const mas=(a,b)=>({pj:a.pj+b.pj,min:a.min+b.min,pts:a.pts+b.pts,ast:a.ast+b.ast,rob:a.rob+b.rob,tap:a.tap+b.tap,rat:a.rat+b.rat,rn:a.rn+b.rn});
   const compsSel=[[t(SEL_TXT.eliminatorias),sumar(mp.filter(p=>p.sel)),!!e.seleccion]].concat(torAnio.map(x=>[selTorneoTxt(x.torneo),aTot(x.linea),true]));
   /* 2026-09-13: el torneo del receso EN CURSO todavía no está en mem.torneos (entra al cerrarse): sus partidos se suman de C.selTorneo.mis */
   if(C.selTorneo) compsSel.push([selTorneoTxt(C.selTorneo.torneo),sumar(C.selTorneo.mis||[]),true]);   /* convocado al torneo que clasificaste: aparece desde antes del primer partido */
-  const lSel=compsSel.reduce((a,[,l])=>mas(a,l),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0});
+  const lSel=compsSel.reduce((a,[,l])=>mas(a,l),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0,rat:0,rn:0});
   const compsSelV=compsSel.filter(([,l,va])=>l.pj>0||va);
   const haySelVos=lSel.pj>0;
   if(!haySelVos) ladoVos='club';
@@ -27902,14 +27908,6 @@ function pintaSecciones(){
     swV.innerHTML=tabV('club',escuditoDe(clubV)+'<span>'+clubV.sigla+'</span>')+tabV('sel',escuditoDe(clubDeSeleccion(paisV))+'<span>'+SEL_FICHA[paisV].sigla+'</span>');
     swV.querySelectorAll('[data-ladovos]').forEach(b=>b.addEventListener('click',()=>{ ladoVos_auto=false; if(ladoVos!==b.dataset.ladovos){ ladoVos=b.dataset.ladovos; pintaSecciones(); animaCambio('lobResumen'); } })); }
   const enSel=ladoVos==='sel'&&haySelVos, lv=enSel?lSel:lClub;
-  /* 2026-09-14 (su pregunta, 1° en la carrera al MVP: «no me dice la nota promedio en VOS»): la nota es el número con el que te miden
-     los premios y no vivía en ningún lado de la beta. Va primera en la grilla; MIN se va (la previa dice los minutos que te da el DT). */
-  const notaLado=(()=>{ let s=0, n=0;
-    const suma=(ps)=>{ for(const p of ps) if(p.rating!==undefined&&p.rating!==null){ s+=p.rating; n++; } };
-    if(enSel){ suma(mp.filter(p=>p.sel)); for(const x of torAnio) if(x.linea&&x.linea.rating!=null){ s+=x.linea.rating*(x.linea.pj||0); n+=x.linea.pj||0; }
-      if(C.selTorneo) suma(C.selTorneo.mis||[]); }
-    else suma(mpClub);
-    return n?s/n:null; })();
   const stat=(v)=>lv.pj?fdec(v/lv.pj):'—';
   /* el rótulo de alcance (su ok): el escudo o la bandera, la competencia y el año. El nombre del club ya está en el
      encabezado y PJ en la grilla: no se repiten. */
@@ -27920,7 +27918,6 @@ function pintaSecciones(){
     /* §2z248: NORMAL · INTENSO se fue a OPCIONES; el rótulo queda solo */
     '<div class="cajTag rotuloVos">'+rotulo+'</div>'+
     '<div class="statGrande">'+
-      '<div class="s"><b>'+(notaLado!=null?fdec(notaLado):'—')+'</b><span>'+t(L('NOTA','RATING','NOTA'))+'</span></div>'+
       '<div class="s"><b>'+stat(lv.pts)+'</b><span>PTS</span></div>'+
       '<div class="s"><b>'+stat(lv.ast)+'</b><span>AST</span></div>'+
       /* §2z39.67 (su pedido 2026-09-05: "el RESUMEN debería incluir el que tengas más, de tapas o robos"): la
@@ -27928,11 +27925,12 @@ function pintaSecciones(){
       ((lv.tap||0)>(lv.rob||0)
         ? '<div class="s"><b>'+stat(lv.tap)+'</b><span>'+t(L('TAP','BLK','TOC'))+'</span></div>'
         : '<div class="s"><b>'+stat(lv.rob)+'</b><span>'+t(L('ROB','STL','ROU'))+'</span></div>')+
+      '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
 
       '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
-    ((enSel?compsSelV:compsClub).length?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'
-      +(enSel?compsSelV:compsClub).map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pj?l.pts/l.pj:0)+'</span><span class="n">'+fdec(l.pj?l.ast/l.pj:0)+'</span>').join('')+'</div>':'')+
+    ((enSel?compsSelV:compsClub).length?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span><span class="h">'+t(L('NOTA','RTG','NOTA'))+'</span>'
+      +(enSel?compsSelV:compsClub).map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pj?l.pts/l.pj:0)+'</span><span class="n">'+fdec(l.pj?l.ast/l.pj:0)+'</span><span class="n">'+(l.rn?fdec(l.rat/l.rn):'—')+'</span>').join('')+'</div>':'')+
     '';
   /* §2z248: el ritmo se elige en OPCIONES */
   pintaPalmares();   // §2z28: la vitrina

@@ -1977,7 +1977,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='5ca27dbe89';
+const BUILD='e411d38c42';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -27632,24 +27632,28 @@ function pintaSecciones(){
      en su renglón. El rótulo lo dice. */
   /* 2026-09-12 (su caza: «LN + AMÉRICAS cuando también jugué la Intercontinental; 38 PJ no sé de dónde salen; Playoffs queda colgado
      abajo; las de Américas y la Copa no aparecen»): arriba, TODO lo que jugaste con el club en el año (liga, playoffs, Américas, la
-     Copa); abajo, una fila por competencia con PJ · PTS · AST — así cada número dice de dónde sale. Con una sola competencia no hay
-     desglose (repetiría la grilla). */
+     Copa); abajo, una fila por competencia con PJ · PTS · AST — así cada número dice de dónde sale. 2026-09-14: el desglose va siempre,
+     aunque sea una sola (su corte: arriba el total, abajo de dónde sale). */
   const mpClub=mp.filter(p=>!p.sel&&!p.conSeleccion&&!p.noCitado);
   const lClub=sumar(mpClub);
-  const compsClub=[[ligaDe().nombre.toUpperCase(),mpClub.filter(p=>!p.po&&!p.am)],[t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')),mpClub.filter(p=>p.po)],
-    [t(L('AMÉRICAS','AMERICAS','AMÉRICAS')),mpClub.filter(p=>p.am&&!p.ic)],[t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL')),mpClub.filter(p=>p.ic)]]
-    .map(([nom,ps])=>[nom,sumar(ps)]).filter(([,l])=>l.pj>0);
+  /* 2026-09-14 (su corte: «desagregado incluso con un solo torneo; lo que tu equipo juega esta temporada aparece con todo en 0 aunque
+     no hayas jugado; a lo que se CLASIFICA —playoffs, Intercontinental, Mundial—, sólo cuando clasificaste»): el tercer valor dice si
+     la competencia se muestra sin partidos. La liga y las Américas (instaladas al nacer la temporada) sí; la llave y la Copa, al entrar. */
+  const enLlave=!!(e.playoffs&&[...(e.playoffs.series||[]),...(e.playoffs.seriesJugadas||[])].some(s=>s.alta===e.miClubId||s.baja===e.miClubId));
+  const compsClub=[[ligaDe().nombre.toUpperCase(),mpClub.filter(p=>!p.po&&!p.am),true],[t(L('PLAYOFFS','PLAYOFFS','PLAYOFFS')),mpClub.filter(p=>p.po),enLlave],
+    [t(L('AMÉRICAS','AMERICAS','AMÉRICAS')),mpClub.filter(p=>p.am&&!p.ic),!!e.americas],[t(L('INTERCONTINENTAL','INTERCONTINENTAL','INTERCONTINENTAL')),mpClub.filter(p=>p.ic),!!e.intercontinental]]
+    .map(([nom,ps,va])=>[nom,sumar(ps),va]).filter(([,l,va])=>l.pj>0||va);
   const torAnio=((C.seleccion&&C.seleccion.torneos)||[]).filter(x=>x.anio===C.anio&&x.linea);
   /* 2026-09-14 (su captura: ARG decía 7,6 PTS con 10,5 en las eliminatorias y 9,4 en el Mundial): `x.linea` es POR PARTIDO
      (lineaTorneoSel, 01r) y se sumaba como si fuera el total — el Mundial entero pesaba como un partido de 9 puntos. Se lleva a
      totales multiplicando por sus PJ. Y el lado de la selección tiene su desglose por competencia, como el del club. */
   const aTot=(l)=>({pj:l.pj||0,min:(l.min||0)*(l.pj||0),pts:(l.pts||0)*(l.pj||0),ast:(l.ast||0)*(l.pj||0),rob:(l.rob||0)*(l.pj||0),tap:(l.tap||0)*(l.pj||0)});
   const mas=(a,b)=>({pj:a.pj+b.pj,min:a.min+b.min,pts:a.pts+b.pts,ast:a.ast+b.ast,rob:a.rob+b.rob,tap:a.tap+b.tap});
-  const compsSel=[[t(SEL_TXT.eliminatorias),sumar(mp.filter(p=>p.sel))]].concat(torAnio.map(x=>[selTorneoTxt(x.torneo),aTot(x.linea)]));
+  const compsSel=[[t(SEL_TXT.eliminatorias),sumar(mp.filter(p=>p.sel)),!!e.seleccion]].concat(torAnio.map(x=>[selTorneoTxt(x.torneo),aTot(x.linea),true]));
   /* 2026-09-13: el torneo del receso EN CURSO todavía no está en mem.torneos (entra al cerrarse): sus partidos se suman de C.selTorneo.mis */
-  if(C.selTorneo&&(C.selTorneo.mis||[]).length) compsSel.push([selTorneoTxt(C.selTorneo.torneo),sumar(C.selTorneo.mis)]);
+  if(C.selTorneo) compsSel.push([selTorneoTxt(C.selTorneo.torneo),sumar(C.selTorneo.mis||[]),true]);   /* convocado al torneo que clasificaste: aparece desde antes del primer partido */
   const lSel=compsSel.reduce((a,[,l])=>mas(a,l),{pj:0,min:0,pts:0,ast:0,rob:0,tap:0});
-  const compsSelV=compsSel.filter(([,l])=>l.pj>0);
+  const compsSelV=compsSel.filter(([,l,va])=>l.pj>0||va);
   const haySelVos=lSel.pj>0;
   if(!haySelVos) ladoVos='club';
   if(ladoVos_auto&&haySelVos) ladoVos=(proxLobby&&proxLobby.tipo==='seleccion')?'sel':'club';   // §2z74 para VOS: abre del lado del próximo hasta que tocás el switch
@@ -27679,8 +27683,8 @@ function pintaSecciones(){
       '<div class="s"><b>'+(lv.pj?Math.round(lv.min/lv.pj):'—')+'</b><span>MIN</span></div>'+
       '<div class="s"><b>'+lv.pj+'</b><span>PJ</span></div>'+
     '</div>'+
-    ((enSel?compsSelV:compsClub).length>1?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'
-      +(enSel?compsSelV:compsClub).map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pts/l.pj)+'</span><span class="n">'+fdec(l.ast/l.pj)+'</span>').join('')+'</div>':'')+
+    ((enSel?compsSelV:compsClub).length?'<div class="desglose"><span></span><span class="h">PJ</span><span class="h">PTS</span><span class="h">AST</span>'
+      +(enSel?compsSelV:compsClub).map(([nom,l])=>'<span class="c">'+nom+'</span><span class="n">'+l.pj+'</span><span class="n">'+fdec(l.pj?l.pts/l.pj:0)+'</span><span class="n">'+fdec(l.pj?l.ast/l.pj:0)+'</span>').join('')+'</div>':'')+
     '';
   /* §2z248: el ritmo se elige en OPCIONES */
   pintaPalmares();   // §2z28: la vitrina

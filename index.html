@@ -2007,7 +2007,7 @@
 <script>window.MODO_BETA={"link":"https://claude.ai/code/artifact/9306cd39-1b04-45dd-84e5-08ac2a494bef","sb":{"url":"https://legqpmxffalbxjudbpiu.supabase.co","anon":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxlZ3FwbXhmZmFsYnhqdWRicGl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0NDMxMTUsImV4cCI6MjEwMTAxOTExNX0.aIUDfUurcSc84uzP5Eb-0jLxunTA5UmJ3qB1LFtX9q4"},"medidor":false};</script>
 <script>
 /* GENERADO por armar.mjs — no se edita a mano. §2z225: el sello del build. */
-const BUILD='0f1cfd3e1b';
+const BUILD='63a8dc6ae6';
 </script>
 
 <div id="juego"><canvas id="c"></canvas></div>
@@ -2114,7 +2114,8 @@ const BUILD='0f1cfd3e1b';
   <!-- EL NOMBRE (2026-09-03, decisión suya): El Draft es la casa y éste es CARRERA — el hermano de
        El Draft: Destino. Es un nombre: no se traduce. -->
   <div style="color:var(--tinta2);font-size:18px;letter-spacing:5px;font-weight:700;margin-bottom:-6px">EL DRAFT</div>
-  <h1 style="color:var(--naranja);font-size:46px;letter-spacing:3px">CARRERA</h1>
+  <!-- §2z274: lo que no se traduce es EL DRAFT (la marca); el apellido es una descripción y va en cada idioma (su corte 2026-09-17) -->
+  <h1 style="color:var(--naranja);font-size:46px;letter-spacing:3px" data-l-en="CAREER" data-l-pt="CARREIRA">CARRERA</h1>
   <button id="btnEmpezar" data-l-en="PLAY" data-l-pt="JOGAR">JUGAR</button>
   <div class="contador" id="cIntro"></div>
   <div id="sello">build 31ba599</div>
@@ -3033,6 +3034,8 @@ function t(texto,lang){
    data-l-en / data-l-pt y este aplicador los pisa al arrancar si hace falta. */
 function aplicarIdiomaAlHtml(){
   if(idiomaActual==='es') return;
+  /* §2z274: el apellido se traduce (EL DRAFT no); la pestaña también */
+  try{ document.title=document.title.replace('Carrera',idiomaActual==='en'?'Career':'Carreira'); }catch(e){}
   document.querySelectorAll('[data-l-'+idiomaActual+']').forEach(el=>{
     const tx=el.getAttribute('data-l-'+idiomaActual);
     /* el label con hijos (los sliders del ⚙ llevan el <span> del valor adentro) traduce
